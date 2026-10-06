@@ -13,8 +13,15 @@ Stan konfiguracji: **6 października 2026**.
 | Zasoby | 2 vCPU, 4 GiB RAM, SSD 32 GiB, swap 2 GiB |
 | System | Ubuntu 24.04 LTS |
 | SSH | TCP 22, wyłącznie klucze publiczne, bez logowania roota |
-| Wyłączenie nocne | Codzienna dealokacja o **00:30 czasu polskiego** |
-| Ponowny start | Ręczny w Azure, gdy zespół potrzebuje serwera |
+| Poniedziałek–piątek | Automatyczny start **15:00**, dealokacja **22:00** |
+| Sobota | Automatyczny start **8:00**, dealokacja **21:00** |
+| Niedziela | Automatyczny start **12:00**, dealokacja **21:00** |
+| Strefa czasu | Europe/Warsaw, z uwzględnieniem zmiany czasu |
+
+Kod aplikacji można rozwijać na własnym `localhost`. SSH na VPS jest dostępne
+w godzinach działania serwera, po zakończeniu startu VM. Jeżeli recenzja zadania
+ma odbywać się poza tymi godzinami, przed recenzją uruchamiamy VM i zmieniamy
+lub wyłączamy harmonogramy. Zmiany godzin nie wpływają na klucze SSH.
 
 ## Konta zespołu
 
@@ -75,22 +82,32 @@ az vm start --subscription ID_SUBSKRYPCJI -g fleet-flow-dev-rg -n fleet-flow-dev
 az vm deallocate --subscription ID_SUBSKRYPCJI -g fleet-flow-dev-rg -n fleet-flow-dev
 ```
 
-`ID_SUBSKRYPCJI` można odczytać z `az account list -o table`. Po nocnym
-wyłączeniu SSH wraca dopiero po uruchomieniu maszyny. Stały adres IPv4 pozostaje
-taki sam. Dysk i adres IP są rozliczane także po dealokacji.
+`ID_SUBSKRYPCJI` można odczytać z `az account list -o table`. Po dealokacji
+SSH wraca dopiero po uruchomieniu maszyny przez Azure. SSH nie może uruchomić
+wyłączonej VM. Stały adres IPv4 pozostaje taki sam. Dysk i adres IP są
+rozliczane także po dealokacji.
 
-Harmonogram `fleet-flow-dev-nightly-shutdown` w Logic Apps ma tożsamość
-zarządzaną i rolę z jednym uprawnieniem:
+Pięć harmonogramów Logic Apps obsługuje starty w tygodniu, sobotę i niedzielę
+oraz wyłączenia w tygodniu i weekend. Zachowana nazwa
+`fleet-flow-dev-nightly-shutdown` oznacza teraz wyłączenie w dni robocze o 22:00.
+Każdy harmonogram ma tożsamość zarządzaną i rolę z jednym uprawnieniem:
+`Microsoft.Compute/virtualMachines/start/action` albo
 `Microsoft.Compute/virtualMachines/deallocate/action`, przypisaną tylko do
-tej VM. Nie przechowuje hasła ani sekretu Azure.
+tej VM. Harmonogramy nie przechowują hasła ani sekretu Azure.
+
+Aktualizacja godzin i czasowe wyłączenie automatyzacji są opisane w
+[dokumentacji harmonogramów](infra/azure/README.md#harmonogramy).
 
 ## Kontrola konfiguracji
 
 Sprawdzono poprawność cloud-init i jego zakończenie (`status: done`), aktywność
 SSH, Dockera i fail2ban, blokadę logowania hasłem i roota, obecność czterech kont
 oraz prawo wszystkich kont do zapisu we wspólnym katalogu. Konta kolegów nie
-mają kluczy w `authorized_keys`. Wykonano kontrolne uruchomienie harmonogramu:
+mają kluczy w `authorized_keys`. Podczas początkowej konfiguracji wykonano
+kontrolne uruchomienie harmonogramu:
 Logic Apps zwrócił `Succeeded`, a Azure potwierdził `VM deallocated`.
+Po ponownym uruchomieniu VM test SSH ponownie zwrócił nazwę hosta i kod `0`.
 
 Instrukcje dodawania kluczy, koszty i odtworzenie na subskrypcji Dawida znajdują
 się w [dokumentacji infrastruktury](infra/azure/README.md).
+Dawid może też skorzystać z [krótkiej instrukcji krok po kroku](infra/azure/DAWID.md).

@@ -1,9 +1,18 @@
 # Serwer deweloperski Fleet-Flow w Azure
 
+Krótka instrukcja dla właściciela infrastruktury:
+[Dawid — uruchomienie na swojej subskrypcji](DAWID.md).
+
 Szablon `main.json` i skrypt `deploy.py` odtwarzają niezależny serwer na aktywnej
 subskrypcji **Azure for Students z włączonym limitem wydatków**. Nie zawierają
 loginów do Azure, tokenów, kluczy prywatnych ani haseł. Parametry uruchomienia
 powstają w ignorowanym katalogu `.local/`.
+
+Na początku rozwijamy aplikację na `localhost`. Wspólny VPS działa według
+harmonogramu: **pon.–pt. 15–22, sobota 8–21, niedziela 12–21**, czas polski.
+Poza tymi godzinami VM jest dealokowana. SSH można sprawdzić podczas działania
+serwera; na recenzję poza harmonogramem należy go wcześniej uruchomić i zmienić
+lub wyłączyć automatyzację.
 
 ## Konfiguracja
 
@@ -20,12 +29,10 @@ powstają w ignorowanym katalogu `.local/`.
   równoważne administratorowi; dostęp grupy jest ograniczony do tych dwóch osób.
 - Git, Python z obsługą venv, kompilator, Docker i Compose v2.
   Node/React można uruchamiać w kontenerze z aktualnym obrazem Node LTS.
-- Codzienna **dealokacja o 00:30 czasu Europe/Warsaw**, również po zmianie czasu.
-  Nie ma automatycznego startu. Uprawniona osoba uruchamia VM, gdy jest potrzebna.
-  Harmonogram Logic Apps działa w Polsce, z tożsamością zarządzaną, bez sekretu
-  i z rolą pozwalającą tylko na dealokację tej jednej VM. Nie ma uprawnień
-  do pozostałych zasobów subskrypcji. Usługa `Microsoft.DevTestLab/schedules`
-  nie jest dostępna w `polandcentral`.
+- Pięć harmonogramów Logic Apps z czasem polskim, także po zmianie czasu.
+  Każda tożsamość zarządzana ma tylko uprawnienie do startu albo dealokacji
+  jednej VM; nie przechowujemy sekretów Azure. Harmonogramy są wdrażane osobno,
+  więc zmiana godzin nie wymaga zmiany cloud-init istniejącej maszyny.
 
 ## Uruchomienie na swoim koncie lub koncie Dawida
 
@@ -57,6 +64,41 @@ rodzaj subskrypcji oraz limit wydatków i nie zmienia oferty rozliczeniowej.
 To skrypt **tworzenia nowego serwera**, a nie aktualizacji kont na istniejącym.
 Cloud-init wykonuje się przy pierwszym uruchomieniu. Nowy klucz na istniejącej
 VM dodajemy skryptem poniżej. Nie należy zmieniać `customData` wdrożonej VM.
+
+## Harmonogramy
+
+`deploy.py` domyślnie tworzy również harmonogramy. Opcja `--no-power-schedule`
+pozwala pominąć je przy tworzeniu nowego serwera. Nowa VM od razu działa na
+potrzeby konfiguracji i testu SSH, aż do ręcznej lub zaplanowanej dealokacji.
+
+Na istniejącej VM harmonogramy wdrażamy lub zmieniamy osobnym skryptem:
+
+```bash
+python3 infra/azure/power_schedule.py --subscription ID_SUBSKRYPCJI --validate-only
+python3 infra/azure/power_schedule.py --subscription ID_SUBSKRYPCJI
+```
+
+Godziny i dni są w `SCHEDULES` w `power_schedule.py`. Zmieniamy je i ponownie
+wdrażamy ten skrypt. Szablon nie modyfikuje VM, danych, sieci ani kluczy SSH.
+Wymaga uprawnień do tworzenia harmonogramów, ról i przypisań Azure RBAC.
+Skrypt najpierw wdraża harmonogramy jako wyłączone, nadaje uprawnienia, a dopiero
+potem je włącza. Początek cyklu w przeszłości pozwala wyznaczyć następne
+zaplanowane wykonanie bez natychmiastowego uruchomienia przy wdrożeniu.
+
+Przed recenzją poza zwykłymi godzinami można wyłączyć wszystkie harmonogramy
+i uruchomić VM ręcznie:
+
+```bash
+python3 infra/azure/power_schedule.py --subscription ID_SUBSKRYPCJI --state disabled
+az vm start --subscription ID_SUBSKRYPCJI -g fleet-flow-dev-rg -n fleet-flow-dev
+```
+
+Wyłączenie automatyzacji samo nie wyłącza VM. Po recenzji uruchamiamy skrypt
+ponownie bez `--state disabled`, a poza godzinami pracy ręcznie dealokujemy VM.
+Manualny start poza harmonogramem nie zapewnia automatycznego wyłączenia po
+godzinie — kolejna dealokacja nastąpi dopiero o następnym zaplanowanym końcu pracy.
+
+[Zasady cyklicznych harmonogramów Microsoft](https://learn.microsoft.com/en-us/azure/logic-apps/concepts-schedule-automated-recurring-tasks-workflows).
 
 ## Dodanie klucza do istniejącego konta
 
@@ -111,7 +153,8 @@ ssh -L 5173:127.0.0.1:5173 -L 8000:127.0.0.1:8000 LOGIN_LINUX@IP_SERWERA
 
 Po dealokacji nie są naliczane opłaty za procesor i RAM; dysk i stały IPv4
 nadal kosztują. Wyłączenie poleceniem `shutdown` w Linuxie nie gwarantuje
-zatrzymania opłat za VM. Harmonogram nocny używa dealokacji Azure.
+zatrzymania opłat za VM. SSH nie może włączyć dealokowanej maszyny; potrzebne
+jest konto z uprawnieniami do uruchomienia VM w Azure.
 
 Cennik detaliczny Azure dla `polandcentral`, odczyt 06.10.2026 (USD,
 bez uwzględnienia ewentualnych darmowych limitów subskrypcji):
@@ -123,8 +166,11 @@ bez uwzględnienia ewentualnych darmowych limitów subskrypcji):
 | Stały publiczny IPv4 Standard | 0,005 USD/h | 3,65 USD |
 | Razem przy pracy całą dobę | | **37,59 USD/miesiąc** |
 
-Dodatkowo mogą być naliczane operacje dyskowe, transfer wychodzący i niewielkie
-opłaty za wykonania harmonogramu Logic Apps (jedno wyłączenie dziennie).
+Dodatkowo mogą być naliczane operacje dyskowe i transfer wychodzący.
+Przy ciągłej dealokacji pozostaje około **6,05 USD/miesiąc** za dysk i IPv4.
+Przy obecnym harmonogramie (57 godzin tygodniowo) szacunek to około
+**16,75 USD/miesiąc** za VM, dysk i IPv4, plus operacje, transfer i niewielkie
+opłaty za wykonania harmonogramów. To szacunek, a nie limit kosztów.
 Przy 10 godzinach pracy dziennie przez 30 dni szacunek wynosi
 **19,01 USD/miesiąc + operacje i transfer**. Nie jest to limit kosztów.
 Saldo w portalu może być wyświetlane w EUR; nie należy utożsamiać kwot EUR i USD.
