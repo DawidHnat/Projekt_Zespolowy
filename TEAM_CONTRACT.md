@@ -39,7 +39,7 @@ Deklarowana dostępność zespołu:
 | Jakub Czaja | poniedziałek–piątek: 15:00–23:00; niedziela: 9:00–21:00 |
 | Dawid Hnat | poniedziałek–piątek: 17:00–00:00; niedziela: 20:00-22:00 |
 | Jakub Nazarewicz | poniedziałek–piątek: 15:00–22:00; sobota–niedziela: 9:00–21:00 |
-| Marcel Głowacki | poniedziałek–piątek: 17:00–00:00; weekend do potwierdzenia |
+| Marcel Głowacki | poniedziałek–piątek: 17:00–00:00; sobota-niedziela 20:00-22:00 |
 
 Podane godziny oznaczają orientacyjną dostępność do pracy nad projektem i kontaktu z zespołem.
 
