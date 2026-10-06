@@ -37,7 +37,7 @@ Deklarowana dostępność zespołu:
 | Osoba | Dostępność |
 |---|---|
 | Jakub Czaja | poniedziałek–piątek: 15:00–23:00; niedziela: 9:00–21:00 |
-| Dawid Hnat | do potwierdzenia przez Dawida |
+| Dawid Hnat | poniedziałek–piątek: 17:00–00:00; 20:00-22:00 |
 | Jakub Nazarewicz | poniedziałek–piątek: 15:00–22:00; sobota–niedziela: 9:00–21:00 |
 | Marcel Głowacki | poniedziałek–piątek: 17:00–00:00; weekend do potwierdzenia |
 
