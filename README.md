@@ -132,3 +132,9 @@ Pierwsza wersja aplikacji skupia się na trzech głównych obszarach:
 W pierwszej wersji najważniejsze jest przygotowanie działającej podstawy aplikacji i integracji z danymi WEBFLEET.connect.
 
 Bardziej rozbudowane raporty, dodatkowe możliwości personalizacji oraz kolejne moduły mogą być rozwijane w dalszych etapach projektu.
+
+## Serwer deweloperski
+
+Adres serwera, konta zespołu i wynik testu SSH opisano w [DEV_SERVER.md](DEV_SERVER.md).
+Odtwarzalna konfiguracja Azure, dodawanie publicznych kluczy i przeniesienie na
+subskrypcję innego członka zespołu znajdują się w [infra/azure](infra/azure/README.md).
