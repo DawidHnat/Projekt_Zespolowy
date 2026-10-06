@@ -3,14 +3,12 @@
 
 import argparse
 import base64
-from datetime import datetime, time, timedelta
 import json
 import os
 from pathlib import Path
 import re
 import subprocess
 import sys
-from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent
 MEMBERS = {
@@ -100,6 +98,7 @@ def main():
     parser.add_argument("--ssh-source", default="*", help="IP/CIDR uprawniony do SSH; * dla zmiennych adresów zespołu")
     parser.add_argument("--render-only", action="store_true", help="Przygotuj pliki lokalnie bez wywołań Azure")
     parser.add_argument("--validate-only", action="store_true", help="Utwórz pustą grupę zasobów i zweryfikuj szablon, bez tworzenia VM")
+    parser.add_argument("--no-power-schedule", action="store_true", help="Pomiń harmonogramy startu i dealokacji")
     args = parser.parse_args()
     if not re.fullmatch(r"[a-z][a-z0-9-]{2,39}", args.vm_name):
         parser.error("Nazwa VM musi zawierać 3–40 małych liter, cyfr lub myślników.")
@@ -109,10 +108,6 @@ def main():
     config = cloud_config(keys, args.admin)
     config["hostname"] = args.vm_name
     data = "#cloud-config\n" + json.dumps(config, ensure_ascii=False, indent=2) + "\n"
-    now = datetime.now(ZoneInfo("Europe/Warsaw"))
-    first_shutdown = datetime.combine(now.date(), time(0, 30), tzinfo=now.tzinfo)
-    if first_shutdown <= now:
-        first_shutdown += timedelta(days=1)
     values = {
         "location": args.location,
         "vmName": args.vm_name,
@@ -121,7 +116,6 @@ def main():
         "adminPublicKey": keys[args.admin][0],
         "cloudInitBase64": base64.b64encode(data.encode()).decode(),
         "sshSource": args.ssh_source,
-        "shutdownStartTime": first_shutdown.strftime("%Y-%m-%dT%H:%M:%S"),
     }
     directory = ROOT / ".local"
     directory.mkdir(exist_ok=True, mode=0o700)
@@ -137,7 +131,10 @@ def main():
     os.chmod(cloud_file, 0o600)
     print(f"Pliki przygotowane: {directory}", flush=True)
     print("Konta bez klucza (logowanie zablokowane): " + ", ".join(user for user in MEMBERS if not keys[user]), flush=True)
+    power_command = [sys.executable, str(ROOT / "power_schedule.py"), "--subscription", args.subscription, "--resource-group", args.resource_group, "--vm-name", args.vm_name, "--location", args.location]
     if args.render_only:
+        if not args.no_power_schedule:
+            subprocess.run(power_command + ["--render-only"], check=True)
         return
     def az_command(arguments):
         return ["az"] + arguments + ["--subscription", args.subscription, "--only-show-errors"]
@@ -152,6 +149,8 @@ def main():
     else:
         command += ["--query", "{error:error,provisioningState:properties.provisioningState}", "-o", "json"]
     subprocess.run(az_command(command), check=True)
+    if not args.validate_only and not args.no_power_schedule:
+        subprocess.run(power_command, check=True)
 
 
 if __name__ == "__main__":

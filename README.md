@@ -135,6 +135,10 @@ Bardziej rozbudowane raporty, dodatkowe możliwości personalizacji oraz kolejne
 
 ## Serwer deweloperski
 
+Na początku aplikację rozwijamy lokalnie. VPS działa według harmonogramu:
+pon.–pt. 15–22, sobota 8–21, niedziela 12–21 (czas polski). Na recenzję zadania
+należy zapewnić działanie VM w godzinach sprawdzania logowania SSH.
+
 Adres serwera, konta zespołu i wynik testu SSH opisano w [DEV_SERVER.md](DEV_SERVER.md).
 Odtwarzalna konfiguracja Azure, dodawanie publicznych kluczy i przeniesienie na
 subskrypcję innego członka zespołu znajdują się w [infra/azure](infra/azure/README.md).
