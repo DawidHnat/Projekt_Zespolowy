@@ -1,20 +1,15 @@
 ## Zadanie
 
-Jira: <!-- np. SCRUM-123; wpisz rzeczywisty klucz projektu -->
+Jira: <!-- rzeczywisty klucz, np. SCRUM-123 -->
 
 ## Zmiana
 
-<!-- Opisz problem oraz zachowanie aplikacji po zmianie. -->
+<!-- Co zmieniono i dlaczego? -->
 
 ## Sprawdzenie
 
-- [ ] Spełniono kryteria akceptacji zadania.
-- [ ] Testy i wymagane kontrole CI przechodzą.
-- [ ] Sprawdzono widok / endpoint, którego dotyczy zmiana.
-- [ ] Jeśli API się zmieniło, zaktualizowano OpenAPI i typy frontendu.
-- [ ] Jeśli schemat bazy się zmienił, dodano migrację Alembic.
-- [ ] W diffie nie ma sekretów, `.env` ani danych prawdziwych klientów.
+<!-- Jak sprawdzono zmianę? Dla samej struktury: lista katalogów i puste pliki. -->
 
-## Uwagi dla osoby sprawdzającej
-
-<!-- Instrukcja ręcznego testu, ograniczenia albo zrzut ekranu, gdy pomaga. -->
+- [ ] Zakres odpowiada zadaniu.
+- [ ] Diff nie zawiera sekretów ani `.env`.
+- [ ] Zmiana jest gotowa do przeglądu drugiej osoby.
