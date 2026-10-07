@@ -133,12 +133,22 @@ W pierwszej wersji najważniejsze jest przygotowanie działającej podstawy apli
 
 Bardziej rozbudowane raporty, dodatkowe możliwości personalizacji oraz kolejne moduły mogą być rozwijane w dalszych etapach projektu.
 
+## Struktura startowa projektu
+
+Repozytorium zawiera przygotowane katalogi i puste pliki do dalszej pracy.
+Aplikacja nie jest jeszcze zaimplementowana i nie da się jej uruchomić.
+Kod poszczególnych funkcji będzie powstawał w osobnych zadaniach projektu SCRUM.
+
+- [Podział katalogów](docs/STRUCTURE.md)
+- [Zasady współpracy i PR](CONTRIBUTING.md)
+- [Instrukcje dla agentów AI](AGENTS.md)
+
 ## Serwer deweloperski
 
-Na początku aplikację rozwijamy lokalnie. VPS działa według harmonogramu:
-pon.–pt. 15–22, sobota 8–21, niedziela 12–21 (czas polski). Na recenzję zadania
-należy zapewnić działanie VM w godzinach sprawdzania logowania SSH.
+Aplikację rozwijamy lokalnie. Planowany wspólny serwer to VPS OVHcloud
+z Ubuntu; zakup i uruchomienie są jeszcze do wykonania. Adres zostanie dodany
+po aktywacji i sprawdzeniu dostępu. Nie podajemy nieaktualnego adresu do zaliczenia.
 
-Adres serwera, konta zespołu i wynik testu SSH opisano w [DEV_SERVER.md](DEV_SERVER.md).
-Odtwarzalna konfiguracja Azure, dodawanie publicznych kluczy i przeniesienie na
-subskrypcję innego członka zespołu znajdują się w [infra/azure](infra/azure/README.md).
+- [Stan serwera i wymagane testy SSH](DEV_SERVER.md)
+- [Przygotowanie dostępu czterech osób](infra/vps/README.md)
+- [Podział pracy i pierwsze zadania](docs/TASKS.md)
