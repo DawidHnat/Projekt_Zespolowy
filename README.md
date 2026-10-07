@@ -145,9 +145,9 @@ Kod poszczególnych funkcji będzie powstawał w osobnych zadaniach projektu SCR
 
 ## Serwer deweloperski
 
-Aplikację rozwijamy lokalnie. Planowany wspólny serwer to VPS OVHcloud
-z Ubuntu; zakup i uruchomienie są jeszcze do wykonania. Adres zostanie dodany
-po aktywacji i sprawdzeniu dostępu. Nie podajemy nieaktualnego adresu do zaliczenia.
+Aplikację rozwijamy lokalnie. Wspólny serwer VPS OVHcloud z Ubuntu został
+zakupiony. Aktywacja i logowanie SSH nie zostały jeszcze zweryfikowane. Adres
+zostanie dodany po sprawdzeniu dostępu, przed oddaniem zadania.
 
 - [Stan serwera i wymagane testy SSH](DEV_SERVER.md)
 - [Przygotowanie dostępu czterech osób](infra/vps/README.md)

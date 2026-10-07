@@ -21,7 +21,7 @@ Liczba zadań nie jest miarą nakładu; kolejność i dostępność ustalamy wsp
   — szkice trzech widoków i przepływy użytkownika do uzgodnienia z PO.
 - Dawid Hnat: [SCRUM-36](https://fleet-flow.atlassian.net/browse/SCRUM-36)
   — projekt modelu danych i API; SCRUM-14 weryfikuje możliwości źródła,
-  a SCRUM-12 obejmuje zakup/konfigurację VPS i test SSH czterech osób.
+  a SCRUM-12 obejmuje konfigurację zakupionego VPS i test SSH czterech osób.
 - Marcel Głowacki: [SCRUM-37](https://fleet-flow.atlassian.net/browse/SCRUM-37)
   — plan testów i dane syntetyczne z ręcznie policzonymi oczekiwaniami.
 

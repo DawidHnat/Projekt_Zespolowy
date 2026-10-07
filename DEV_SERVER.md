@@ -1,6 +1,6 @@
 # Serwer deweloperski Fleet-Flow
 
-Stan: **7 października 2026 — VPS jeszcze niezamówiony**.
+Stan: **7 października 2026 — VPS OVH zakupiony; aktywacja i SSH niezweryfikowane**.
 
 | Parametr | Plan |
 | --- | --- |
@@ -12,15 +12,16 @@ Stan: **7 października 2026 — VPS jeszcze niezamówiony**.
 | Docelowa nazwa hosta | `fleet-flow-dev` |
 | Dostępność | Docelowo stale; SSH ma działać podczas recenzji |
 
-Cena dotyczy odczytanego koszyka, a nie opłaconego zamówienia. Przy odnowieniu
-trzeba sprawdzić cenę i zakres promocji kopii zapasowej. Wyłączenie systemu
-nie kończy abonamentu VPS. Harmonogram wyłączeń nie jest planowany.
+Cena pochodzi z odczytanego koszyka; kwotę opłaconego zamówienia trzeba
+potwierdzić na fakturze. Przy odnowieniu sprawdzamy cenę i zakres promocji
+kopii zapasowej. Wyłączenie systemu nie kończy abonamentu VPS. Harmonogram
+wyłączeń nie jest planowany.
 
 ## Konta i klucze
 
 | Osoba | GitHub | Docelowy login SSH | Stan |
 | --- | --- | --- | --- |
-| Jakub Czaja | `jczaja51` | `jczaja51` | Publiczny klucz przygotowany, serwer oczekuje na aktywację |
+| Jakub Czaja | `jczaja51` | `jczaja51` | Publiczny klucz przygotowany; logowanie na nowym VPS do sprawdzenia |
 | Dawid Hnat | `DawidHnat` | `dawidhnat` | Potrzebny własny klucz publiczny |
 | Jakub Nazarewicz | `jnazarewiczs` | `jnazarewiczs` | Potrzebny własny klucz publiczny |
 | Marcel Głowacki | `mglowacki0` | `mglowacki0` | Potrzebny własny klucz publiczny |
