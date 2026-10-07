@@ -51,7 +51,7 @@ for member in "${members[@]}"; do
     touch "$authorized_keys"
     chown "$member:$primary_group" "$authorized_keys"
     chmod 600 "$authorized_keys"
-    key_line=$(cat "$key_file")
+    key_line=$(awk 'NF { print; exit }' "$key_file")
     if ! grep -qxF -- "$key_line" "$authorized_keys"; then
       # Osobny separator chroni istniejącą ostatnią linię bez znaku nowej linii.
       printf '\n%s\n' "$key_line" >> "$authorized_keys"
