@@ -133,6 +133,35 @@ W pierwszej wersji najważniejsze jest przygotowanie działającej podstawy apli
 
 Bardziej rozbudowane raporty, dodatkowe możliwości personalizacji oraz kolejne moduły mogą być rozwijane w dalszych etapach projektu.
 
+## Uruchomienie projektu
+
+Wymagania: uruchomiony Docker Desktop z Compose v2 i Python 3.12+.
+Z katalogu głównego repozytorium:
+
+```bash
+python3 scripts/bootstrap.py
+docker compose up --build -d --wait
+docker compose exec api python -m app.db.seed
+```
+
+Frontend: http://localhost:5173. Dokumentacja API: http://localhost:8000/docs.
+Na początku aplikacja korzysta z jawnie oznaczonych danych demo. Zespół ma
+dostęp WEBFLEET; dane dostępowe ustawiamy w lokalnym `.env` i uruchamiamy importer.
+Klucze, hasła i `.env` pozostają poza repozytorium.
+
+To działający fundament do implementacji MVP. Pełny import historii, autoryzacja
+i rozbudowane alerty wymagają kolejnych zadań. Infrastruktura Azure pozostaje
+oddzielona od lokalnego uruchomienia aplikacji.
+
+| Dokument | Zawartość |
+| --- | --- |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Podział katalogów, moduły, przepływ danych i granice fundamentu |
+| [DEVELOPMENT.md](docs/DEVELOPMENT.md) | Start lokalny, konfiguracja WEBFLEET, migracje i testy |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Gałąź zadania → push → PR → testy → review i merge |
+| [WORKFLOW.md](docs/WORKFLOW.md) | Automatyzacja PR, zasady AI i ustawienia właściciela repo |
+| [TASK_MAP.md](docs/TASK_MAP.md) | Powiązanie trzech funkcji z kodem i odpowiedzialnością zespołu |
+| [AGENTS.md](AGENTS.md) | Zasady pracy agentów AI w projekcie |
+
 ## Serwer deweloperski
 
 Na początku aplikację rozwijamy lokalnie. VPS działa według harmonogramu:

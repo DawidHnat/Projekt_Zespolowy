@@ -1,0 +1,11 @@
+# Wskazówki do przeglądu; każdy właściciel musi mieć dostęp write do repozytorium.
+* @jczaja51
+/backend/ @jczaja51 @jnazarewiczs
+/frontend/ @jczaja51 @jnazarewiczs
+/backend/tests/ @mglowacki0
+/frontend/src/test/ @mglowacki0
+/infra/ @DawidHnat
+/.github/ @DawidHnat @jczaja51
+/scripts/github/ @DawidHnat @jczaja51
+/docs/ @jczaja51 @mglowacki0
+/TEAM_CONTRACT.md @jczaja51 @DawidHnat @jnazarewiczs @mglowacki0
