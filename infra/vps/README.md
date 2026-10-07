@@ -1,7 +1,7 @@
 # Przygotowanie VPS OVHcloud
 
-To instrukcja do zastosowania po zakupie i aktywacji serwera. Nie jest
-potwierdzeniem istniejących kont ani działającego SSH. Stan jest w
+VPS został zakupiony. Instrukcję stosujemy po aktywacji serwera; nie stanowi
+ona potwierdzenia istniejących kont ani działającego SSH. Stan jest w
 [DEV_SERVER.md](../../DEV_SERVER.md), właściciel zadania: Dawid (SCRUM-12).
 
 ## Klucze czterech osób
