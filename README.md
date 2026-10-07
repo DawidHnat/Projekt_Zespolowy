@@ -140,14 +140,15 @@ Aplikacja nie jest jeszcze zaimplementowana i nie da się jej uruchomić.
 Kod poszczególnych funkcji będzie powstawał w osobnych zadaniach projektu SCRUM.
 
 - [Podział katalogów](docs/STRUCTURE.md)
+- [Rozpoczęcie pracy i zakres pierwszego PR](docs/GETTING_STARTED.md)
 - [Zasady współpracy i PR](CONTRIBUTING.md)
 - [Instrukcje dla agentów AI](AGENTS.md)
 
 ## Serwer deweloperski
 
-Aplikację rozwijamy lokalnie. Wspólny serwer VPS OVHcloud z Ubuntu został
-zakupiony. Aktywacja i logowanie SSH nie zostały jeszcze zweryfikowane. Adres
-zostanie dodany po sprawdzeniu dostępu, przed oddaniem zadania.
+Aplikację rozwijamy lokalnie. Wspólny serwer VPS OVHcloud z Ubuntu jest aktywny:
+`57.129.179.53` (`vps-9171bf52.vps.ovh.net`). Indywidualne konta i logowanie
+kluczami SSH są jeszcze do skonfigurowania i sprawdzenia przed oddaniem zadania.
 
 - [Stan serwera i wymagane testy SSH](DEV_SERVER.md)
 - [Przygotowanie dostępu czterech osób](infra/vps/README.md)
