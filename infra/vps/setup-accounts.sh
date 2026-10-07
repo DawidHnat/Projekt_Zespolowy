@@ -63,9 +63,4 @@ for member in "${members[@]}"; do
 done
 
 install -d -o root -g fleet-flow -m 2770 /srv/fleet-flow
-sudoers_file=$(mktemp)
-trap 'rm -f -- "$sudoers_file"' EXIT
-printf 'jczaja51 ALL=(ALL) NOPASSWD:ALL\ndawidhnat ALL=(ALL) NOPASSWD:ALL\n' > "$sudoers_file"
-visudo -cf "$sudoers_file"
-install -o root -g root -m 440 "$sudoers_file" /etc/sudoers.d/fleet-flow-admins
-printf 'Następny krok: druga sesja SSH jczaja51 i test sudo; następnie zabezpieczenie SSH.\n'
+printf 'Następny krok: druga sesja SSH jczaja51; następnie zabezpieczenie SSH z konta ubuntu.\n'

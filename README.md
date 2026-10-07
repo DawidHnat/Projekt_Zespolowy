@@ -147,8 +147,9 @@ Kod poszczególnych funkcji będzie powstawał w osobnych zadaniach projektu SCR
 ## Serwer deweloperski
 
 Aplikację rozwijamy lokalnie. Wspólny serwer VPS OVHcloud z Ubuntu jest aktywny:
-`57.129.179.53` (`vps-9171bf52.vps.ovh.net`). Indywidualne konta i logowanie
-kluczami SSH są jeszcze do skonfigurowania i sprawdzenia przed oddaniem zadania.
+`57.129.179.53` (`vps-9171bf52.vps.ovh.net`). Cztery indywidualne konta zespołu
+są utworzone. Logowanie kluczem `jczaja51` sprawdzono z kodem `0`;
+pozostałe trzy konta czekają na własne klucze publiczne i testy właścicieli.
 
 - [Stan serwera i wymagane testy SSH](DEV_SERVER.md)
 - [Przygotowanie dostępu czterech osób](infra/vps/README.md)

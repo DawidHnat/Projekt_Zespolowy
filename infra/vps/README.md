@@ -1,8 +1,9 @@
 # Przygotowanie VPS OVHcloud
 
-VPS jest aktywny pod adresem `57.129.179.53`. Instrukcja nie stanowi
-potwierdzenia istniejących kont ani działającego SSH. Stan jest w
-[DEV_SERVER.md](../../DEV_SERVER.md), właściciel zadania: Dawid (SCRUM-12).
+VPS jest aktywny pod adresem `57.129.179.53`. Cztery konta są utworzone;
+logowanie kluczem `jczaja51` sprawdzono, pozostałe konta czekają na klucze.
+Szczegóły i wynik testu są w [DEV_SERVER.md](../../DEV_SERVER.md),
+właściciel zadania: Dawid (SCRUM-12).
 
 ## Klucze czterech osób
 
@@ -18,7 +19,10 @@ Klucz prywatny pozostaje na komputerze. Na Windows ścieżka to
 `$env:USERPROFILE/.ssh/fleet_flow_ed25519`. Publiczne pliki zapisujemy jako:
 `jczaja51.pub`, `dawidhnat.pub`, `jnazarewiczs.pub`, `mglowacki0.pub`.
 
-## Pierwsze połączenie
+## Pierwsze połączenie administratora po instalacji VPS
+
+Ten etap już wykonano na obecnym VPS. Konto `ubuntu` przyjmuje klucz
+administratora; logowanie SSH hasłem jest wyłączone.
 
 1. Potwierdzony adres tego VPS to `57.129.179.53`, a początkowy login to `ubuntu`.
 2. Jeśli instalacja pozwala wskazać klucz SSH, wybierz własny klucz publiczny
@@ -32,7 +36,10 @@ Klucz prywatny pozostaje na komputerze. Na Windows ścieżka to
 
 Oficjalne instrukcje: [OVH — pierwsze kroki z VPS](https://docs.ovhcloud.com/en/guides/bare-metal-cloud/virtual-private-servers/starting-with-a-vps).
 
-## Konta Linux i klucze
+## Konta Linux i dodawanie kolejnych kluczy
+
+Konta `jczaja51`, `dawidhnat`, `jnazarewiczs` i `mglowacki0` już istnieją.
+Poniższy proces pozwala dodać brakujące klucze lub odtworzyć konta na nowym VPS.
 
 Po pierwszym logowaniu administrator przenosi skrypt oraz zatwierdzone
 publiczne klucze z lokalnego repozytorium na VPS:
@@ -52,12 +59,12 @@ kont, tworzy cztery konta z zablokowanymi hasłami, grupę `fleet-flow` i wspól
 katalog `/srv/fleet-flow`. Dodaje dostarczone klucze bez usuwania wcześniejszych.
 Brakującego klucza nie generuje za inną osobę. Przy pierwszym uruchomieniu
 konto bez własnego klucza pozostaje niedostępne; przy powtórnym uruchomieniu
-istniejące klucze pozostają. Jakub Czaja i Dawid mają administrację `sudo`;
-Jakub Nazarewicz i Marcel mają dostęp do wspólnego katalogu.
+istniejące klucze pozostają. Cztery konta mają dostęp do wspólnego katalogu.
+Skrypt nie nadaje uprawnień `sudo`; konfigurację systemu wykonuje administrator
+na koncie `ubuntu`.
 
 Po otrzymaniu kolejnych kluczy prześlij aktualny katalog `public-keys` i ponownie
-uruchom skrypt jako administrator. Jeśli korzystasz z konta `jczaja51`, podmień
-login `ubuntu` w przykładach na `jczaja51`.
+uruchom skrypt z konta administratora `ubuntu`.
 
 Nazwę hosta i strefę czasową ustaw na serwerze:
 
@@ -71,8 +78,12 @@ Jeżeli obraz korzysta z cloud-init, w jego konfiguracji ustaw
 
 ## Zabezpieczenie i sprawdzenie
 
-Najpierw potwierdź w **drugiej sesji** logowanie kluczem `jczaja51` oraz działanie
-`sudo`. Dopiero po sukcesie utwórz `/etc/ssh/sshd_config.d/00-fleet-flow.conf`:
+Na obecnym VPS zastosowano opisane ustawienia SSH i UFW oraz potwierdzono
+nowe sesje `jczaja51` i `ubuntu`. Przy odtwarzaniu VPS wykonujemy kolejno:
+
+Najpierw potwierdź w **drugiej sesji** logowanie kluczem `jczaja51` i zachowaj
+działającą sesję administratora `ubuntu`. Dopiero po sukcesie utwórz
+`/etc/ssh/sshd_config.d/00-fleet-flow.conf` z konta administratora:
 
 ```text
 PubkeyAuthentication yes
