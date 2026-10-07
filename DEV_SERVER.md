@@ -14,6 +14,7 @@ Stan: **7 października 2026 — cztery konta utworzone; SSH jczaja51 działa, t
 | Lokalizacja | Londyn, Wielka Brytania (`os-uk2`) |
 | Odcisk hosta ED25519 odczytany w KVM | `SHA256:cIMIkbry/6rulRdE+qxj/+axWrbc6vMitYn75gEofqo` |
 | Konto administratora | `ubuntu`, dostęp kluczem Jakuba Czai |
+| Właściciel usługi i opłat | Jakub Czaja |
 | Nazwa hosta | `fleet-flow-dev` |
 | Dostępność | Stale; brak harmonogramu wyłączania |
 | Odnowienie w panelu | Ręczne; obecna data wygaśnięcia: 7 listopada 2026 |
@@ -48,7 +49,7 @@ Właściciel zadania infrastruktury: Dawid Hnat; konfiguracja: SCRUM-12.
   Konta zespołu nie otrzymały uprawnień `sudo`. Konfigurację systemu wykonujemy
   z konta administratora `ubuntu`; przekazanie administracji Dawidowi wymaga
   jego własnego klucza i osobnego ustalenia uprawnień.
-- Strefa czasowa: `Europe/Warsaw`. Cloud-init zachowuje nazwę `fleet-flow-dev`.
+- Strefa czasowa: `Europe/Warsaw`. W cloud-init ustawiono `preserve_hostname: true`.
 
 ## Wykonany test Jakuba Czai
 

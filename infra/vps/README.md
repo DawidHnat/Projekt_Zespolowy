@@ -101,3 +101,34 @@ Każda osoba sprawdza własny klucz poleceniem z DEV_SERVER.md. Zapisz w SCRUM-1
 cztery rzeczywiste wyniki oraz adres, odcisk hosta i stan kluczy w DEV_SERVER.md.
 Dopiero wtedy kryterium dostępu zespołu jest wykonane. Pracę nad aplikacją
 prowadzimy lokalnie, a VPS pozostaje dostępny dla recenzji SSH.
+
+## Aktualizacje i odtworzenie
+
+Administrator wykonuje aktualizacje w uzgodnionym czasie, z dostępną konsolą
+KVM i sprawdzoną kopią. Na koncie `ubuntu` uruchamia kolejno:
+
+```bash
+sudo apt update
+sudo apt upgrade
+test -f /var/run/reboot-required && cat /var/run/reboot-required
+```
+
+Przed zatwierdzeniem sprawdza listę zmian. Jeśli wymagany jest restart, uzgadnia
+przerwę z zespołem, wykonuje `sudo reboot`, a po uruchomieniu powtarza test SSH
+oraz sprawdza `sudo sshd -t` i `sudo ufw status`. Jest to procedura utrzymania;
+aktualizacji i restartu nie wykonywano w ramach obecnego testu logowania.
+Źródło: [Ubuntu — zarządzanie pakietami](https://ubuntu.com/server/docs/package-management/).
+
+W panelu OVH potwierdzono włączoną kopię Standard. W zakładce automatycznych
+kopii VPS administrator sprawdza datę i dostępność kopii przed zmianą systemu.
+Aby odzyskać pojedyncze pliki, wybiera montowanie kopii; pełne odtworzenie
+zastępuje bieżący stan systemu i wymaga ustalenia z zespołem. Po odtworzeniu
+sprawdza odcisk hosta w KVM, logowanie każdego członka i reguły firewalla.
+Źródło: [OVH — kopie i odtworzenie VPS](https://docs.ovhcloud.com/en/guides/bare-metal-cloud/virtual-private-servers/using-automated-backups-on-a-vps).
+
+Przy odtwarzaniu na nowym VPS administrator potwierdza nowy adres i odcisk,
+instaluje własny klucz, przenosi skrypt i zatwierdzone `.pub`, tworzy konta
+oraz stosuje ustawienia SSH po teście drugiej sesji. Aktualizuje DEV_SERVER.md
+i cztery testy w SCRUM-12. Haseł i kluczy prywatnych nie przenosi do Git.
+Kopia PostgreSQL i test odtworzenia działającej aplikacji należą do SCRUM-18;
+obecnie baza i aplikacja nie są jeszcze uruchomione na VPS.
