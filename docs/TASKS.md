@@ -32,7 +32,7 @@ Zielone CI nie zastępuje review i QA; zadania nie są jeszcze ukończone.
 | SCRUM-19 | Chroniona lista, szczegóły, GeoJSON i wskaźniki | [#12](https://github.com/DawidHnat/Projekt_Zespolowy/pull/12) | Review Dawida, QA SCRUM-23 |
 | SCRUM-20 | Frontend logowania i lista z rzeczywistego API | [#13](https://github.com/DawidHnat/Projekt_Zespolowy/pull/13) | Review Jakuba Nazarewicza, QA SCRUM-23; zależy też od #6 |
 | SCRUM-21 | Mapbox, klastry, wybór pojazdu i wspólne filtry | [#14](https://github.com/DawidHnat/Projekt_Zespolowy/pull/14) | Review Jakuba Nazarewicza, QA SCRUM-23 |
-| SCRUM-44 | Opcjonalny reset hasła przez SMTP, podzadanie SCRUM-16 | `feat/SCRUM-44-password-reset` | Review Dawida i QA Marcela; adres konta oraz test faktycznej dostawy później |
+| SCRUM-44 | Opcjonalny reset hasła przez SMTP, podzadanie SCRUM-16 | [#15](https://github.com/DawidHnat/Projekt_Zespolowy/pull/15), draft | Review Dawida i QA Marcela; adres konta oraz test faktycznej dostawy później |
 
 Kierowcy są wprowadzani ręcznie w SCRUM-42. Integracja nie pobiera ich z
 WEBFLEET i nie nadpisuje lokalnych przypisań. SMTP ma sprawdzone logowanie;
