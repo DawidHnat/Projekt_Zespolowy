@@ -1,40 +1,56 @@
-# Struktura startowa
+# Struktura projektu
 
-Katalogi odpowiadają trzem funkcjom z README. Pliki źródłowe są celowo puste;
-`.gitkeep` pozwala zapisać pusty katalog w Git. Nie ma jeszcze konfiguracji
-uruchomienia, zależności, bazy, testów ani automatyzacji.
+Frontend zawiera działający szkielet dashboardu. Moduły odpowiadają trzem
+funkcjom z README. Backend oraz pliki stron `FleetPage.tsx`, `HistoryPage.tsx`
+i `AnalyticsPage.tsx` pozostają celowo puste do kolejnych zadań.
+`.gitkeep` pozwala zapisać pusty katalog w Git.
 
 ```text
 frontend/
-  index.html
+  package.json, package-lock.json, .nvmrc
+  index.html, tsconfig.json, vite.config.ts
   src/
     main.tsx
-    app/                 App.tsx, styles.css
+    app/                 układ, nawigacja, preferencje, tokeny i style
     features/
-      fleet/             FleetPage.tsx — lista i mapa
-      trips/             HistoryPage.tsx — historia i ewidencja
-      analytics/         AnalyticsPage.tsx — analityka i alerty
+      dashboard/
+        model/           identyfikatory, typy i rejestr modułów
+        components/      panel personalizacji
+      fleet/
+        components/      mapa i lista pojazdów
+        FleetPage.tsx    przyszły pełny widok floty
+      trips/
+        components/      kafelek ostatnich przejazdów
+        HistoryPage.tsx  przyszła historia i ewidencja
+      analytics/
+        components/      wskaźniki, aktywność i wykorzystanie floty
+        AnalyticsPage.tsx
     shared/
-      api/               wspólny klient API i typy, później
-      components/        wspólne komponenty, później
+      api/               przyszły klient API i typy
+      components/        WidgetFrame, EmptyState
 backend/
   app/
     main.py
     core/config.py
-    db/                  modele i połączenie, później
+    db/                  przyszłe modele i połączenie
     modules/
       fleet/router.py
       trips/router.py
       analytics/router.py
     integrations/webfleet/client.py
-  migrations/            migracje, później
-  tests/                 testy, później
-contracts/               wspólny kontrakt API, później
-docs/                    dokumentacja projektu
-infra/vps/               instrukcja przygotowania VPS i publiczne klucze
-.github/                 szablon PR i wskazówki do przeglądu
+  migrations/            przyszłe migracje
+  tests/                 przyszłe testy
+contracts/               wspólny kontrakt API do uzgodnienia
+docs/                    dokumentacja projektu i systemu wyglądu
+infra/vps/               instrukcja VPS i publiczne klucze
+.github/
+  workflows/frontend.yml typecheck i build na PR oraz push do main
+  PULL_REQUEST_TEMPLATE.md
 ```
 
-Frontend planujemy w React i TypeScript, backend w Python i FastAPI,
-a bazę w PostgreSQL. Dodawanie konfiguracji i kodu należy do kolejnych zadań.
-Zasady gałęzi i przeglądu opisuje [CONTRIBUTING.md](../CONTRIBUTING.md).
+Backend planujemy w Python i FastAPI, bazę w PostgreSQL. Dołączenie ich
+konfiguracji i kodu należy do kolejnych zadań. Adapter WEBFLEET pozostaje
+po stronie backendu; frontend nie otrzymuje jego sekretów.
+
+Zasady gałęzi i przeglądu opisuje [CONTRIBUTING.md](../CONTRIBUTING.md),
+a rozwijanie modułów i stylów [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md).

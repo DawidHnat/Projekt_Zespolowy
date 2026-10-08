@@ -15,8 +15,11 @@ Liczba zadań nie jest miarą nakładu; kolejność i dostępność ustalamy wsp
 
 ## Pierwsze prace
 
-- Jakub Czaja: SCRUM-13 — struktura jest przygotowana; uruchomienie React,
-  FastAPI, PostgreSQL i CI pozostaje do wykonania. SCRUM-34 obejmuje zasady pracy.
+- Jakub Czaja: [SCRUM-38](https://fleet-flow.atlassian.net/browse/SCRUM-38)
+  — podzadanie SCRUM-13: lokalny dashboard React, motywy, akcenty i przełączanie
+  modułów. Frontend i jego CI są przygotowane do przeglądu. SCRUM-13 pozostaje
+  otwarte: FastAPI, PostgreSQL, migracje i sprawdzenie backendu czekają na
+  implementację. SCRUM-34 obejmuje zasady pracy.
 - Jakub Nazarewicz: [SCRUM-35](https://fleet-flow.atlassian.net/browse/SCRUM-35)
   — szkice trzech widoków i przepływy użytkownika do uzgodnienia z PO.
 - Dawid Hnat: [SCRUM-36](https://fleet-flow.atlassian.net/browse/SCRUM-36)
@@ -25,7 +28,7 @@ Liczba zadań nie jest miarą nakładu; kolejność i dostępność ustalamy wsp
 - Marcel Głowacki: [SCRUM-37](https://fleet-flow.atlassian.net/browse/SCRUM-37)
   — plan testów i dane syntetyczne z ręcznie policzonymi oczekiwaniami.
 
-Nowe zadania przygotowawcze są w backlogu. Implementacja zaczyna się po
-uzgodnieniu interfejsów i uruchomieniu stosu; nie trzeba czekać z pracą lokalną
-na VPS. Przy zmianie właściciela aktualizujemy pole osoby i opis w Jirze.
+Można już uruchomić frontend i rozwijać jego moduły lokalnie. Podłączenie
+danych wymaga wspólnego kontraktu API z SCRUM-36; nie trzeba czekać z pracą
+nad UI na VPS. Przy zmianie właściciela aktualizujemy pole osoby i opis w Jirze.
 Zasady gałęzi, PR i przeglądu są w [CONTRIBUTING](../CONTRIBUTING.md).

@@ -1,8 +1,8 @@
 # Współpraca
 
-Na tym etapie przygotowujemy strukturę. Puste pliki pozostają puste, dopóki
-osobne zadanie nie dotyczy implementacji. Zakres produktu i role są w README,
-a ustalenia zespołu w TEAM_CONTRACT.md.
+Frontend ma uruchamialny szkielet dashboardu. Pozostałe puste pliki pozostają
+puste, dopóki osobne zadanie nie dotyczy implementacji. Zakres produktu
+i role są w README, a ustalenia zespołu w TEAM_CONTRACT.md.
 
 ## Jedno zadanie — jedna gałąź — jeden PR
 
@@ -30,5 +30,8 @@ a ustalenia zespołu w TEAM_CONTRACT.md.
    **Done** w Jirze i dodaj link do PR. Nie wysyłaj zmian bezpośrednio na `main`.
 
 Sekrety, klucze prywatne i `.env` pozostają poza repozytorium. Przed pushem
-sprawdzamy zakres zmian; testy i kontrole dodamy wraz z kodem, który sprawdzają.
-Automatyczne PR-y, CI, przegląd API AI i automerge nie są obecnie skonfigurowane.
+sprawdzamy zakres zmian. Frontend sprawdzamy poleceniem `npm run build`
+w `frontend/`; CI wykonuje ten sam typecheck i build. Zmiany wyglądu wymagają
+również sprawdzenia w przeglądarce na komputerze i małym ekranie.
+Uzgodnienia UI opisuje [system wyglądu](docs/DESIGN_SYSTEM.md).
+Automatyczne PR-y, płatny przegląd API AI i automerge nie są skonfigurowane.

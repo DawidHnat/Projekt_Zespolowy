@@ -133,12 +133,28 @@ W pierwszej wersji najważniejsze jest przygotowanie działającej podstawy apli
 
 Bardziej rozbudowane raporty, dodatkowe możliwości personalizacji oraz kolejne moduły mogą być rozwijane w dalszych etapach projektu.
 
-## Struktura startowa projektu
+## Uruchomienie i obecny stan
 
-Repozytorium zawiera przygotowane katalogi i puste pliki do dalszej pracy.
-Aplikacja nie jest jeszcze zaimplementowana i nie da się jej uruchomić.
-Kod poszczególnych funkcji będzie powstawał w osobnych zadaniach projektu SCRUM.
+Frontend ma działający lokalnie szkielet modułowego dashboardu (SCRUM-38).
+Pozwala zmieniać motyw jasny, ciemny lub systemowy, kolor akcentu oraz
+włączać i ukrywać sześć modułów. Ustawienia są zapamiętywane w przeglądarce.
+Wspólna czcionka to Inter, a domyślny akcent jest niebieski.
 
+Wymagany Node.js 22.18.0 (wersja zapisana w `frontend/.nvmrc`):
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+Otwórz http://127.0.0.1:5173. `npm run build` sprawdza TypeScript i buduje frontend.
+Dashboard działa bez logowania i bez połączenia z API. Wskaźniki mają puste
+stany, a mapa jest oznaczoną ilustracją układu. Backend, baza, dane floty
+i pełne widoki funkcji pozostają do wykonania w osobnych zadaniach.
+
+- [Frontend: uruchomienie i zakres](frontend/README.md)
+- [Kolory, komponenty i dodawanie modułów](docs/DESIGN_SYSTEM.md)
 - [Podział katalogów](docs/STRUCTURE.md)
 - [Zasady współpracy i PR](CONTRIBUTING.md)
 - [Instrukcje dla agentów AI](AGENTS.md)
