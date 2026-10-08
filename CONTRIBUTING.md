@@ -1,8 +1,8 @@
 # Współpraca
 
-Na tym etapie przygotowujemy strukturę. Puste pliki pozostają puste, dopóki
-osobne zadanie nie dotyczy implementacji. Zakres produktu i role są w README,
-a ustalenia zespołu w TEAM_CONTRACT.md.
+Frontend ma uruchamialny szkielet dashboardu. Pozostałe puste pliki pozostają
+puste, dopóki osobne zadanie nie dotyczy implementacji. Zakres produktu
+i role są w README, a ustalenia zespołu w TEAM_CONTRACT.md.
 
 ## Jedno zadanie — jedna gałąź — jeden PR
 
@@ -40,3 +40,8 @@ z gałęzi tego PR. PR kieruj tymczasowo do bezpośredniej gałęzi bazowej i ws
 zależność w opisie. Po sprawdzeniu i scaleniu poprzednika przestaw bazę na
 `main`. Każda gałąź ma własny klucz zadania i własne nowe commity. Takie PR-y
 sprawdzamy i scalamy od najstarszej zależności. Nie omija to review ani QA.
+
+Frontend sprawdzamy poleceniami `npm test` i `npm run build` w `frontend/`.
+Zmiany wyglądu wymagają sprawdzenia w przeglądarce na komputerze i małym ekranie.
+Uzgodnienia UI opisuje [system wyglądu](docs/DESIGN_SYSTEM.md).
+

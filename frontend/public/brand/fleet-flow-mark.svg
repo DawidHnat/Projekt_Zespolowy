@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-20 -18 805 530" fill="none">
+  <title>Fleet-Flow — monogram FF ze strzałką</title>
+  <style>
+    :root { --depth: #031b3d; --fold: #063b80; }
+    @media (prefers-color-scheme: dark) {
+      :root { --depth: #2865ba; --fold: #2779cf; }
+    }
+  </style>
+  <defs>
+    <linearGradient id="upper" x1="93" y1="201" x2="445" y2="15" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#004aa5" />
+      <stop offset=".55" stop-color="#0076e3" />
+      <stop offset="1" stop-color="#00b5f3" />
+    </linearGradient>
+    <linearGradient id="flow" x1="36" y1="464" x2="738" y2="72" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--depth)" />
+      <stop offset=".38" stop-color="#006fc4" />
+      <stop offset=".7" stop-color="#0094f5" />
+      <stop offset="1" stop-color="#00bceb" />
+    </linearGradient>
+    <linearGradient id="leg" x1="288" y1="490" x2="501" y2="273" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0043bf" />
+      <stop offset=".6" stop-color="#0087ea" />
+      <stop offset="1" stop-color="#00b5f2" />
+    </linearGradient>
+    <linearGradient id="lower" x1="313" y1="376" x2="576" y2="208" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--fold)" />
+      <stop offset="1" stop-color="#008eea" />
+    </linearGradient>
+    <linearGradient id="upper-fold" x1="82" y1="230" x2="347" y2="95" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--depth)" />
+      <stop offset="1" stop-color="#0054ad" />
+    </linearGradient>
+  </defs>
+  <path fill="url(#upper)" d="M74 239 118 101C140 28 192 0 281 0h170c-19 55-41 83-71 94-29 12-53 17-78 17-84 0-141 46-228 128Z" />
+  <path fill="url(#upper-fold)" d="M74 239c71-98 131-145 210-145h96c-28 12-53 17-78 17-84 0-141 46-228 128Z" />
+  <path fill="url(#flow)" d="m0 492 57-165c39-104 120-174 237-174 48 0 88-21 133-47 49-30 80-45 130-45h85l10-47 113 98-154 94 10-52H484c-47 0-80 19-116 54l-26 26c-23 21-43 31-78 31-37 0-57 5-74 24-22 23-33 62-43 108-11 51-28 95-75 95H0Z" />
+  <path fill="var(--depth)" fill-opacity=".32" d="M0 492h72c47 0 64-44 75-95 10-46 21-85 43-108C119 345 103 405 67 462 50 486 32 492 0 492Z" />
+  <path fill="url(#leg)" d="m285 492 46-145c26-84 69-143 145-143h115l-19 59c-9 27-22 38-43 38h-69l-41 125c-17 49-42 66-77 66h-57Z" />
+  <path fill="url(#lower)" d="m285 492 46-145c26-84 69-143 145-143h115l-19 59c-9 27-22 38-43 38h-69c-74 0-125 58-175 191Z" />
+</svg>

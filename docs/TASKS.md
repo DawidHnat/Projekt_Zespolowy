@@ -18,6 +18,7 @@ Liczba zadań nie jest miarą nakładu; kolejność i dostępność ustalamy wsp
 
 - Jakub Czaja: frontend SCRUM-38 czeka na review w PR #6; SCRUM-14 jest w toku
   po sprawdzeniu snapshotu WEBFLEET. SCRUM-34 obejmuje przyjęcie zasad przez zespół.
+
 - Jakub Nazarewicz: [SCRUM-35](https://fleet-flow.atlassian.net/browse/SCRUM-35)
   — szkice trzech widoków i przepływy użytkownika do uzgodnienia z PO.
 - Dawid Hnat: [SCRUM-36](https://fleet-flow.atlassian.net/browse/SCRUM-36)
@@ -31,7 +32,7 @@ Liczba zadań nie jest miarą nakładu; kolejność i dostępność ustalamy wsp
 Serwis (SCRUM-41), kierowcy (SCRUM-42) i karty paliwowe (SCRUM-43) pozostają
 w backlogu. Nie rozszerzają automatycznie zakresu aktualnego sprintu.
 
-Nowe zadania przygotowawcze są w backlogu. Implementacja zaczyna się po
-uzgodnieniu interfejsów i uruchomieniu stosu; nie trzeba czekać z pracą lokalną
-na VPS. Przy zmianie właściciela aktualizujemy pole osoby i opis w Jirze.
+Można już uruchomić frontend i rozwijać jego moduły lokalnie. Podłączenie
+danych wymaga wspólnego kontraktu API z SCRUM-36; nie trzeba czekać z pracą
+nad UI na VPS. Przy zmianie właściciela aktualizujemy pole osoby i opis w Jirze.
 Zasady gałęzi, PR i przeglądu są w [CONTRIBUTING](../CONTRIBUTING.md).

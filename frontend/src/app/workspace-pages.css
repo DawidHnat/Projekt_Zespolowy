@@ -1,0 +1,63 @@
+/* Dedicated pages share surfaces; Map keeps its own saved grid geometry. */
+.map-main-content {
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  min-height: calc(100dvh - 72px);
+}
+.fleet-map-page {
+  flex: 1;
+  min-width: 0;
+}
+.fleet-map-page .map-canvas {
+  min-height: 360px;
+}
+.fleet-map-page .vehicles-widget .widget-content {
+  display: flex;
+  align-items: center;
+}
+.fleet-map-page .vehicles-widget .widget-content-inner {
+  width: 100%;
+}
+.fleet-map-page .empty-state p {
+  max-width: 240px;
+  margin-inline: auto;
+}
+.planned-page {
+  height: auto;
+  min-height: 360px;
+}
+.planned-page .widget-content-inner {
+  display: grid;
+  align-content: center;
+  min-height: 300px;
+}
+.planned-page .empty-state {
+  padding: 36px 24px;
+}
+.planned-page .empty-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  margin-bottom: 18px;
+}
+.planned-page .empty-state h3 {
+  font-size: 16px;
+}
+.planned-page .empty-state p {
+  max-width: 420px;
+  margin: 9px auto 0;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+@media (max-width: 760px) {
+  .map-main-content {
+    min-height: calc(100dvh - 64px);
+  }
+  .fleet-map-page .map-canvas {
+    min-height: 320px;
+  }
+}

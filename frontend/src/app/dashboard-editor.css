@@ -1,0 +1,452 @@
+/* Layout geometry belongs to react-grid-layout; cards adapt to their own width. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.dashboard-canvas {
+  min-width: 0;
+}
+.dashboard-grid {
+  display: block;
+  transition: height 180ms ease;
+}
+.dashboard-grid .react-grid-item.cssTransforms {
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1), width 160ms ease, height 160ms ease;
+}
+.dashboard-grid .react-grid-item.cssTransforms:is(.react-draggable-dragging, .resizing),
+.is-interacting .dashboard-grid {
+  transition: none;
+}
+.dashboard-canvas:not(.is-editing) .react-resizable-handle {
+  display: none;
+}
+.widget-slot {
+  min-width: 0;
+  container-type: inline-size;
+}
+.widget {
+  display: flex;
+  flex-direction: column;
+}
+.widget-header {
+  flex: 0 0 auto;
+}
+.widget-header h2 {
+  min-width: 0;
+  line-height: 1.35;
+}
+.widget-header h2 svg {
+  flex-shrink: 0;
+}
+.widget-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.widget-content-inner {
+  display: flow-root;
+}
+.metrics-widget .widget-header {
+  min-height: 38px;
+  padding: 0 1px 8px;
+}
+.metrics-grid {
+  height: auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.metric {
+  min-height: 88px;
+  padding: 14px 13px;
+}
+.map-widget .widget-content-inner {
+  display: flex;
+  height: 100%;
+}
+.map-canvas {
+  flex: 1;
+  min-height: 245px;
+}
+.utilization-body {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.trips-widget .empty-state {
+  height: auto;
+  align-content: center;
+}
+.vehicle-table {
+  table-layout: fixed;
+}
+.vehicle-table th {
+  padding: 12px 8px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.vehicle-table tbody td:not([colspan]) {
+  padding: 12px 8px;
+  height: 44px;
+  overflow-wrap: anywhere;
+}
+.widget-badge {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@container (max-width: 650px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .widget-badge {
+    display: none;
+  }
+}
+@container (max-width: 330px) {
+  .widget-header {
+    padding-inline: 13px;
+  }
+  .widget-header h2 {
+    font-size: 11px;
+  }
+  .activity-intro {
+    padding: 20px 14px 16px;
+  }
+  .activity-orbit {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 12px;
+  }
+  .utilization-body {
+    gap: 12px;
+    padding: 14px 12px 6px;
+  }
+  .empty-gauge {
+    width: 82px;
+    height: 82px;
+    border-width: 8px;
+  }
+  .map-empty {
+    margin-inline: 12px;
+    padding: 18px 12px;
+  }
+}
+.page-heading-copy {
+  flex: 1;
+  min-width: 0;
+}
+/* Keep the same action slot in both modes so entering edit never moves the grid. */
+.layout-editor-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  width: 280px;
+  max-width: 100%;
+  height: 36px;
+  flex-shrink: 0;
+}
+.layout-editor-controls .button {
+  height: 36px;
+  padding: 9px 12px;
+  font-size: 11px;
+}
+.layout-editor-controls .icon-button {
+  width: 32px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.is-editing .dashboard-grid {
+  border-radius: 16px;
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--muted) 23%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 17px 17px;
+}
+.is-editing .widget-slot {
+  border-radius: var(--radius-card);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.is-interacting .widget-slot {
+  cursor: grabbing;
+}
+.is-editing .widget-slot::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  pointer-events: none;
+  border: 1px dashed color-mix(in srgb, var(--accent) 35%, var(--border));
+  border-radius: calc(var(--radius-card) + 3px);
+}
+.is-editing .widget-header,
+.is-editing .metrics-widget .widget-header {
+  padding-inline: 52px;
+}
+.is-editing .widget-badge {
+  display: none;
+}
+.widget-editor-controls {
+  position: absolute;
+  top: 8px;
+  right: 7px;
+  left: 7px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 30px;
+  z-index: 2;
+  pointer-events: none;
+}
+.widget-editor-controls button {
+  pointer-events: auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  height: 30px;
+  width: 34px;
+  background: var(--surface);
+  color: var(--muted);
+}
+.widget-editor-controls button:hover {
+  color: var(--text);
+  background: var(--accent-soft);
+}
+.widget-drag-handle {
+  cursor: grab;
+  touch-action: none;
+}
+.widget-drag-handle:active {
+  cursor: grabbing;
+}
+.widget-settings-button {
+  cursor: pointer;
+}
+.widget-resize-handle.react-resizable-handle {
+  opacity: 1;
+  background-image: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  bottom: -4px;
+  right: -4px;
+  z-index: 3;
+  padding: 0;
+  color: var(--muted);
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  touch-action: none;
+}
+.widget-resize-handle::after {
+  display: none;
+}
+.react-grid-item.react-grid-placeholder {
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+  opacity: 1;
+  border-radius: var(--radius-card);
+  border: 2px solid var(--accent);
+  box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--accent) 10%, transparent);
+  pointer-events: none;
+}
+.react-grid-placeholder::after {
+  content: "Upuść tutaj";
+  position: absolute;
+  inset: 12px auto auto 12px;
+  border-radius: 8px;
+  padding: 5px 9px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 600;
+}
+.react-grid-item.react-draggable-dragging > .widget {
+  opacity: 0.94;
+  border-color: var(--accent);
+  box-shadow: 0 16px 36px #00000030;
+}
+.widget-settings-content .minimum-size-hint {
+  font-size: 10px;
+  margin-top: 8px;
+}
+.widget-settings-dialog {
+  width: min(430px, calc(100vw - 28px));
+  max-height: calc(100dvh - 40px);
+  padding: 0;
+  margin: auto;
+  overflow: auto;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: 0 24px 90px #00000030;
+}
+.widget-settings-dialog::backdrop {
+  background: #07152555;
+  backdrop-filter: blur(5px);
+}
+.widget-settings-dialog .panel-header h2 {
+  font-size: 17px;
+}
+.widget-settings-content {
+  padding: 8px 24px 20px;
+}
+.widget-settings-content > p {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.size-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 24px;
+  gap: 16px;
+}
+.size-control output {
+  color: var(--muted);
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 400;
+}
+.size-control input {
+  flex-basis: 100%;
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.size-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.size-presets .button {
+  font-size: 10px;
+  padding: 7px 10px;
+}
+.size-presets [aria-pressed="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.move-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-block: 24px;
+}
+.move-controls > span {
+  margin-right: auto;
+  font-size: 12px;
+  font-weight: 600;
+}
+.move-controls .icon-button {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.hide-widget-button {
+  width: 100%;
+}
+.widget-settings-content > small {
+  display: block;
+  text-align: center;
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 10px;
+}
+.widget-settings-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+}
+.material-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.material-options button {
+  padding: 9px;
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  color: var(--muted);
+  background: var(--surface);
+  font-size: 11px;
+  cursor: pointer;
+}
+.material-options button.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.material-preview {
+  height: 65px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: var(--text);
+  background: var(--surface-muted);
+}
+.material-preview-glass {
+  background:
+    radial-gradient(
+      at 10% 20%,
+      color-mix(in srgb, var(--accent) 24%, var(--surface)),
+      transparent 75%
+    ),
+    linear-gradient(120deg, var(--surface), var(--surface-hover));
+  border: 1px solid color-mix(in srgb, var(--surface) 80%, var(--border));
+  box-shadow: inset 0 1px 1px var(--surface);
+}
+.material-preview-glass svg {
+  padding: 6px;
+  box-sizing: content-box;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+}
+.module-search input:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+@media (max-width: 760px) {
+  .layout-editor-controls {
+    width: 100%;
+    flex-basis: 100%;
+    justify-content: flex-start;
+    gap: 4px;
+  }
+  .page-heading .layout-editor-controls .button {
+    gap: 6px;
+    padding-inline: 9px;
+  }
+  .layout-editor-controls .icon-button {
+    width: 30px;
+  }
+  .map-canvas {
+    min-height: 245px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-grid,
+  .react-grid-item {
+    transition: none !important;
+  }
+}
