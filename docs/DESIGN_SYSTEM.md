@@ -60,7 +60,7 @@ Dodanie modułu:
 
 ID istniejących modułów nie zmieniaj bez migracji preferencji. Kafelki należą
 do `fleet`, `trips` lub `analytics`; dashboard odpowiada za ich kompozycję.
-Wywołania API należy później wydzielić do wspólnego klienta, bez sekretów
+Wywołania API korzystają ze wspólnego klienta `shared/api/client.ts`, bez sekretów
 WEBFLEET w przeglądarce. Przy równoległej pracy uzgodnij zmiany rejestru
 i arkusza stylów z osobą pracującą w tych samych plikach.
 
@@ -93,7 +93,10 @@ widgetów może wskazać `presentations` dla konkretnej grupy: w Mapie pojazdy
 mają boczną listę i własne minimum szerokości, a na Pulpicie nadal tabelę.
 Ten widok pozostaje niezależny od ukrywania kafelków na Pulpicie.
 Starsze preferencje v2 otrzymują domyślną grupę `map` bez zmiany innych układów.
-Mapa nadal jest oznaczoną ilustracją do czasu podłączenia dostawcy i API.
+Mapa korzysta z Mapbox i chronionego GeoJSON API. Klaster grupuje pojazdy,
+a wybór na liście i mapie jest wspólny. Brak tokenu lub WebGL pozostawia
+czytelną informację oraz działającą listę. Podczas edycji układu gesty mapy
+są wyłączone, aby można było chwycić cały kafelek.
 
 `app/components/AppSettingsPanel.tsx` otwiera się pod kołem zębatym
 „Ustawienia”. Zawiera motyw, materiał, akcent, tło i widoczność kafelków

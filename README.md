@@ -169,8 +169,8 @@ zostanie dodany po sprawdzeniu dostępu, przed oddaniem zadania.
 WEBFLEET jest odczytywany wyłącznie przez backend. Dane pobiera z lokalnego
 `.env`; do Git trafia tylko bezpieczny `.env.example`. Pierwszy przyrost
 synchronizuje pojazdy i ostatnie pomiary; historia pozostaje kolejnym zadaniem.
-SMTP ma diagnostykę logowania bez wysyłki. Reset e-mail czeka na potwierdzenie
-hasła skrzynki i osobną implementację. Zdalne uruchomienie wymaga HTTPS oraz
+SMTP ma diagnostykę logowania bez wysyłki. Reset e-mail jest w SCRUM-44;
+wymaga osobistego adresu przypisanego do konta oraz działającego SMTP. Zdalne uruchomienie wymaga HTTPS oraz
 `COOKIE_SECURE=true` w zadaniu infrastruktury.
 
 - [Uruchomienie i testy integracji](backend/README.md)

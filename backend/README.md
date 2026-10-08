@@ -137,8 +137,8 @@ z `CORS_ORIGINS`; nie ustawiaj `*`. Dozwolone role: admin/editor/viewer.
 Login jest limitowany przez bazę do 10 prób/minutę na IP i login. Nagłówki proxy
 nie są używane jako tożsamość IP. Wdrożenie za proxy wymaga osobnego ustawienia
 zaufanych proxy; przed wystawieniem zdalnie wymagane są HTTPS i Secure cookie.
-SMTP nadal wymaga potwierdzenia hasła skrzynki; reset e-mail nie jest jeszcze
-udostępniony. Administrator może ustawić hasło lokalnym poleceniem powyżej.
+Reset e-mail jest osobnym przyrostem SCRUM-44 opisanym poniżej.
+Administrator może także ustawić hasło lokalnym poleceniem powyżej.
 
 ## Synchronizacja pojazdów — SCRUM-15
 
@@ -159,3 +159,31 @@ pasujące pozycje z całej listy, niezależnie od jej bieżącej strony. Pojazdy
 GPS pozostają na liście. Dane stare i brakujące mają jawne oznaczenia; prędkość
 pozostaje `null` do potwierdzenia jednostki. Publiczne API nie zwraca UID źródła.
 `/docs` pokazuje aktualny OpenAPI; plan kolejnych operacji jest w contracts/.
+
+## Reset hasła przez e-mail — SCRUM-44
+
+SMTP TLS i logowanie zweryfikowano; test diagnostyczny nie wysłał wiadomości.
+Administrator przypisuje **własny adres danej osoby**, nie wspólną skrzynkę:
+
+```bash
+python -m app.manage set-email jczaja51 --email owner@example.com
+```
+
+`owner@example.com` jest przykładem; wpisz adres wybrany przez właściciela konta.
+`create-user` przyjmuje opcjonalne `--email`. Zmiana adresu lub ustawienie hasła
+lokalnie unieważnia tokeny resetu. SMTP nadawcą jest `SMTP_USERNAME`.
+
+Ekran „Nie pamiętam hasła” wywołuje `POST /api/v1/auth/password/request` z loginem.
+Odpowiedź pozostaje neutralna, także przy braku konta/e-maila i limitach: 3/h na
+login i 10/h na IP, współdzielone przez bazę. Link wskazuje dokładnie dozwolony
+Origin aplikacji i ma token we fragmencie URL, który nie trafia do HTTP access log.
+Token ma 20 minut ważności; baza przechowuje tylko SHA-256. Potwierdzenie resetu
+(`/auth/password/confirm`) blokuje rekordy w PostgreSQL i umożliwia dokładnie
+jedno użycie, ustawia Argon2id i unieważnia wszystkie sesje oraz tokeny konta.
+
+Wysyłka jest zadaniem w tle procesu, bez trwałej kolejki. Przerwanie procesu lub
+awaria SMTP może przerwać wysyłkę; użytkownik może później poprosić o nowy link.
+Trwały outbox pozostaje dalszym usprawnieniem. Testy używają atrapy SMTP — nie
+wysyłają do prawdziwych skrzynek. Dostarczenie wiadomości wymaga osobnego odbioru
+QA na zatwierdzony adres. Konta startowe bez przypisanego e-maila nadal mogą
+logować się hasłem ustawionym przez administratora.

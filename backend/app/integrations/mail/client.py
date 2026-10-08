@@ -1,7 +1,8 @@
-"""OVH SMTP authentication diagnostic. It never sends an email."""
+"""OVH SMTP: authentication-only diagnostic and separate password-reset delivery."""
 
 import smtplib
 import ssl
+from email.message import EmailMessage
 
 import certifi
 
@@ -29,3 +30,27 @@ def check_smtp(settings: SmtpSettings) -> None:
         raise SmtpError("SMTP: odrzucone logowanie; sprawdź skrzynkę i SMTP_PASSWORD") from None
     except (OSError, smtplib.SMTPException):
         raise SmtpError("SMTP: błąd połączenia lub TLS") from None
+
+
+def send_password_reset(settings: SmtpSettings, recipient: str, url: str) -> None:
+    message = EmailMessage()
+    message["From"] = settings.username
+    message["To"] = recipient
+    message["Subject"] = "Fleet-Flow — reset hasła"
+    message.set_content(
+        "Aby ustawić nowe hasło Fleet-Flow, otwórz poniższy link. "
+        "Jest ważny 20 minut i działa jeden raz.\n\n"
+        + url
+        + "\n\nJeśli nie prosisz o zmianę hasła, zignoruj tę wiadomość."
+    )
+    try:
+        with smtplib.SMTP_SSL(
+            settings.host,
+            settings.port,
+            timeout=settings.timeout_seconds,
+            context=ssl.create_default_context(cafile=certifi.where()),
+        ) as client:
+            client.login(settings.username, settings.password)
+            client.send_message(message, from_addr=settings.username, to_addrs=[recipient])
+    except (OSError, smtplib.SMTPException):
+        raise SmtpError("SMTP: wiadomość nie została wysłana") from None

@@ -41,6 +41,7 @@ export async function api<T>(
       INVALID_CREDENTIALS: "Niepoprawny login lub hasło.",
       RATE_LIMITED: "Zbyt wiele prób. Spróbuj ponownie za minutę.",
       UNAUTHENTICATED: "Sesja wygasła. Zaloguj się ponownie.",
+      INVALID_RESET: "Link jest niepoprawny lub wygasł. Poproś o nowy link.",
       DATABASE_UNAVAILABLE: "Baza danych jest chwilowo niedostępna.",
     };
     throw new ApiError(

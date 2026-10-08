@@ -601,6 +601,51 @@
           }
         }
       }
+    },
+    {
+      "method": "POST",
+      "path": "/auth/password/request",
+      "delivery": "first-SCRUM-44",
+      "request_example": {
+        "body": {
+          "username": "test-user"
+        }
+      },
+      "response_example": {
+        "ok": true
+      },
+      "error_example": {
+        "status": 403,
+        "body": {
+          "error": {
+            "code": "FORBIDDEN",
+            "message": "Niedozwolone źródło żądania"
+          }
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/auth/password/confirm",
+      "delivery": "first-SCRUM-44",
+      "request_example": {
+        "body": {
+          "token": "synthetic_token_example_12345",
+          "password": "synthetic-new-password"
+        }
+      },
+      "response_example": {
+        "ok": true
+      },
+      "error_example": {
+        "status": 400,
+        "body": {
+          "error": {
+            "code": "INVALID_RESET",
+            "message": "Link jest niepoprawny lub wygasł"
+          }
+        }
+      }
     }
   ]
 }

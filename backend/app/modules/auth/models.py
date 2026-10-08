@@ -15,6 +15,7 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(300))
     role: Mapped[str] = mapped_column(String(20), default="viewer")
     active: Mapped[bool] = mapped_column(default=True)
+    email: Mapped[str | None] = mapped_column(String(254))
 
 
 class LoginSession(Base):
@@ -29,3 +30,10 @@ class LoginAttempt(Base):
     key: Mapped[str] = mapped_column(String(64), primary_key=True)
     window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     attempts: Mapped[int]
+
+
+class PasswordReset(Base):
+    __tablename__ = "password_resets"
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

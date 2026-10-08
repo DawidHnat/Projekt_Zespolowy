@@ -31,7 +31,7 @@ class LoginBody(BaseModel):
     password: SecretStr = Field(min_length=1, max_length=1024)
 
 
-def count_attempt(session: Session, key: str):
+def count_attempt(session: Session, key: str, *, limit=10, window_seconds=60):
     now = now_utc()
     # PostgreSQL UPSERT serializes simultaneous attempts for the same bucket.
     if session.bind.dialect.name == "postgresql":
@@ -39,7 +39,7 @@ def count_attempt(session: Session, key: str):
         from sqlalchemy.dialects.postgresql import insert
 
         statement = insert(LoginAttempt).values(key=key, window_start=now, attempts=1)
-        expired = LoginAttempt.window_start <= now - timedelta(minutes=1)
+        expired = LoginAttempt.window_start <= now - timedelta(seconds=window_seconds)
         statement = statement.on_conflict_do_update(
             index_elements=[LoginAttempt.key],
             set_={
@@ -53,12 +53,12 @@ def count_attempt(session: Session, key: str):
         if not row:
             row = LoginAttempt(key=key, window_start=now, attempts=0)
             session.add(row)
-        elif aware(row.window_start) <= now - timedelta(minutes=1):
+        elif aware(row.window_start) <= now - timedelta(seconds=window_seconds):
             row.window_start, row.attempts = now, 0
         row.attempts += 1
         count = row.attempts
     session.commit()
-    if count > 10:
+    if count > limit:
         raise ApiError(429, "RATE_LIMITED", "Zbyt wiele prób. Spróbuj za minutę")
 
 
