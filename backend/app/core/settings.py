@@ -16,6 +16,7 @@ class Settings:
     sync_enabled: bool = False
     sync_interval_seconds: int = 60
     stale_seconds: int = 900
+    webfleet_account: str = field(default="", repr=False)
 
     @classmethod
     def from_environment(cls) -> "Settings":
@@ -47,4 +48,5 @@ class Settings:
             origins=origins,
             cookie_secure=secure,
             sync_enabled=values.get("SYNC_ENABLED", "false").lower() == "true",
+            webfleet_account=values.get("WEBFLEET_ACCOUNT", ""),
         )

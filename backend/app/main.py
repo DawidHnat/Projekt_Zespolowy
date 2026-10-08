@@ -12,6 +12,7 @@ from app.core.database import make_engine, make_sessions
 from app.core.errors import register_handlers
 from app.core.settings import Settings
 from app.modules.auth.router import router as auth_router
+from app.modules.fleet.router import router as fleet_router
 from app.modules.fleet.sync import sync_worker
 
 
@@ -49,6 +50,7 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
     )
     register_handlers(app)
     app.include_router(auth_router)
+    app.include_router(fleet_router)
 
     @app.middleware("http")
     async def private_responses(request: Request, call_next):
