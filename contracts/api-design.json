@@ -1,0 +1,606 @@
+{
+  "version": "0.1",
+  "status": "proposed-for-review",
+  "base_path": "/api/v1",
+  "examples": "synthetic-only",
+  "operations": [
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "delivery": "first",
+      "request_example": {
+        "username": "test-user",
+        "password": "synthetic-example-only"
+      },
+      "response_example": {
+        "user": {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "username": "test-user",
+          "display_name": "Użytkownik testowy",
+          "role": "viewer"
+        }
+      },
+      "error_example": {
+        "status": 401,
+        "body": {
+          "error": {
+            "code": "INVALID_CREDENTIALS",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/auth/me",
+      "delivery": "first",
+      "request_example": {},
+      "response_example": {
+        "user": {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "username": "test-user",
+          "display_name": "Użytkownik testowy",
+          "role": "viewer"
+        }
+      },
+      "error_example": {
+        "status": 401,
+        "body": {
+          "error": {
+            "code": "UNAUTHENTICATED",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/auth/logout",
+      "delivery": "first",
+      "request_example": {},
+      "response_example": {
+        "ok": true
+      },
+      "error_example": {
+        "status": 401,
+        "body": {
+          "error": {
+            "code": "UNAUTHENTICATED",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/fleet/vehicles",
+      "delivery": "first",
+      "request_example": {
+        "query": {
+          "q": "test",
+          "status": "stopped",
+          "page": 1,
+          "page_size": 25
+        }
+      },
+      "response_example": {
+        "items": [
+          {
+            "id": "11111111-1111-4111-8111-111111111111",
+            "name": "Pojazd testowy",
+            "number": "TEST-1",
+            "license_plate": "TEST 001",
+            "vehicle_type": "van",
+            "status": "stopped",
+            "driver": null,
+            "latitude": 52.0,
+            "longitude": 21.0,
+            "position_at": "2026-01-10T12:00:00Z",
+            "received_at": "2026-01-10T12:01:00Z",
+            "is_stale": false,
+            "odometer_km": 1234.5,
+            "speed_kmh": null,
+            "ignition_on": false,
+            "standing_still": true
+          }
+        ],
+        "total": 1,
+        "page": 1,
+        "page_size": 25,
+        "source": {
+          "status": "ok",
+          "last_success_at": "2026-01-10T12:01:00Z",
+          "error_code": null
+        }
+      },
+      "error_example": {
+        "status": 401,
+        "body": {
+          "error": {
+            "code": "UNAUTHENTICATED",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/fleet/map",
+      "delivery": "first",
+      "request_example": {
+        "query": {
+          "q": "test",
+          "status": "stopped"
+        }
+      },
+      "response_example": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                21.0,
+                52.0
+              ]
+            },
+            "properties": {
+              "id": "11111111-1111-4111-8111-111111111111",
+              "name": "Pojazd testowy",
+              "status": "stopped",
+              "is_stale": false,
+              "position_at": "2026-01-10T12:00:00Z"
+            }
+          }
+        ],
+        "source": {
+          "status": "ok",
+          "last_success_at": "2026-01-10T12:01:00Z",
+          "error_code": null
+        },
+        "located": 1,
+        "total": 1
+      },
+      "error_example": {
+        "status": 401,
+        "body": {
+          "error": {
+            "code": "UNAUTHENTICATED",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/fleet/summary",
+      "delivery": "first",
+      "request_example": {},
+      "response_example": {
+        "total": 1,
+        "moving": 0,
+        "stopped": 1,
+        "offline": 0,
+        "unknown": 0,
+        "source": {
+          "status": "ok",
+          "last_success_at": "2026-01-10T12:01:00Z",
+          "error_code": null
+        }
+      },
+      "error_example": {
+        "status": 401,
+        "body": {
+          "error": {
+            "code": "UNAUTHENTICATED",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/fleet/vehicles/{id}",
+      "delivery": "first",
+      "request_example": {
+        "path": {
+          "id": "11111111-1111-4111-8111-111111111111"
+        }
+      },
+      "response_example": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "name": "Pojazd testowy",
+        "number": "TEST-1",
+        "license_plate": "TEST 001",
+        "vehicle_type": "van",
+        "status": "stopped",
+        "driver": null,
+        "latitude": 52.0,
+        "longitude": 21.0,
+        "position_at": "2026-01-10T12:00:00Z",
+        "received_at": "2026-01-10T12:01:00Z",
+        "is_stale": false,
+        "odometer_km": 1234.5,
+        "speed_kmh": null,
+        "ignition_on": false,
+        "standing_still": true
+      },
+      "error_example": {
+        "status": 404,
+        "body": {
+          "error": {
+            "code": "NOT_FOUND",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/drivers",
+      "delivery": "later",
+      "request_example": {},
+      "response_example": {
+        "items": [
+          {
+            "id": "11111111-1111-4111-8111-111111111111",
+            "display_name": "Kierowca testowy",
+            "active": true
+          }
+        ]
+      },
+      "error_example": {
+        "status": 401,
+        "body": {
+          "error": {
+            "code": "UNAUTHENTICATED",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/drivers",
+      "delivery": "later",
+      "request_example": {
+        "body": {
+          "display_name": "Kierowca testowy"
+        }
+      },
+      "response_example": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "display_name": "Kierowca testowy",
+        "active": true
+      },
+      "error_example": {
+        "status": 403,
+        "body": {
+          "error": {
+            "code": "FORBIDDEN",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/fleet/vehicles/{id}/driver",
+      "delivery": "later",
+      "request_example": {
+        "path": {
+          "id": "11111111-1111-4111-8111-111111111111"
+        },
+        "body": {
+          "driver_id": null
+        }
+      },
+      "response_example": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "name": "Pojazd testowy",
+        "number": "TEST-1",
+        "license_plate": "TEST 001",
+        "vehicle_type": "van",
+        "status": "stopped",
+        "driver": null,
+        "latitude": 52.0,
+        "longitude": 21.0,
+        "position_at": "2026-01-10T12:00:00Z",
+        "received_at": "2026-01-10T12:01:00Z",
+        "is_stale": false,
+        "odometer_km": 1234.5,
+        "speed_kmh": null,
+        "ignition_on": false,
+        "standing_still": true
+      },
+      "error_example": {
+        "status": 404,
+        "body": {
+          "error": {
+            "code": "NOT_FOUND",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/trips",
+      "delivery": "later",
+      "request_example": {
+        "query": {
+          "vehicle_id": "11111111-1111-4111-8111-111111111111",
+          "from": "2026-01-10T00:00:00Z",
+          "to": "2026-01-11T00:00:00Z",
+          "page": 1,
+          "page_size": 25
+        }
+      },
+      "response_example": {
+        "items": [
+          {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "vehicle_id": "11111111-1111-4111-8111-111111111111",
+            "start_at": "2026-01-10T11:00:00Z",
+            "end_at": "2026-01-10T12:00:00Z",
+            "distance_km": 25.5,
+            "duration_seconds": 3600,
+            "annotation": {
+              "purpose": null,
+              "description": null,
+              "version": 1
+            },
+            "geometry": null
+          }
+        ],
+        "total": 1,
+        "page": 1,
+        "page_size": 25
+      },
+      "error_example": {
+        "status": 422,
+        "body": {
+          "error": {
+            "code": "VALIDATION_ERROR",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/trips/{id}",
+      "delivery": "later",
+      "request_example": {
+        "path": {
+          "id": "22222222-2222-4222-8222-222222222222"
+        }
+      },
+      "response_example": {
+        "id": "22222222-2222-4222-8222-222222222222",
+        "vehicle_id": "11111111-1111-4111-8111-111111111111",
+        "start_at": "2026-01-10T11:00:00Z",
+        "end_at": "2026-01-10T12:00:00Z",
+        "distance_km": 25.5,
+        "duration_seconds": 3600,
+        "annotation": {
+          "purpose": null,
+          "description": null,
+          "version": 1
+        },
+        "geometry": null
+      },
+      "error_example": {
+        "status": 404,
+        "body": {
+          "error": {
+            "code": "NOT_FOUND",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/trips/{id}/annotation",
+      "delivery": "later",
+      "request_example": {
+        "path": {
+          "id": "22222222-2222-4222-8222-222222222222"
+        },
+        "body": {
+          "purpose": "Cel testowy",
+          "description": "Opis testowy",
+          "version": 1
+        }
+      },
+      "response_example": {
+        "purpose": "Cel testowy",
+        "description": "Opis testowy",
+        "version": 2
+      },
+      "error_example": {
+        "status": 409,
+        "body": {
+          "error": {
+            "code": "VERSION_CONFLICT",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/summary",
+      "delivery": "later",
+      "request_example": {
+        "query": {
+          "from": "2026-01-10T00:00:00Z",
+          "to": "2026-01-11T00:00:00Z"
+        }
+      },
+      "response_example": {
+        "distance_km": 25.5,
+        "trips": 1,
+        "coverage": {
+          "complete": false,
+          "missing_vehicle_days": 1
+        }
+      },
+      "error_example": {
+        "status": 422,
+        "body": {
+          "error": {
+            "code": "VALIDATION_ERROR",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/rules",
+      "delivery": "later",
+      "request_example": {},
+      "response_example": {
+        "items": [
+          {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "type": "odometer_threshold",
+            "threshold_km": 2000,
+            "vehicle_id": "11111111-1111-4111-8111-111111111111",
+            "active": true
+          }
+        ]
+      },
+      "error_example": {
+        "status": 401,
+        "body": {
+          "error": {
+            "code": "UNAUTHENTICATED",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/analytics/rules",
+      "delivery": "later",
+      "request_example": {
+        "body": {
+          "type": "odometer_threshold",
+          "threshold_km": 2000,
+          "vehicle_id": "11111111-1111-4111-8111-111111111111",
+          "active": true
+        }
+      },
+      "response_example": {
+        "id": "22222222-2222-4222-8222-222222222222",
+        "type": "odometer_threshold",
+        "threshold_km": 2000,
+        "vehicle_id": "11111111-1111-4111-8111-111111111111",
+        "active": true
+      },
+      "error_example": {
+        "status": 422,
+        "body": {
+          "error": {
+            "code": "VALIDATION_ERROR",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/analytics/rules/{id}",
+      "delivery": "later",
+      "request_example": {
+        "path": {
+          "id": "22222222-2222-4222-8222-222222222222"
+        },
+        "body": {
+          "active": false
+        }
+      },
+      "response_example": {
+        "id": "22222222-2222-4222-8222-222222222222",
+        "type": "odometer_threshold",
+        "threshold_km": 2000,
+        "vehicle_id": "11111111-1111-4111-8111-111111111111",
+        "active": false
+      },
+      "error_example": {
+        "status": 404,
+        "body": {
+          "error": {
+            "code": "NOT_FOUND",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/alerts",
+      "delivery": "later",
+      "request_example": {
+        "query": {
+          "read": false,
+          "page": 1,
+          "page_size": 25
+        }
+      },
+      "response_example": {
+        "items": [
+          {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "vehicle_id": "11111111-1111-4111-8111-111111111111",
+            "rule_id": "22222222-2222-4222-8222-222222222222",
+            "occurred_at": "2026-01-10T12:00:00Z",
+            "read_at": null
+          }
+        ],
+        "total": 1,
+        "page": 1,
+        "page_size": 25
+      },
+      "error_example": {
+        "status": 401,
+        "body": {
+          "error": {
+            "code": "UNAUTHENTICATED",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/analytics/alerts/{id}/receipt",
+      "delivery": "later",
+      "request_example": {
+        "path": {
+          "id": "22222222-2222-4222-8222-222222222222"
+        },
+        "body": {
+          "read": true
+        }
+      },
+      "response_example": {
+        "read_at": "2026-01-10T13:00:00Z"
+      },
+      "error_example": {
+        "status": 404,
+        "body": {
+          "error": {
+            "code": "NOT_FOUND",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    }
+  ]
+}
