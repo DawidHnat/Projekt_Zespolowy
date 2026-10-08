@@ -3,10 +3,12 @@
 ## Potwierdzony zakres
 
 8 października 2026 zweryfikowano autoryzację na lokalnych danych `.env` oraz
-odczyt `showObjectReportExtern`. Odpowiedź zawiera obiekty i wymagane pola
-snapshotu floty. Nie publikujemy odpowiedzi, identyfikatorów, liczebności floty
-ani lokalizacji klientów. Dostęp do historii, tras i raportów pozostaje do
-sprawdzenia; cały spike nie jest jeszcze ukończony.
+odczyt `showObjectReportExtern` oraz `showVehicleReportExtern`. Identyfikatory
+obu raportów pasują do siebie. Dla jednego pojazdu i dzisiejszego okresu
+potwierdzono niepuste odpowiedzi `showTripReportExtern`, `showStandStills`
+i `showTracks`. Nie publikujemy odpowiedzi, identyfikatorów, liczebności floty
+ani lokalizacji klientów. Jednostka numerycznej prędkości snapshotu nie została
+potwierdzona dokładnie tym samym pomiarem historii; nie należy jej zgadywać.
 
 Źródło: [oficjalny przewodnik WEBFLEET.connect 1.74.0](https://media.webfleet.com/fl_attachment/media/doc/documentations/webfleet.connect-doc-1.74.0.pdf),
 sekcje „Making HTTP requests”, „General parameters” i „Objects”.
@@ -17,10 +19,13 @@ sekcje „Making HTTP requests”, „General parameters” i „Objects”.
 - HTTP Basic Auth: login i hasło użytkownika w nagłówku `Authorization`.
 - `account` i `apikey` są osobnymi parametrami. Starsza metoda podawania loginu
   i hasła w URL została wycofana; nie używać starych przykładów integracji.
-- Adapter dopuszcza tylko odczyt listy obiektów. Żadnych poleceń do pojazdów,
+- Adapter dopuszcza tylko wskazane raporty do odczytu. Żadnych poleceń do pojazdów,
   zmian kierowców, zleceń, zapisów ani kolejek `pop`.
 - `columnfilter` ogranicza odpowiedź; adapter dodatkowo odrzuca pola spoza listy.
   Nie pobieramy nazwisk ani telefonów kierowców.
+- **Kierowców wprowadzamy ręcznie w Fleet-Flow**, zgodnie z decyzją PO.
+  Nie wywołujemy raportów kierowców. Przypisania kierowców i historię tych
+  przypisań zapisujemy jako dane aplikacji; synchronizacja ich nie nadpisuje.
 - Sekrety wyłącznie na backendzie. Żadne `VITE_WEBFLEET_*`, logowanie danych
   klienta ani pełnych URL żądań.
 
@@ -52,17 +57,18 @@ aktualnej pozycji. Interfejs powinien wyświetlać czas ostatniego pomiaru.
 
 | Obszar | Dokumentacja / stan | Następny krok |
 | --- | --- | --- |
-| Dane pojazdu i rejestracja | `showVehicleReportExtern`; niesprawdzone na koncie | SCRUM-14: weryfikacja uprawnień i dostępnych pól |
-| Przejazdy | `showTripReportExtern`, limit 1 żądanie/min, zalecenie replikacji nie częściej niż co 15 min | SCRUM-14: krótki zakres czasu; sprawdzić `tripid`, jednostki i kompletność |
-| Postoje | `showStandStills`, limit 6 żądań/min | SCRUM-14: potwierdzić pola i uprawnienia |
-| Geometria tras | `showTracks`; dostęp i ograniczenia pozostają niezweryfikowane | SCRUM-14: wybrany obiekt i mały zakres czasu; wynik bez danych klientów w Git |
+| Dane pojazdu i rejestracja | `showVehicleReportExtern`; dostęp oraz UID potwierdzone | Rejestracja może być pusta; nie zastępować jej wymyśloną wartością |
+| Przejazdy | `showTripReportExtern`, limit 1 żądanie/min, zalecenie replikacji nie częściej niż co 15 min; dostęp potwierdzony | Dystans w metrach, czas w sekundach; osobna synchronizacja historii |
+| Postoje | `showStandStills`, limit 6 żądań/min; dostęp potwierdzony | Czas w sekundach, współrzędne w mikrostopniach |
+| Geometria tras | `showTracks`, limit 10 żądań/min; zakres maksymalnie 2 dni; dostęp potwierdzony | Prędkość tej operacji jest w km/h; nie utożsamiać rekordów o różnych czasach |
 | Synchronizacja | Snapshot ma limit 6 żądań/min | SCRUM-15: wspólny limiter, idempotentny upsert, czas i jakość pomiaru, błędy źródła |
 | Model i API | Nie utożsamiać obiektu z pojazdem | SCRUM-36: uzgodnienie kontraktu, jednostek i braków; potem SCRUM-19 |
 | Backend aplikacji | Adapter nie uruchamia serwera FastAPI ani bazy | SCRUM-39: lokalny serwer, PostgreSQL, migracje, health i CI |
 | Dostęp użytkowników | Obecny frontend działa bez logowania i bez prawdziwych danych | SCRUM-16 przed udostępnieniem danych klientów w aplikacji |
 
-Warunki ukończenia SCRUM-14 wymagają jeszcze sprawdzenia historii, postojów i
-geometrii oraz uzgodnienia ograniczeń z PO i niezależnego review. Fikcyjne dane
+Warunki ukończenia SCRUM-14 wymagają jeszcze zatwierdzenia mapowania jednostki
+prędkości snapshotu oraz niezależnego review. Przy braku potwierdzenia aplikacja
+zwróci `speed_kmh: null`. Fikcyjne dane
 w testach służą weryfikacji adaptera; nie dodajemy demonstracyjnych pojazdów do UI.
 
 ## Poczta

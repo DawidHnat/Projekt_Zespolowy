@@ -25,6 +25,26 @@ OBJECT_COLUMNS = (
     "pos_time",
     "msgtime",
 )
+VEHICLE_COLUMNS = ("objectuid", "objectno", "objectname", "licenseplatenumber", "vehicletype")
+HISTORY_COLUMNS = {
+    "showTripReportExtern": (
+        "tripid",
+        "objectno",
+        "start_time",
+        "end_time",
+        "distance",
+        "duration",
+    ),
+    "showStandStills": ("start_time", "end_time", "duration", "latitude", "longitude"),
+    "showTracks": ("pos_time", "latitude", "longitude", "speed", "odometer"),
+}
+REQUEST_INTERVALS = {
+    "showObjectReportExtern": 10,
+    "showVehicleReportExtern": 10,
+    "showTripReportExtern": 60,
+    "showStandStills": 10,
+    "showTracks": 6,
+}
 
 
 class WebfleetError(Exception):
@@ -91,7 +111,7 @@ class WebfleetClient:
         protect_transport_logs()
         self._settings = settings
         self._clock = clock
-        self._last_request: float | None = None
+        self._last_requests: dict[str, float] = {}
         self._client = httpx.AsyncClient(
             auth=httpx.BasicAuth(settings.username, settings.password),
             timeout=settings.timeout_seconds,
@@ -107,23 +127,56 @@ class WebfleetClient:
         await self._client.aclose()
 
     async def fetch_objects(self) -> list[dict[str, Any]]:
+        return await self._read("showObjectReportExtern", OBJECT_COLUMNS)
+
+    async def fetch_vehicles(self) -> list[dict[str, Any]]:
+        return await self._read("showVehicleReportExtern", VEHICLE_COLUMNS)
+
+    async def probe_history(self, object_uid: str) -> dict[str, dict[str, Any]]:
+        """One selected vehicle, today only; no personal driver fields or writes."""
+        result = {}
+        for action, columns in HISTORY_COLUMNS.items():
+            try:
+                rows = await self._read(action, columns, objectuid=object_uid, range_pattern="d0")
+                result[action] = {
+                    "ok": True,
+                    "records": len(rows),
+                    "coverage": {
+                        key: sum(row.get(key) not in (None, "") for row in rows) for key in columns
+                    },
+                }
+            except WebfleetError as error:
+                result[action] = {
+                    "ok": False,
+                    "code": error.code,
+                    "provider_code": error.provider_code,
+                }
+        return result
+
+    async def _read(
+        self, action: str, columns: tuple[str, ...], **parameters: str
+    ) -> list[dict[str, Any]]:
+        if action not in REQUEST_INTERVALS:
+            raise WebfleetError("unsupported_action")
         now = self._clock()
-        # One request per >=10 s per client. No sleeping, retries or background jobs.
-        if self._last_request is not None and now - self._last_request < 10:
+        previous = self._last_requests.get(action)
+        # Per-action limit; no sleeping, retries or implicit background jobs.
+        if previous is not None and now - previous < REQUEST_INTERVALS[action]:
             raise WebfleetError("local_rate_limit")
-        self._last_request = now
+        self._last_requests[action] = now
         try:
             response = await self._client.get(
                 ENDPOINT,
                 params={
                     "account": self._settings.account,
                     "apikey": self._settings.api_key,
-                    "action": "showObjectReportExtern",
+                    "action": action,
                     "outputformat": "json",
                     "lang": "en",
                     "useUTF8": "true",
                     "useISO8601": "true",
-                    "columnfilter": ",".join(OBJECT_COLUMNS),
+                    "columnfilter": ",".join(columns),
+                    **parameters,
                 },
             )
         except httpx.TimeoutException:
@@ -146,4 +199,4 @@ class WebfleetClient:
         if not isinstance(records, list) or any(not isinstance(item, dict) for item in records):
             raise WebfleetError("invalid_response")
         # Even if columnfilter is ignored, do not retain unsolicited personal fields.
-        return [{key: item[key] for key in OBJECT_COLUMNS if key in item} for item in records]
+        return [{key: item[key] for key in columns if key in item} for item in records]
