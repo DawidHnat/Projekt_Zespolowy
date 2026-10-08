@@ -116,3 +116,27 @@ CI wykonuje te kontrole na Pythonie 3.12 i 3.13, używając wyłącznie fikcyjny
 przypadków testowych. Prawdziwych danych i sekretów nie dodajemy do Git, PR,
 załączników ani GitHub Actions. Zasady mapowania i ograniczenia dalszej integracji
 są opisane w [WEBFLEET_INTEGRATION.md](../docs/WEBFLEET_INTEGRATION.md).
+
+## Konta aplikacji — SCRUM-16
+
+Nie ma publicznej rejestracji. Administrator lokalnie tworzy konta:
+
+```bash
+python -m app.manage create-user jczaja51 --name 'Jakub Czaja' --role admin
+python -m app.manage create-user DawidHnat --name 'Dawid Hnat' --role editor
+python -m app.manage set-password jczaja51
+```
+
+Polecenie pyta o hasło bez pokazywania go i bez argumentu w historii powłoki.
+Zmiana hasła unieważnia sesje. Konto użytkownika aplikacji i ręczny wpis kierowcy
+są osobnymi encjami. Login jest normalizowany do małych liter. Hasła mają Argon2id,
+a baza przechowuje tylko hash losowego tokenu sesji; sesja trwa 12 h. Cookie jest
+HttpOnly/SameSite=Strict, `Secure` zależy od `COOKIE_SECURE`. Zapisy wymagają Origin
+z `CORS_ORIGINS`; nie ustawiaj `*`. Dozwolone role: admin/editor/viewer.
+
+`POST /api/v1/auth/login`, `GET /api/v1/auth/me`, `POST /api/v1/auth/logout`.
+Login jest limitowany przez bazę do 10 prób/minutę na IP i login. Nagłówki proxy
+nie są używane jako tożsamość IP. Wdrożenie za proxy wymaga osobnego ustawienia
+zaufanych proxy; przed wystawieniem zdalnie wymagane są HTTPS i Secure cookie.
+SMTP nadal wymaga potwierdzenia hasła skrzynki; reset e-mail nie jest jeszcze
+udostępniony. Administrator może ustawić hasło lokalnym poleceniem powyżej.
