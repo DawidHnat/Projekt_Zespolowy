@@ -133,45 +133,23 @@ W pierwszej wersji najważniejsze jest przygotowanie działającej podstawy apli
 
 Bardziej rozbudowane raporty, dodatkowe możliwości personalizacji oraz kolejne moduły mogą być rozwijane w dalszych etapach projektu.
 
-## Uruchomienie i obecny stan
+## Uruchomienie lokalne
 
-Frontend ma działający lokalnie szkielet modułowego Pulpitu (SCRUM-38).
-Menu obejmuje Pulpit, Mapę, Serwis, Ewidencję przebiegu, Kierowców,
-Karty paliwowe i Alerty. Mapa zajmuje dostępną przestrzeń razem z listą
-pojazdów obok; na małym ekranie lista jest pod mapą. Pozostałe nowe sekcje
-mają puste widoki opisujące planowane funkcje, bez logiki biznesowej.
-Pozwala zmieniać motyw jasny, ciemny lub systemowy, kolor akcentu oraz
-włączać i ukrywać sześć modułów Pulpitu. Koło zębate „Ustawienia” otwiera
-wygląd, tło i wybór modułów. Osobny przycisk „Edytuj układ” na Pulpicie i Mapie
-pozwala chwycić cały kafelek i zmieniać jego położenie oraz rozmiar.
-Obrys wskazuje miejsce upuszczenia, a pozostałe kafelki przesuwają się płynnie.
-Każdy widok ma własny szkic z zapisem i anulowaniem.
-Każdy widget ma minimum zależne od treści i szerokości: nagłówek, podstawowe
-informacje i pierwszy wiersz tabeli pozostają widoczne. Styl szkła dodaje
-połysk także nawigacji i przyciskom, zachowując ich kształt w obu stylach.
-Dostępny jest styl Szkło i Klasyczny. Układy dla telefonu i komputera
-są niezależne dla Pulpitu i Mapy; ustawienia są zapamiętywane w przeglądarce.
-Sekcja „Tło przestrzeni” oferuje galerię, własny obraz oraz wyciszenie
-i rozmycie. Tła działają w obu stylach. Własne zdjęcie pozostaje lokalnie
-w przeglądarce i można je usunąć w tym samym panelu.
-Wspólna czcionka to Inter, a domyślny akcent jest niebieski.
+Frontend ma dashboard, motywy, edytor układu, logowanie, listę pojazdów i Mapbox.
+Backend ma FastAPI, PostgreSQL, migracje, sesje i synchronizację pojazdów WEBFLEET.
+Kierowcy są wpisywani ręcznie i nigdy nie są importowani z WEBFLEET. Pozostałe
+moduły historii, analityki, serwisu i kart paliwowych są kolejnymi przyrostami.
+Implementacja jest w zależnych PR-ach do przeglądu.
 
-Wymagany Node.js 22.18.0 (wersja zapisana w `frontend/.nvmrc`):
+1. Skopiuj `.env.example` do lokalnego `.env` i uzupełnij wartości.
+2. Uruchom bazę, migracje, utwórz konto i uruchom API według [backend/README.md](backend/README.md).
+3. Uruchom frontend według [frontend/README.md](frontend/README.md).
+4. `SYNC_ENABLED=true` włącza wspólny odczyt co 60 s. Mapbox używa publicznego
+   `VITE_MAPBOX_TOKEN`; hasła źródła nigdy nie trafiają do przeglądarki.
 
-```bash
-cd frontend
-npm ci
-npm run dev
-```
-
-Otwórz http://127.0.0.1:5173. `npm test` sprawdza model układu i preferencje;
-`npm run build` sprawdza TypeScript i buduje frontend.
-Pulpit działa bez logowania i bez połączenia z API. Wskaźniki mają puste
-stany, a mapa jest oznaczoną ilustracją układu. Backend, baza, dane floty
-i pełne widoki funkcji pozostają do wykonania w osobnych zadaniach.
-
-- [Frontend: uruchomienie i zakres](frontend/README.md)
-- [Kolory, komponenty i dodawanie modułów](docs/DESIGN_SYSTEM.md)
+- [Model i własność danych](docs/DATA_MODEL.md)
+- [Przykłady kontraktu API](contracts/api-design.json)
+- [Kolory, komponenty i moduły](docs/DESIGN_SYSTEM.md)
 - [Podział katalogów](docs/STRUCTURE.md)
 - [Zasady współpracy i PR](CONTRIBUTING.md)
 - [Instrukcje dla agentów AI](AGENTS.md)
@@ -186,13 +164,14 @@ zostanie dodany po sprawdzeniu dostępu, przed oddaniem zadania.
 - [Przygotowanie dostępu czterech osób](infra/vps/README.md)
 - [Podział pracy i pierwsze zadania](docs/TASKS.md)
 
-## Konfiguracja integracji — SCRUM-14
+## Konfiguracja integracji
 
-Adapter backendu umożliwia lokalny test odczytu WEBFLEET oraz logowania SMTP OVH
-bez wysyłania poczty. Dane i hasła pobiera z lokalnego `.env`; do Git trafia tylko
-bezpieczny `.env.example`. Nie jest to jeszcze serwer API ani połączenie prawdziwej
-floty z interfejsem. FastAPI i baza pozostają w SCRUM-39, kontrakt w SCRUM-36,
-uwierzytelnienie w SCRUM-16, a endpointy pojazdów w SCRUM-19.
+WEBFLEET jest odczytywany wyłącznie przez backend. Dane pobiera z lokalnego
+`.env`; do Git trafia tylko bezpieczny `.env.example`. Pierwszy przyrost
+synchronizuje pojazdy i ostatnie pomiary; historia pozostaje kolejnym zadaniem.
+SMTP ma diagnostykę logowania bez wysyłki. Reset e-mail czeka na potwierdzenie
+hasła skrzynki i osobną implementację. Zdalne uruchomienie wymaga HTTPS oraz
+`COOKIE_SECURE=true` w zadaniu infrastruktury.
 
 - [Uruchomienie i testy integracji](backend/README.md)
 - [Mapowanie WEBFLEET i dalsze sprawdzenia](docs/WEBFLEET_INTEGRATION.md)

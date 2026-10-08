@@ -2,9 +2,9 @@
 
 Backend ma adapter WEBFLEET i polecenia diagnostyczne integracji. Python 3.12 lub
 3.13. Testy działają bez konta WEBFLEET, skrzynki SMTP i danych klientów.
-FastAPI, PostgreSQL, migracje i health są zakresem SCRUM-39. Uwierzytelnienie
-aplikacji — SCRUM-16, a endpointy listy pojazdów — SCRUM-19. Nie uruchamiamy
-odpytywania API w przeglądarce.
+FastAPI, PostgreSQL, migracje i health: SCRUM-39. Logowanie i sesje: SCRUM-16.
+Synchronizacja pojazdów: SCRUM-15. Zabezpieczone API listy/mapy: SCRUM-19.
+Przeglądarka nie odpytuje WEBFLEET bezpośrednio.
 
 ## Uruchomienie z czystego checkoutu
 
@@ -69,9 +69,8 @@ a błędy dostawcy nie są kopiowane do komunikatów aplikacji. Timeout wynosi d
 
 Limit tej operacji to 6 żądań/minutę. Jedna instancja klienta nie pozwala na
 ponowne żądanie przed upływem 10 sekund. To nie jest wspólny limiter wszystkich
-procesów i uruchomień CLI. Docelowa synchronizacja w SCRUM-15 musi mieć jednego
-właściciela odpytywania, wspólny limit i bufor ostatniego wyniku; proponowany
-interwał startowy to 60 sekund. Nie uruchamiaj kilku kopii testu w pętli.
+procesów i uruchomień CLI. Synchronizacja w SCRUM-15 ma jednego wspólnego właściciela odpytywania,
+limit przez bazę i cache ostatniego wyniku; interwał wynosi 60 sekund. Nie uruchamiaj kilku kopii testu w pętli.
 
 ## Poczta OVH — test logowania bez wysyłki
 
