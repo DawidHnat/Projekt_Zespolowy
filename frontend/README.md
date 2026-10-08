@@ -33,6 +33,7 @@ npm run preview       # podgląd zbudowanego frontendu na 127.0.0.1:4173
 - Edytor układu: przesuwanie, rozciąganie, ustawienia rozmiaru, Zapisz/Anuluj.
 - Osobne układy grup nawigacji i telefonu/komputera.
 - Opcjonalne szkło z połyskiem na kartach, przyciskach i nawigacji oraz styl klasyczny.
+- Tło domyślne, galeria i własny obraz, z wyciszeniem i rozmyciem w obu stylach.
 - Zapamiętywanie ustawień na urządzeniu i przywracanie domyślnych.
 - Układ na telefon i komputer; panel personalizacji obsługuje Tab i Escape.
 - Lokalna czcionka Inter i ikony Lucide, bez pobierania fontu z Google.
@@ -53,9 +54,28 @@ uwzględnia jego szerokość i treść, w tym zawijanie tekstu. Nagłówki,
 informacje statyczne i pierwszy wiersz tabeli mieszczą się w całości;
 przy większej liczbie wierszy zawartość jest przewijalna.
 
-Motyw, akcent i styl powierzchni zmieniają się od razu. Podczas edycji zmiany
+Motyw, akcent, tło i styl powierzchni zmieniają się od razu. Podczas edycji zmiany
 widoczności widgetów czekają na zapis układu. Widoczność jest wspólna dla grup,
 a pozycje i rozmiary są osobne dla każdej grupy i szerokości ekranu.
+
+## Tło przestrzeni
+
+W „Dopasuj widok” wybierz „Galeria” albo „Własne”. Galeria zawiera miasto,
+góry oraz dwa gradienty. Wyciszenie nakłada osłonę zgodną z motywem:
+w jasnym rozjaśnia zdjęcie, w ciemnym je przyciemnia. Rozmycie ma zakres
+0–16 px. Nagłówek i podpisy zachowują czytelne powierzchnie nawet przy 0% osłony.
+
+Własny obraz: JPG, PNG lub WebP, do 10 MB i 40 megapikseli. Aplikacja zmniejsza
+go do maksymalnie 2560 px na dłuższym boku i zapisuje przygotowany obraz
+w IndexedDB. Zdjęcie i jego nazwa nie są wysyłane na serwer. Preferencje
+zawierają tylko identyfikator obrazu i ustawienia wyglądu. Brak miejsca
+na zapis pozwala korzystać ze zdjęcia w bieżącej sesji; panel o tym informuje.
+
+„Usuń własne zdjęcie” usuwa zapisany obraz. „Domyślne” przywraca zwykłe tło,
+a „Przywróć domyślne” resetuje preferencje; zdjęcie można później ponownie
+wybrać w zakładce „Własne”. Wyczyszczenie danych przeglądarki usuwa również
+lokalne zdjęcie. Ustawienia zwiększonego kontrastu lub ograniczenia
+przezroczystości wyłączają dekoracyjne tło.
 
 ## Dalsza praca
 

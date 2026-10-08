@@ -144,6 +144,9 @@ informacje i pierwszy wiersz tabeli pozostają widoczne. Styl szkła dodaje
 połysk także nawigacji i przyciskom, zachowując ich kształt w obu stylach.
 Dostępny jest styl Szkło i Klasyczny. Układy dla telefonu i komputera
 są niezależne; ustawienia są zapamiętywane w przeglądarce.
+Sekcja „Tło przestrzeni” oferuje galerię, własny obraz oraz wyciszenie
+i rozmycie. Tła działają w obu stylach. Własne zdjęcie pozostaje lokalnie
+w przeglądarce i można je usunąć w tym samym panelu.
 Wspólna czcionka to Inter, a domyślny akcent jest niebieski.
 
 Wymagany Node.js 22.18.0 (wersja zapisana w `frontend/.nvmrc`):

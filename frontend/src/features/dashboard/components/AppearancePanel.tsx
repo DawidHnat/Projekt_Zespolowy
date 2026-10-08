@@ -17,6 +17,9 @@ import {
 } from "../../../app/preferences";
 import { WIDGET_IDS, type WidgetId } from "../model/widget-types";
 import { widgetRegistry } from "../model/widget-registry";
+import { BackgroundPicker } from "./BackgroundPicker";
+import type { BackgroundPreferences } from "../model/background-model";
+import type { BackgroundImageController } from "../model/useBackgroundImage";
 
 type Props = {
   open: boolean;
@@ -28,6 +31,8 @@ type Props = {
   onReset: () => void;
   onEdit: () => void;
   editing: boolean;
+  backgroundMedia: BackgroundImageController;
+  onBackgroundChange: (value: BackgroundPreferences) => void;
 };
 const modes = [
   { id: "light", label: "Jasny", icon: Sun },
@@ -45,6 +50,8 @@ export function AppearancePanel({
   onReset,
   onEdit,
   editing,
+  backgroundMedia,
+  onBackgroundChange,
 }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -127,7 +134,7 @@ export function AppearancePanel({
         </fieldset>
         <fieldset>
           <legend>Motyw</legend>
-          <p>Wybierz tło wygodne dla Twoich oczu.</p>
+          <p>Wybierz jasne lub ciemne powierzchnie.</p>
           <div className="theme-options">
             {modes.map(({ id, label, icon: Icon }) => (
               <button
@@ -142,6 +149,11 @@ export function AppearancePanel({
             ))}
           </div>
         </fieldset>
+        <BackgroundPicker
+          value={preferences.background}
+          onChange={onBackgroundChange}
+          media={backgroundMedia}
+        />
         <fieldset>
           <legend>Kolor akcentu</legend>
           <p>Jeden kolor spójnie zmienia cały interfejs.</p>
@@ -226,7 +238,11 @@ export function AppearancePanel({
               ? "Ustawienia zapisane na tym urządzeniu"
               : "Ustawienia działają w tej sesji"}
         </p>
-        <button className="button button-secondary" onClick={onReset}>
+        <button
+          className="button button-secondary"
+          onClick={onReset}
+          disabled={backgroundMedia.busy}
+        >
           <RotateCcw size={16} />
           Przywróć domyślne
         </button>

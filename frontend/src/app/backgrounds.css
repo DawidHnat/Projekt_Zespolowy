@@ -1,0 +1,231 @@
+.app-shell {
+  isolation: isolate;
+}
+.app-shell[data-background="true"] {
+  --muted: var(--wallpaper-muted);
+  --glass-chrome: color-mix(in srgb, var(--surface) 90%, transparent);
+}
+.dashboard-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--background);
+}
+.dashboard-backdrop-image {
+  position: absolute;
+  inset: -48px;
+  background-image: var(--wallpaper-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(var(--wallpaper-blur));
+}
+.dashboard-backdrop-veil {
+  position: absolute;
+  inset: 0;
+  background: var(--background);
+  opacity: var(--wallpaper-veil);
+}
+.app-shell[data-background="true"] .page-heading {
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: var(--shadow-card);
+}
+.app-shell[data-background="true"] .metrics-widget .widget-header h2 {
+  padding: 4px 8px;
+  border-radius: 7px;
+  background: var(--surface);
+}
+.app-shell[data-background="true"] .page-footer {
+  margin-top: 22px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--surface);
+}
+.app-shell[data-background="true"] .dashboard-empty {
+  background: var(--surface);
+}
+.background-modes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface-muted);
+}
+.background-modes button {
+  padding: 9px 4px;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 550;
+}
+.background-modes button[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 5px #00000010;
+}
+.background-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.background-option {
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  text-align: left;
+  min-width: 0;
+}
+.background-option[aria-pressed="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.background-thumbnail {
+  display: block;
+  position: relative;
+  height: 74px;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+}
+.background-selected {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-on);
+  border: 2px solid var(--surface);
+}
+.background-caption {
+  display: grid;
+  gap: 1px;
+  padding: 7px 5px 5px;
+}
+.background-caption strong {
+  font-size: 10px;
+  font-weight: 600;
+}
+.background-caption small {
+  color: var(--muted);
+  font-size: 9px;
+}
+.background-upload {
+  margin-top: 12px;
+}
+.background-upload-placeholder {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 22px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: var(--surface-muted);
+  color: var(--muted);
+  font-size: 10px;
+}
+.background-upload-placeholder svg {
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+.background-upload-placeholder strong {
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 550;
+}
+.background-custom-preview {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.background-custom-preview img {
+  display: block;
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+}
+.background-custom-preview span {
+  display: block;
+  padding: 8px 10px;
+  color: var(--muted);
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.background-upload-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+}
+.background-upload-actions .button {
+  flex: 1;
+}
+.background-adjustments {
+  display: grid;
+  gap: 9px;
+  margin-top: 17px;
+}
+.background-adjustments label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 550;
+}
+.background-adjustments output {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-weight: 400;
+}
+.background-adjustments input {
+  width: 100%;
+  margin: 0 0 5px;
+  accent-color: var(--accent);
+}
+.background-note {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.65;
+  margin-top: 9px;
+}
+.background-adjustments .background-note {
+  margin: 0;
+}
+.background-error {
+  color: var(--danger);
+  font-size: 10px;
+  margin-top: 8px;
+}
+.background-settings button:disabled,
+.panel-footer button:disabled {
+  cursor: progress;
+  opacity: .6;
+}
+@media (max-width: 600px) {
+  .app-shell[data-background="true"] .page-heading {
+    padding: 16px;
+  }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
+  .dashboard-backdrop { display: none; }
+  .app-shell[data-background="true"] { --glass-chrome: var(--surface); }
+  .app-shell[data-background="true"] .page-heading { background: var(--surface); }
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .app-shell[data-background="true"] { --glass-chrome: var(--surface); }
+}

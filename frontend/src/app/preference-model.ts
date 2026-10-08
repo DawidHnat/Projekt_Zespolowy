@@ -6,6 +6,11 @@ import {
   normalizeLayouts,
   type SavedLayouts,
 } from "../features/dashboard/model/widget-layout.ts";
+import {
+  defaultBackground,
+  normalizeBackground,
+  type BackgroundPreferences,
+} from "../features/dashboard/model/background-model.ts";
 
 export type ThemeMode = "light" | "dark" | "system";
 export type Material = "solid" | "glass";
@@ -14,6 +19,7 @@ export type DashboardPreferences = Arrangement & {
   theme: ThemeMode;
   accent: string;
   material: Material;
+  background: BackgroundPreferences;
 };
 export const STORAGE_KEY = "fleet-flow.dashboard.v2";
 export const LEGACY_STORAGE_KEY = "fleet-flow.dashboard.v1";
@@ -28,6 +34,7 @@ export const defaultPreferences = (): DashboardPreferences => ({
   theme: "light",
   accent: ACCENT_PRESETS[0].value,
   material: "glass",
+  background: defaultBackground(),
   visibleWidgets: [...WIDGET_IDS],
   layouts: normalizeLayouts(null),
 });
@@ -47,6 +54,7 @@ export function parsePreferences(raw: string | null): DashboardPreferences {
           ? value.accent
           : ACCENT_PRESETS[0].value,
       material: value.material === "solid" ? "solid" : "glass",
+      background: normalizeBackground(value.background),
       visibleWidgets: Array.isArray(value.visibleWidgets)
         ? WIDGET_IDS.filter((id) => value.visibleWidgets!.includes(id))
         : [...WIDGET_IDS],

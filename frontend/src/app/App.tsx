@@ -27,6 +27,11 @@ import {
 import { useDashboardPreferences } from "./preferences";
 import { AppearancePanel } from "../features/dashboard/components/AppearancePanel";
 import { Brand } from "../shared/components/Brand";
+import {
+  DashboardBackground,
+  backgroundSource,
+} from "../features/dashboard/components/DashboardBackground";
+import { useBackgroundImage } from "../features/dashboard/model/useBackgroundImage";
 import { widgetRegistry } from "../features/dashboard/model/widget-registry";
 import {
   WIDGET_IDS,
@@ -67,6 +72,11 @@ function readSection(): SectionId {
 
 export function App() {
   const settings = useDashboardPreferences();
+  const backgroundMedia = useBackgroundImage();
+  const wallpaper = backgroundSource(
+    settings.preferences.background,
+    backgroundMedia,
+  );
   const [draft, setDraft] = useState<Arrangement | null>(null);
   const effective = { ...settings.preferences, ...(draft ?? {}) };
   const startEditing = () => {
@@ -132,7 +142,11 @@ export function App() {
     });
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" data-background={Boolean(wallpaper)}>
+      <DashboardBackground
+        source={wallpaper}
+        preferences={settings.preferences.background}
+      />
       <a
         className="skip-link"
         href="#main-content"
@@ -406,6 +420,10 @@ export function App() {
         preferences={effective}
         persistent={settings.persistent}
         editing={Boolean(draft)}
+        backgroundMedia={backgroundMedia}
+        onBackgroundChange={(background) =>
+          settings.setPreferences((previous) => ({ ...previous, background }))
+        }
         onEdit={startEditing}
         onChange={(next) =>
           settings.setPreferences({

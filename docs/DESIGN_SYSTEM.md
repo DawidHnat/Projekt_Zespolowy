@@ -66,7 +66,7 @@ i arkusza stylów z osobą pracującą w tych samych plikach.
 
 ## Preferencje i dostępność
 
-`app/preference-model.ts` waliduje `theme`, `accent`, `material`,
+`app/preference-model.ts` waliduje `theme`, `accent`, `material`, `background`,
 `visibleWidgets` i `layouts`. Hook `app/preferences.ts` zapisuje je w
 `fleet-flow.dashboard.v2` w localStorage; odczyt starszego klucza v1 zachowuje
 motyw, akcent i widoczność. Są to preferencje przeglądarki bez synchronizacji
@@ -79,7 +79,7 @@ Ukrycie wszystkich modułów jest dozwolone; można je ponownie włączyć.
 „Dopasuj widok” → „Edytuj układ” otwiera szkic. Uchwyt z kropkami przesuwa,
 narożnik rozciąga, a przycisk ustawień otwiera szerokość, wysokość i ukrycie.
 „Zapisz układ” zatwierdza szkic, „Anuluj” odrzuca kolejność, rozmiary i zmiany
-widoczności wykonane podczas edycji. Wygląd (motyw, materiał, akcent) działa
+widoczności wykonane podczas edycji. Wygląd (motyw, materiał, akcent, tło) działa
 od razu. Reset w trybie edycji też wymaga zatwierdzenia układu.
 
 Każda grupa nawigacji ma osobny układ dla dużych i małych ekranów. Zmiana
@@ -111,6 +111,38 @@ Uchwyt obsługuje strzałki (przesunięcie), Shift + strzałki (rozmiar) i Enter
 (ustawienia). Ustawienia mają także suwaki, presety i przyciski kierunku.
 Ruch ogłaszany jest przez region statusu. Dialogi używają natywnego fokusu
 modalnego i Escape. `prefers-reduced-motion` wyłącza animację kafelków.
+
+### Tło przestrzeni
+
+Tło jest niezależne od `solid` / `glass`; karty w klasycznym materiale
+pozostają nieprzezroczyste. `DashboardBackground` renderuje jedną nieruchomą,
+dekoracyjną warstwę pod aplikacją, bez animacji i bez ingerencji w widgety.
+`backgrounds.css` odpowiada za osłonę zgodną z motywem, rozmycie, kadrowanie
+`cover` i czytelne powierzchnie nagłówka, etykiety wskaźników oraz stopki.
+Nie stosuj efektów tła do zawartości kafelków. Tryby zwiększonego kontrastu,
+forced-colors i ograniczenia przezroczystości wyłączają dekorację.
+Przy własnym tle powierzchnie nawigacji i panelu szkła mają 90% wypełnienia,
+a opisy używają tokenu `--wallpaper-muted` (`#53657a` w jasnym,
+`#a1b1c6` w ciemnym), aby zachować czytelność również przy 0% osłony zdjęcia.
+
+`background-model.ts` definiuje galerię, domyślne ustawienia i walidację
+zakresów. Nowe preferencje mieszczą się w zapisie v2; starsze zapisy
+otrzymują domyślne tło, zachowując układ. Nie przyjmuj adresów obrazów
+z localStorage. Galeria korzysta z lokalnych zdjęć i gradientów CSS;
+pochodzenie i prompty są w `frontend/public/backgrounds/README.md`.
+
+`background-image.ts` dekoduje plik JPG/PNG/WebP, ogranicza rozmiar do 10 MB,
+40 megapikseli i 2560 px na dłuższym boku. Canvas zapisuje nowy bitmapowy
+obraz bez metadanych oryginału. Blob trafia do IndexedDB `fleet-flow.media.v1`,
+do pojedynczego wpisu `custom`. URL obiektowy jest zwalniany po zmianie
+obrazu lub odmontowaniu. Preferencje przechowują UUID, a nie obraz.
+
+`useBackgroundImage` zarządza odtworzeniem, przygotowaniem i usunięciem
+obrazu; `BackgroundPicker` odpowiada za wybór i kontrolki. Błąd dekodowania
+nie usuwa wcześniejszego zdjęcia. Błąd zapisu pozwala używać nowego obrazu
+w sesji. UUID zapobiega przywróceniu starszego zdjęcia po nieudanym zapisie.
+Brak blobu pozostawia zwykłe tło i możliwość ponownego dodania obrazu.
+Reset przywraca preferencje, a przycisk usuwania osobno kasuje zapisany blob.
 
 ### Szkło i czytelność
 
