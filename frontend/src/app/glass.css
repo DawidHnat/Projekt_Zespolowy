@@ -1,59 +1,73 @@
-/* A web material inspired by frosted glass. Strong surfaces protect data contrast. */
+/* Shared geometry stays in the base styles; materials only change the surface. */
 :root[data-material="glass"] {
   --radius-card: 18px;
   --glass-chrome: color-mix(in srgb, var(--surface) 78%, transparent);
-  --glass-card: color-mix(in srgb, var(--surface) 94%, transparent);
+  --glass-card: color-mix(in srgb, var(--surface) 93%, transparent);
   --glass-edge: color-mix(in srgb, var(--surface) 65%, var(--border));
+  --glass-shine: #ffffff90;
+  --glass-reflection: #ffffff45;
   --shadow-card:
-    0 4px 24px color-mix(in srgb, var(--text) 4%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--surface) 80%, transparent);
+    0 5px 24px color-mix(in srgb, var(--text) 5%, transparent),
+    inset 0 1px 0 var(--glass-shine),
+    inset 1px 0 0 #ffffff20;
+}
+:root[data-theme="dark"][data-material="glass"] {
+  --glass-edge: color-mix(in srgb, var(--border) 82%, var(--text));
+  --glass-chrome: color-mix(in srgb, var(--surface) 85%, transparent);
+  --glass-shine: #ffffff23;
+  --glass-reflection: #ffffff0c;
 }
 :root[data-material="glass"] body {
   background:
-    radial-gradient(
-      ellipse at 25% 0%,
-      color-mix(in srgb, var(--accent) 10%, transparent),
-      transparent 55%
-    ),
-    radial-gradient(ellipse at 100% 35%, #28c1c60b, transparent 50%),
+    radial-gradient(ellipse at 25% 0%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 55%),
+    radial-gradient(ellipse at 100% 35%, #28c1c612, transparent 50%),
     var(--background);
   background-attachment: fixed;
 }
 :root[data-material="glass"] .main-shell {
   background: transparent;
 }
-:root[data-material="glass"]
-  :is(
-    .sidebar,
-    .topbar,
-    .appearance-panel,
-    .widget-settings-dialog,
-    .layout-edit-bar
-  ) {
-  background: var(--glass-chrome);
-  backdrop-filter: blur(22px) saturate(135%);
-  -webkit-backdrop-filter: blur(22px) saturate(135%);
+:root[data-material="glass"] :is(.sidebar, .topbar, .appearance-panel, .widget-settings-dialog, .layout-edit-bar) {
+  background: linear-gradient(135deg, var(--glass-reflection), transparent 45%), var(--glass-chrome);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
   border-color: var(--glass-edge);
+  box-shadow: inset 0 1px 0 var(--glass-shine);
 }
 :root[data-material="glass"] :is(.widget:not(.metrics-widget), .metric) {
-  background: var(--glass-card);
+  background: linear-gradient(140deg, var(--glass-reflection), transparent 35%), var(--glass-card);
   border-color: var(--glass-edge);
 }
-:root[data-material="glass"] .button {
-  border-radius: 12px;
-}
-:root[data-material="glass"]
-  :is(.module-search, .sidebar-tip, .nav-item.active) {
-  border-radius: 14px;
-}
-:root[data-material="glass"] .button-primary {
+:root[data-material="glass"] :is(.nav-item.active, .button-primary, .brand-mark, .map-pin) {
+  background:
+    linear-gradient(180deg, #ffffff55, #ffffff08 34%, transparent 50%, #00000008),
+    var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 70%, #ffffff);
   box-shadow:
-    inset 0 1px 0 #ffffff35,
-    0 4px 12px color-mix(in srgb, var(--accent) 15%, transparent);
+    inset 0 1px 0 #ffffff9a,
+    inset 1px 0 0 #ffffff28,
+    inset 0 -1px 0 #00000012,
+    0 5px 14px color-mix(in srgb, var(--accent) 22%, transparent);
 }
-:root[data-theme="dark"][data-material="glass"] {
-  --glass-edge: color-mix(in srgb, var(--border) 85%, var(--text));
-  --glass-chrome: color-mix(in srgb, var(--surface) 86%, transparent);
+:root[data-material="glass"] :is(.button-secondary, .icon-button, .sidebar-tip, .widget-editor-controls button, .widget-resize-handle, .empty-icon, .edit-bar-icon, .layout-entry-icon) {
+  background:
+    linear-gradient(155deg, var(--glass-reflection), transparent 60%),
+    color-mix(in srgb, var(--surface) 86%, transparent);
+  box-shadow: inset 0 1px 0 var(--glass-shine), 0 2px 5px #00000005;
+  border-color: var(--glass-edge);
+}
+:root[data-material="glass"] .metric-icon {
+  background:
+    linear-gradient(155deg, var(--glass-reflection), transparent 65%),
+    color-mix(in srgb, var(--tone) 14%, var(--surface));
+  box-shadow: inset 0 1px 0 var(--glass-shine), inset 0 0 0 1px color-mix(in srgb, var(--tone) 14%, transparent);
+}
+:root[data-material="glass"] .module-search {
+  background: linear-gradient(160deg, var(--glass-reflection), transparent), var(--glass-chrome);
+  box-shadow: inset 0 1px 2px #00000004, 0 1px 0 var(--glass-shine);
+}
+:root[data-material="glass"] .button-secondary:hover {
+  background-color: var(--surface-hover);
 }
 @supports not (backdrop-filter: blur(1px)) {
   :root[data-material="glass"] {
@@ -61,27 +75,23 @@
     --glass-card: var(--surface);
   }
 }
-@media (prefers-reduced-transparency: reduce),
-  (prefers-contrast: more),
-  (forced-colors: active) {
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
   :root[data-material="glass"] {
     --glass-chrome: var(--surface);
     --glass-card: var(--surface);
     --glass-edge: var(--border);
+    --glass-reflection: transparent;
+    --glass-shine: transparent;
   }
   :root[data-material="glass"] body {
     background: var(--background);
   }
-  :root[data-material="glass"]
-    :is(
-      .sidebar,
-      .topbar,
-      .appearance-panel,
-      .widget-settings-dialog,
-      .layout-edit-bar,
-      .material-preview-glass svg
-    ) {
+  :root[data-material="glass"] :is(.sidebar, .topbar, .appearance-panel, .widget-settings-dialog, .layout-edit-bar, .material-preview-glass svg) {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+  }
+  :root[data-material="glass"] :is(.nav-item.active, .button-primary, .brand-mark, .map-pin) {
+    background: var(--accent);
+    box-shadow: none;
   }
 }

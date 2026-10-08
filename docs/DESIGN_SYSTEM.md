@@ -28,6 +28,8 @@ Font Inter jest dostarczany lokalnie z pakietu npm. Wielkości, odstępy,
 siatka i responsywność są we wspólnych arkuszach `app/`. Promień karty
 wynosi 12 px w stylu klasycznym i 18 px w stylu szkła. Kafelki układają się
 w siatce 12 kolumn, poniżej 720 px szerokości kontenera w jednej.
+Przyciski zachowują ten sam rozmiar i promień w obu materiałach: nawigacja
+14 px, zwykłe przyciski 12 px. Materiał zmienia ich powierzchnię.
 Nowy wariant komponentu dopisuj wspólnie, zamiast kopiować style do modułu.
 
 ## Komponenty i rejestr
@@ -43,7 +45,8 @@ Dodanie modułu:
 1. Uzgodnij zakres w Jirze i utwórz komponent w odpowiednim module domeny.
 2. Dodaj trwałe ID w `widget-types.ts` i definicję w `widget-registry.ts`.
 3. Użyj `WidgetFrame` i wspólnych tokenów. W `widget-layout.ts` dodaj grupy
-   nawigacji oraz domyślne i minimalne rozmiary dla obu profili. Komponent
+   nawigacji oraz domyślne rozmiary dla obu profili. W `widget-sizing.ts`
+   ustal budżet minimalnej szerokości i wysokości treści. Komponent
    dostosowuje zawartość do szerokości kontenera, nie tylko okna przeglądarki.
 4. Obsłuż brak danych, ładowanie i błąd, gdy moduł otrzyma API.
 5. Sprawdź jasny i ciemny motyw, wybrany akcent, mały ekran i klawiaturę.
@@ -77,9 +80,25 @@ na telefonie nie nadpisuje desktopu. Widoczność jest wspólna dla grup;
 ukryty kafelek zachowuje rozmiar. Tylko widoczny podzbiór jest zagęszczany,
 co chroni zapisany widok przed zmianą pozycji po odświeżeniu.
 
-Układ obsługuje `react-grid-layout` v2. Wysokość rzędu to 18 px, przerwa 16 px.
-Model `widget-layout.ts` ustala ograniczenia, waliduje zapis i rozwiązuje
-kolizje. Nie dodawaj zależności od kontrolera edytora w komponentach domeny.
+Układ obsługuje `react-grid-layout` v2. Zapis używa 12 kolumn i logicznego
+rzędu 18 px z przerwą 16 px, z dokładnością do połowy jednostki. Silnik
+interakcji otrzymuje dwukrotnie gęstszą siatkę (24 kolumny i rząd 1 px),
+co zachowuje geometrię starszych zapisów i zmniejsza skok wysokości do 17 px.
+Model `widget-layout.ts` odpowiada za konwersję, walidację i kolizje.
+
+`widget-sizing.ts` przechowuje budżety treści, zależne od szerokości kafelka.
+`useWidgetMinimums` mierzy naturalną zawartość `.widget-content-inner`,
+nagłówek, a w tabeli nagłówki kolumn i pierwszy wiersz. Kolejne wiersze
+pozostają przewijalne. Mapa korzysta z minimalnej wysokości płótna z CSS.
+Pomiar może podnieść minimum, również ponad zwykły limit suwaka, gdy
+pierwszy rekord jest wysoki. Pusty stan też mieści się w całości.
+
+Jeden ResizeObserver grupuje pomiary w jednej klatce animacji. Podczas
+gestu pomiary są wstrzymane; ograniczenie rozmiaru zależne od szerokości
+działa w silniku, a pomiar treści odświeża się po puszczeniu uchwytu.
+Komponenty domeny są memoizowane. Kontrolki zajmują miejsce w nagłówku,
+bez osobnego pasa zmniejszającego treść. Nie dodawaj zależności od
+kontrolera edytora w komponentach domeny.
 
 Uchwyt obsługuje strzałki (przesunięcie), Shift + strzałki (rozmiar) i Enter
 (ustawienia). Ustawienia mają także suwaki, presety i przyciski kierunku.
@@ -89,7 +108,9 @@ modalnego i Escape. `prefers-reduced-motion` wyłącza animację kafelków.
 ### Szkło i czytelność
 
 `data-material` przełącza `glass` / `solid`. Arkusz `app/glass.css` stosuje
-przezroczystość i blur głównie w nawigacji, nagłówku i panelach. Karty mają
+przezroczystość i blur głównie w nawigacji, nagłówku i panelach. Połysk,
+jasne krawędzie i delikatny cień obejmują też aktywną nawigację, przyciski
+i kolorowe ikony. Karty mają
 mocne tło, żeby dane pozostały czytelne. To efekt CSS inspirowany materiałami
 Apple; nie implementacja natywnego Liquid Glass.
 

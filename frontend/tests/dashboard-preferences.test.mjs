@@ -12,14 +12,19 @@ import {
   normalizeLayout,
   visibleLayout,
   columns,
+  fitLayout,
+  toGridLayout,
+  fromGridLayout,
   SECTION_IDS,
   PROFILES,
   SECTION_WIDGETS,
 } from "../src/features/dashboard/model/widget-layout.ts";
 
+import { GRID, heightPixels, minimumHeight, minimumWidth, widthPixels } from "../src/features/dashboard/model/widget-sizing.ts";
+
 function assertSafe(layout, profile) {
   for (const item of layout) {
-    assert.ok(Number.isInteger(item.x) && Number.isInteger(item.y));
+    assert.ok(Number.isInteger(item.x * 2) && Number.isInteger(item.y * 2));
     assert.ok(
       item.x >= 0 && item.y >= 0 && item.x + item.w <= columns(profile),
     );
@@ -163,4 +168,56 @@ test("narrow metrics gain enough height and compact widgets stay full width", ()
   );
   assert.equal(compact.find((item) => item.i === "map").w, 1);
   assert.equal(compact.find((item) => item.i === "map").x, 0);
+});
+
+
+test("a finer interaction grid preserves geometry and half-unit sizes survive a reload", () => {
+  const original = defaultLayout("dashboard", "desktop");
+  const changed = changeWidget(original, "map", "desktop", { w: 8.5, h: 11.5 });
+  const rendered = toGridLayout(changed);
+  assert.deepEqual(fromGridLayout(rendered), changed);
+  for (const item of rendered) {
+    assert.equal(item.h * ((GRID.rowHeight + GRID.gap) / GRID.precision) - GRID.gap, heightPixels(item.h / GRID.precision));
+    assert.equal((971 + GRID.gap) / (GRID.columns * GRID.precision) * item.w - GRID.gap, widthPixels(item.w / GRID.precision, 971));
+  }
+  const prefs = defaultPreferences();
+  prefs.layouts.dashboard.desktop = changed;
+  const loaded = parsePreferences(JSON.stringify(prefs));
+  assert.deepEqual(loaded.layouts.dashboard.desktop, normalizeLayout("dashboard", "desktop", changed));
+  assertSafe(changed, "desktop");
+});
+test("every widget fits its content budget at narrow and wide viewport sizes", () => {
+  for (const width of [288, 343, 491, 720, 971, 1360]) {
+    const profile = width < 720 ? "compact" : "desktop";
+    const original = defaultLayout("dashboard", profile);
+    const snapshot = JSON.stringify(original);
+    // Ask for the smallest possible size, as a corner dragged past its bounds would.
+    let small = original;
+    for (const id of SECTION_WIDGETS.dashboard)
+      small = changeWidget(small, id, profile, { w: 0, h: 0 });
+    const fitted = fitLayout(small, profile, width);
+    assertSafe(fitted, profile);
+    assert.equal(JSON.stringify(original), snapshot);
+    for (const item of fitted) {
+      const pixels = profile === "compact" ? width : widthPixels(item.w, width);
+      assert.ok(heightPixels(item.h) >= minimumHeight(item.i, pixels), `${item.i} at ${width}px`);
+      if (profile === "desktop") assert.ok(pixels >= minimumWidth[item.i]);
+    }
+  }
+});
+test("wrapped content or a tall first record raises only the affected widget minimum", () => {
+  const original = defaultLayout("dashboard", "desktop");
+  const baseline = fitLayout(original, "desktop", 971);
+  const fitted = fitLayout(original, "desktop", 971, { vehicles: 900 });
+  const vehicles = fitted.find(item => item.i === "vehicles");
+  assert.ok(heightPixels(vehicles.minH) >= 900);
+  for (const item of fitted) {
+    if (item.i !== "vehicles") assert.equal(item.minH, baseline.find(other => other.i === item.i).minH);
+  }
+  assertSafe(fitted, "desktop");
+});
+test("metrics and trip minima follow wrapping at their width breakpoints", () => {
+  assert.ok(minimumHeight("metrics", 649) > minimumHeight("metrics", 651));
+  assert.equal(minimumHeight("metrics", 650.4), minimumHeight("metrics", 649));
+  assert.ok(minimumHeight("trips", 599) > minimumHeight("trips", 601));
 });

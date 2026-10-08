@@ -100,7 +100,7 @@ export function AppearancePanel({
         </div>
         <fieldset>
           <legend>Styl powierzchni</legend>
-          <p>Subtelne szkło lub klasyczna, jednolita powierzchnia.</p>
+          <p>Szkło z połyskiem lub klasyczna, jednolita powierzchnia.</p>
           <div className="material-options">
             {[
               { id: "glass", label: "Szkło", icon: Sparkles },

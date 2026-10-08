@@ -15,6 +15,14 @@
 }
 .dashboard-grid {
   display: block;
+  transition: height 180ms ease;
+}
+.dashboard-grid .react-grid-item.cssTransforms {
+  transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1), width 160ms ease, height 160ms ease;
+}
+.dashboard-grid .react-grid-item.cssTransforms:is(.react-draggable-dragging, .resizing),
+.is-interacting .dashboard-grid {
+  transition: none;
 }
 .dashboard-canvas:not(.is-editing) .react-resizable-handle {
   display: none;
@@ -32,25 +40,34 @@
 }
 .widget-header h2 {
   min-width: 0;
+  line-height: 1.35;
+}
+.widget-header h2 svg {
+  flex-shrink: 0;
 }
 .widget-content {
   flex: 1;
   min-height: 0;
   overflow: auto;
 }
-.metrics-widget .widget-content {
-  overflow: auto;
+.widget-content-inner {
+  display: flow-root;
+}
+.metrics-widget .widget-header {
+  min-height: 38px;
+  padding: 0 1px 8px;
 }
 .metrics-grid {
-  height: 100%;
+  height: auto;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 .metric {
   min-height: 88px;
   padding: 14px 13px;
 }
-.map-widget .widget-content {
+.map-widget .widget-content-inner {
   display: flex;
+  height: 100%;
 }
 .map-canvas {
   flex: 1;
@@ -61,8 +78,21 @@
   flex-wrap: wrap;
 }
 .trips-widget .empty-state {
-  height: 100%;
+  height: auto;
   align-content: center;
+}
+.vehicle-table {
+  table-layout: fixed;
+}
+.vehicle-table th {
+  padding: 12px 8px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.vehicle-table tbody td:not([colspan]) {
+  padding: 12px 8px;
+  height: 44px;
+  overflow-wrap: anywhere;
 }
 .widget-badge {
   max-width: 150px;
@@ -168,43 +198,37 @@
   background-size: 17px 17px;
 }
 .is-editing .widget-slot {
-  padding: 40px 0 14px;
-  border-radius: 16px;
+  border-radius: var(--radius-card);
 }
 .is-editing .widget-slot::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -3px;
   pointer-events: none;
-  border: 1px dashed color-mix(in srgb, var(--accent) 45%, var(--border));
-  border-radius: 16px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 35%, var(--border));
+  border-radius: calc(var(--radius-card) + 3px);
 }
-.is-editing .widget-header {
-  padding-block: 9px;
-  min-height: 44px;
-}
+.is-editing .widget-header,
 .is-editing .metrics-widget .widget-header {
-  min-height: 0;
-  padding: 0 2px 7px;
+  padding-inline: 52px;
 }
-.is-editing .metrics-grid {
-  gap: 8px;
-}
-.is-editing .metric {
-  min-height: 62px;
-  padding: 10px 12px;
+.is-editing .widget-badge {
+  display: none;
 }
 .widget-editor-controls {
   position: absolute;
-  top: 4px;
+  top: 8px;
   right: 7px;
   left: 7px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 32px;
+  height: 30px;
+  z-index: 2;
+  pointer-events: none;
 }
 .widget-editor-controls button {
+  pointer-events: auto;
   display: grid;
   place-items: center;
   border: 1px solid var(--border);
@@ -235,8 +259,9 @@
   place-items: center;
   width: 30px;
   height: 30px;
-  bottom: 0;
-  right: 0;
+  bottom: -4px;
+  right: -4px;
+  z-index: 3;
   padding: 0;
   color: var(--muted);
   border-radius: 10px;
@@ -253,8 +278,12 @@
   border-radius: 16px;
   outline: 2px solid var(--accent);
 }
-.react-grid-item.react-draggable-dragging {
-  filter: drop-shadow(0 12px 18px #00000018);
+.react-grid-item.react-draggable-dragging > .widget {
+  box-shadow: 0 12px 24px #00000018;
+}
+.widget-settings-content .minimum-size-hint {
+  font-size: 10px;
+  margin-top: 8px;
 }
 .widget-settings-dialog {
   width: min(430px, calc(100vw - 28px));
@@ -455,6 +484,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .dashboard-grid,
   .react-grid-item {
     transition: none !important;
   }

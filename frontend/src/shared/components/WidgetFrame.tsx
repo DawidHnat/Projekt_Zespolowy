@@ -27,7 +27,9 @@ export function WidgetFrame({
           {badge && <span className="widget-badge">{badge}</span>}
         </div>
       </header>
-      <div className="widget-content">{children}</div>
+      <div className="widget-content">
+        <div className="widget-content-inner">{children}</div>
+      </div>
     </section>
   );
 }

@@ -4,6 +4,14 @@ import {
   type Layout,
   type LayoutItem,
 } from "react-grid-layout/core";
+import {
+  GRID,
+  heightUnits,
+  widthUnits,
+  widthPixels,
+  minimumWidth,
+  minimumHeight,
+} from "./widget-sizing.ts";
 import { WIDGET_IDS, type SectionId, type WidgetId } from "./widget-types.ts";
 
 export const SECTION_IDS = [
@@ -28,19 +36,19 @@ const sizes: Record<
   { w: number; h: number; minW: number; minH: number }
 > = {
   metrics: { w: 12, h: 5, minW: 6, minH: 5 },
-  map: { w: 8, h: 11, minW: 4, minH: 9 },
-  activity: { w: 4, h: 11, minW: 4, minH: 9 },
-  vehicles: { w: 8, h: 9, minW: 6, minH: 6 },
-  utilization: { w: 4, h: 9, minW: 4, minH: 7 },
-  trips: { w: 12, h: 5, minW: 4, minH: 5 },
+  map: { w: 8, h: 11, minW: 4, minH: 10 },
+  activity: { w: 4, h: 11, minW: 4, minH: 10.5 },
+  vehicles: { w: 8, h: 9, minW: 6, minH: 9 },
+  utilization: { w: 4, h: 9, minW: 4, minH: 8 },
+  trips: { w: 12, h: 5.5, minW: 4, minH: 5.5 },
 };
 const record = (value: unknown): Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {};
-const integer = (value: unknown, fallback: number, min: number, max: number) =>
+const dimension = (value: unknown, fallback: number, min: number, max: number) =>
   typeof value === "number" && Number.isFinite(value)
-    ? Math.max(min, Math.min(max, Math.round(value)))
+    ? Math.max(min, Math.min(max, Math.round(value * GRID.precision) / GRID.precision))
     : fallback;
 
 function safeItem(
@@ -53,15 +61,15 @@ function safeItem(
   const cols = columns(profile);
   const size = sizes[id];
   const minW = profile === "compact" ? 1 : size.minW;
-  const w = integer(value.w, fallback.w, minW, cols);
+  const w = dimension(value.w, fallback.w, minW, cols);
   const minH =
     id === "metrics" && (profile === "compact" || w < 10) ? 8 : size.minH;
   return {
     i: id,
-    x: integer(value.x, fallback.x, 0, cols - w),
-    y: integer(value.y, fallback.y, 0, 200),
+    x: dimension(value.x, fallback.x, 0, cols - w),
+    y: dimension(value.y, fallback.y, 0, 200),
     w,
-    h: integer(value.h, fallback.h, minH, 24),
+    h: dimension(value.h, fallback.h, minH, 24),
     minW,
     maxW: cols,
     minH,
@@ -131,9 +139,9 @@ export function visibleLayout(
   ids: readonly WidgetId[],
   profile: LayoutProfile,
 ): Layout {
-  return verticalCompactor.compact(
+  return compactLayout(
     layout.filter((item) => ids.includes(item.i as WidgetId)),
-    columns(profile),
+    profile,
   );
 }
 
@@ -174,22 +182,72 @@ export function changeWidget(
   if (!current) return clone;
   const next = safeItem(id, profile, { ...current, ...change }, current);
   if (change.x !== undefined || change.y !== undefined) {
-    return verticalCompactor.compact(
+    const dense = toGridLayout(clone);
+    return fromGridLayout(verticalCompactor.compact(
       moveElement(
-        clone,
-        current,
-        next.x,
-        next.y,
+        dense,
+        dense.find((item) => item.i === id)!,
+        next.x * GRID.precision,
+        next.y * GRID.precision,
         true,
         false,
         "vertical",
-        columns(profile),
+        columns(profile) * GRID.precision,
       ),
-      columns(profile),
-    );
+      columns(profile) * GRID.precision,
+    ));
   }
-  return verticalCompactor.compact(
-    clone.map((item) => (item.i === id ? next : item)),
-    columns(profile),
-  );
+  return compactLayout(clone.map((item) => (item.i === id ? next : item)), profile);
+}
+
+// A finer render grid keeps saved coordinates compatible with existing layouts.
+// Persist logical units; the interaction engine works on integer half-units.
+function scaleLayout(layout: Layout, factor: number): Layout {
+  return layout.map((item) => ({
+    ...item,
+    x: item.x * factor,
+    y: item.y * factor,
+    w: item.w * factor,
+    h: item.h * factor,
+    minW: item.minW === undefined ? undefined : item.minW * factor,
+    maxW: item.maxW === undefined ? undefined : item.maxW * factor,
+    minH: item.minH === undefined ? undefined : item.minH * factor,
+    maxH: item.maxH === undefined ? undefined : item.maxH * factor,
+  }));
+}
+export const toGridLayout = (layout: Layout) => scaleLayout(layout, GRID.precision);
+export const fromGridLayout = (layout: Layout) => scaleLayout(layout, 1 / GRID.precision);
+export const compactLayout = (layout: Layout, profile: LayoutProfile) =>
+  fromGridLayout(verticalCompactor.compact(toGridLayout(layout), columns(profile) * GRID.precision));
+
+export function fitLayout(
+  layout: Layout,
+  profile: LayoutProfile,
+  containerWidth: number,
+  measured: Partial<Record<WidgetId, number>> = {},
+): Layout {
+  const cols = columns(profile);
+  const fitted = layout.map((item) => {
+    const id = item.i as WidgetId;
+    const minW = profile === "compact" ? 1 : Math.min(
+      cols,
+      Math.max(item.minW ?? 1, widthUnits(minimumWidth[id], containerWidth)),
+    );
+    const w = Math.max(item.w, minW);
+    const pixels = profile === "compact" ? containerWidth : widthPixels(w, containerWidth);
+    const minH = Math.max(
+      item.minH ?? 1,
+      heightUnits(Math.max(minimumHeight(id, pixels), measured[id] ?? 0)),
+    );
+    return {
+      ...item,
+      minW,
+      minH,
+      w,
+      h: Math.max(item.h, minH),
+      maxH: Math.max(item.maxH ?? 24, minH),
+      x: Math.min(item.x, cols - w),
+    };
+  });
+  return compactLayout(fitted, profile);
 }

@@ -32,7 +32,7 @@ npm run preview       # podgląd zbudowanego frontendu na 127.0.0.1:4173
 - Włączanie i ukrywanie modułów, wyszukiwanie po nazwie modułu.
 - Edytor układu: przesuwanie, rozciąganie, ustawienia rozmiaru, Zapisz/Anuluj.
 - Osobne układy grup nawigacji i telefonu/komputera.
-- Opcjonalne szkło i styl klasyczny, także w ciemnym motywie.
+- Opcjonalne szkło z połyskiem na kartach, przyciskach i nawigacji oraz styl klasyczny.
 - Zapamiętywanie ustawień na urządzeniu i przywracanie domyślnych.
 - Układ na telefon i komputer; panel personalizacji obsługuje Tab i Escape.
 - Lokalna czcionka Inter i ikony Lucide, bez pobierania fontu z Google.
@@ -47,6 +47,11 @@ Otwórz „Dopasuj widok”, następnie „Edytuj układ”. Przesuń kafelek za
 z kropkami lub rozciągnij prawy dolny narożnik. Ikona ustawień otwiera suwaki
 rozmiaru, presety i ukrywanie. Uchwyt obsługuje strzałki oraz Shift + strzałki;
 Enter otwiera ustawienia. „Zapisz układ” zatwierdza, „Anuluj” odrzuca szkic.
+
+Rozciąganie ma krok wysokości 17 px. Minimalny rozmiar każdego kafelka
+uwzględnia jego szerokość i treść, w tym zawijanie tekstu. Nagłówki,
+informacje statyczne i pierwszy wiersz tabeli mieszczą się w całości;
+przy większej liczbie wierszy zawartość jest przewijalna.
 
 Motyw, akcent i styl powierzchni zmieniają się od razu. Podczas edycji zmiany
 widoczności widgetów czekają na zapis układu. Widoczność jest wspólna dla grup,

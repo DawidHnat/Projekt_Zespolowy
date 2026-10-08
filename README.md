@@ -139,6 +139,9 @@ Frontend ma działający lokalnie szkielet modułowego dashboardu (SCRUM-38).
 Pozwala zmieniać motyw jasny, ciemny lub systemowy, kolor akcentu oraz
 włączać i ukrywać sześć modułów. „Dopasuj widok” → „Edytuj układ” pozwala
 przeciągać i rozciągać widgety, a następnie zapisać lub anulować układ.
+Każdy widget ma minimum zależne od treści i szerokości: nagłówek, podstawowe
+informacje i pierwszy wiersz tabeli pozostają widoczne. Styl szkła dodaje
+połysk także nawigacji i przyciskom, zachowując ich kształt w obu stylach.
 Dostępny jest styl Szkło i Klasyczny. Układy dla telefonu i komputera
 są niezależne; ustawienia są zapamiętywane w przeglądarce.
 Wspólna czcionka to Inter, a domyślny akcent jest niebieski.

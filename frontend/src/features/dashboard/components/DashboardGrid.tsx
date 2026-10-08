@@ -1,29 +1,35 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { memo, useCallback, useMemo, useState, type KeyboardEvent } from "react";
+import {
+  gridBounds,
+  minMaxSize,
+  type LayoutConstraint,
+} from "react-grid-layout/core";
 import GridLayout, {
   useContainerWidth,
   type Layout,
   type LayoutItem,
 } from "react-grid-layout";
-import {
-  ArrowDown,
-  ArrowLeft,
-  ArrowRight,
-  ArrowUp,
-  EyeOff,
-  Grip,
-  MoveDiagonal2,
-  Settings2,
-  X,
-} from "lucide-react";
+import { Grip, MoveDiagonal2, Settings2 } from "lucide-react";
 import {
   changeWidget,
   columns,
   visibleLayout,
+  fitLayout,
+  fromGridLayout,
+  toGridLayout,
   type LayoutProfile,
   type SavedLayouts,
 } from "../model/widget-layout";
 import { widgetRegistry } from "../model/widget-registry";
 import type { SectionId, WidgetId } from "../model/widget-types";
+import {
+  GRID,
+  heightUnits,
+  minimumHeight,
+  widthPixels,
+} from "../model/widget-sizing";
+import { useWidgetMinimums } from "./useWidgetMinimums";
+import { WidgetSettingsDialog } from "./WidgetSettingsDialog";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
@@ -40,6 +46,12 @@ type Props = {
   onHide: (id: WidgetId) => void;
 };
 
+// Domain widgets do not rerender while the interaction engine moves their frame.
+const WidgetContent = memo(function WidgetContent({ id }: { id: WidgetId }) {
+  const Component = widgetRegistry[id].component;
+  return <Component />;
+});
+
 export function DashboardGrid({
   section,
   ids,
@@ -52,15 +64,43 @@ export function DashboardGrid({
     measureBeforeMount: true,
   });
   const profile: LayoutProfile = width < 720 ? "compact" : "desktop";
-  const layout = visibleLayout(layouts[section][profile], ids, profile);
+  const [interacting, setInteracting] = useState(false);
+  const signature = `${section}-${profile}-${ids.join(",")}-${mounted}-${editing}`;
+  const minimums = useWidgetMinimums(containerRef, signature, interacting);
+  const layout = useMemo(
+    () => fitLayout(
+      visibleLayout(layouts[section][profile], ids, profile),
+      profile,
+      width,
+      minimums,
+    ),
+    [layouts, section, ids, profile, width, minimums],
+  );
+  const gridLayout = useMemo(() => toGridLayout(layout), [layout]);
+  const constraints = useMemo<LayoutConstraint[]>(() => [
+    gridBounds,
+    minMaxSize,
+    {
+      name: "widget-content",
+      constrainSize(item, w, h) {
+        const pixels = profile === "compact"
+          ? width : widthPixels(w / GRID.precision, width);
+        const minH = heightUnits(minimumHeight(item.i as WidgetId, pixels));
+        return { w, h: Math.max(h, minH * GRID.precision) };
+      },
+    },
+  ], [profile, width]);
   const [selected, setSelected] = useState<WidgetId | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const selectedItem = layout.find((item) => item.i === selected);
-  const apply = (next: Layout, id?: WidgetId) => {
-    if (!editing) return;
-    onLayout(section, profile, next);
-    if (id) setAnnouncement(`Zmieniono układ: ${widgetRegistry[id].title}.`);
-  };
+  const apply = useCallback(
+    (next: Layout, id?: WidgetId) => {
+      if (!editing) return;
+      onLayout(section, profile, next);
+      if (id) setAnnouncement(`Zmieniono układ: ${widgetRegistry[id].title}.`);
+    },
+    [editing, onLayout, section, profile],
+  );
   const update = (
     id: WidgetId,
     change: Partial<Pick<LayoutItem, "x" | "y" | "w" | "h">>,
@@ -68,8 +108,8 @@ export function DashboardGrid({
   const move = (id: WidgetId, direction: string) => {
     const item = layout.find((value) => value.i === id)!;
     const offsets: Record<string, { x?: number; y?: number }> = {
-      ArrowLeft: { x: item.x - 1 },
-      ArrowRight: { x: item.x + 1 },
+      ArrowLeft: { x: item.x - 0.5 },
+      ArrowRight: { x: item.x + 0.5 },
       ArrowUp: { y: item.y - 1 },
       ArrowDown: { y: item.y + item.h },
     };
@@ -87,17 +127,17 @@ export function DashboardGrid({
       update(id, {
         w:
           item.w +
-          (event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0),
+          (event.key === "ArrowRight" ? 0.5 : event.key === "ArrowLeft" ? -0.5 : 0),
         h:
           item.h +
-          (event.key === "ArrowDown" ? 1 : event.key === "ArrowUp" ? -1 : 0),
+          (event.key === "ArrowDown" ? 0.5 : event.key === "ArrowUp" ? -0.5 : 0),
       });
     else move(id, event.key);
   };
   return (
     <div
       ref={containerRef}
-      className={`dashboard-canvas ${editing ? "is-editing" : ""}`}
+      className={`dashboard-canvas ${editing ? "is-editing" : ""} ${interacting ? "is-interacting" : ""}`}
       data-profile={profile}
     >
       <p className="sr-only" id="widget-keyboard-help">
@@ -119,19 +159,20 @@ export function DashboardGrid({
         <GridLayout
           key={`${section}-${profile}`}
           width={width}
-          layout={layout}
+          layout={gridLayout}
+          constraints={constraints}
           className="dashboard-grid"
           gridConfig={{
-            cols: columns(profile),
-            rowHeight: 18,
-            margin: [16, 16],
+            cols: columns(profile) * GRID.precision,
+            rowHeight: (GRID.rowHeight + GRID.gap) / GRID.precision - GRID.gap,
+            margin: [GRID.gap, GRID.gap],
             containerPadding: [0, 0],
           }}
           dragConfig={{
             enabled: editing,
             handle: ".widget-drag-handle",
             cancel: "[data-no-drag]",
-            threshold: 5,
+            threshold: 3,
           }}
           resizeConfig={{
             enabled: editing,
@@ -147,19 +188,22 @@ export function DashboardGrid({
               </span>
             ),
           }}
-          onDragStop={(next, _old, item) =>
-            apply(next, item?.i as WidgetId | undefined)
-          }
-          onResizeStop={(next, _old, item) =>
-            apply(next, item?.i as WidgetId | undefined)
-          }
+          onDragStart={() => setInteracting(true)}
+          onResizeStart={() => setInteracting(true)}
+          onDragStop={(next, _old, item) => {
+            setInteracting(false);
+            apply(fromGridLayout(next), item?.i as WidgetId | undefined);
+          }}
+          onResizeStop={(next, _old, item) => {
+            setInteracting(false);
+            apply(fromGridLayout(next), item?.i as WidgetId | undefined);
+          }}
         >
           {[...layout]
             .sort((a, b) => a.y - b.y || a.x - b.x)
             .map(({ i }) => {
               const id = i as WidgetId;
               const widget = widgetRegistry[id];
-              const Component = widget.component;
               return (
                 <div
                   className={`widget-slot widget-slot-${id}`}
@@ -190,7 +234,7 @@ export function DashboardGrid({
                       </button>
                     </div>
                   )}
-                  <Component />
+                  <WidgetContent id={id} />
                 </div>
               );
             })}
@@ -212,147 +256,5 @@ export function DashboardGrid({
         }}
       />
     </div>
-  );
-}
-
-function WidgetSettingsDialog({
-  item,
-  profile,
-  onClose,
-  onChange,
-  onMove,
-  onHide,
-}: {
-  item?: LayoutItem;
-  profile: LayoutProfile;
-  onClose: () => void;
-  onChange: (change: Partial<Pick<LayoutItem, "w" | "h">>) => void;
-  onMove: (direction: string) => void;
-  onHide: () => void;
-}) {
-  const ref = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    if (item && ref.current && !ref.current.open) ref.current.showModal();
-    if (!item && ref.current?.open) ref.current.close();
-  }, [item]);
-  return (
-    <dialog
-      ref={ref}
-      className="widget-settings-dialog"
-      aria-labelledby="widget-settings-title"
-      onClose={onClose}
-      onKeyDown={(event) => event.stopPropagation()}
-    >
-      {item && (
-        <>
-          <header className="panel-header">
-            <div>
-              <span className="eyebrow">EDYCJA WIDGETU</span>
-              <h2 id="widget-settings-title">
-                {widgetRegistry[item.i as WidgetId].title}
-              </h2>
-            </div>
-            <button
-              className="icon-button"
-              onClick={onClose}
-              aria-label="Zamknij ustawienia widgetu"
-            >
-              <X size={20} />
-            </button>
-          </header>
-          <div className="widget-settings-content">
-            <p>
-              Dobierz rozmiar i miejsce. Zmiany zatwierdzisz przyciskiem „Zapisz
-              układ”.
-            </p>
-            {profile === "desktop" ? (
-              <>
-                <label className="size-control">
-                  Szerokość <output>{item.w} / 12 kolumn</output>
-                  <input
-                    type="range"
-                    aria-label="Szerokość widgetu"
-                    min={item.minW}
-                    max={12}
-                    value={item.w}
-                    onChange={(event) =>
-                      onChange({ w: Number(event.target.value) })
-                    }
-                  />
-                </label>
-                <div className="size-presets">
-                  {[
-                    { name: "Kompaktowy", w: item.minW! },
-                    { name: "Szeroki", w: Math.max(8, item.minW!) },
-                    { name: "Pełna szerokość", w: 12 },
-                  ].map(({ name, w }) => (
-                    <button
-                      className="button button-secondary"
-                      key={name}
-                      aria-pressed={item.w === w}
-                      onClick={() => onChange({ w })}
-                    >
-                      {name}
-                    </button>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <p className="compact-hint">
-                Na małych ekranach widgety zajmują całą szerokość.
-              </p>
-            )}
-            <label className="size-control">
-              Wysokość <output>{item.h * 34 - 16} px</output>
-              <input
-                type="range"
-                aria-label="Wysokość widgetu"
-                min={item.minH}
-                max={24}
-                value={item.h}
-                onChange={(event) =>
-                  onChange({ h: Number(event.target.value) })
-                }
-              />
-            </label>
-            <div className="move-controls">
-              <span>Przesuń</span>
-              {[
-                { key: "ArrowUp", label: "w górę", icon: ArrowUp },
-                { key: "ArrowDown", label: "w dół", icon: ArrowDown },
-                ...(profile === "desktop"
-                  ? [
-                      { key: "ArrowLeft", label: "w lewo", icon: ArrowLeft },
-                      { key: "ArrowRight", label: "w prawo", icon: ArrowRight },
-                    ]
-                  : []),
-              ].map(({ key, label, icon: Icon }) => (
-                <button
-                  key={key}
-                  className="icon-button"
-                  aria-label={`Przesuń widget ${label}`}
-                  onClick={() => onMove(key)}
-                >
-                  <Icon size={18} />
-                </button>
-              ))}
-            </div>
-            <button
-              className="button button-secondary hide-widget-button"
-              onClick={onHide}
-            >
-              <EyeOff size={17} />
-              Ukryj w widokach
-            </button>
-            <small>Możesz włączyć go ponownie w „Dopasuj widok”.</small>
-          </div>
-          <footer className="widget-settings-footer">
-            <button className="button button-primary" onClick={onClose}>
-              Gotowe
-            </button>
-          </footer>
-        </>
-      )}
-    </dialog>
   );
 }
