@@ -361,24 +361,6 @@ svg {
 .button-secondary:hover {
   background: var(--surface-hover);
 }
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 18px;
-  align-items: stretch;
-}
-.widget-slot {
-  min-width: 0;
-  grid-column: span 12;
-}
-.widget-slot-map,
-.widget-slot-vehicles {
-  grid-column: span 8;
-}
-.widget-slot-activity,
-.widget-slot-utilization {
-  grid-column: span 4;
-}
 .widget {
   height: 100%;
   border: 1px solid var(--border);
@@ -418,11 +400,6 @@ svg {
   border: 1px solid var(--border);
   border-radius: 5px;
   white-space: nowrap;
-}
-.widget-hide {
-  width: 23px;
-  height: 23px;
-  color: var(--muted);
 }
 .metrics-widget {
   background: transparent;
@@ -1058,14 +1035,6 @@ svg {
   }
 }
 @media (max-width: 960px) {
-  .widget-slot-map,
-  .widget-slot-vehicles {
-    grid-column: span 7;
-  }
-  .widget-slot-activity,
-  .widget-slot-utilization {
-    grid-column: span 5;
-  }
   .metrics-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

@@ -30,8 +30,8 @@ i role są w README, a ustalenia zespołu w TEAM_CONTRACT.md.
    **Done** w Jirze i dodaj link do PR. Nie wysyłaj zmian bezpośrednio na `main`.
 
 Sekrety, klucze prywatne i `.env` pozostają poza repozytorium. Przed pushem
-sprawdzamy zakres zmian. Frontend sprawdzamy poleceniem `npm run build`
-w `frontend/`; CI wykonuje ten sam typecheck i build. Zmiany wyglądu wymagają
+sprawdzamy zakres zmian. Frontend sprawdzamy poleceniami `npm test` i
+`npm run build` w `frontend/`; CI wykonuje testy, typecheck i build. Zmiany wyglądu wymagają
 również sprawdzenia w przeglądarce na komputerze i małym ekranie.
 Uzgodnienia UI opisuje [system wyglądu](docs/DESIGN_SYSTEM.md).
 Automatyczne PR-y, płatny przegląd API AI i automerge nie są skonfigurowane.

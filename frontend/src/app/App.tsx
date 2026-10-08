@@ -12,7 +12,18 @@ import {
   Sun,
   Truck,
   X,
+  Check,
+  Plus,
+  RotateCcw,
+  Grip,
 } from "lucide-react";
+import { defaultPreferences, type Arrangement } from "./preferences";
+import { DashboardGrid } from "../features/dashboard/components/DashboardGrid";
+import {
+  mergeLayout,
+  sameGeometry,
+  defaultLayout,
+} from "../features/dashboard/model/widget-layout";
 import { useDashboardPreferences } from "./preferences";
 import { AppearancePanel } from "../features/dashboard/components/AppearancePanel";
 import { widgetRegistry } from "../features/dashboard/model/widget-registry";
@@ -78,6 +89,32 @@ function Brand() {
 
 export function App() {
   const settings = useDashboardPreferences();
+  const [draft, setDraft] = useState<Arrangement | null>(null);
+  const effective = { ...settings.preferences, ...(draft ?? {}) };
+  const startEditing = () => {
+    if (!draft)
+      setDraft(
+        structuredClone({
+          visibleWidgets: settings.preferences.visibleWidgets,
+          layouts: settings.preferences.layouts,
+        }),
+      );
+    setQuery("");
+    setAppearanceOpen(false);
+    setSidebarOpen(false);
+  };
+  const toggleWidget = (id: (typeof WIDGET_IDS)[number]) => {
+    if (!draft) {
+      settings.toggleWidget(id);
+      return;
+    }
+    setDraft({
+      ...draft,
+      visibleWidgets: draft.visibleWidgets.includes(id)
+        ? draft.visibleWidgets.filter((value) => value !== id)
+        : [...draft.visibleWidgets, id],
+    });
+  };
   const [section, setSection] = useState(readSection);
   const [query, setQuery] = useState("");
   const [appearanceOpen, setAppearanceOpen] = useState(false);
@@ -104,7 +141,7 @@ export function App() {
   const current = sections.find((value) => value.id === section)!;
   const visible = WIDGET_IDS.filter(
     (id) =>
-      settings.preferences.visibleWidgets.includes(id) &&
+      effective.visibleWidgets.includes(id) &&
       widgetRegistry[id].sections.includes(section) &&
       widgetRegistry[id].title
         .toLocaleLowerCase("pl")
@@ -170,7 +207,7 @@ export function App() {
               <SlidersHorizontal size={19} />
             </span>
             <strong>Dashboard po Twojemu</strong>
-            <p>Wybierz kolory i moduły, które są dla Ciebie ważne.</p>
+            <p>Wybierz wygląd, ułóż moduły i zrób miejsce na to, co ważne.</p>
             <button onClick={() => setAppearanceOpen(true)}>
               Dopasuj widok <ArrowUpRight size={16} />
             </button>
@@ -199,6 +236,7 @@ export function App() {
               <Search size={17} aria-hidden="true" />
               <input
                 type="search"
+                disabled={Boolean(draft)}
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Szukaj modułu…"
@@ -252,16 +290,99 @@ export function App() {
               Dopasuj widok
             </button>
           </div>
-          <div className="dashboard-grid">
-            {visible.map((id) => {
-              const Component = widgetRegistry[id].component;
-              return (
-                <div className={`widget-slot widget-slot-${id}`} key={id}>
-                  <Component onHide={() => settings.toggleWidget(id)} />
+          {draft && (
+            <div
+              className="layout-edit-bar"
+              role="region"
+              aria-label="Edycja układu"
+            >
+              <div className="edit-bar-intro">
+                <span className="edit-bar-icon">
+                  <Grip size={19} />
+                </span>
+                <div>
+                  <strong>Ułóż po swojemu</strong>
+                  <p>
+                    Przeciągnij uchwyt · rozciągnij narożnik · dopasuj rozmiar
+                  </p>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+              <div className="edit-bar-actions">
+                <button
+                  className="icon-button"
+                  aria-label="Wybierz widgety"
+                  title="Wybierz widgety"
+                  onClick={() => setAppearanceOpen(true)}
+                >
+                  <Plus size={19} />
+                </button>
+                <button
+                  className="icon-button"
+                  aria-label="Przywróć układ tego widoku"
+                  title="Przywróć układ tego widoku"
+                  onClick={() =>
+                    setDraft({
+                      ...draft,
+                      layouts: {
+                        ...draft.layouts,
+                        [section]: {
+                          desktop: defaultLayout(section, "desktop"),
+                          compact: defaultLayout(section, "compact"),
+                        },
+                      },
+                    })
+                  }
+                >
+                  <RotateCcw size={17} />
+                </button>
+                <button
+                  className="button button-secondary"
+                  onClick={() => setDraft(null)}
+                >
+                  Anuluj
+                </button>
+                <button
+                  className="button button-primary"
+                  onClick={() => {
+                    settings.setPreferences({
+                      ...settings.preferences,
+                      ...draft,
+                    });
+                    setDraft(null);
+                  }}
+                >
+                  <Check size={16} />
+                  Zapisz układ
+                </button>
+              </div>
+            </div>
+          )}
+          <DashboardGrid
+            section={section}
+            ids={visible}
+            layouts={effective.layouts}
+            editing={Boolean(draft)}
+            onLayout={(view, profile, layout) =>
+              setDraft((previous) => {
+                if (!previous) return previous;
+                const merged = mergeLayout(
+                  previous.layouts[view][profile],
+                  layout,
+                  profile,
+                );
+                if (sameGeometry(previous.layouts[view][profile], merged))
+                  return previous;
+                return {
+                  ...previous,
+                  layouts: {
+                    ...previous.layouts,
+                    [view]: { ...previous.layouts[view], [profile]: merged },
+                  },
+                };
+              })
+            }
+            onHide={toggleWidget}
+          />
           {visible.length === 0 && (
             <div className="dashboard-empty">
               <LayoutDashboard size={35} />
@@ -304,11 +425,33 @@ export function App() {
       <AppearancePanel
         open={appearanceOpen}
         onClose={() => setAppearanceOpen(false)}
-        preferences={settings.preferences}
+        preferences={effective}
         persistent={settings.persistent}
-        onChange={settings.setPreferences}
-        onToggle={settings.toggleWidget}
-        onReset={settings.reset}
+        editing={Boolean(draft)}
+        onEdit={startEditing}
+        onChange={(next) =>
+          settings.setPreferences({
+            ...settings.preferences,
+            theme: next.theme,
+            accent: next.accent,
+            material: next.material,
+          })
+        }
+        onToggle={toggleWidget}
+        onReset={() => {
+          const next = defaultPreferences();
+          if (draft) {
+            settings.setPreferences({
+              ...next,
+              layouts: settings.preferences.layouts,
+              visibleWidgets: settings.preferences.visibleWidgets,
+            });
+            setDraft({
+              layouts: next.layouts,
+              visibleWidgets: next.visibleWidgets,
+            });
+          } else settings.reset();
+        }}
       />
     </div>
   );

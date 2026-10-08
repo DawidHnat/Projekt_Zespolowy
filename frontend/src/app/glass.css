@@ -1,0 +1,87 @@
+/* A web material inspired by frosted glass. Strong surfaces protect data contrast. */
+:root[data-material="glass"] {
+  --radius-card: 18px;
+  --glass-chrome: color-mix(in srgb, var(--surface) 78%, transparent);
+  --glass-card: color-mix(in srgb, var(--surface) 94%, transparent);
+  --glass-edge: color-mix(in srgb, var(--surface) 65%, var(--border));
+  --shadow-card:
+    0 4px 24px color-mix(in srgb, var(--text) 4%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--surface) 80%, transparent);
+}
+:root[data-material="glass"] body {
+  background:
+    radial-gradient(
+      ellipse at 25% 0%,
+      color-mix(in srgb, var(--accent) 10%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(ellipse at 100% 35%, #28c1c60b, transparent 50%),
+    var(--background);
+  background-attachment: fixed;
+}
+:root[data-material="glass"] .main-shell {
+  background: transparent;
+}
+:root[data-material="glass"]
+  :is(
+    .sidebar,
+    .topbar,
+    .appearance-panel,
+    .widget-settings-dialog,
+    .layout-edit-bar
+  ) {
+  background: var(--glass-chrome);
+  backdrop-filter: blur(22px) saturate(135%);
+  -webkit-backdrop-filter: blur(22px) saturate(135%);
+  border-color: var(--glass-edge);
+}
+:root[data-material="glass"] :is(.widget:not(.metrics-widget), .metric) {
+  background: var(--glass-card);
+  border-color: var(--glass-edge);
+}
+:root[data-material="glass"] .button {
+  border-radius: 12px;
+}
+:root[data-material="glass"]
+  :is(.module-search, .sidebar-tip, .nav-item.active) {
+  border-radius: 14px;
+}
+:root[data-material="glass"] .button-primary {
+  box-shadow:
+    inset 0 1px 0 #ffffff35,
+    0 4px 12px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+:root[data-theme="dark"][data-material="glass"] {
+  --glass-edge: color-mix(in srgb, var(--border) 85%, var(--text));
+  --glass-chrome: color-mix(in srgb, var(--surface) 86%, transparent);
+}
+@supports not (backdrop-filter: blur(1px)) {
+  :root[data-material="glass"] {
+    --glass-chrome: var(--surface);
+    --glass-card: var(--surface);
+  }
+}
+@media (prefers-reduced-transparency: reduce),
+  (prefers-contrast: more),
+  (forced-colors: active) {
+  :root[data-material="glass"] {
+    --glass-chrome: var(--surface);
+    --glass-card: var(--surface);
+    --glass-edge: var(--border);
+  }
+  :root[data-material="glass"] body {
+    background: var(--background);
+  }
+  :root[data-material="glass"]
+    :is(
+      .sidebar,
+      .topbar,
+      .appearance-panel,
+      .widget-settings-dialog,
+      .layout-edit-bar,
+      .material-preview-glass svg
+    ) {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

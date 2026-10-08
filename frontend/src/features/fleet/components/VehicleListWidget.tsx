@@ -1,14 +1,12 @@
 import { Truck } from "lucide-react";
 import { WidgetFrame } from "../../../shared/components/WidgetFrame";
 import { EmptyState } from "../../../shared/components/EmptyState";
-import type { WidgetProps } from "../../dashboard/model/widget-types";
 
-export function VehicleListWidget({ onHide }: WidgetProps) {
+export function VehicleListWidget() {
   return (
     <WidgetFrame
       title="Pojazdy"
       icon={Truck}
-      onHide={onHide}
       badge="Lista floty"
       className="vehicles-widget"
     >

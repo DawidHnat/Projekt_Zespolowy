@@ -17,7 +17,8 @@ Liczba zadań nie jest miarą nakładu; kolejność i dostępność ustalamy wsp
 
 - Jakub Czaja: [SCRUM-38](https://fleet-flow.atlassian.net/browse/SCRUM-38)
   — podzadanie SCRUM-13: lokalny dashboard React, motywy, akcenty i przełączanie
-  modułów. Frontend i jego CI są przygotowane do przeglądu. SCRUM-13 pozostaje
+  modułów, edytor układu (przesuwanie, rozmiary, zapis/anulowanie) oraz styl
+  szkła. Frontend i jego CI są przygotowane do przeglądu. SCRUM-13 pozostaje
   otwarte: FastAPI, PostgreSQL, migracje i sprawdzenie backendu czekają na
   implementację. SCRUM-34 obejmuje zasady pracy.
 - Jakub Nazarewicz: [SCRUM-35](https://fleet-flow.atlassian.net/browse/SCRUM-35)

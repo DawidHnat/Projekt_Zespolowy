@@ -1,14 +1,12 @@
 import { Route, ArrowUpRight } from "lucide-react";
 import { WidgetFrame } from "../../../shared/components/WidgetFrame";
 import { EmptyState } from "../../../shared/components/EmptyState";
-import type { WidgetProps } from "../../dashboard/model/widget-types";
 
-export function TripsWidget({ onHide }: WidgetProps) {
+export function TripsWidget() {
   return (
     <WidgetFrame
       title="Ostatnie przejazdy"
       icon={Route}
-      onHide={onHide}
       className="trips-widget"
     >
       <EmptyState

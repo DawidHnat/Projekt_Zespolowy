@@ -7,6 +7,8 @@ import {
   SlidersHorizontal,
   Sun,
   X,
+  LayoutGrid,
+  Sparkles,
 } from "lucide-react";
 import {
   ACCENT_PRESETS,
@@ -24,6 +26,8 @@ type Props = {
   onChange: (value: DashboardPreferences) => void;
   onToggle: (id: WidgetId) => void;
   onReset: () => void;
+  onEdit: () => void;
+  editing: boolean;
 };
 const modes = [
   { id: "light", label: "Jasny", icon: Sun },
@@ -39,6 +43,8 @@ export function AppearancePanel({
   onChange,
   onToggle,
   onReset,
+  onEdit,
+  editing,
 }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -79,6 +85,46 @@ export function AppearancePanel({
         </button>
       </header>
       <div className="panel-content">
+        <div className="layout-entry">
+          <span className="layout-entry-icon">
+            <LayoutGrid size={23} />
+          </span>
+          <h3>Każdy moduł na swoim miejscu</h3>
+          <p>
+            Przesuwaj widgety i dopasuj ich rozmiar do swojego sposobu pracy.
+          </p>
+          <button className="button button-primary" onClick={onEdit}>
+            <LayoutGrid size={16} />
+            {editing ? "Wróć do edycji układu" : "Edytuj układ"}
+          </button>
+        </div>
+        <fieldset>
+          <legend>Styl powierzchni</legend>
+          <p>Subtelne szkło lub klasyczna, jednolita powierzchnia.</p>
+          <div className="material-options">
+            {[
+              { id: "glass", label: "Szkło", icon: Sparkles },
+              { id: "solid", label: "Klasyczny", icon: LayoutGrid },
+            ].map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                aria-pressed={preferences.material === id}
+                className={preferences.material === id ? "selected" : ""}
+                onClick={() =>
+                  onChange({
+                    ...preferences,
+                    material: id as DashboardPreferences["material"],
+                  })
+                }
+              >
+                <span className={`material-preview material-preview-${id}`}>
+                  <Icon size={22} />
+                </span>
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
         <fieldset>
           <legend>Motyw</legend>
           <p>Wybierz tło wygodne dla Twoich oczu.</p>
@@ -174,9 +220,11 @@ export function AppearancePanel({
       <footer className="panel-footer">
         <p>
           <SlidersHorizontal size={13} />
-          {persistent
-            ? "Ustawienia zapisane na tym urządzeniu"
-            : "Ustawienia działają w tej sesji"}
+          {editing
+            ? "Układ czeka na zapisanie w trybie edycji"
+            : persistent
+              ? "Ustawienia zapisane na tym urządzeniu"
+              : "Ustawienia działają w tej sesji"}
         </p>
         <button className="button button-secondary" onClick={onReset}>
           <RotateCcw size={16} />

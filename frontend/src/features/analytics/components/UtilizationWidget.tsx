@@ -1,13 +1,11 @@
 import { CircleGauge } from "lucide-react";
 import { WidgetFrame } from "../../../shared/components/WidgetFrame";
-import type { WidgetProps } from "../../dashboard/model/widget-types";
 
-export function UtilizationWidget({ onHide }: WidgetProps) {
+export function UtilizationWidget() {
   return (
     <WidgetFrame
       title="Wykorzystanie floty"
       icon={CircleGauge}
-      onHide={onHide}
       className="utilization-widget"
     >
       <div className="utilization-body">

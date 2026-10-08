@@ -1,51 +1,26 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import {
-  WIDGET_IDS,
-  type WidgetId,
-} from "../features/dashboard/model/widget-types";
+  defaultPreferences,
+  parsePreferences,
+  STORAGE_KEY,
+  LEGACY_STORAGE_KEY,
+} from "./preference-model";
+import type { WidgetId } from "../features/dashboard/model/widget-types";
+export { ACCENT_PRESETS, defaultPreferences } from "./preference-model";
+export type {
+  DashboardPreferences,
+  ThemeMode,
+  Arrangement,
+} from "./preference-model";
 
-export type ThemeMode = "light" | "dark" | "system";
-export type DashboardPreferences = {
-  theme: ThemeMode;
-  accent: string;
-  visibleWidgets: WidgetId[];
-};
-const STORAGE_KEY = "fleet-flow.dashboard.v1";
-export const ACCENT_PRESETS = [
-  { name: "Ocean", value: "#1479e8" },
-  { name: "Turkus", value: "#008b83" },
-  { name: "Fiolet", value: "#7954d6" },
-  { name: "Bursztyn", value: "#b66b0b" },
-  { name: "Róża", value: "#c74470" },
-];
-const defaults = (): DashboardPreferences => ({
-  theme: "light",
-  accent: ACCENT_PRESETS[0].value,
-  visibleWidgets: [...WIDGET_IDS],
-});
-
-function readPreferences(): DashboardPreferences {
+function readPreferences() {
   try {
-    const stored: unknown = JSON.parse(
-      localStorage.getItem(STORAGE_KEY) ?? "null",
+    return parsePreferences(
+      localStorage.getItem(STORAGE_KEY) ??
+        localStorage.getItem(LEGACY_STORAGE_KEY),
     );
-    if (!stored || typeof stored !== "object") return defaults();
-    const value = stored as Partial<DashboardPreferences>;
-    return {
-      theme:
-        value.theme === "dark" || value.theme === "system"
-          ? value.theme
-          : "light",
-      accent:
-        typeof value.accent === "string" && /^#[0-9a-f]{6}$/i.test(value.accent)
-          ? value.accent
-          : ACCENT_PRESETS[0].value,
-      visibleWidgets: Array.isArray(value.visibleWidgets)
-        ? WIDGET_IDS.filter((id) => value.visibleWidgets!.includes(id))
-        : [...WIDGET_IDS],
-    };
   } catch {
-    return defaults();
+    return defaultPreferences();
   }
 }
 
@@ -84,10 +59,11 @@ export function useDashboardPreferences() {
   useLayoutEffect(() => {
     const root = document.documentElement;
     root.dataset.theme = resolvedTheme;
+    root.dataset.material = preferences.material;
     root.style.colorScheme = resolvedTheme;
     root.style.setProperty("--accent", preferences.accent);
     root.style.setProperty("--accent-on", accentForeground(preferences.accent));
-  }, [resolvedTheme, preferences.accent]);
+  }, [resolvedTheme, preferences.accent, preferences.material]);
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
@@ -110,6 +86,6 @@ export function useDashboardPreferences() {
     resolvedTheme,
     persistent,
     toggleWidget,
-    reset: () => setPreferences(defaults()),
+    reset: () => setPreferences(defaultPreferences()),
   };
 }

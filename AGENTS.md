@@ -10,7 +10,7 @@ Backend i pozostałe puste pliki funkcji nadal są strukturą do implementacji.
 - Zachowuj moduły `fleet`, `trips`, `analytics` oraz osobny adapter WEBFLEET.
 - Przed zmianą UI przeczytaj `docs/DESIGN_SYSTEM.md`. Używaj wspólnych tokenów
   i komponentów; nowe kafelki dodawaj do rejestru dashboardu.
-- Po zmianie frontendu wykonaj `npm run build` w `frontend/` i sprawdź
+- Po zmianie frontendu wykonaj `npm test` i `npm run build` w `frontend/` i sprawdź
   zachowanie zmienionego widoku w przeglądarce. Nie dodawaj fikcyjnych danych
   do produktu poza osobno uzgodnionym zadaniem.
 - Pracuj na gałęzi zadania, np. `feat/SCRUM-123-krotki-opis`; zmiana trafia do PR

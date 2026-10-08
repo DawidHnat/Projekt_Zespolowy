@@ -18,6 +18,7 @@ Jeżeli port jest zajęty, zakończ wcześniejszy proces lub użyj
 `npm run dev -- --port 5174`. Nie są potrzebne `.env`, konta ani VPS.
 
 ```bash
+npm test              # migracja, zapis i ograniczenia układu
 npm run typecheck     # sprawdzenie typów
 npm run build         # typecheck oraz build do dist/
 npm run preview       # podgląd zbudowanego frontendu na 127.0.0.1:4173
@@ -29,13 +30,27 @@ npm run preview       # podgląd zbudowanego frontendu na 127.0.0.1:4173
 - Sześć niezależnych kafelków ze stanami oczekiwania na dane.
 - Motyw jasny, ciemny i zgodny z systemem; pięć akcentów i własny kolor.
 - Włączanie i ukrywanie modułów, wyszukiwanie po nazwie modułu.
+- Edytor układu: przesuwanie, rozciąganie, ustawienia rozmiaru, Zapisz/Anuluj.
+- Osobne układy grup nawigacji i telefonu/komputera.
+- Opcjonalne szkło i styl klasyczny, także w ciemnym motywie.
 - Zapamiętywanie ustawień na urządzeniu i przywracanie domyślnych.
 - Układ na telefon i komputer; panel personalizacji obsługuje Tab i Escape.
 - Lokalna czcionka Inter i ikony Lucide, bez pobierania fontu z Google.
 
 Mapa jest ilustracją. Dane WEBFLEET, logowanie, edycja przejazdów, właściwe
-wykresy oraz przeciąganie i zmiana rozmiarów kafelków powstaną osobno.
+wykresy powstaną osobno.
 Wyszukiwarka szuka nazw modułów, nie pojazdów.
+
+## Edycja dashboardu
+
+Otwórz „Dopasuj widok”, następnie „Edytuj układ”. Przesuń kafelek za uchwyt
+z kropkami lub rozciągnij prawy dolny narożnik. Ikona ustawień otwiera suwaki
+rozmiaru, presety i ukrywanie. Uchwyt obsługuje strzałki oraz Shift + strzałki;
+Enter otwiera ustawienia. „Zapisz układ” zatwierdza, „Anuluj” odrzuca szkic.
+
+Motyw, akcent i styl powierzchni zmieniają się od razu. Podczas edycji zmiany
+widoczności widgetów czekają na zapis układu. Widoczność jest wspólna dla grup,
+a pozycje i rozmiary są osobne dla każdej grupy i szerokości ekranu.
 
 ## Dalsza praca
 
@@ -44,5 +59,5 @@ Kafelki funkcji znajdują się w `src/features/fleet`, `trips` i `analytics`.
 Uzgodnij typy i odpowiedzi API z Dawidem przed podłączaniem danych.
 Nie dodawaj sekretów do zmiennych `VITE_*`: trafiają one do przeglądarki.
 
-Po zmianie uruchom build i sprawdź odpowiedni widok w przeglądarce. Zmiany
+Po zmianie uruchom testy i build i sprawdź odpowiedni widok w przeglądarce. Zmiany
 wprowadzamy gałęzią zadania i PR zgodnie z [CONTRIBUTING](../CONTRIBUTING.md).

@@ -1,13 +1,11 @@
 import { Activity, BellRing, Gauge, ShieldCheck } from "lucide-react";
 import { WidgetFrame } from "../../../shared/components/WidgetFrame";
-import type { WidgetProps } from "../../dashboard/model/widget-types";
 
-export function ActivityWidget({ onHide }: WidgetProps) {
+export function ActivityWidget() {
   return (
     <WidgetFrame
       title="Alerty i aktywność"
       icon={Activity}
-      onHide={onHide}
       className="activity-widget"
     >
       <div className="activity-intro">

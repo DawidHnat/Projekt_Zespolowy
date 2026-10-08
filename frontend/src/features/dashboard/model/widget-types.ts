@@ -8,4 +8,3 @@ export const WIDGET_IDS = [
 ] as const;
 export type WidgetId = (typeof WIDGET_IDS)[number];
 export type SectionId = "dashboard" | "fleet" | "trips" | "analytics";
-export type WidgetProps = { onHide: () => void };

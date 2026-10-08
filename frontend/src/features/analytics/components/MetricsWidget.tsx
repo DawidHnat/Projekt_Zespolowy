@@ -6,7 +6,6 @@ import {
   BellRing,
 } from "lucide-react";
 import { WidgetFrame } from "../../../shared/components/WidgetFrame";
-import type { WidgetProps } from "../../dashboard/model/widget-types";
 
 const metrics = [
   { label: "Pojazdy we flocie", icon: Truck, tone: "accent" },
@@ -15,12 +14,11 @@ const metrics = [
   { label: "Aktywne alerty", icon: BellRing, tone: "danger" },
 ] as const;
 
-export function MetricsWidget({ onHide }: WidgetProps) {
+export function MetricsWidget() {
   return (
     <WidgetFrame
       title="Przegląd floty"
       icon={ChartNoAxesCombined}
-      onHide={onHide}
       className="metrics-widget"
       badge="Najważniejsze wskaźniki"
     >

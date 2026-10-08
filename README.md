@@ -137,7 +137,10 @@ Bardziej rozbudowane raporty, dodatkowe możliwości personalizacji oraz kolejne
 
 Frontend ma działający lokalnie szkielet modułowego dashboardu (SCRUM-38).
 Pozwala zmieniać motyw jasny, ciemny lub systemowy, kolor akcentu oraz
-włączać i ukrywać sześć modułów. Ustawienia są zapamiętywane w przeglądarce.
+włączać i ukrywać sześć modułów. „Dopasuj widok” → „Edytuj układ” pozwala
+przeciągać i rozciągać widgety, a następnie zapisać lub anulować układ.
+Dostępny jest styl Szkło i Klasyczny. Układy dla telefonu i komputera
+są niezależne; ustawienia są zapamiętywane w przeglądarce.
 Wspólna czcionka to Inter, a domyślny akcent jest niebieski.
 
 Wymagany Node.js 22.18.0 (wersja zapisana w `frontend/.nvmrc`):
@@ -148,7 +151,8 @@ npm ci
 npm run dev
 ```
 
-Otwórz http://127.0.0.1:5173. `npm run build` sprawdza TypeScript i buduje frontend.
+Otwórz http://127.0.0.1:5173. `npm test` sprawdza model układu i preferencje;
+`npm run build` sprawdza TypeScript i buduje frontend.
 Dashboard działa bez logowania i bez połączenia z API. Wskaźniki mają puste
 stany, a mapa jest oznaczoną ilustracją układu. Backend, baza, dane floty
 i pełne widoki funkcji pozostają do wykonania w osobnych zadaniach.

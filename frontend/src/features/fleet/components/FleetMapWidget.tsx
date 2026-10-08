@@ -1,15 +1,13 @@
 import { Map, MapPin, Navigation } from "lucide-react";
 import { useId } from "react";
 import { WidgetFrame } from "../../../shared/components/WidgetFrame";
-import type { WidgetProps } from "../../dashboard/model/widget-types";
 
-export function FleetMapWidget({ onHide }: WidgetProps) {
+export function FleetMapWidget() {
   const gridId = useId();
   return (
     <WidgetFrame
       title="Mapa floty"
       icon={Map}
-      onHide={onHide}
       badge="Pozycje pojazdów"
       className="map-widget"
     >
