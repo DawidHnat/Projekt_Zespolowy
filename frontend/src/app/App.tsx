@@ -6,12 +6,11 @@ import {
   Search,
   Settings,
   X,
-  Grip,
 } from "lucide-react";
 import { DashboardGrid } from "../features/dashboard/components/DashboardGrid";
 import { useDashboardPreferences } from "./preferences";
 import { useLayoutEditor } from "./useLayoutEditor";
-import { LayoutEditorBar } from "../features/dashboard/components/LayoutEditorBar";
+import { LayoutEditorControls } from "../features/dashboard/components/LayoutEditorControls";
 import { FleetMapPage } from "../features/fleet/components/FleetMapPage";
 import { AppSettingsPanel } from "./components/AppSettingsPanel";
 import { sections, sectionFromHash } from "./navigation";
@@ -214,7 +213,7 @@ export function App() {
           tabIndex={-1}
         >
           <div className="page-heading">
-            <div>
+            <div className="page-heading-copy">
               <span className="eyebrow">
                 FLEET-FLOW / {current.title.toLocaleUpperCase("pl")}
               </span>
@@ -224,25 +223,18 @@ export function App() {
               </h1>
               <p>{current.description}</p>
             </div>
-            {editableView && !draft && (
-              <button
-                className="button button-primary"
-                onClick={startEditing}
-              >
-                <Grip size={17} />
-                Edytuj układ
-              </button>
+            {editableView && (
+              <LayoutEditorControls
+                title={current.title}
+                editing={Boolean(draft)}
+                onEdit={startEditing}
+                onWidgets={isDashboard ? openSettings : undefined}
+                onReset={() => editor.resetView(editableView)}
+                onCancel={() => editor.cancel(editableView)}
+                onSave={() => editor.save(editableView)}
+              />
             )}
           </div>
-          {draft && editableView && (
-            <LayoutEditorBar
-              title={current.title}
-              onWidgets={isDashboard ? openSettings : undefined}
-              onReset={() => editor.resetView(editableView)}
-              onCancel={() => editor.cancel(editableView)}
-              onSave={() => editor.save(editableView)}
-            />
-          )}
           {isDashboard ? (
             <>
               <DashboardGrid

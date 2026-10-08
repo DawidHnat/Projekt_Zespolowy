@@ -18,7 +18,7 @@ frontend/
     features/
       dashboard/
         model/           identyfikatory, typy i rejestr modułów
-        components/      wspólna siatka i pasek edytora, tło i wybór obrazu
+        components/      wspólna siatka i kontrolki edytora, tło i wybór obrazu
       fleet/
         components/      mapa, lista pojazdów i dedykowany FleetMapPage
         FleetPage.tsx    przyszły pełny widok floty

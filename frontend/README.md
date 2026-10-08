@@ -55,6 +55,8 @@ miejsce, a sąsiednie kafelki robią przestrzeń. Prawy dolny narożnik zmienia
 rozmiar. Ikona ustawień otwiera suwaki i presety, a na Pulpicie także ukrywanie.
 Uchwyt z kropkami obsługuje strzałki oraz Shift + strzałki;
 Enter otwiera ustawienia. „Zapisz układ” zatwierdza, „Anuluj” odrzuca szkic.
+Kontrolki zastępują przycisk w nagłówku, bez dodatkowego pasa nad siatką.
+Włączenie i zakończenie edycji nie przesuwają kafelków.
 
 Rozciąganie ma krok wysokości 17 px. Minimalny rozmiar każdego kafelka
 uwzględnia jego szerokość i treść, w tym zawijanie tekstu. Nagłówki,

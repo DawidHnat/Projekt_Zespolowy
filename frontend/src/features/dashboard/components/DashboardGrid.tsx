@@ -214,7 +214,7 @@ export function DashboardGrid({
         {announcement}
       </span>
       {editing && (
-        <p className="layout-profile-note">
+        <p className="sr-only">
           {profile === "compact"
             ? "Edytujesz układ na małe ekrany"
             : "Edytujesz układ na duże ekrany"}{" "}

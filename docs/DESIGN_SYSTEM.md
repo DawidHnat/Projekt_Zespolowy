@@ -114,7 +114,11 @@ od razu. Reset w trybie edycji też wymaga zatwierdzenia układu.
 `app/useLayoutEditor.ts` zarządza niezależnymi szkicami obu widoków.
 `layout-draft.ts` tworzy szkic i zatwierdza wyłącznie wybrany widok do bieżących
 preferencji. Zapis Mapy nie nadpisuje ustawień wyglądu ani szkicu Pulpitu.
-`LayoutEditorBar` jest wspólnym paskiem obu edytorów.
+`LayoutEditorControls` zastępuje przycisk edycji kontrolkami w nagłówku.
+Slot ma tę samą szerokość i wysokość w obu trybach, także w mobilnym wierszu
+akcji. Nie dodawaj osobnego pasa ani komunikatów w przepływie nad siatką:
+wejście w edycję i zapis muszą zachować jej położenie. Informacja o profilu
+ekranu pozostaje dostępna dla czytników ekranu.
 
 Pulpit i Mapa mają osobne układy dla dużych i małych ekranów. Zmiana
 na telefonie nie nadpisuje desktopu. Widoczność dotyczy kafelków Pulpitu;
