@@ -30,8 +30,8 @@ const sizes: Record<
   metrics: { w: 12, h: 5, minW: 6, minH: 5 },
   map: { w: 8, h: 11, minW: 4, minH: 9 },
   activity: { w: 4, h: 11, minW: 4, minH: 9 },
-  vehicles: { w: 8, h: 7, minW: 6, minH: 6 },
-  utilization: { w: 4, h: 7, minW: 4, minH: 7 },
+  vehicles: { w: 8, h: 9, minW: 6, minH: 6 },
+  utilization: { w: 4, h: 9, minW: 4, minH: 7 },
   trips: { w: 12, h: 5, minW: 4, minH: 5 },
 };
 const record = (value: unknown): Record<string, unknown> =>

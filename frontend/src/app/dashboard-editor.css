@@ -229,6 +229,7 @@
   cursor: pointer;
 }
 .widget-resize-handle.react-resizable-handle {
+  opacity: 1;
   background-image: none;
   display: grid;
   place-items: center;
