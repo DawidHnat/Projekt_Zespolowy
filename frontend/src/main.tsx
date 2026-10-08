@@ -1,6 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "@fontsource-variable/inter";
+import { AuthProvider } from "./features/auth/AuthProvider";
+import { AuthGate } from "./features/auth/AuthGate";
+import { FleetProvider } from "./features/fleet/model/FleetProvider";
+import "./app/fleet-data.css";
 import { App } from "./app/App";
 import "./app/styles.css";
 import "./app/dashboard-editor.css";
@@ -10,6 +14,12 @@ import "./app/workspace-pages.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
+    <AuthProvider>
+      <AuthGate>
+        <FleetProvider>
+          <App />
+        </FleetProvider>
+      </AuthGate>
+    </AuthProvider>
   </React.StrictMode>,
 );

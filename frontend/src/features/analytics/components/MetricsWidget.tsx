@@ -7,14 +7,32 @@ import {
 } from "lucide-react";
 import { WidgetFrame } from "../../../shared/components/WidgetFrame";
 
+import { useFleet } from "../../fleet/model/FleetProvider";
+
 const metrics = [
-  { label: "Pojazdy we flocie", icon: Truck, tone: "accent" },
-  { label: "Pojazdy w ruchu", icon: Navigation, tone: "success" },
-  { label: "Na postoju", icon: CircleParking, tone: "warning" },
-  { label: "Aktywne alerty", icon: BellRing, tone: "danger" },
+  { label: "Pojazdy we flocie", icon: Truck, tone: "accent", field: "total" },
+  {
+    label: "Pojazdy w ruchu",
+    icon: Navigation,
+    tone: "success",
+    field: "moving",
+  },
+  {
+    label: "Na postoju",
+    icon: CircleParking,
+    tone: "warning",
+    field: "stopped",
+  },
+  {
+    label: "Dane nieaktualne",
+    icon: BellRing,
+    tone: "danger",
+    field: "offline",
+  },
 ] as const;
 
 export function MetricsWidget() {
+  const fleet = useFleet();
   return (
     <WidgetFrame
       title="Przegląd floty"
@@ -23,15 +41,19 @@ export function MetricsWidget() {
       badge="Najważniejsze wskaźniki"
     >
       <div className="metrics-grid">
-        {metrics.map(({ label, icon: Icon, tone }) => (
+        {metrics.map(({ label, icon: Icon, tone, field }) => (
           <div className={`metric metric-${tone}`} key={label}>
             <span className="metric-icon">
               <Icon size={22} aria-hidden="true" />
             </span>
             <div>
               <h3>{label}</h3>
-              <p className="metric-value">—</p>
-              <p className="metric-hint">Oczekiwanie na dane</p>
+              <p className="metric-value">{fleet.summary?.[field] ?? "—"}</p>
+              <p className="metric-hint">
+                {fleet.summary
+                  ? "Ostatnie pomiary floty"
+                  : "Oczekiwanie na dane"}
+              </p>
             </div>
             <span className="metric-line" aria-hidden="true" />
           </div>

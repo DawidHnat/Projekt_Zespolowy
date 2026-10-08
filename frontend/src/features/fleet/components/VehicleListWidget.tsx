@@ -1,55 +1,167 @@
-import { Truck } from "lucide-react";
+import { Truck, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { WidgetFrame } from "../../../shared/components/WidgetFrame";
 import { EmptyState } from "../../../shared/components/EmptyState";
-
+import { useFleet } from "../model/FleetProvider";
+import { positionTime, statusLabels, type VehicleStatus } from "../model/types";
+import { FleetNotice } from "./FleetNotice";
 export function VehicleListWidget({
   variant = "table",
 }: {
   variant?: "table" | "sidebar";
 }) {
+  const f = useFleet();
+  const items = f.list?.items || [];
   return (
     <WidgetFrame
       title="Pojazdy"
       icon={Truck}
-      badge="Lista floty"
-      className="vehicles-widget"
+      badge={f.list ? `${f.list.total} pojazdów` : "Lista floty"}
+      className={`vehicles-widget vehicle-${variant}`}
     >
-      {variant === "sidebar" ? (
-        <EmptyState
-          icon={Truck}
-          title="Twoje pojazdy pojawią się tutaj"
-          description="Lista będzie dostępna obok mapy. Wybór pojazdu pozwoli odnaleźć jego pozycję."
-        />
-      ) : (
-        <div className="table-scroll">
-          <table className="vehicle-table">
-            <thead>
-              <tr>
-                <th>Pojazd</th>
-                <th>Status</th>
-                <th>Kierowca</th>
-                <th>Przebieg</th>
-                <th>Aktualizacja</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td colSpan={5}>
-                  <EmptyState
-                    icon={Truck}
-                    title="Twoje pojazdy pojawią się tutaj"
-                    description="Lista, statusy i najważniejsze informacje o flocie w jednym miejscu."
-                  />
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <div className="fleet-list-content" aria-busy={f.loading}>
+        <div className="fleet-filters">
+          <label className="fleet-search">
+            <Search size={16} />
+            <input
+              type="search"
+              aria-label="Szukaj pojazdu"
+              placeholder="Nazwa lub rejestracja…"
+              maxLength={100}
+              value={f.q}
+              onChange={(e) => f.setQ(e.target.value)}
+            />
+          </label>
+          <select
+            aria-label="Status pojazdu"
+            value={f.status}
+            onChange={(e) => f.setStatus(e.target.value as VehicleStatus | "")}
+          >
+            <option value="">Wszystkie statusy</option>
+            {Object.entries(statusLabels).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v}
+              </option>
+            ))}
+          </select>
         </div>
-      )}
+        <FleetNotice />
+        {!items.length ? (
+          <EmptyState
+            icon={Truck}
+            title={
+              f.loading
+                ? "Pobieranie pojazdów…"
+                : f.error
+                  ? "Lista chwilowo niedostępna"
+                  : "Brak pasujących pojazdów"
+            }
+            description={
+              f.error || "Zmień filtry lub poczekaj na aktualizację floty."
+            }
+          />
+        ) : variant === "sidebar" ? (
+          <div className="vehicle-cards">
+            {items.map((v) => (
+              <button
+                key={v.id}
+                className={`vehicle-card ${f.selectedId === v.id ? "selected" : ""}`}
+                onClick={() => f.select(v.id)}
+                aria-pressed={f.selectedId === v.id}
+              >
+                <div>
+                  <strong>{v.name}</strong>
+                  <small>
+                    {v.license_plate || v.number || "Brak rejestracji"}
+                  </small>
+                </div>
+                <span className={`vehicle-status status-${v.status}`}>
+                  {statusLabels[v.status]}
+                </span>
+                <small>
+                  {positionTime(v.position_at)}
+                  {v.latitude === null && <span>Brak GPS</span>}
+                </small>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="table-scroll">
+            <table className="vehicle-table">
+              <thead>
+                <tr>
+                  <th>Pojazd</th>
+                  <th>Status</th>
+                  <th>Kierowca</th>
+                  <th>Przebieg</th>
+                  <th>Pomiar · czas polski</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((v) => (
+                  <tr
+                    key={v.id}
+                    className={f.selectedId === v.id ? "selected" : ""}
+                  >
+                    <td>
+                      <button
+                        className="vehicle-name"
+                        onClick={() => f.select(v.id)}
+                        aria-pressed={f.selectedId === v.id}
+                      >
+                        <strong>{v.name}</strong>
+                        <small>
+                          {v.license_plate || v.number || "Brak rejestracji"}
+                        </small>
+                      </button>
+                    </td>
+                    <td>
+                      <span className={`vehicle-status status-${v.status}`}>
+                        {statusLabels[v.status]}
+                      </span>
+                      {v.latitude === null && (
+                        <small className="no-gps">Brak GPS</small>
+                      )}
+                    </td>
+                    <td>{v.driver?.display_name || "Nieprzypisany"}</td>
+                    <td>
+                      {v.odometer_km === null
+                        ? "—"
+                        : `${v.odometer_km.toLocaleString("pl-PL", { maximumFractionDigits: 1 })} km`}
+                    </td>
+                    <td>{positionTime(v.position_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {f.list && f.list.total > 25 && (
+          <div className="fleet-pagination">
+            <button
+              className="icon-button"
+              aria-label="Poprzednia strona pojazdów"
+              disabled={f.page <= 1 || f.loading}
+              onClick={() => f.setPage(f.page - 1)}
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <span>
+              {f.page} / {Math.ceil(f.list.total / 25)}
+            </span>
+            <button
+              className="icon-button"
+              aria-label="Następna strona pojazdów"
+              disabled={f.page * 25 >= f.list.total || f.loading}
+              onClick={() => f.setPage(f.page + 1)}
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+        )}
+      </div>
     </WidgetFrame>
   );
 }
-
 export function VehicleSidebarWidget() {
   return <VehicleListWidget variant="sidebar" />;
 }

@@ -99,3 +99,16 @@ Nie dodawaj sekretów do zmiennych `VITE_*`: trafiają one do przeglądarki.
 
 Po zmianie uruchom testy i build i sprawdź odpowiedni widok w przeglądarce. Zmiany
 wprowadzamy gałęzią zadania i PR zgodnie z [CONTRIBUTING](../CONTRIBUTING.md).
+
+## Dane floty i logowanie — SCRUM-20
+
+Uruchom najpierw bazę, migracje i API według backend/README.md oraz utwórz swoje
+konto lokalnym poleceniem administratora. Vite przekazuje `/api` do localhost:8000.
+Główny `.env` jest czytany wyłącznie dla publicznych zmiennych `VITE_*`.
+Jeśli używasz portu 5174, dodaj `http://127.0.0.1:5174` do `CORS_ORIGINS`.
+
+Po zalogowaniu lista i wskaźniki korzystają z rzeczywistych danych cache.
+Filtry nazwy/rejestracji i statusu są współdzielone z mapą. Odświeżanie API co
+60 s nie wywołuje dodatkowych odczytów WEBFLEET. Sesja nie trafia do localStorage;
+401 usuwa widok floty. Wylogowanie unieważnia sesję w bazie. Kierowców import
+nie pobiera; do czasu ręcznego przypisania lista pokazuje „Nieprzypisany”.

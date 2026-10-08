@@ -24,9 +24,13 @@ import { useBackgroundImage } from "../features/dashboard/model/useBackgroundIma
 import { widgetRegistry } from "../features/dashboard/model/widget-registry";
 import { WIDGET_IDS } from "../features/dashboard/model/widget-types";
 
+import { useAuth } from "../features/auth/AuthProvider";
+
 const readSection = () => sectionFromHash(window.location.hash);
 
 export function App() {
+  const auth = useAuth();
+  const [logoutError, setLogoutError] = useState(false);
   const settings = useDashboardPreferences();
   const backgroundMedia = useBackgroundImage();
   const wallpaper = backgroundSource(
@@ -65,7 +69,11 @@ export function App() {
   const current = sections.find((value) => value.id === section)!;
   const SectionIcon = current.icon;
   const isDashboard = section === "dashboard";
-  const editableView = isDashboard ? "dashboard" : section === "map" ? "map" : null;
+  const editableView = isDashboard
+    ? "dashboard"
+    : section === "map"
+      ? "map"
+      : null;
   const draft = editableView ? editor.drafts[editableView] : undefined;
   const startEditing = () => {
     if (!editableView) return;
@@ -150,8 +158,15 @@ export function App() {
           <div className="workspace">
             <span className="workspace-avatar">FF</span>
             <div>
-              <strong>Zespół Fleet-Flow</strong>
-              <small>Podgląd interfejsu</small>
+              <strong>{auth.user?.display_name}</strong>
+              <button
+                className="logout-button"
+                onClick={() =>
+                  void auth.logout().catch(() => setLogoutError(true))
+                }
+              >
+                {logoutError ? "Ponów wylogowanie" : "Wyloguj się"}
+              </button>
             </div>
           </div>
         </div>
@@ -189,7 +204,7 @@ export function App() {
           <div className="topbar-actions">
             <span className="preview-badge">
               <i />
-              Podgląd interfejsu
+              Połączono z API
             </span>
             <button
               className="icon-button settings-shortcut"
@@ -290,7 +305,7 @@ export function App() {
               Fleet-Flow <span className="footer-dot">·</span> Twoja flota pod
               kontrolą
             </span>
-            <span>Widok przygotowany do podłączenia danych</span>
+            <span>Pomiary WEBFLEET · kierowcy wpisywani ręcznie</span>
           </footer>
         </main>
       </div>

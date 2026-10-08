@@ -8,13 +8,31 @@ function contentHeight(id: WidgetId, body: HTMLElement): number {
   // current height. Tables reserve the heading and first row, not the whole list.
   if (id === "map") {
     const canvas = body.querySelector(".map-canvas");
-    if (canvas) return Number.parseFloat(getComputedStyle(canvas).minHeight) || 0;
+    if (canvas)
+      return Number.parseFloat(getComputedStyle(canvas).minHeight) || 0;
   }
   if (id === "vehicles") {
     const head = body.querySelector("thead");
     const row = body.querySelector("tbody tr");
-    if (head) return head.getBoundingClientRect().height +
-      Math.max(44, row?.getBoundingClientRect().height ?? 0);
+    const card = body.querySelector(".vehicle-card");
+    const fixed = [
+      ".fleet-filters",
+      ".fleet-notice",
+      ".fleet-update",
+      ".fleet-pagination",
+    ].reduce(
+      (sum, selector) =>
+        sum +
+        (body.querySelector(selector)?.getBoundingClientRect().height ?? 0),
+      36,
+    );
+    if (head)
+      return (
+        fixed +
+        head.getBoundingClientRect().height +
+        Math.max(44, row?.getBoundingClientRect().height ?? 0)
+      );
+    if (card) return fixed + card.getBoundingClientRect().height;
   }
   return body.getBoundingClientRect().height;
 }
@@ -40,24 +58,42 @@ export function useWidgetMinimums(
         const header = tile.querySelector<HTMLElement>(".widget-header");
         const body = tile.querySelector<HTMLElement>(".widget-content-inner");
         if (!header || !body) return;
-        next[id] = Math.ceil(header.getBoundingClientRect().height + contentHeight(id, body) + 18);
+        next[id] = Math.ceil(
+          header.getBoundingClientRect().height + contentHeight(id, body) + 18,
+        );
       });
       setMinimums((previous) => {
         const ids = Object.keys(next) as WidgetId[];
-        return ids.length === Object.keys(previous).length && ids.every((id) => next[id] === previous[id])
-          ? previous : next;
+        return ids.length === Object.keys(previous).length &&
+          ids.every((id) => next[id] === previous[id])
+          ? previous
+          : next;
       });
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(measure);
     };
     const observer = new ResizeObserver(schedule);
-    root.querySelectorAll(
-      ".widget-header, .widget-content-inner, .vehicle-table thead, .vehicle-table tbody tr:first-child",
-    ).forEach((element) => observer.observe(element));
+    const observeContent = () =>
+      root
+        .querySelectorAll(
+          ".widget-header, .widget-content-inner, .fleet-filters, .fleet-pagination, .fleet-notice, .vehicle-card:first-child, .vehicle-table thead, .vehicle-table tbody tr:first-child",
+        )
+        .forEach((element) => observer.observe(element));
+    observeContent();
+    const mutations = new MutationObserver(() => {
+      observeContent();
+      schedule();
+    });
+    mutations.observe(root, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
     measure();
     return () => {
       observer.disconnect();
+      mutations.disconnect();
       cancelAnimationFrame(frame);
     };
   }, [container, signature, paused]);
