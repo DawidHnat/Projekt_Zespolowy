@@ -39,7 +39,7 @@
   background: linear-gradient(140deg, var(--glass-reflection), transparent 35%), var(--glass-card);
   border-color: var(--glass-edge);
 }
-:root[data-material="glass"] :is(.nav-item.active, .button-primary, .brand-mark, .map-pin) {
+:root[data-material="glass"] :is(.nav-item.active, .button-primary, .map-pin) {
   background:
     linear-gradient(180deg, #ffffff55, #ffffff08 34%, transparent 50%, #00000008),
     var(--accent);
@@ -93,7 +93,7 @@
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
-  :root[data-material="glass"] :is(.nav-item.active, .button-primary, .brand-mark, .map-pin) {
+  :root[data-material="glass"] :is(.nav-item.active, .button-primary, .map-pin) {
     background: var(--accent);
     box-shadow: none;
   }

@@ -34,6 +34,13 @@ Nowy wariant komponentu dopisuj wspólnie, zamiast kopiować style do modułu.
 
 ## Komponenty i rejestr
 
+- `Brand` składa wybrany przez zespół monogram FF ze strzałką i napis
+  „Fleet Flow”. Jeden plik `frontend/public/brand/fleet-flow-mark.svg` służy
+  jako znak w nawigacji i favicon. SVG ma przezroczyste tło, a w ciemnym
+  motywie rozjaśnia najciemniejsze fragmenty. Napis korzysta z lokalnego
+  Inter; `Fleet` używa `--text`, a `Flow` tokenu `--brand-wordmark`.
+  Kolory marki są stałe i niezależne od personalizacji `--accent`.
+  Nie dodawaj tła ani efektów szkła do samego znaku.
 - `WidgetFrame` zapewnia tytuł, ikonę, obramowanie i przewijalną zawartość.
   Kontrolki edycji należą do `DashboardGrid`, nie do modułów domeny.
 - `EmptyState` zapewnia spójny stan oczekiwania na dane.

@@ -9,6 +9,7 @@
   --surface-hover: #edf2f8;
   --text: #192a42;
   --muted: #63758a;
+  --brand-wordmark: #0078dc;
   --border: #e3ebf3;
   --accent: #1479e8;
   --accent-on: #ffffff;
@@ -33,6 +34,7 @@
   --surface-hover: #1e2c40;
   --text: #e7eef8;
   --muted: #a1b1c6;
+  --brand-wordmark: #35b9ff;
   --border: #253247;
   --accent-soft: color-mix(in srgb, var(--accent) 14%, var(--surface));
   --success: #4bceb1;

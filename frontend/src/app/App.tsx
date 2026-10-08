@@ -26,6 +26,7 @@ import {
 } from "../features/dashboard/model/widget-layout";
 import { useDashboardPreferences } from "./preferences";
 import { AppearancePanel } from "../features/dashboard/components/AppearancePanel";
+import { Brand } from "../shared/components/Brand";
 import { widgetRegistry } from "../features/dashboard/model/widget-registry";
 import {
   WIDGET_IDS,
@@ -62,29 +63,6 @@ const sections = [
 function readSection(): SectionId {
   const hash = window.location.hash.slice(1);
   return sections.find((section) => section.id === hash)?.id ?? "dashboard";
-}
-
-function Brand() {
-  return (
-    <a className="brand" href="#dashboard" aria-label="Fleet-Flow — dashboard">
-      <span className="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 32 32">
-          <path
-            d="M7 12h10l5-5h5l-9 9H8m-2 5h10l5-5h5l-9 9H7"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </span>
-      <span>
-        Fleet<span className="brand-dash">-</span>Flow
-        <small>PRZESTRZEŃ ZESPOŁU</small>
-      </span>
-    </a>
-  );
 }
 
 export function App() {
