@@ -2,9 +2,9 @@
 
 Backend ma adapter WEBFLEET i polecenia diagnostyczne integracji. Python 3.12 lub
 3.13. Testy działają bez konta WEBFLEET, skrzynki SMTP i danych klientów.
-Serwer FastAPI, PostgreSQL i migracje pozostają zakresem SCRUM-39, uwierzytelnienie
+FastAPI, PostgreSQL, migracje i health są zakresem SCRUM-39. Uwierzytelnienie
 aplikacji — SCRUM-16, a endpointy listy pojazdów — SCRUM-19. Nie uruchamiamy
-odpytywania API w przeglądarce ani automatycznej synchronizacji.
+odpytywania API w przeglądarce.
 
 ## Uruchomienie z czystego checkoutu
 
@@ -22,6 +22,26 @@ z `.env.example`. Wpisuj dane w lokalnym edytorze. Hasła z `#`, `$` lub spacjam
 ujmij w pojedynczy albo podwójny cudzysłów zgodnie ze składnią dotenv. Interpolacja
 `${...}` jest wyłączona, żeby nie zmieniała haseł. Zmienne środowiska procesu mają
 pierwszeństwo przed plikiem. W systemie Windows aktywuj `.venv\Scripts\Activate.ps1`.
+
+Uzupełnij trzy wartości `POSTGRES_*` i odpowiadający im `DATABASE_URL`.
+Hasło w URL wymaga kodowania znaków specjalnych. Uruchom Docker Desktop, następnie:
+
+```bash
+docker compose -p fleet-flow-dev -f compose.local.yml up -d --wait
+cd backend
+alembic upgrade head
+uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8000
+```
+
+`/api/health/live` sprawdza proces, `/api/health/ready` — połączenie z bazą.
+Nie zwracają adresu bazy ani wyjątków. Migracje wykonujemy jawnie przed startem.
+`docker compose ... down` zatrzymuje bazę, zachowując wolumen. Nie dodawaj `-v`,
+jeśli chcesz zachować dane. Baza i API są dostępne lokalnie; wystawienie na VPS
+wymaga osobnego zadania z HTTPS, `COOKIE_SECURE=true` i konkretnym Origin.
+
+CI sprawdza także upgrade/check/downgrade/upgrade na pustej bazie PostgreSQL 17.
+Lokalnie test migracji wymaga `TEST_DATABASE_URL` do osobnej bazy o nazwie
+zaczynającej się od `fleet_flow_test`; test odrzuca pozostałe bazy.
 
 ## WEBFLEET — test tylko do odczytu
 
