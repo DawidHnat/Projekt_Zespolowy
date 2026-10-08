@@ -19,7 +19,7 @@ export function WidgetSettingsDialog({
   onClose: () => void;
   onChange: (change: Partial<Pick<LayoutItem, "w" | "h">>) => void;
   onMove: (direction: string) => void;
-  onHide: () => void;
+  onHide?: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -133,14 +133,20 @@ export function WidgetSettingsDialog({
                 </button>
               ))}
             </div>
-            <button
-              className="button button-secondary hide-widget-button"
-              onClick={onHide}
-            >
-              <EyeOff size={17} />
-              Ukryj w widokach
-            </button>
-            <small>Możesz włączyć go ponownie w „Ustawieniach” → „Moduły Pulpitu”.</small>
+            {onHide && (
+              <>
+                <button
+                  className="button button-secondary hide-widget-button"
+                  onClick={onHide}
+                >
+                  <EyeOff size={17} />
+                  Ukryj na Pulpicie
+                </button>
+                <small>
+                  Możesz włączyć go ponownie w „Ustawieniach” → „Moduły Pulpitu”.
+                </small>
+              </>
+            )}
           </div>
           <footer className="widget-settings-footer">
             <button className="button button-primary" onClick={onClose}>

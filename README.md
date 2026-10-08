@@ -142,13 +142,15 @@ pojazdów obok; na małym ekranie lista jest pod mapą. Pozostałe nowe sekcje
 mają puste widoki opisujące planowane funkcje, bez logiki biznesowej.
 Pozwala zmieniać motyw jasny, ciemny lub systemowy, kolor akcentu oraz
 włączać i ukrywać sześć modułów Pulpitu. Koło zębate „Ustawienia” otwiera
-wygląd, tło i wybór modułów. Osobny przycisk „Edytuj układ” na Pulpicie pozwala
-przeciągać i rozciągać widgety, a następnie zapisać lub anulować układ.
+wygląd, tło i wybór modułów. Osobny przycisk „Edytuj układ” na Pulpicie i Mapie
+pozwala chwycić cały kafelek i zmieniać jego położenie oraz rozmiar.
+Obrys wskazuje miejsce upuszczenia, a pozostałe kafelki przesuwają się płynnie.
+Każdy widok ma własny szkic z zapisem i anulowaniem.
 Każdy widget ma minimum zależne od treści i szerokości: nagłówek, podstawowe
 informacje i pierwszy wiersz tabeli pozostają widoczne. Styl szkła dodaje
 połysk także nawigacji i przyciskom, zachowując ich kształt w obu stylach.
 Dostępny jest styl Szkło i Klasyczny. Układy dla telefonu i komputera
-są niezależne; ustawienia są zapamiętywane w przeglądarce.
+są niezależne dla Pulpitu i Mapy; ustawienia są zapamiętywane w przeglądarce.
 Sekcja „Tło przestrzeni” oferuje galerię, własny obraz oraz wyciszenie
 i rozmycie. Tła działają w obu stylach. Własne zdjęcie pozostaje lokalnie
 w przeglądarce i można je usunąć w tym samym panelu.

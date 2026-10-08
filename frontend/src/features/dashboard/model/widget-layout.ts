@@ -16,6 +16,7 @@ import { WIDGET_IDS, type SectionId, type WidgetId } from "./widget-types.ts";
 
 export const SECTION_IDS = [
   "dashboard",
+  "map",
   "fleet",
   "trips",
   "analytics",
@@ -25,6 +26,7 @@ export type LayoutProfile = (typeof PROFILES)[number];
 export type SavedLayouts = Record<SectionId, Record<LayoutProfile, Layout>>;
 export const SECTION_WIDGETS: Record<SectionId, readonly WidgetId[]> = {
   dashboard: WIDGET_IDS,
+  map: ["map", "vehicles"],
   fleet: ["metrics", "map", "vehicles"],
   trips: ["trips"],
   analytics: ["metrics", "activity", "utilization"],
@@ -42,6 +44,14 @@ const sizes: Record<
   utilization: { w: 4, h: 9, minW: 4, minH: 8 },
   trips: { w: 12, h: 5.5, minW: 4, minH: 5.5 },
 };
+// The Map view uses a compact vehicle sidebar; the Pulpit keeps its table budget.
+const mapSizes = {
+  map: { w: 8, h: 15.5, minW: 4, minH: 12.5 },
+  vehicles: { w: 4, h: 15.5, minW: 3, minH: 8 },
+};
+const widgetSize = (id: WidgetId, section?: SectionId) =>
+  section === "map" && (id === "map" || id === "vehicles")
+    ? mapSizes[id] : sizes[id];
 const record = (value: unknown): Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -56,10 +66,11 @@ function safeItem(
   profile: LayoutProfile,
   source: unknown,
   fallback: LayoutItem,
+  section?: SectionId,
 ): LayoutItem {
   const value = record(source);
   const cols = columns(profile);
-  const size = sizes[id];
+  const size = widgetSize(id, section);
   const minW = profile === "compact" ? 1 : size.minW;
   const w = dimension(value.w, fallback.w, minW, cols);
   const minH =
@@ -86,15 +97,17 @@ export function defaultLayout(
   let rowH = 0;
   const cols = columns(profile);
   return SECTION_WIDGETS[section].map((id) => {
-    const size = sizes[id];
+    const size = widgetSize(id, section);
     const w = profile === "compact" ? 1 : size.w;
-    const h = id === "metrics" && profile === "compact" ? 8 : size.h;
+    const h = profile === "compact"
+      ? section === "map" ? size.minH : id === "metrics" ? 8 : size.h
+      : size.h;
     if (x + w > cols) {
       x = 0;
       y += rowH;
       rowH = 0;
     }
-    const item = safeItem(id, profile, { x, y, w, h }, { i: id, x, y, w, h });
+    const item = safeItem(id, profile, { x, y, w, h }, { i: id, x, y, w, h }, section);
     x += w;
     rowH = Math.max(rowH, h);
     return item;
@@ -114,6 +127,7 @@ export function normalizeLayout(
       profile,
       source.find((item) => record(item).i === fallback.i),
       fallback,
+      section,
     ),
   );
   // Hidden entries may share a position with visible entries. Compact only the
@@ -150,10 +164,11 @@ export function mergeLayout(
   previous: Layout,
   changed: Layout,
   profile: LayoutProfile,
+  section?: SectionId,
 ): Layout {
   return previous.map((item) => {
     const next = changed.find((candidate) => candidate.i === item.i);
-    return next ? safeItem(item.i as WidgetId, profile, next, item) : item;
+    return next ? safeItem(item.i as WidgetId, profile, next, item, section) : item;
   });
 }
 export function sameGeometry(left: Layout, right: Layout): boolean {
@@ -176,11 +191,12 @@ export function changeWidget(
   id: WidgetId,
   profile: LayoutProfile,
   change: Partial<Pick<LayoutItem, "x" | "y" | "w" | "h">>,
+  section?: SectionId,
 ): Layout {
   const clone = layout.map((item) => ({ ...item }));
   const current = clone.find((item) => item.i === id);
   if (!current) return clone;
-  const next = safeItem(id, profile, { ...current, ...change }, current);
+  const next = safeItem(id, profile, { ...current, ...change }, current, section);
   if (change.x !== undefined || change.y !== undefined) {
     const dense = toGridLayout(clone);
     return fromGridLayout(verticalCompactor.compact(
@@ -225,13 +241,14 @@ export function fitLayout(
   profile: LayoutProfile,
   containerWidth: number,
   measured: Partial<Record<WidgetId, number>> = {},
+  section?: SectionId,
 ): Layout {
   const cols = columns(profile);
   const fitted = layout.map((item) => {
     const id = item.i as WidgetId;
     const minW = profile === "compact" ? 1 : Math.min(
       cols,
-      Math.max(item.minW ?? 1, widthUnits(minimumWidth[id], containerWidth)),
+      Math.max(item.minW ?? 1, widthUnits(section === "map" && id === "vehicles" ? 250 : minimumWidth[id], containerWidth)),
     );
     const w = Math.max(item.w, minW);
     const pixels = profile === "compact" ? containerWidth : widthPixels(w, containerWidth);

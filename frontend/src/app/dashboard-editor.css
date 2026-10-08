@@ -18,7 +18,7 @@
   transition: height 180ms ease;
 }
 .dashboard-grid .react-grid-item.cssTransforms {
-  transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1), width 160ms ease, height 160ms ease;
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1), width 160ms ease, height 160ms ease;
 }
 .dashboard-grid .react-grid-item.cssTransforms:is(.react-draggable-dragging, .resizing),
 .is-interacting .dashboard-grid {
@@ -198,6 +198,12 @@
 }
 .is-editing .widget-slot {
   border-radius: var(--radius-card);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.is-interacting .widget-slot {
+  cursor: grabbing;
 }
 .is-editing .widget-slot::before {
   content: "";
@@ -272,13 +278,28 @@
   display: none;
 }
 .react-grid-item.react-grid-placeholder {
-  background: var(--accent);
-  opacity: 0.12;
-  border-radius: 16px;
-  outline: 2px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+  opacity: 1;
+  border-radius: var(--radius-card);
+  border: 2px solid var(--accent);
+  box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--accent) 10%, transparent);
+  pointer-events: none;
+}
+.react-grid-placeholder::after {
+  content: "Upuść tutaj";
+  position: absolute;
+  inset: 12px auto auto 12px;
+  border-radius: 8px;
+  padding: 5px 9px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 600;
 }
 .react-grid-item.react-draggable-dragging > .widget {
-  box-shadow: 0 12px 24px #00000018;
+  opacity: 0.94;
+  border-color: var(--accent);
+  box-shadow: 0 16px 36px #00000030;
 }
 .widget-settings-content .minimum-size-hint {
   font-size: 10px;

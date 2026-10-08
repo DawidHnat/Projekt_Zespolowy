@@ -49,3 +49,7 @@ export function VehicleListWidget({
     </WidgetFrame>
   );
 }
+
+export function VehicleSidebarWidget() {
+  return <VehicleListWidget variant="sidebar" />;
+}

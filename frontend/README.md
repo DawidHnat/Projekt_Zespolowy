@@ -33,8 +33,9 @@ npm run preview       # podgląd zbudowanego frontendu na 127.0.0.1:4173
 - Sześć niezależnych kafelków ze stanami oczekiwania na dane.
 - Motyw jasny, ciemny i zgodny z systemem; pięć akcentów i własny kolor.
 - Włączanie i ukrywanie modułów, wyszukiwanie po nazwie modułu.
-- Edytor układu: przesuwanie, rozciąganie, ustawienia rozmiaru, Zapisz/Anuluj.
-- Osobne układy Pulpitu dla telefonu i komputera.
+- Edytor Pulpitu i Mapy: chwytanie całego kafelka, podgląd miejsca upuszczenia,
+  płynne przesuwanie sąsiednich kart, rozciąganie i ustawienia rozmiaru.
+- Niezależne Zapisz/Anuluj oraz układy telefonu i komputera dla obu widoków.
 - Opcjonalne szkło z połyskiem na kartach, przyciskach i nawigacji oraz styl klasyczny.
 - Tło domyślne, galeria i własny obraz, z wyciszeniem i rozmyciem w obu stylach.
 - Zapamiętywanie ustawień na urządzeniu i przywracanie domyślnych.
@@ -46,11 +47,13 @@ Mapa jest ilustracją. Dane WEBFLEET, logowanie, edycja przejazdów, właściwe
 wykresy powstaną osobno.
 Wyszukiwarka szuka nazw modułów, nie pojazdów.
 
-## Edycja dashboardu
+## Edycja Pulpitu i Mapy
 
-Na Pulpicie kliknij „Edytuj układ”. Przesuń kafelek za uchwyt
-z kropkami lub rozciągnij prawy dolny narożnik. Ikona ustawień otwiera suwaki
-rozmiaru, presety i ukrywanie. Uchwyt obsługuje strzałki oraz Shift + strzałki;
+Na Pulpicie lub Mapie kliknij „Edytuj układ”. Chwyć dowolną część kafelka
+poza przyciskami i polami formularzy. Podświetlony obrys pokazuje docelowe
+miejsce, a sąsiednie kafelki robią przestrzeń. Prawy dolny narożnik zmienia
+rozmiar. Ikona ustawień otwiera suwaki i presety, a na Pulpicie także ukrywanie.
+Uchwyt z kropkami obsługuje strzałki oraz Shift + strzałki;
 Enter otwiera ustawienia. „Zapisz układ” zatwierdza, „Anuluj” odrzuca szkic.
 
 Rozciąganie ma krok wysokości 17 px. Minimalny rozmiar każdego kafelka
@@ -59,10 +62,12 @@ informacje statyczne i pierwszy wiersz tabeli mieszczą się w całości;
 przy większej liczbie wierszy zawartość jest przewijalna.
 
 Motyw, akcent, tło i styl powierzchni zmieniają się od razu. Podczas edycji zmiany
-widoczności widgetów czekają na zapis układu. Przejście do innej sekcji
-zachowuje niezapisany szkic w pamięci; wróć na Pulpit, aby go zapisać lub anulować.
-Odświeżenie odrzuca niezapisany szkic. Ustawienia modułów dotyczą Pulpitu;
-dedykowana Mapa zawsze pokazuje mapę i listę pojazdów.
+widoczności widgetów Pulpitu czekają na zapis jego układu. Przejście do innej
+sekcji zachowuje niezapisany szkic w pamięci; wróć do edytowanego widoku,
+aby go zapisać lub anulować. Zapis Mapy nie zatwierdza szkicu Pulpitu i odwrotnie.
+Odświeżenie odrzuca niezapisane szkice. Ustawienia modułów dotyczą Pulpitu;
+dedykowana Mapa zawsze pokazuje mapę i listę pojazdów, z własną kolejnością
+i rozmiarami. Każdy widok zapamiętuje osobny układ dla telefonu i komputera.
 
 ## Tło przestrzeni
 

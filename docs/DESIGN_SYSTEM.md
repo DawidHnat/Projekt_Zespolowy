@@ -81,31 +81,42 @@ Ewidencja przebiegu, Kierowcy, Karty paliwowe i Alerty. Nowa strona ma trwałe
 ID, polski tytuł, ikonę i opis. `WorkspacePage` zapewnia wspólny pusty widok
 sekcji planowanych. Logikę tych funkcji dodajemy w osobnych zadaniach.
 
-Strony są niezależne od `SectionId` i grup zapisanych w preferencjach układu.
+Rejestr stron jest niezależny od `SectionId` i grup zapisanych w preferencjach układu.
 Stare grupy `fleet`, `trips`, `analytics` pozostają w modelu, aby zachować
 wcześniejsze zapisy. Ich linki prowadzą odpowiednio do Mapy, Ewidencji
 przebiegu i Pulpitu. Link `#dashboard` nadal otwiera Pulpit.
 
-`FleetMapPage` składa mapę i boczny wariant `VehicleListWidget` we wspólnej
-siatce wypełniającej dostępną przestrzeń. Poniżej 900 px lista przechodzi pod
-mapę. Ten widok pozostaje niezależny od ukrywania kafelków na Pulpicie.
+`FleetMapPage` korzysta ze wspólnego `DashboardGrid`, z własną grupą `map`.
+Domyślnie mapa zajmuje osiem kolumn, a boczny wariant listy pojazdów cztery.
+Poniżej 720 px szerokości kontenera lista przechodzi pod mapę. Rejestr
+widgetów może wskazać `presentations` dla konkretnej grupy: w Mapie pojazdy
+mają boczną listę i własne minimum szerokości, a na Pulpicie nadal tabelę.
+Ten widok pozostaje niezależny od ukrywania kafelków na Pulpicie.
+Starsze preferencje v2 otrzymują domyślną grupę `map` bez zmiany innych układów.
 Mapa nadal jest oznaczoną ilustracją do czasu podłączenia dostawcy i API.
 
 `app/components/AppSettingsPanel.tsx` otwiera się pod kołem zębatym
 „Ustawienia”. Zawiera motyw, materiał, akcent, tło i widoczność kafelków
 Pulpitu. Na telefonie ustawienia mają również skrót w górnym pasku.
-Edycja układu jest osobnym działaniem na Pulpicie. Przejście do innej
-sekcji zachowuje szkic w pamięci; zapis i anulowanie są dostępne po powrocie.
+Edycja układu jest osobnym działaniem na Pulpicie i Mapie. Przejście do innej
+sekcji zachowuje szkice w pamięci; zapis i anulowanie są dostępne po powrocie.
 
 ### Edytowanie układu
 
-Osobny przycisk „Edytuj układ” na Pulpicie otwiera szkic. Uchwyt z kropkami przesuwa,
-narożnik rozciąga, a przycisk ustawień otwiera szerokość, wysokość i ukrycie.
+Osobny przycisk „Edytuj układ” na Pulpicie i Mapie otwiera szkic tego widoku.
+Cały kafelek można chwycić poza przyciskami, linkami i polami formularzy.
+Narożnik rozciąga, a przycisk ustawień otwiera szerokość, wysokość i ukrycie
+(ukrycie jest dostępne tylko na Pulpicie).
 „Zapisz układ” zatwierdza szkic, „Anuluj” odrzuca kolejność, rozmiary i zmiany
 widoczności wykonane podczas edycji. Wygląd (motyw, materiał, akcent, tło) działa
 od razu. Reset w trybie edycji też wymaga zatwierdzenia układu.
 
-Pulpit ma osobny układ dla dużych i małych ekranów. Zmiana
+`app/useLayoutEditor.ts` zarządza niezależnymi szkicami obu widoków.
+`layout-draft.ts` tworzy szkic i zatwierdza wyłącznie wybrany widok do bieżących
+preferencji. Zapis Mapy nie nadpisuje ustawień wyglądu ani szkicu Pulpitu.
+`LayoutEditorBar` jest wspólnym paskiem obu edytorów.
+
+Pulpit i Mapa mają osobne układy dla dużych i małych ekranów. Zmiana
 na telefonie nie nadpisuje desktopu. Widoczność dotyczy kafelków Pulpitu;
 ukryty kafelek zachowuje rozmiar. Tylko widoczny podzbiór jest zagęszczany,
 co chroni zapisany widok przed zmianą pozycji po odświeżeniu.
@@ -116,6 +127,15 @@ interakcji otrzymuje dwukrotnie gęstszą siatkę (24 kolumny i rząd 1 px),
 co zachowuje geometrię starszych zapisów i zmniejsza skok wysokości do 17 px.
 Model `widget-layout.ts` odpowiada za konwersję, walidację i kolizje.
 
+`useGesturePaint` grupuje odświeżanie trzymanego kafelka w klatkach animacji.
+RGL v2 przechowuje pikselową pozycję w refie i memoizuje kartę według komórek
+siatki; zmiana tożsamości tylko aktywnego dziecka pozwala malować również
+ruch wewnątrz komórki. Pozostałe dzieci i konfiguracja siatki pozostają
+stabilne, a silnik nadal obsługuje pozycję, kolizje i przewijanie przy krawędzi.
+Podgląd przeciągania wyznacza obrys po zagęszczeniu układu, zgodnie z miejscem
+zatwierdzanym przy puszczeniu. Sąsiednie karty animują zmianę położenia;
+trzymana karta porusza się bez przejścia CSS, aby nadążać za kursorem.
+
 `widget-sizing.ts` przechowuje budżety treści, zależne od szerokości kafelka.
 `useWidgetMinimums` mierzy naturalną zawartość `.widget-content-inner`,
 nagłówek, a w tabeli nagłówki kolumn i pierwszy wiersz. Kolejne wiersze
@@ -125,7 +145,7 @@ pierwszy rekord jest wysoki. Pusty stan też mieści się w całości.
 
 Jeden ResizeObserver grupuje pomiary w jednej klatce animacji. Podczas
 gestu pomiary są wstrzymane; ograniczenie rozmiaru zależne od szerokości
-działa w silniku, a pomiar treści odświeża się po puszczeniu uchwytu.
+działa w silniku, a pomiar treści odświeża się po puszczeniu kafelka.
 Komponenty domeny są memoizowane. Kontrolki zajmują miejsce w nagłówku,
 bez osobnego pasa zmniejszającego treść. Nie dodawaj zależności od
 kontrolera edytora w komponentach domeny.

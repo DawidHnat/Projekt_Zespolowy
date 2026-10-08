@@ -6,19 +6,13 @@ import {
   Search,
   Settings,
   X,
-  Check,
-  Plus,
-  RotateCcw,
   Grip,
 } from "lucide-react";
-import { defaultPreferences, type Arrangement } from "./preferences";
 import { DashboardGrid } from "../features/dashboard/components/DashboardGrid";
-import {
-  mergeLayout,
-  sameGeometry,
-  defaultLayout,
-} from "../features/dashboard/model/widget-layout";
 import { useDashboardPreferences } from "./preferences";
+import { useLayoutEditor } from "./useLayoutEditor";
+import { LayoutEditorBar } from "../features/dashboard/components/LayoutEditorBar";
+import { FleetMapPage } from "../features/fleet/components/FleetMapPage";
 import { AppSettingsPanel } from "./components/AppSettingsPanel";
 import { sections, sectionFromHash } from "./navigation";
 import { WorkspacePage } from "./WorkspacePage";
@@ -40,32 +34,8 @@ export function App() {
     settings.preferences.background,
     backgroundMedia,
   );
-  const [draft, setDraft] = useState<Arrangement | null>(null);
-  const effective = { ...settings.preferences, ...(draft ?? {}) };
-  const startEditing = () => {
-    if (!draft)
-      setDraft(
-        structuredClone({
-          visibleWidgets: settings.preferences.visibleWidgets,
-          layouts: settings.preferences.layouts,
-        }),
-      );
-    setQuery("");
-    setSettingsOpen(false);
-    setSidebarOpen(false);
-  };
-  const toggleWidget = (id: (typeof WIDGET_IDS)[number]) => {
-    if (!draft) {
-      settings.toggleWidget(id);
-      return;
-    }
-    setDraft({
-      ...draft,
-      visibleWidgets: draft.visibleWidgets.includes(id)
-        ? draft.visibleWidgets.filter((value) => value !== id)
-        : [...draft.visibleWidgets, id],
-    });
-  };
+  const editor = useLayoutEditor(settings);
+  const effective = editor.effective;
   const [section, setSection] = useState(readSection);
   const [query, setQuery] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -96,6 +66,15 @@ export function App() {
   const current = sections.find((value) => value.id === section)!;
   const SectionIcon = current.icon;
   const isDashboard = section === "dashboard";
+  const editableView = isDashboard ? "dashboard" : section === "map" ? "map" : null;
+  const draft = editableView ? editor.drafts[editableView] : undefined;
+  const startEditing = () => {
+    if (!editableView) return;
+    editor.start(editableView);
+    setQuery("");
+    setSettingsOpen(false);
+    setSidebarOpen(false);
+  };
   useEffect(() => {
     document.title = `${current.title} · Fleet-Flow`;
   }, [current.title]);
@@ -245,7 +224,7 @@ export function App() {
               </h1>
               <p>{current.description}</p>
             </div>
-            {isDashboard && !draft && (
+            {editableView && !draft && (
               <button
                 className="button button-primary"
                 onClick={startEditing}
@@ -255,100 +234,24 @@ export function App() {
               </button>
             )}
           </div>
+          {draft && editableView && (
+            <LayoutEditorBar
+              title={current.title}
+              onWidgets={isDashboard ? openSettings : undefined}
+              onReset={() => editor.resetView(editableView)}
+              onCancel={() => editor.cancel(editableView)}
+              onSave={() => editor.save(editableView)}
+            />
+          )}
           {isDashboard ? (
             <>
-              {draft && (
-                <div
-                  className="layout-edit-bar"
-                  role="region"
-                  aria-label="Edycja układu"
-                >
-                  <div className="edit-bar-intro">
-                    <span className="edit-bar-icon">
-                      <Grip size={19} />
-                    </span>
-                    <div>
-                      <strong>Ułóż po swojemu</strong>
-                      <p>
-                        Przeciągnij uchwyt · rozciągnij narożnik · dopasuj rozmiar
-                      </p>
-                    </div>
-                  </div>
-                  <div className="edit-bar-actions">
-                    <button
-                      className="icon-button"
-                      aria-label="Wybierz widgety"
-                      title="Wybierz widgety"
-                      onClick={openSettings}
-                    >
-                      <Plus size={19} />
-                    </button>
-                    <button
-                      className="icon-button"
-                      aria-label="Przywróć układ tego widoku"
-                      title="Przywróć układ tego widoku"
-                      onClick={() =>
-                        setDraft({
-                          ...draft,
-                          layouts: {
-                            ...draft.layouts,
-                            dashboard: {
-                              desktop: defaultLayout("dashboard", "desktop"),
-                              compact: defaultLayout("dashboard", "compact"),
-                            },
-                          },
-                        })
-                      }
-                    >
-                      <RotateCcw size={17} />
-                    </button>
-                    <button
-                      className="button button-secondary"
-                      onClick={() => setDraft(null)}
-                    >
-                      Anuluj
-                    </button>
-                    <button
-                      className="button button-primary"
-                      onClick={() => {
-                        settings.setPreferences({
-                          ...settings.preferences,
-                          ...draft,
-                        });
-                        setDraft(null);
-                      }}
-                    >
-                      <Check size={16} />
-                      Zapisz układ
-                    </button>
-                  </div>
-                </div>
-              )}
               <DashboardGrid
                 section="dashboard"
                 ids={visible}
                 layouts={effective.layouts}
                 editing={Boolean(draft)}
-                onLayout={(view, profile, layout) =>
-                  setDraft((previous) => {
-                    if (!previous) return previous;
-                    const merged = mergeLayout(
-                      previous.layouts[view][profile],
-                      layout,
-                      profile,
-                    );
-                    if (sameGeometry(previous.layouts[view][profile], merged))
-                      return previous;
-                    return {
-                      ...previous,
-                      layouts: {
-                        ...previous.layouts,
-                        [view]: { ...previous.layouts[view], [profile]: merged },
-                      },
-                    };
-                  })
-                }
-                onHide={toggleWidget}
+                onLayout={editor.update}
+                onHide={editor.toggleWidget}
               />
               {visible.length === 0 && (
                 <div className="dashboard-empty">
@@ -381,6 +284,12 @@ export function App() {
                 </div>
               )}
             </>
+          ) : section === "map" ? (
+            <FleetMapPage
+              layouts={effective.layouts}
+              editing={Boolean(draft)}
+              onLayout={editor.update}
+            />
           ) : (
             <WorkspacePage section={current} />
           )}
@@ -398,7 +307,7 @@ export function App() {
         onClose={() => setSettingsOpen(false)}
         preferences={effective}
         persistent={settings.persistent}
-        editing={Boolean(draft)}
+        editing={Boolean(editor.drafts.dashboard)}
         backgroundMedia={backgroundMedia}
         onBackgroundChange={(background) =>
           settings.setPreferences((previous) => ({ ...previous, background }))
@@ -411,21 +320,8 @@ export function App() {
             material: next.material,
           })
         }
-        onToggle={toggleWidget}
-        onReset={() => {
-          const next = defaultPreferences();
-          if (draft) {
-            settings.setPreferences({
-              ...next,
-              layouts: settings.preferences.layouts,
-              visibleWidgets: settings.preferences.visibleWidgets,
-            });
-            setDraft({
-              layouts: next.layouts,
-              visibleWidgets: next.visibleWidgets,
-            });
-          } else settings.reset();
-        }}
+        onToggle={editor.toggleWidget}
+        onReset={editor.resetAll}
       />
     </div>
   );

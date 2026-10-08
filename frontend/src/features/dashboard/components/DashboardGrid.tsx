@@ -1,13 +1,15 @@
-import { memo, useCallback, useMemo, useState, type KeyboardEvent } from "react";
+import { cloneElement, memo, useCallback, useId, useMemo, useState, type KeyboardEvent } from "react";
 import {
   gridBounds,
   minMaxSize,
+  verticalCompactor,
   type LayoutConstraint,
 } from "react-grid-layout/core";
 import GridLayout, {
   useContainerWidth,
   type Layout,
   type LayoutItem,
+  type GridLayoutProps,
 } from "react-grid-layout";
 import { Grip, MoveDiagonal2, Settings2 } from "lucide-react";
 import {
@@ -30,10 +32,11 @@ import {
 } from "../model/widget-sizing";
 import { useWidgetMinimums } from "./useWidgetMinimums";
 import { WidgetSettingsDialog } from "./WidgetSettingsDialog";
+import { useGesturePaint } from "./useGesturePaint";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
-type Props = {
+export type DashboardGridProps = {
   section: SectionId;
   ids: WidgetId[];
   layouts: SavedLayouts;
@@ -43,12 +46,13 @@ type Props = {
     profile: LayoutProfile,
     layout: Layout,
   ) => void;
-  onHide: (id: WidgetId) => void;
+  onHide?: (id: WidgetId) => void;
 };
 
 // Domain widgets do not rerender while the interaction engine moves their frame.
-const WidgetContent = memo(function WidgetContent({ id }: { id: WidgetId }) {
-  const Component = widgetRegistry[id].component;
+const WidgetContent = memo(function WidgetContent({ id, section }: { id: WidgetId; section: SectionId }) {
+  const widget = widgetRegistry[id];
+  const Component = widget.presentations?.[section] ?? widget.component;
   return <Component />;
 });
 
@@ -59,12 +63,14 @@ export function DashboardGrid({
   editing,
   onLayout,
   onHide,
-}: Props) {
+}: DashboardGridProps) {
   const { width, containerRef, mounted } = useContainerWidth({
     measureBeforeMount: true,
   });
   const profile: LayoutProfile = width < 720 ? "compact" : "desktop";
   const [interacting, setInteracting] = useState(false);
+  const gesturePaint = useGesturePaint();
+  const keyboardHelpId = useId();
   const signature = `${section}-${profile}-${ids.join(",")}-${mounted}-${editing}`;
   const minimums = useWidgetMinimums(containerRef, signature, interacting);
   const layout = useMemo(
@@ -73,10 +79,17 @@ export function DashboardGrid({
       profile,
       width,
       minimums,
+      section,
     ),
     [layouts, section, ids, profile, width, minimums],
   );
   const gridLayout = useMemo(() => toGridLayout(layout), [layout]);
+  const gridConfig = useMemo(() => ({
+    cols: columns(profile) * GRID.precision,
+    rowHeight: (GRID.rowHeight + GRID.gap) / GRID.precision - GRID.gap,
+    margin: [GRID.gap, GRID.gap] as const,
+    containerPadding: [0, 0] as const,
+  }), [profile]);
   const constraints = useMemo<LayoutConstraint[]>(() => [
     gridBounds,
     minMaxSize,
@@ -101,11 +114,12 @@ export function DashboardGrid({
     },
     [editing, onLayout, section, profile],
   );
-  const update = (
+  const update = useCallback((
     id: WidgetId,
     change: Partial<Pick<LayoutItem, "x" | "y" | "w" | "h">>,
-  ) => apply(changeWidget(layout, id, profile, change), id);
-  const move = (id: WidgetId, direction: string) => {
+  ) => apply(changeWidget(layout, id, profile, change, section), id),
+  [layout, profile, section, apply]);
+  const move = useCallback((id: WidgetId, direction: string) => {
     const item = layout.find((value) => value.i === id)!;
     const offsets: Record<string, { x?: number; y?: number }> = {
       ArrowLeft: { x: item.x - 0.5 },
@@ -114,8 +128,8 @@ export function DashboardGrid({
       ArrowDown: { y: item.y + item.h },
     };
     update(id, offsets[direction]);
-  };
-  const keyboard = (event: KeyboardEvent<HTMLButtonElement>, id: WidgetId) => {
+  }, [layout, update]);
+  const keyboard = useCallback((event: KeyboardEvent<HTMLButtonElement>, id: WidgetId) => {
     if (
       !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)
     )
@@ -133,14 +147,66 @@ export function DashboardGrid({
           (event.key === "ArrowDown" ? 0.5 : event.key === "ArrowUp" ? -0.5 : 0),
       });
     else move(id, event.key);
-  };
+  }, [layout, update, move]);
+  const children = useMemo(() => [...layout]
+    .sort((a, b) => a.y - b.y || a.x - b.x)
+    .map(({ i }) => {
+      const id = i as WidgetId;
+      const widget = widgetRegistry[id];
+      return (
+        <div className={`widget-slot widget-slot-${id}`} key={id} data-widget={id}>
+          {editing && (
+            <div className="widget-editor-controls">
+              <button
+                className="widget-drag-handle"
+                aria-label={`Przesuń: ${widget.title}`}
+                aria-describedby={keyboardHelpId}
+                onKeyDown={(event) => keyboard(event, id)}
+                onClick={(event) => { if (event.detail === 0) setSelected(id); }}
+                title="Chwyć kafelek lub przesuń go strzałkami"
+              >
+                <Grip size={17} />
+              </button>
+              <button data-no-drag className="widget-settings-button"
+                aria-label={`Edytuj: ${widget.title}`} onClick={() => setSelected(id)}>
+                <Settings2 size={17} />
+              </button>
+            </div>
+          )}
+          <WidgetContent id={id} section={section} />
+        </div>
+      );
+    }), [layout, section, editing, keyboardHelpId, keyboard]);
+  // Keep inactive children stable while requesting a sub-cell paint of the held card.
+  const paintedChildren = useMemo(() => children.map(child =>
+    child.key === gesturePaint.gesture?.id ? cloneElement(child) : child,
+  ), [children, gesturePaint.gesture]);
+  const startGesture = useCallback((_layout: Layout, _old: LayoutItem | null, item: LayoutItem | null) => {
+    if (!item) return;
+    setInteracting(true);
+    gesturePaint.start(item.i as WidgetId);
+  }, [gesturePaint.start]);
+  const stopGesture = useCallback((next: Layout, _old: LayoutItem | null, item: LayoutItem | null) => {
+    gesturePaint.stop();
+    setInteracting(false);
+    apply(fromGridLayout(next), item?.i as WidgetId | undefined);
+  }, [gesturePaint.stop, apply]);
+  const previewDrag = useCallback<NonNullable<GridLayoutProps["onDrag"]>>((next, _old, item, placeholder) => {
+    // RGL creates its placeholder before moving/compacting the item. Project the
+    // final slot here so the highlight agrees with the layout committed on release.
+    if (item && placeholder) {
+      const target = verticalCompactor.compact(next, gridConfig.cols).find(value => value.i === item.i);
+      if (target) Object.assign(placeholder, { x: target.x, y: target.y, w: target.w, h: target.h });
+    }
+    gesturePaint.paint();
+  }, [gesturePaint.paint, gridConfig.cols]);
   return (
     <div
       ref={containerRef}
       className={`dashboard-canvas ${editing ? "is-editing" : ""} ${interacting ? "is-interacting" : ""}`}
       data-profile={profile}
     >
-      <p className="sr-only" id="widget-keyboard-help">
+      <p className="sr-only" id={keyboardHelpId}>
         Przesuwaj strzałkami. Shift i strzałki zmieniają rozmiar. Enter otwiera
         ustawienia.
       </p>
@@ -162,17 +228,11 @@ export function DashboardGrid({
           layout={gridLayout}
           constraints={constraints}
           className="dashboard-grid"
-          gridConfig={{
-            cols: columns(profile) * GRID.precision,
-            rowHeight: (GRID.rowHeight + GRID.gap) / GRID.precision - GRID.gap,
-            margin: [GRID.gap, GRID.gap],
-            containerPadding: [0, 0],
-          }}
+          gridConfig={gridConfig}
           dragConfig={{
             enabled: editing,
-            handle: ".widget-drag-handle",
-            cancel: "[data-no-drag]",
-            threshold: 3,
+            cancel: "[data-no-drag],button:not(.widget-drag-handle),a,input,select,textarea,[contenteditable]",
+            threshold: 5,
           }}
           resizeConfig={{
             enabled: editing,
@@ -188,56 +248,14 @@ export function DashboardGrid({
               </span>
             ),
           }}
-          onDragStart={() => setInteracting(true)}
-          onResizeStart={() => setInteracting(true)}
-          onDragStop={(next, _old, item) => {
-            setInteracting(false);
-            apply(fromGridLayout(next), item?.i as WidgetId | undefined);
-          }}
-          onResizeStop={(next, _old, item) => {
-            setInteracting(false);
-            apply(fromGridLayout(next), item?.i as WidgetId | undefined);
-          }}
+          onDragStart={startGesture}
+          onDrag={previewDrag}
+          onResizeStart={startGesture}
+          onResize={gesturePaint.paint}
+          onDragStop={stopGesture}
+          onResizeStop={stopGesture}
         >
-          {[...layout]
-            .sort((a, b) => a.y - b.y || a.x - b.x)
-            .map(({ i }) => {
-              const id = i as WidgetId;
-              const widget = widgetRegistry[id];
-              return (
-                <div
-                  className={`widget-slot widget-slot-${id}`}
-                  key={id}
-                  data-widget={id}
-                >
-                  {editing && (
-                    <div className="widget-editor-controls">
-                      <button
-                        className="widget-drag-handle"
-                        aria-label={`Przesuń: ${widget.title}`}
-                        aria-describedby="widget-keyboard-help"
-                        onKeyDown={(event) => keyboard(event, id)}
-                        onClick={(event) => {
-                          if (event.detail === 0) setSelected(id);
-                        }}
-                        title="Przeciągnij lub użyj strzałek"
-                      >
-                        <Grip size={17} />
-                      </button>
-                      <button
-                        data-no-drag
-                        className="widget-settings-button"
-                        aria-label={`Edytuj: ${widget.title}`}
-                        onClick={() => setSelected(id)}
-                      >
-                        <Settings2 size={17} />
-                      </button>
-                    </div>
-                  )}
-                  <WidgetContent id={id} />
-                </div>
-              );
-            })}
+          {paintedChildren}
         </GridLayout>
       )}
       <WidgetSettingsDialog
@@ -250,10 +268,10 @@ export function DashboardGrid({
         onMove={(direction) => {
           if (selected) move(selected, direction);
         }}
-        onHide={() => {
+        onHide={onHide ? () => {
           if (selected) onHide(selected);
           setSelected(null);
-        }}
+        } : undefined}
       />
     </div>
   );

@@ -13,7 +13,7 @@ function contentHeight(id: WidgetId, body: HTMLElement): number {
   if (id === "vehicles") {
     const head = body.querySelector("thead");
     const row = body.querySelector("tbody tr");
-    return (head?.getBoundingClientRect().height ?? 0) +
+    if (head) return head.getBoundingClientRect().height +
       Math.max(44, row?.getBoundingClientRect().height ?? 0);
   }
   return body.getBoundingClientRect().height;

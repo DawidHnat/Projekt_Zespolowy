@@ -12,11 +12,13 @@ frontend/
   src/
     main.tsx
     app/                 układ, rejestr stron, preferencje, tokeny i style
+      useLayoutEditor.ts niezależne szkice układu Pulpitu i Mapy
+      layout-draft.ts    tworzenie i zatwierdzanie szkiców
       components/        AppSettingsPanel: wygląd, tło i moduły Pulpitu
     features/
       dashboard/
         model/           identyfikatory, typy i rejestr modułów
-        components/      siatka, edytor, tło i wybór obrazu
+        components/      wspólna siatka i pasek edytora, tło i wybór obrazu
       fleet/
         components/      mapa, lista pojazdów i dedykowany FleetMapPage
         FleetPage.tsx    przyszły pełny widok floty

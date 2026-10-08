@@ -9,7 +9,7 @@ import {
   Truck,
 } from "lucide-react";
 import { FleetMapWidget } from "../../fleet/components/FleetMapWidget";
-import { VehicleListWidget } from "../../fleet/components/VehicleListWidget";
+import { VehicleListWidget, VehicleSidebarWidget } from "../../fleet/components/VehicleListWidget";
 import { MetricsWidget } from "../../analytics/components/MetricsWidget";
 import { ActivityWidget } from "../../analytics/components/ActivityWidget";
 import { UtilizationWidget } from "../../analytics/components/UtilizationWidget";
@@ -27,6 +27,7 @@ type WidgetDefinition = {
   icon: LucideIcon;
   sections: SectionId[];
   component: ComponentType;
+  presentations?: Partial<Record<SectionId, ComponentType>>;
 };
 export const widgetRegistry: Record<WidgetId, WidgetDefinition> = {
   metrics: {
@@ -56,6 +57,7 @@ export const widgetRegistry: Record<WidgetId, WidgetDefinition> = {
     icon: Truck,
     sections: sectionsFor("vehicles"),
     component: VehicleListWidget,
+    presentations: { map: VehicleSidebarWidget },
   },
   utilization: {
     title: "Wykorzystanie floty",
