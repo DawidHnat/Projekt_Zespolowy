@@ -140,3 +140,13 @@ nie są używane jako tożsamość IP. Wdrożenie za proxy wymaga osobnego ustaw
 zaufanych proxy; przed wystawieniem zdalnie wymagane są HTTPS i Secure cookie.
 SMTP nadal wymaga potwierdzenia hasła skrzynki; reset e-mail nie jest jeszcze
 udostępniony. Administrator może ustawić hasło lokalnym poleceniem powyżej.
+
+## Synchronizacja pojazdów — SCRUM-15
+
+`SYNC_ENABLED=true` w lokalnym `.env` włącza jeden wspólny odczyt co 60 s.
+PostgreSQL advisory lock i zapis czasu próby chronią limit także przy kilku
+procesach. Nie uruchamiaj równolegle diagnostyki w pętli. Awaria zachowuje dane
+ostatniego sukcesu; brak kompletnego raportu nie dezaktywuje pojazdów. Import
+aktualizuje wyłącznie pola pojazdu/pomiaru — nigdy ręcznych kierowców/przypisań.
+Historia przejazdów nie jest jeszcze synchronizowana; jest dalszym zakresem
+SCRUM-15 i zależy od importu historii, adnotacji oraz uzgodnienia harmonogramu.
