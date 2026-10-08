@@ -135,9 +135,14 @@ Bardziej rozbudowane raporty, dodatkowe możliwości personalizacji oraz kolejne
 
 ## Uruchomienie i obecny stan
 
-Frontend ma działający lokalnie szkielet modułowego dashboardu (SCRUM-38).
+Frontend ma działający lokalnie szkielet modułowego Pulpitu (SCRUM-38).
+Menu obejmuje Pulpit, Mapę, Serwis, Ewidencję przebiegu, Kierowców,
+Karty paliwowe i Alerty. Mapa zajmuje dostępną przestrzeń razem z listą
+pojazdów obok; na małym ekranie lista jest pod mapą. Pozostałe nowe sekcje
+mają puste widoki opisujące planowane funkcje, bez logiki biznesowej.
 Pozwala zmieniać motyw jasny, ciemny lub systemowy, kolor akcentu oraz
-włączać i ukrywać sześć modułów. „Dopasuj widok” → „Edytuj układ” pozwala
+włączać i ukrywać sześć modułów Pulpitu. Koło zębate „Ustawienia” otwiera
+wygląd, tło i wybór modułów. Osobny przycisk „Edytuj układ” na Pulpicie pozwala
 przeciągać i rozciągać widgety, a następnie zapisać lub anulować układ.
 Każdy widget ma minimum zależne od treści i szerokości: nagłówek, podstawowe
 informacje i pierwszy wiersz tabeli pozostają widoczne. Styl szkła dodaje
@@ -159,7 +164,7 @@ npm run dev
 
 Otwórz http://127.0.0.1:5173. `npm test` sprawdza model układu i preferencje;
 `npm run build` sprawdza TypeScript i buduje frontend.
-Dashboard działa bez logowania i bez połączenia z API. Wskaźniki mają puste
+Pulpit działa bez logowania i bez połączenia z API. Wskaźniki mają puste
 stany, a mapa jest oznaczoną ilustracją układu. Backend, baza, dane floty
 i pełne widoki funkcji pozostają do wykonania w osobnych zadaniach.
 

@@ -45,14 +45,14 @@ Nowy wariant komponentu dopisuj wspólnie, zamiast kopiować style do modułu.
   Kontrolki edycji należą do `DashboardGrid`, nie do modułów domeny.
 - `EmptyState` zapewnia spójny stan oczekiwania na dane.
 - `features/dashboard/model/widget-registry.ts` łączy ID modułu, tytuł,
-  ikonę, komponent i grupy nawigacji. Panel ustawień korzysta z tego samego rejestru.
+  ikonę, komponent i grupy modelu układu. Panel ustawień korzysta z tego samego rejestru.
 
 Dodanie modułu:
 
 1. Uzgodnij zakres w Jirze i utwórz komponent w odpowiednim module domeny.
 2. Dodaj trwałe ID w `widget-types.ts` i definicję w `widget-registry.ts`.
-3. Użyj `WidgetFrame` i wspólnych tokenów. W `widget-layout.ts` dodaj grupy
-   nawigacji oraz domyślne rozmiary dla obu profili. W `widget-sizing.ts`
+3. Użyj `WidgetFrame` i wspólnych tokenów. W `widget-layout.ts` dodaj moduł
+   do Pulpitu oraz domyślne rozmiary dla obu profili. W `widget-sizing.ts`
    ustal budżet minimalnej szerokości i wysokości treści. Komponent
    dostosowuje zawartość do szerokości kontenera, nie tylko okna przeglądarki.
 4. Obsłuż brak danych, ładowanie i błąd, gdy moduł otrzyma API.
@@ -74,16 +74,39 @@ pomiędzy urządzeniami. Zablokowany zapis działa w pamięci sesji.
 Nieznane ID, duplikaty i niepoprawne rozmiary są odrzucane lub ograniczane.
 Ukrycie wszystkich modułów jest dozwolone; można je ponownie włączyć.
 
+### Nawigacja i strony
+
+`app/navigation.ts` jest rejestrem sekcji aplikacji: Pulpit, Mapa, Serwis,
+Ewidencja przebiegu, Kierowcy, Karty paliwowe i Alerty. Nowa strona ma trwałe
+ID, polski tytuł, ikonę i opis. `WorkspacePage` zapewnia wspólny pusty widok
+sekcji planowanych. Logikę tych funkcji dodajemy w osobnych zadaniach.
+
+Strony są niezależne od `SectionId` i grup zapisanych w preferencjach układu.
+Stare grupy `fleet`, `trips`, `analytics` pozostają w modelu, aby zachować
+wcześniejsze zapisy. Ich linki prowadzą odpowiednio do Mapy, Ewidencji
+przebiegu i Pulpitu. Link `#dashboard` nadal otwiera Pulpit.
+
+`FleetMapPage` składa mapę i boczny wariant `VehicleListWidget` we wspólnej
+siatce wypełniającej dostępną przestrzeń. Poniżej 900 px lista przechodzi pod
+mapę. Ten widok pozostaje niezależny od ukrywania kafelków na Pulpicie.
+Mapa nadal jest oznaczoną ilustracją do czasu podłączenia dostawcy i API.
+
+`app/components/AppSettingsPanel.tsx` otwiera się pod kołem zębatym
+„Ustawienia”. Zawiera motyw, materiał, akcent, tło i widoczność kafelków
+Pulpitu. Na telefonie ustawienia mają również skrót w górnym pasku.
+Edycja układu jest osobnym działaniem na Pulpicie. Przejście do innej
+sekcji zachowuje szkic w pamięci; zapis i anulowanie są dostępne po powrocie.
+
 ### Edytowanie układu
 
-„Dopasuj widok” → „Edytuj układ” otwiera szkic. Uchwyt z kropkami przesuwa,
+Osobny przycisk „Edytuj układ” na Pulpicie otwiera szkic. Uchwyt z kropkami przesuwa,
 narożnik rozciąga, a przycisk ustawień otwiera szerokość, wysokość i ukrycie.
 „Zapisz układ” zatwierdza szkic, „Anuluj” odrzuca kolejność, rozmiary i zmiany
 widoczności wykonane podczas edycji. Wygląd (motyw, materiał, akcent, tło) działa
 od razu. Reset w trybie edycji też wymaga zatwierdzenia układu.
 
-Każda grupa nawigacji ma osobny układ dla dużych i małych ekranów. Zmiana
-na telefonie nie nadpisuje desktopu. Widoczność jest wspólna dla grup;
+Pulpit ma osobny układ dla dużych i małych ekranów. Zmiana
+na telefonie nie nadpisuje desktopu. Widoczność dotyczy kafelków Pulpitu;
 ukryty kafelek zachowuje rozmiar. Tylko widoczny podzbiór jest zagęszczany,
 co chroni zapisany widok przed zmianą pozycji po odświeżeniu.
 

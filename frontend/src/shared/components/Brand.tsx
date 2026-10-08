@@ -2,7 +2,7 @@ const brandMark = `${import.meta.env.BASE_URL}brand/fleet-flow-mark.svg`;
 
 export function Brand() {
   return (
-    <a className="brand" href="#dashboard" aria-label="Fleet-Flow — dashboard">
+    <a className="brand" href="#dashboard" aria-label="Fleet-Flow — Pulpit">
       <img
         className="brand-mark"
         src={brandMark}

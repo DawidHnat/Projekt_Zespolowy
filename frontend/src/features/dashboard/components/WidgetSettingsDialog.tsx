@@ -140,7 +140,7 @@ export function WidgetSettingsDialog({
               <EyeOff size={17} />
               Ukryj w widokach
             </button>
-            <small>Możesz włączyć go ponownie w „Dopasuj widok”.</small>
+            <small>Możesz włączyć go ponownie w „Ustawieniach” → „Moduły Pulpitu”.</small>
           </div>
           <footer className="widget-settings-footer">
             <button className="button button-primary" onClick={onClose}>

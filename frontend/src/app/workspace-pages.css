@@ -1,0 +1,88 @@
+/* Dedicated pages share card surfaces, without inheriting dashboard geometry. */
+.map-main-content {
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  min-height: calc(100dvh - 72px);
+}
+.fleet-map-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 18px;
+  flex: 1;
+  min-height: 480px;
+}
+.fleet-map-page > .widget {
+  min-width: 0;
+  min-height: 0;
+}
+.fleet-map-page .map-canvas {
+  min-height: 360px;
+}
+.fleet-map-page .vehicles-widget .widget-content-inner {
+  display: grid;
+  align-content: center;
+  min-height: 100%;
+}
+.fleet-map-page .empty-state p {
+  max-width: 240px;
+  margin-inline: auto;
+}
+.planned-page {
+  height: auto;
+  min-height: 360px;
+}
+.planned-page .widget-content-inner {
+  display: grid;
+  align-content: center;
+  min-height: 300px;
+}
+.planned-page .empty-state {
+  padding: 36px 24px;
+}
+.planned-page .empty-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  margin-bottom: 18px;
+}
+.planned-page .empty-state h3 {
+  font-size: 16px;
+}
+.planned-page .empty-state p {
+  max-width: 420px;
+  margin: 9px auto 0;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+@media (max-width: 1100px) {
+  .fleet-map-page {
+    grid-template-columns: minmax(0, 1fr) 280px;
+  }
+}
+@media (max-width: 900px) {
+  .fleet-map-page {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(380px, 1fr) auto;
+  }
+  .fleet-map-page .vehicles-widget {
+    height: auto;
+  }
+  .fleet-map-page .vehicles-widget .widget-content-inner {
+    min-height: 180px;
+  }
+}
+@media (max-width: 760px) {
+  .map-main-content {
+    min-height: calc(100dvh - 64px);
+  }
+  .fleet-map-page {
+    gap: 15px;
+  }
+  .fleet-map-page .map-canvas {
+    min-height: 320px;
+  }
+}

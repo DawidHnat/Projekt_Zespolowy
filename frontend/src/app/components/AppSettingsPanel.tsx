@@ -14,12 +14,15 @@ import {
   ACCENT_PRESETS,
   type DashboardPreferences,
   type ThemeMode,
-} from "../../../app/preferences";
-import { WIDGET_IDS, type WidgetId } from "../model/widget-types";
-import { widgetRegistry } from "../model/widget-registry";
-import { BackgroundPicker } from "./BackgroundPicker";
-import type { BackgroundPreferences } from "../model/background-model";
-import type { BackgroundImageController } from "../model/useBackgroundImage";
+} from "../preferences";
+import {
+  WIDGET_IDS,
+  type WidgetId,
+} from "../../features/dashboard/model/widget-types";
+import { widgetRegistry } from "../../features/dashboard/model/widget-registry";
+import { BackgroundPicker } from "../../features/dashboard/components/BackgroundPicker";
+import type { BackgroundPreferences } from "../../features/dashboard/model/background-model";
+import type { BackgroundImageController } from "../../features/dashboard/model/useBackgroundImage";
 
 type Props = {
   open: boolean;
@@ -29,7 +32,6 @@ type Props = {
   onChange: (value: DashboardPreferences) => void;
   onToggle: (id: WidgetId) => void;
   onReset: () => void;
-  onEdit: () => void;
   editing: boolean;
   backgroundMedia: BackgroundImageController;
   onBackgroundChange: (value: BackgroundPreferences) => void;
@@ -40,7 +42,7 @@ const modes = [
   { id: "system", label: "System", icon: Monitor },
 ] as const;
 
-export function AppearancePanel({
+export function AppSettingsPanel({
   open,
   onClose,
   preferences,
@@ -48,7 +50,6 @@ export function AppearancePanel({
   onChange,
   onToggle,
   onReset,
-  onEdit,
   editing,
   backgroundMedia,
   onBackgroundChange,
@@ -63,9 +64,10 @@ export function AppearancePanel({
   return (
     <dialog
       ref={dialogRef}
+      id="app-settings"
       className="appearance-panel"
       onClose={onClose}
-      aria-labelledby="appearance-title"
+      aria-labelledby="app-settings-title"
       onClick={(event) => {
         const bounds = event.currentTarget.getBoundingClientRect();
         if (
@@ -80,31 +82,18 @@ export function AppearancePanel({
     >
       <header className="panel-header">
         <div>
-          <span className="eyebrow">TWÓJ WIDOK</span>
-          <h2 id="appearance-title">Dopasuj dashboard</h2>
+          <span className="eyebrow">WYGLĄD I WIDOK</span>
+          <h2 id="app-settings-title">Ustawienia aplikacji</h2>
         </div>
         <button
           className="icon-button"
-          aria-label="Zamknij personalizację"
+          aria-label="Zamknij ustawienia"
           onClick={onClose}
         >
           <X size={20} />
         </button>
       </header>
       <div className="panel-content">
-        <div className="layout-entry">
-          <span className="layout-entry-icon">
-            <LayoutGrid size={23} />
-          </span>
-          <h3>Każdy moduł na swoim miejscu</h3>
-          <p>
-            Przesuwaj widgety i dopasuj ich rozmiar do swojego sposobu pracy.
-          </p>
-          <button className="button button-primary" onClick={onEdit}>
-            <LayoutGrid size={16} />
-            {editing ? "Wróć do edycji układu" : "Edytuj układ"}
-          </button>
-        </div>
         <fieldset>
           <legend>Styl powierzchni</legend>
           <p>Szkło z połyskiem lub klasyczna, jednolita powierzchnia.</p>
@@ -192,12 +181,12 @@ export function AppearancePanel({
         </fieldset>
         <fieldset>
           <legend>
-            Moduły dashboardu{" "}
+            Moduły Pulpitu{" "}
             <span className="module-count">
               {preferences.visibleWidgets.length}/{WIDGET_IDS.length}
             </span>
           </legend>
-          <p>Włącz informacje, z których korzystasz.</p>
+          <p>Włącz informacje, które chcesz widzieć na Pulpicie.</p>
           <div className="module-options">
             {WIDGET_IDS.map((id) => {
               const widget = widgetRegistry[id];
@@ -233,7 +222,7 @@ export function AppearancePanel({
         <p>
           <SlidersHorizontal size={13} />
           {editing
-            ? "Układ czeka na zapisanie w trybie edycji"
+            ? "Zapisz lub anuluj edycję układu na Pulpicie"
             : persistent
               ? "Ustawienia zapisane na tym urządzeniu"
               : "Ustawienia działają w tej sesji"}

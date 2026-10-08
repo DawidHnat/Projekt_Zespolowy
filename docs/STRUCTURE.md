@@ -11,13 +11,14 @@ frontend/
   index.html, tsconfig.json, vite.config.ts
   src/
     main.tsx
-    app/                 układ, nawigacja, preferencje, tokeny i style
+    app/                 układ, rejestr stron, preferencje, tokeny i style
+      components/        AppSettingsPanel: wygląd, tło i moduły Pulpitu
     features/
       dashboard/
         model/           identyfikatory, typy i rejestr modułów
-        components/      panel personalizacji
+        components/      siatka, edytor, tło i wybór obrazu
       fleet/
-        components/      mapa i lista pojazdów
+        components/      mapa, lista pojazdów i dedykowany FleetMapPage
         FleetPage.tsx    przyszły pełny widok floty
       trips/
         components/      kafelek ostatnich przejazdów

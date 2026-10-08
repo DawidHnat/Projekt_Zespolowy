@@ -26,16 +26,20 @@ npm run preview       # podgląd zbudowanego frontendu na 127.0.0.1:4173
 
 ## Co już działa
 
-- Dashboard i nawigacja po grupach: Flota, Przejazdy, Analityka.
+- Pulpit oraz sekcje: Mapa, Serwis, Ewidencja przebiegu, Kierowcy,
+  Karty paliwowe i Alerty.
+- Osobny widok Mapy z listą pojazdów obok (pod mapą na małym ekranie).
+  Nowe sekcje poza Mapą są pustymi widokami planowanych funkcji.
 - Sześć niezależnych kafelków ze stanami oczekiwania na dane.
 - Motyw jasny, ciemny i zgodny z systemem; pięć akcentów i własny kolor.
 - Włączanie i ukrywanie modułów, wyszukiwanie po nazwie modułu.
 - Edytor układu: przesuwanie, rozciąganie, ustawienia rozmiaru, Zapisz/Anuluj.
-- Osobne układy grup nawigacji i telefonu/komputera.
+- Osobne układy Pulpitu dla telefonu i komputera.
 - Opcjonalne szkło z połyskiem na kartach, przyciskach i nawigacji oraz styl klasyczny.
 - Tło domyślne, galeria i własny obraz, z wyciszeniem i rozmyciem w obu stylach.
 - Zapamiętywanie ustawień na urządzeniu i przywracanie domyślnych.
-- Układ na telefon i komputer; panel personalizacji obsługuje Tab i Escape.
+- Ustawienia aplikacji pod kołem zębatym, dostępne w każdej sekcji;
+  panel obsługuje Tab i Escape.
 - Lokalna czcionka Inter i ikony Lucide, bez pobierania fontu z Google.
 
 Mapa jest ilustracją. Dane WEBFLEET, logowanie, edycja przejazdów, właściwe
@@ -44,7 +48,7 @@ Wyszukiwarka szuka nazw modułów, nie pojazdów.
 
 ## Edycja dashboardu
 
-Otwórz „Dopasuj widok”, następnie „Edytuj układ”. Przesuń kafelek za uchwyt
+Na Pulpicie kliknij „Edytuj układ”. Przesuń kafelek za uchwyt
 z kropkami lub rozciągnij prawy dolny narożnik. Ikona ustawień otwiera suwaki
 rozmiaru, presety i ukrywanie. Uchwyt obsługuje strzałki oraz Shift + strzałki;
 Enter otwiera ustawienia. „Zapisz układ” zatwierdza, „Anuluj” odrzuca szkic.
@@ -55,12 +59,14 @@ informacje statyczne i pierwszy wiersz tabeli mieszczą się w całości;
 przy większej liczbie wierszy zawartość jest przewijalna.
 
 Motyw, akcent, tło i styl powierzchni zmieniają się od razu. Podczas edycji zmiany
-widoczności widgetów czekają na zapis układu. Widoczność jest wspólna dla grup,
-a pozycje i rozmiary są osobne dla każdej grupy i szerokości ekranu.
+widoczności widgetów czekają na zapis układu. Przejście do innej sekcji
+zachowuje niezapisany szkic w pamięci; wróć na Pulpit, aby go zapisać lub anulować.
+Odświeżenie odrzuca niezapisany szkic. Ustawienia modułów dotyczą Pulpitu;
+dedykowana Mapa zawsze pokazuje mapę i listę pojazdów.
 
 ## Tło przestrzeni
 
-W „Dopasuj widok” wybierz „Galeria” albo „Własne”. Galeria zawiera miasto,
+W „Ustawieniach” → „Tło przestrzeni” wybierz „Galeria” albo „Własne”. Galeria zawiera miasto,
 góry oraz dwa gradienty. Wyciszenie nakłada osłonę zgodną z motywem:
 w jasnym rozjaśnia zdjęcie, w ciemnym je przyciemnia. Rozmycie ma zakres
 0–16 px. Nagłówek i podpisy zachowują czytelne powierzchnie nawet przy 0% osłony.

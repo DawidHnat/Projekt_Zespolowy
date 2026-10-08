@@ -1,16 +1,10 @@
 import { useEffect, useState } from "react";
 import {
-  ArrowUpRight,
-  ChartNoAxesCombined,
   LayoutDashboard,
   Menu,
-  Moon,
   PanelLeftClose,
-  Route,
   Search,
-  SlidersHorizontal,
-  Sun,
-  Truck,
+  Settings,
   X,
   Check,
   Plus,
@@ -25,7 +19,9 @@ import {
   defaultLayout,
 } from "../features/dashboard/model/widget-layout";
 import { useDashboardPreferences } from "./preferences";
-import { AppearancePanel } from "../features/dashboard/components/AppearancePanel";
+import { AppSettingsPanel } from "./components/AppSettingsPanel";
+import { sections, sectionFromHash } from "./navigation";
+import { WorkspacePage } from "./WorkspacePage";
 import { Brand } from "../shared/components/Brand";
 import {
   DashboardBackground,
@@ -33,42 +29,9 @@ import {
 } from "../features/dashboard/components/DashboardBackground";
 import { useBackgroundImage } from "../features/dashboard/model/useBackgroundImage";
 import { widgetRegistry } from "../features/dashboard/model/widget-registry";
-import {
-  WIDGET_IDS,
-  type SectionId,
-} from "../features/dashboard/model/widget-types";
+import { WIDGET_IDS } from "../features/dashboard/model/widget-types";
 
-const sections = [
-  {
-    id: "dashboard",
-    title: "Dashboard",
-    icon: LayoutDashboard,
-    description:
-      "Twoja flota, Twój widok. Najważniejsze informacje w jednym miejscu.",
-  },
-  {
-    id: "fleet",
-    title: "Flota",
-    icon: Truck,
-    description: "Lista pojazdów i ich pozycje. Wszystko pod ręką.",
-  },
-  {
-    id: "trips",
-    title: "Przejazdy",
-    icon: Route,
-    description: "Historia tras i informacje potrzebne do ewidencji przebiegu.",
-  },
-  {
-    id: "analytics",
-    title: "Analityka",
-    icon: ChartNoAxesCombined,
-    description: "Wskaźniki, wykorzystanie pojazdów i zdarzenia z floty.",
-  },
-] as const;
-function readSection(): SectionId {
-  const hash = window.location.hash.slice(1);
-  return sections.find((section) => section.id === hash)?.id ?? "dashboard";
-}
+const readSection = () => sectionFromHash(window.location.hash);
 
 export function App() {
   const settings = useDashboardPreferences();
@@ -88,7 +51,7 @@ export function App() {
         }),
       );
     setQuery("");
-    setAppearanceOpen(false);
+    setSettingsOpen(false);
     setSidebarOpen(false);
   };
   const toggleWidget = (id: (typeof WIDGET_IDS)[number]) => {
@@ -105,8 +68,12 @@ export function App() {
   };
   const [section, setSection] = useState(readSection);
   const [query, setQuery] = useState("");
-  const [appearanceOpen, setAppearanceOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const openSettings = () => {
+    setSettingsOpen(true);
+    setSidebarOpen(false);
+  };
   useEffect(() => {
     const handleHash = () => {
       if (window.location.hash === "#main-content") return;
@@ -127,20 +94,18 @@ export function App() {
     return () => window.removeEventListener("keydown", handleEscape);
   }, [sidebarOpen]);
   const current = sections.find((value) => value.id === section)!;
+  const SectionIcon = current.icon;
+  const isDashboard = section === "dashboard";
+  useEffect(() => {
+    document.title = `${current.title} · Fleet-Flow`;
+  }, [current.title]);
   const visible = WIDGET_IDS.filter(
     (id) =>
       effective.visibleWidgets.includes(id) &&
-      widgetRegistry[id].sections.includes(section) &&
       widgetRegistry[id].title
         .toLocaleLowerCase("pl")
         .includes(query.trim().toLocaleLowerCase("pl")),
   );
-  const toggleTheme = () =>
-    settings.setPreferences({
-      ...settings.preferences,
-      theme: settings.resolvedTheme === "light" ? "dark" : "light",
-    });
-
   return (
     <div className="app-shell" data-background={Boolean(wallpaper)}>
       <DashboardBackground
@@ -179,7 +144,7 @@ export function App() {
           </button>
         </div>
         <span className="nav-label">PRZEGLĄD</span>
-        <nav>
+        <nav aria-label="Sekcje aplikacji">
           {sections.map(({ id, title, icon: Icon }) => (
             <a
               key={id}
@@ -187,23 +152,23 @@ export function App() {
               className={`nav-item ${section === id ? "active" : ""}`}
               aria-current={section === id ? "page" : undefined}
             >
-              <Icon size={19} />
+              <Icon size={19} aria-hidden="true" />
               <span>{title}</span>
               {section === id && <span className="nav-indicator" />}
             </a>
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="sidebar-tip">
-            <span className="tip-icon">
-              <SlidersHorizontal size={19} />
-            </span>
-            <strong>Dashboard po Twojemu</strong>
-            <p>Wybierz wygląd, ułóż moduły i zrób miejsce na to, co ważne.</p>
-            <button onClick={() => setAppearanceOpen(true)}>
-              Dopasuj widok <ArrowUpRight size={16} />
-            </button>
-          </div>
+          <button
+            className="nav-item settings-nav-item"
+            onClick={openSettings}
+            aria-haspopup="dialog"
+            aria-expanded={settingsOpen}
+            aria-controls="app-settings"
+          >
+            <Settings size={19} aria-hidden="true" />
+            <span>Ustawienia</span>
+          </button>
           <div className="workspace">
             <span className="workspace-avatar">FF</span>
             <div>
@@ -224,17 +189,24 @@ export function App() {
             >
               <Menu size={21} />
             </button>
-            <label className="module-search">
-              <Search size={17} aria-hidden="true" />
-              <input
-                type="search"
-                disabled={Boolean(draft)}
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Szukaj modułu…"
-                aria-label="Szukaj modułu"
-              />
-            </label>
+            {isDashboard ? (
+              <label className="module-search">
+                <Search size={17} aria-hidden="true" />
+                <input
+                  type="search"
+                  disabled={Boolean(draft)}
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Szukaj modułu…"
+                  aria-label="Szukaj modułu"
+                />
+              </label>
+            ) : (
+              <span className="topbar-section">
+                <SectionIcon size={17} aria-hidden="true" />
+                {current.title}
+              </span>
+            )}
           </div>
           <div className="topbar-actions">
             <span className="preview-badge">
@@ -242,19 +214,14 @@ export function App() {
               Podgląd interfejsu
             </span>
             <button
-              className="icon-button theme-toggle"
-              onClick={toggleTheme}
-              aria-label={
-                settings.resolvedTheme === "light"
-                  ? "Włącz ciemny motyw"
-                  : "Włącz jasny motyw"
-              }
+              className="icon-button settings-shortcut"
+              onClick={openSettings}
+              aria-label="Ustawienia aplikacji"
+              aria-haspopup="dialog"
+              aria-expanded={settingsOpen}
+              aria-controls="app-settings"
             >
-              {settings.resolvedTheme === "light" ? (
-                <Moon size={18} />
-              ) : (
-                <Sun size={18} />
-              )}
+              <Settings size={18} />
             </button>
             <span className="topbar-divider" />
             <span className="topbar-avatar" aria-label="Przestrzeń zespołu">
@@ -262,7 +229,11 @@ export function App() {
             </span>
           </div>
         </header>
-        <main id="main-content" className="main-content" tabIndex={-1}>
+        <main
+          id="main-content"
+          className={`main-content ${section === "map" ? "map-main-content" : ""}`}
+          tabIndex={-1}
+        >
           <div className="page-heading">
             <div>
               <span className="eyebrow">
@@ -274,136 +245,144 @@ export function App() {
               </h1>
               <p>{current.description}</p>
             </div>
-            <button
-              className="button button-primary"
-              onClick={() => setAppearanceOpen(true)}
-            >
-              <SlidersHorizontal size={17} />
-              Dopasuj widok
-            </button>
-          </div>
-          {draft && (
-            <div
-              className="layout-edit-bar"
-              role="region"
-              aria-label="Edycja układu"
-            >
-              <div className="edit-bar-intro">
-                <span className="edit-bar-icon">
-                  <Grip size={19} />
-                </span>
-                <div>
-                  <strong>Ułóż po swojemu</strong>
-                  <p>
-                    Przeciągnij uchwyt · rozciągnij narożnik · dopasuj rozmiar
-                  </p>
-                </div>
-              </div>
-              <div className="edit-bar-actions">
-                <button
-                  className="icon-button"
-                  aria-label="Wybierz widgety"
-                  title="Wybierz widgety"
-                  onClick={() => setAppearanceOpen(true)}
-                >
-                  <Plus size={19} />
-                </button>
-                <button
-                  className="icon-button"
-                  aria-label="Przywróć układ tego widoku"
-                  title="Przywróć układ tego widoku"
-                  onClick={() =>
-                    setDraft({
-                      ...draft,
-                      layouts: {
-                        ...draft.layouts,
-                        [section]: {
-                          desktop: defaultLayout(section, "desktop"),
-                          compact: defaultLayout(section, "compact"),
-                        },
-                      },
-                    })
-                  }
-                >
-                  <RotateCcw size={17} />
-                </button>
-                <button
-                  className="button button-secondary"
-                  onClick={() => setDraft(null)}
-                >
-                  Anuluj
-                </button>
-                <button
-                  className="button button-primary"
-                  onClick={() => {
-                    settings.setPreferences({
-                      ...settings.preferences,
-                      ...draft,
-                    });
-                    setDraft(null);
-                  }}
-                >
-                  <Check size={16} />
-                  Zapisz układ
-                </button>
-              </div>
-            </div>
-          )}
-          <DashboardGrid
-            section={section}
-            ids={visible}
-            layouts={effective.layouts}
-            editing={Boolean(draft)}
-            onLayout={(view, profile, layout) =>
-              setDraft((previous) => {
-                if (!previous) return previous;
-                const merged = mergeLayout(
-                  previous.layouts[view][profile],
-                  layout,
-                  profile,
-                );
-                if (sameGeometry(previous.layouts[view][profile], merged))
-                  return previous;
-                return {
-                  ...previous,
-                  layouts: {
-                    ...previous.layouts,
-                    [view]: { ...previous.layouts[view], [profile]: merged },
-                  },
-                };
-              })
-            }
-            onHide={toggleWidget}
-          />
-          {visible.length === 0 && (
-            <div className="dashboard-empty">
-              <LayoutDashboard size={35} />
-              <h2>
-                {query
-                  ? "Nie znaleziono modułu"
-                  : "To miejsce jest gotowe na Twój widok"}
-              </h2>
-              <p>
-                {query
-                  ? "Spróbuj innej nazwy lub włącz moduł w ustawieniach."
-                  : "Wybierz moduły, które chcesz mieć pod ręką."}
-              </p>
-              {query && (
-                <button
-                  className="button button-secondary"
-                  onClick={() => setQuery("")}
-                >
-                  <X size={16} />
-                  Wyczyść wyszukiwanie
-                </button>
-              )}
+            {isDashboard && !draft && (
               <button
                 className="button button-primary"
-                onClick={() => setAppearanceOpen(true)}
+                onClick={startEditing}
               >
-                Wybierz moduły
+                <Grip size={17} />
+                Edytuj układ
               </button>
-            </div>
+            )}
+          </div>
+          {isDashboard ? (
+            <>
+              {draft && (
+                <div
+                  className="layout-edit-bar"
+                  role="region"
+                  aria-label="Edycja układu"
+                >
+                  <div className="edit-bar-intro">
+                    <span className="edit-bar-icon">
+                      <Grip size={19} />
+                    </span>
+                    <div>
+                      <strong>Ułóż po swojemu</strong>
+                      <p>
+                        Przeciągnij uchwyt · rozciągnij narożnik · dopasuj rozmiar
+                      </p>
+                    </div>
+                  </div>
+                  <div className="edit-bar-actions">
+                    <button
+                      className="icon-button"
+                      aria-label="Wybierz widgety"
+                      title="Wybierz widgety"
+                      onClick={openSettings}
+                    >
+                      <Plus size={19} />
+                    </button>
+                    <button
+                      className="icon-button"
+                      aria-label="Przywróć układ tego widoku"
+                      title="Przywróć układ tego widoku"
+                      onClick={() =>
+                        setDraft({
+                          ...draft,
+                          layouts: {
+                            ...draft.layouts,
+                            dashboard: {
+                              desktop: defaultLayout("dashboard", "desktop"),
+                              compact: defaultLayout("dashboard", "compact"),
+                            },
+                          },
+                        })
+                      }
+                    >
+                      <RotateCcw size={17} />
+                    </button>
+                    <button
+                      className="button button-secondary"
+                      onClick={() => setDraft(null)}
+                    >
+                      Anuluj
+                    </button>
+                    <button
+                      className="button button-primary"
+                      onClick={() => {
+                        settings.setPreferences({
+                          ...settings.preferences,
+                          ...draft,
+                        });
+                        setDraft(null);
+                      }}
+                    >
+                      <Check size={16} />
+                      Zapisz układ
+                    </button>
+                  </div>
+                </div>
+              )}
+              <DashboardGrid
+                section="dashboard"
+                ids={visible}
+                layouts={effective.layouts}
+                editing={Boolean(draft)}
+                onLayout={(view, profile, layout) =>
+                  setDraft((previous) => {
+                    if (!previous) return previous;
+                    const merged = mergeLayout(
+                      previous.layouts[view][profile],
+                      layout,
+                      profile,
+                    );
+                    if (sameGeometry(previous.layouts[view][profile], merged))
+                      return previous;
+                    return {
+                      ...previous,
+                      layouts: {
+                        ...previous.layouts,
+                        [view]: { ...previous.layouts[view], [profile]: merged },
+                      },
+                    };
+                  })
+                }
+                onHide={toggleWidget}
+              />
+              {visible.length === 0 && (
+                <div className="dashboard-empty">
+                  <LayoutDashboard size={35} />
+                  <h2>
+                    {query
+                      ? "Nie znaleziono modułu"
+                      : "To miejsce jest gotowe na Twój widok"}
+                  </h2>
+                  <p>
+                    {query
+                      ? "Spróbuj innej nazwy lub włącz moduł w ustawieniach."
+                      : "Wybierz moduły, które chcesz mieć pod ręką."}
+                  </p>
+                  {query && (
+                    <button
+                      className="button button-secondary"
+                      onClick={() => setQuery("")}
+                    >
+                      <X size={16} />
+                      Wyczyść wyszukiwanie
+                    </button>
+                  )}
+                  <button
+                    className="button button-primary"
+                    onClick={openSettings}
+                  >
+                    Wybierz moduły
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <WorkspacePage section={current} />
           )}
           <footer className="page-footer">
             <span>
@@ -414,9 +393,9 @@ export function App() {
           </footer>
         </main>
       </div>
-      <AppearancePanel
-        open={appearanceOpen}
-        onClose={() => setAppearanceOpen(false)}
+      <AppSettingsPanel
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
         preferences={effective}
         persistent={settings.persistent}
         editing={Boolean(draft)}
@@ -424,7 +403,6 @@ export function App() {
         onBackgroundChange={(background) =>
           settings.setPreferences((previous) => ({ ...previous, background }))
         }
-        onEdit={startEditing}
         onChange={(next) =>
           settings.setPreferences({
             ...settings.preferences,
