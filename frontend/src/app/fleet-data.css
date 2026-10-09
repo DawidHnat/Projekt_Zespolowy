@@ -256,3 +256,90 @@
     grid-column: 1;
   }
 }
+.live-map.map-canvas {
+  display: block;
+  isolation: isolate;
+}
+.live-map .mapbox-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.mapboxgl-map {
+  font-family: var(--font-sans);
+}
+.map-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: var(--surface);
+}
+.map-zero {
+  position: absolute;
+  top: 70px;
+  left: 14px;
+  right: 50px;
+  background: var(--surface);
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  box-shadow: var(--shadow-card);
+}
+.map-selection {
+  position: absolute;
+  bottom: 36px;
+  left: 14px;
+  max-width: calc(100% - 65px);
+  display: grid;
+  gap: 6px;
+  padding: 13px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-card);
+}
+.map-selection strong {
+  font-size: 13px;
+}
+.map-selection span,
+.map-selection small {
+  font-size: 11px;
+  color: var(--muted);
+}
+.is-editing .mapbox-container {
+  pointer-events: none;
+}
+.mapboxgl-ctrl-attrib {
+  font-size: 10px;
+}
+.map-note {
+  pointer-events: none;
+  max-width: calc(100% - 65px);
+}
+.vehicles-widget .widget-content-inner {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.fleet-map-page .vehicle-sidebar.vehicles-widget .widget-content {
+  display: block;
+  overflow: hidden;
+}
+.fleet-list-content > .table-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.map-fit {
+  position: absolute;
+  top: 54px;
+  left: 14px;
+  padding: 7px 10px;
+  font-size: 11px;
+  gap: 5px;
+  min-height: 0;
+  box-shadow: var(--shadow-card);
+}

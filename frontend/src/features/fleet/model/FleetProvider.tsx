@@ -102,7 +102,9 @@ export function FleetProvider({ children }: { children: ReactNode }) {
     api<Vehicle>(`/fleet/vehicles/${encodeURIComponent(selectedId)}`, {
       signal: controller.signal,
     })
-      .then(setSelected)
+      .then((vehicle) => {
+        if (!controller.signal.aborted) setSelected(vehicle);
+      })
       .catch(() => {
         if (!controller.signal.aborted) {
           setSelectedId(null);

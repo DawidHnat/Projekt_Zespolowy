@@ -15,7 +15,7 @@ npm run dev
 
 Otwórz http://127.0.0.1:5173. Serwer nasłuchuje tylko lokalnie.
 Jeżeli port jest zajęty, zakończ wcześniejszy proces lub użyj
-`npm run dev -- --port 5174`. Nie są potrzebne `.env`, konta ani VPS.
+`npm run dev -- --port 5174`. Wymagane są lokalne `.env`, API oraz konto aplikacji; VPS nie jest potrzebny.
 
 ```bash
 npm test              # migracja, zapis i ograniczenia układu
@@ -30,7 +30,8 @@ npm run preview       # podgląd zbudowanego frontendu na 127.0.0.1:4173
   Karty paliwowe i Alerty.
 - Osobny widok Mapy z listą pojazdów obok (pod mapą na małym ekranie).
   Nowe sekcje poza Mapą są pustymi widokami planowanych funkcji.
-- Sześć niezależnych kafelków ze stanami oczekiwania na dane.
+- Sześć niezależnych kafelków; lista, mapa i wskaźniki mają dane z API,
+  pozostałe czekają na implementację.
 - Motyw jasny, ciemny i zgodny z systemem; pięć akcentów i własny kolor.
 - Włączanie i ukrywanie modułów, wyszukiwanie po nazwie modułu.
 - Edytor Pulpitu i Mapy: chwytanie całego kafelka, podgląd miejsca upuszczenia,
@@ -43,8 +44,8 @@ npm run preview       # podgląd zbudowanego frontendu na 127.0.0.1:4173
   panel obsługuje Tab i Escape.
 - Lokalna czcionka Inter i ikony Lucide, bez pobierania fontu z Google.
 
-Mapa jest ilustracją. Dane WEBFLEET, logowanie, edycja przejazdów, właściwe
-wykresy powstaną osobno.
+Mapa, lista i wskaźniki floty korzystają z API po zalogowaniu. Edycja przejazdów
+i właściwe wykresy pozostają kolejnymi zadaniami.
 Wyszukiwarka szuka nazw modułów, nie pojazdów.
 
 ## Edycja Pulpitu i Mapy
@@ -112,3 +113,18 @@ Filtry nazwy/rejestracji i statusu są współdzielone z mapą. Odświeżanie AP
 60 s nie wywołuje dodatkowych odczytów WEBFLEET. Sesja nie trafia do localStorage;
 401 usuwa widok floty. Wylogowanie unieważnia sesję w bazie. Kierowców import
 nie pobiera; do czasu ręcznego przypisania lista pokazuje „Nieprzypisany”.
+
+## Mapa Mapbox — SCRUM-21
+
+Uzupełnij publiczny `VITE_MAPBOX_TOKEN` (`pk.`) w głównym lokalnym `.env` i
+zrestartuj Vite. Publiczny token trafia do przeglądarki; ogranicz go w Mapbox
+wyłącznie do adresów aplikacji i uprawnień odczytu map. Nie wpisuj tokenu `sk.`.
+Dane serwera WEBFLEET i hasła pozostają poza zmiennymi `VITE_*`.
+
+Mapa pokazuje poprawne GPS, klastry i stan nieaktualnych pomiarów. Kliknięcie
+punktu wybiera pojazd; wybór na liście przybliża pozycję. „Cała flota” dopasowuje
+widok. Jasny/ciemny motyw zmienia styl mapy; Mapbox jest ładowany osobnym chunkiem.
+Podczas edycji układu gesty mapy są wyłączone, aby chwytać cały kafelek.
+Kontener reaguje na zmianę rozmiaru. Brak tokenu, WebGL lub błąd mapy nie blokuje
+listy. Atrybucja Mapbox pozostaje widoczna. Dostawca map otrzymuje obszar widoku
+przy pobieraniu map; użycie z lokalizacjami floty zostało zaakceptowane przez PO.

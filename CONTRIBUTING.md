@@ -31,7 +31,8 @@ i role są w README, a ustalenia zespołu w TEAM_CONTRACT.md.
 
 Sekrety, klucze prywatne i `.env` pozostają poza repozytorium. Przed pushem
 sprawdzamy zakres zmian; testy i kontrole dodamy wraz z kodem, który sprawdzają.
-Automatyczne PR-y, CI, przegląd API AI i automerge nie są obecnie skonfigurowane.
+CI sprawdza backend i frontend. Automatyczne PR-y, płatny przegląd API AI
+i automerge nie są skonfigurowane.
 
 ## Zależne zadania
 
