@@ -162,14 +162,16 @@ Implementacja jest w zależnych PR-ach do przeglądu.
 - [Przykłady kontraktu API](contracts/api-design.json)
 - [Kolory, komponenty i moduły](docs/DESIGN_SYSTEM.md)
 - [Podział katalogów](docs/STRUCTURE.md)
+- [Rozpoczęcie pracy i zakres pierwszego PR](docs/GETTING_STARTED.md)
 - [Zasady współpracy i PR](CONTRIBUTING.md)
 - [Instrukcje dla agentów AI](AGENTS.md)
 
 ## Serwer deweloperski
 
-Aplikację rozwijamy lokalnie. Wspólny serwer VPS OVHcloud z Ubuntu został
-zakupiony. Aktywacja i logowanie SSH nie zostały jeszcze zweryfikowane. Adres
-zostanie dodany po sprawdzeniu dostępu, przed oddaniem zadania.
+Aplikację rozwijamy lokalnie. Wspólny serwer VPS OVHcloud z Ubuntu jest aktywny:
+`57.129.179.53` (`vps-9171bf52.vps.ovh.net`). Cztery indywidualne konta zespołu
+są utworzone. Logowanie kluczem `jczaja51` sprawdzono z kodem `0`;
+pozostałe trzy konta czekają na własne klucze publiczne i testy właścicieli.
 
 - [Stan serwera i wymagane testy SSH](DEV_SERVER.md)
 - [Przygotowanie dostępu czterech osób](infra/vps/README.md)
