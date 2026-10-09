@@ -20,6 +20,7 @@ type AuthState = {
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   retry: () => void;
+  clearSession: () => void;
 };
 const AuthContext = createContext<AuthState | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -79,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         retry: () => setRevision((v) => v + 1),
+        clearSession: () => setUser(null),
       }}
     >
       {children}

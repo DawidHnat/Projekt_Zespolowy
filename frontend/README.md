@@ -128,3 +128,11 @@ Podczas edycji układu gesty mapy są wyłączone, aby chwytać cały kafelek.
 Kontener reaguje na zmianę rozmiaru. Brak tokenu, WebGL lub błąd mapy nie blokuje
 listy. Atrybucja Mapbox pozostaje widoczna. Dostawca map otrzymuje obszar widoku
 przy pobieraniu map; użycie z lokalizacjami floty zostało zaakceptowane przez PO.
+
+## Reset hasła — SCRUM-44
+
+Na ekranie logowania „Nie pamiętam hasła” prosi o login i pokazuje neutralne
+potwierdzenie. Link ze skrzynki otwiera osobny formularz hasła (minimum 12 znaków).
+Po sukcesie token jest usuwany z adresu i trzeba zalogować się ponownie.
+Administrator musi wcześniej przypisać danej osobie jej e-mail (`set-email`);
+konfiguracja skrzynki nadawcy nie zastępuje adresów użytkowników.
