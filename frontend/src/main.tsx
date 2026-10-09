@@ -14,6 +14,8 @@ import "./app/glass.css";
 import "./app/backgrounds.css";
 import "./app/workspace-pages.css";
 import "./app/settings.css";
+import "./app/vehicle-details.css";
+import "./app/trips.css";
 import "./shared/components/list-pagination.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

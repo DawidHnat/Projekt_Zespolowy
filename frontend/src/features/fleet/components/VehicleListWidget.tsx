@@ -42,7 +42,7 @@ export function VehicleListWidget({
               <button
                 key={v.id}
                 className={`vehicle-card ${f.selectedId === v.id ? "selected" : ""}`}
-                onClick={() => f.select(v.id)}
+                onClick={() => f.inspect(v.id)}
                 aria-pressed={f.selectedId === v.id}
               >
                 <div>

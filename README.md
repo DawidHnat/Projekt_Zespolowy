@@ -143,6 +143,9 @@ Edycja Pojazdów pozwala zaznaczyć kilka kafelków i wspólnie zmienić ich roz
 lub wyrównać całą flotę. Wspólna paginacja galerii, tabeli i listy przy mapie
 oferuje 10/25/50/100 elementów na stronę; mapa nadal pokazuje wszystkie
 pasujące pojazdy z GPS.
+Kliknięcie pojazdu na mapie otwiera panel z zakładkami Pojazd, Kierowca,
+Przegląd i Podróże. Panel i kafelek Ostatnie przejazdy mają wybór dnia;
+treść zakładek oraz synchronizacja historii są kolejnym przyrostem.
 Backend ma FastAPI, PostgreSQL, migracje, sesje i synchronizację pojazdów WEBFLEET.
 Kierowcy są wpisywani ręcznie i nigdy nie są importowani z WEBFLEET. Pozostałe
 moduły historii, analityki, serwisu i kart paliwowych są kolejnymi przyrostami.

@@ -61,7 +61,7 @@ export default function VehicleMap() {
     instance.current = map;
     markers.current = new VehicleMarkers(map, (ids) => {
       if (ids.length === 1) {
-        latest.current.select(ids[0]);
+        latest.current.inspect(ids[0]);
         setOverlap([]);
       } else setOverlap(ids);
     });
@@ -246,7 +246,7 @@ export default function VehicleMap() {
                 <button
                   key={f.properties.id}
                   onClick={() => {
-                    fleet.select(f.properties.id);
+                    fleet.inspect(f.properties.id);
                     setOverlap([]);
                   }}
                 >

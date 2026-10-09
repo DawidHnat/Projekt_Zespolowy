@@ -35,6 +35,6 @@ export function minimumHeight(id: WidgetId, width: number): number {
     case "utilization":
       return width < 280 ? 310 : 250;
     case "trips":
-      return width < 600 ? 230 : 170;
+      return width < 600 ? 360 : 300;
   }
 }

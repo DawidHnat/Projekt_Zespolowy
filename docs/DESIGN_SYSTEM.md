@@ -289,3 +289,24 @@ natywnego `dialog` z obsługą Escape i ograniczeniem fokusu. Zachowuj
 wykonaj `npm test`; testy sprawdzają migrację, granice układu, kolizje i
 zapis z ukrytymi modułami. Po zmianie UI wykonaj build i sprawdzenie
 przeglądarki na dużym i małym ekranie.
+
+### Panel pojazdu i wybór dnia
+
+`VehicleDetailsDialog` korzysta z natywnego `dialog` i wspólnej powierzchni
+dialogów. Jest montowany raz w aplikacji, poza siatką i przewijanymi kartami.
+`FleetProvider.inspect` otwiera panel, a `select` pozostaje wyborem pozycji
+bez okienka. Ładowanie innego pojazdu nie pokazuje danych poprzednika.
+Zamknięcie zachowuje zaznaczenie na mapie, ale ponowne otwarcie zaczyna od
+zakładki Pojazd. Zmiana filtrów zamyka panel.
+
+Zakładki mają powiązane `tab`/`tabpanel`, jeden element w kolejności Tab,
+obsługę strzałek, Home i End. Nagłówek używa wspólnego `VehiclePhoto` i tokenów
+statusu. Na telefonie ikony są nad etykietami, a kontrolki dnia zawijają się
+bez poziomego przewijania. Zachowuj wspólne kolory motywu, materiał i fokus.
+
+`TripDayPicker` jest wspólny dla kafelka przejazdów i zakładki Podróże.
+Model `trip-day.ts` obsługuje dni kalendarzowe w Europe/Warsaw, a `useTripDay`
+odświeża wybory Dzisiaj/Wczoraj po polskiej północy i powrocie do karty.
+Natywne pole daty ma opis i ograniczenie do dzisiaj. Puste stany pozostają
+jednoznaczne do czasu podłączenia rzeczywistej historii; nie pokazuj
+przykładowych tras jako danych floty.
