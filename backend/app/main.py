@@ -1,4 +1,5 @@
-from contextlib import asynccontextmanager
+import asyncio
+from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,10 +7,12 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
+from app.core.config import WebfleetSettings, load_environment
 from app.core.database import make_engine, make_sessions
 from app.core.errors import register_handlers
 from app.core.settings import Settings
 from app.modules.auth.router import router as auth_router
+from app.modules.fleet.sync import sync_worker
 
 
 def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
@@ -18,8 +21,20 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        yield
-        engine.dispose()
+        worker = None
+        if settings.sync_enabled:
+            webfleet = WebfleetSettings.from_environment(load_environment())
+            worker = asyncio.create_task(
+                sync_worker(engine, webfleet, settings.sync_interval_seconds)
+            )
+        try:
+            yield
+        finally:
+            if worker:
+                worker.cancel()
+                with suppress(asyncio.CancelledError):
+                    await worker
+            engine.dispose()
 
     app = FastAPI(title="Fleet-Flow", version="0.1.0", lifespan=lifespan)
     app.state.settings = settings
