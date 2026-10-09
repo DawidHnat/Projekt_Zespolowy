@@ -160,7 +160,7 @@ Odczyt starszych rozmiarów jest zachowany; nowy zapis v2 obejmuje domyślny
 rozmiar floty oraz indywidualne nadpisania.
 
 Wspólny `ListPagination` jest na dole listy, po prawej: 10/25/50/100 elementów,
-zakres wyników i strony. W galerii pozostaje widoczny podczas przewijania,
+zakres wyników i strony. W galerii znajduje się pod ostatnim rzędem kafelków,
 w widgetach jest poza przewijaną treścią. Limit jest wspólny dla galerii,
 tabeli i listy przy mapie, zapamiętany lokalnie dla konta. Zmiana limitu wraca
 na stronę 1 i nie ogranicza pojazdów z GPS wyświetlanych na mapie.

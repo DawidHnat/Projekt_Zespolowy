@@ -31,9 +31,6 @@
   text-align: center;
 }
 .vehicle-gallery > .list-pagination {
-  position: sticky;
-  bottom: 12px;
-  z-index: 2;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;

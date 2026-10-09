@@ -146,6 +146,8 @@ Zapisz/Anuluj obejmują całość szkicu. Reset także wymaga zatwierdzenia.
 limit, liczbę wyników, stan ładowania i callbacki. Pokazuje zakres i wybór
 10/25/50/100, także dla pustego wyniku i jednej strony. Kontrolki są na dole
 po prawej, poza przewijaną zawartością; zawijają się w małym kontenerze.
+W galerii paginacja jest w zwykłym przepływie pod ostatnim rzędem kafelków,
+bez przyklejania do krawędzi okna ani nakładania na pojazdy.
 Ładowanie blokuje kolejne żądania z kontrolek. Zakres nie przekracza liczby
 wyników. `pagination-model.ts` ogranicza wartości zgodnie z limitem API.
 
