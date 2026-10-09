@@ -30,6 +30,7 @@ import { WIDGET_IDS } from "../features/dashboard/model/widget-types";
 import { useAuth } from "../features/auth/AuthProvider";
 import { VehicleCardsPage } from "../features/fleet/components/VehicleCardsPage";
 import { VehicleLayoutEditorControls } from "../features/fleet/components/VehicleLayoutEditorControls";
+import { VehicleDetailsDialog } from "../features/fleet/components/VehicleDetailsDialog";
 
 const readSection = () => sectionFromHash(window.location.hash);
 
@@ -335,6 +336,7 @@ export function App() {
           )}
         </main>
       </div>
+      <VehicleDetailsDialog />
     </div>
   );
 }

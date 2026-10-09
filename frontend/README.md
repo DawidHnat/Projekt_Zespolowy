@@ -124,7 +124,8 @@ Dane serwera WEBFLEET i hasła pozostają poza zmiennymi `VITE_*`.
 Mapa pokazuje poprawne GPS i osobne znaczniki pojazdów, bez grupowania.
 Znacznik używa lokalnego zdjęcia lub ikony samochodu, z oznaczeniem statusu.
 Kliknięcie nakładających się znaczników otwiera wybór konkretnego pojazdu;
-klawiaturą można wybrać każdy znacznik osobno. Kliknięcie wybiera pojazd; wybór na liście przybliża pozycję. „Cała flota” dopasowuje
+klawiaturą można wybrać każdy znacznik osobno. Kliknięcie pokazuje mały podgląd;
+wybór na liście przybliża pozycję i pokazuje ten sam podgląd. „Cała flota” dopasowuje
 widok. Jasny/ciemny motyw zmienia styl mapy; Mapbox jest ładowany osobnym chunkiem.
 Podczas edycji układu gesty mapy są wyłączone, aby chwytać cały kafelek.
 Kontener reaguje na zmianę rozmiaru. Brak tokenu, WebGL lub błąd mapy nie blokuje
@@ -138,6 +139,38 @@ potwierdzenie. Link ze skrzynki otwiera osobny formularz hasła (minimum 12 znak
 Po sukcesie token jest usuwany z adresu i trzeba zalogować się ponownie.
 Administrator musi wcześniej przypisać danej osobie jej e-mail (`set-email`);
 konfiguracja skrzynki nadawcy nie zastępuje adresów użytkowników.
+
+## Panel pojazdu i dzienny widok przejazdów — SCRUM-25
+
+Kliknięcie pojazdu na mapie lub na liście przy mapie pokazuje małą kartę
+z nazwą, zdjęciem/ikoną, statusem, lokalizacją i czasem pomiaru. Podgląd nie jest
+modalny: mapa pozostaje dostępna. Prędkość w km/h jest widoczna tylko dla
+pojazdu w ruchu ze świeżym pomiarem; brak odczytu nie jest traktowany jako zero.
+Stare pomiary mają etykietę Ostatnia lokalizacja. Krzyżyk, Escape w podglądzie
+lub kliknięcie tła mapy zamyka kartę i usuwa zaznaczenie.
+
+Frontend jest przygotowany na opcjonalne pola `make`, `model` oraz
+`position_address`. Obecne API ich nie zwraca; podgląd używa nazwy pojazdu
+i jawnej informacji o braku danych. Adres będzie wyświetlany po dostarczeniu
+go z API razem z poprawną pozycją GPS. Nie ma nowych wywołań geokodowania.
+`speed_kmh` pozostaje obecnie null zgodnie z kontraktem integracji.
+
+Dopiero Szczegóły otwierają większe okienko z nazwą, rejestracją, statusem
+i lokalnym zdjęciem (albo ikoną samochodu). Cztery zakładki
+to Pojazd, Kierowca, Przegląd i Podróże. Strzałki, Home i End przełączają
+zakładki; Escape zamyka panel i przywraca fokus. Panel jest wspólny dla Mapy
+i kafelka mapy na Pulpicie, poza przewijaną zawartością widgetu.
+
+W „Ostatnich przejazdach” i „Podróżach” działa wspólny wybór dnia:
+Dzisiaj, Wczoraj lub konkretna data. Dni są liczone w Europe/Warsaw,
+również przy zmianie czasu. Wybory względne podążają za północą, a własna
+data pozostaje stała. Filtr nie dopuszcza dni przyszłych ani niepoprawnych.
+Widoki mają osobny, niezapisywany wybór dnia.
+
+Ten przyrost przygotowuje wygląd i zakładki. Ich treść oraz historia tras
+i postojów czekają na dalsze ustalenia. Nie pobiera ani nie zapisuje historii
+WEBFLEET i nie dodaje danych demonstracyjnych. Nagłówek pojazdu korzysta
+z istniejącego API floty. Kierowcy nadal będą wprowadzani ręcznie.
 
 
 ## Pojazdy i personalizacja — SCRUM-45 / SCRUM-46

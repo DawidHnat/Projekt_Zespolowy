@@ -289,3 +289,42 @@ natywnego `dialog` z obsługą Escape i ograniczeniem fokusu. Zachowuj
 wykonaj `npm test`; testy sprawdzają migrację, granice układu, kolizje i
 zapis z ukrytymi modułami. Po zmianie UI wykonaj build i sprawdzenie
 przeglądarki na dużym i małym ekranie.
+
+### Panel pojazdu i wybór dnia
+
+`VehicleDetailsDialog` korzysta z natywnego `dialog` i wspólnej powierzchni
+dialogów. Jest montowany raz w aplikacji, poza siatką i przewijanymi kartami.
+`FleetProvider.select` wybiera pozycję i pokazuje niemodalny `VehicleMapPreview`.
+`inspect` otwiera większy panel dopiero po kliknięciu Szczegóły.
+Ładowanie innego pojazdu nie pokazuje danych poprzednika.
+Zamknięcie zachowuje zaznaczenie na mapie, ale ponowne otwarcie zaczyna od
+zakładki Pojazd. Zmiana filtrów zamyka panel.
+
+Podgląd używa wspólnego zdjęcia, statusu i materiału. Model `vehicle-preview.ts`
+obsługuje brak marki/modelu/adresu i nie pokazuje starej ani niepoprawnej
+prędkości jako bieżącej. Opcjonalne `make`, `model`, `position_address` są
+przygotowaniem frontendu do kolejnego przyrostu API, nie zmianą backendu.
+Adres należy do pozycji pomiaru; bez poprawnego GPS nie jest prezentowany
+jako lokalizacja pojazdu. Kliknięcie tła mapy usuwa wybór; Escape w karcie
+i krzyżyk zamykają ją z przywróceniem fokusu do mapy. Po otwarciu karty
+fokus umożliwia przejście Tab do zamknięcia i Szczegółów. Odświeżenie danych
+tego samego pojazdu nie przenosi fokusu ponownie.
+
+Karta jest w lewym dolnym rogu mapy, nad atrybucją. Zapytanie kontenerowe dla
+niskiej mapy zmniejsza odstępy i czasowo ukrywa licznik/Cała flota, aby nie
+nakładały się na podgląd. Długi tekst pozostaje dostępny przez przewijanie.
+W edycji układu podgląd jest ukryty, aby nie blokował chwytania mapy.
+Przy przybliżeniu kamera zostawia wybrany znacznik obok karty na szerokiej
+mapie lub nad nią na wąskiej.
+
+Zakładki mają powiązane `tab`/`tabpanel`, jeden element w kolejności Tab,
+obsługę strzałek, Home i End. Nagłówek używa wspólnego `VehiclePhoto` i tokenów
+statusu. Na telefonie ikony są nad etykietami, a kontrolki dnia zawijają się
+bez poziomego przewijania. Zachowuj wspólne kolory motywu, materiał i fokus.
+
+`TripDayPicker` jest wspólny dla kafelka przejazdów i zakładki Podróże.
+Model `trip-day.ts` obsługuje dni kalendarzowe w Europe/Warsaw, a `useTripDay`
+odświeża wybory Dzisiaj/Wczoraj po polskiej północy i powrocie do karty.
+Natywne pole daty ma opis i ograniczenie do dzisiaj. Puste stany pozostają
+jednoznaczne do czasu podłączenia rzeczywistej historii; nie pokazuj
+przykładowych tras jako danych floty.

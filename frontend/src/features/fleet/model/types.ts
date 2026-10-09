@@ -5,6 +5,10 @@ export type Vehicle = {
   number: string | null;
   license_plate: string | null;
   vehicle_type: string | null;
+  // Optional display fields for the next API increment; absent values stay unknown.
+  make?: string | null;
+  model?: string | null;
+  position_address?: string | null;
   status: VehicleStatus;
   driver: { id: string; display_name: string } | null;
   latitude: number | null;

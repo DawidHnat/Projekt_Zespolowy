@@ -39,6 +39,12 @@ WEBFLEET i nie nadpisuje lokalnych przypisań. SMTP ma sprawdzone logowanie;
 przy diagnostyce nie wysyłamy wiadomości. Adres e-mail konta aplikacji jest
 opcjonalny i może pozostać pusty podczas pracy nad pierwszą wersją.
 
+W SCRUM-25 przygotowano częściowy przyrost UI: panel pojazdu na mapie z
+czterema zakładkami oraz wybór dnia w Ostatnich przejazdach i Podróżach.
+PO wybrał na tym etapie wygląd i zakładki. Historia z API, wybór przejazdu
+i geometria trasy pozostają dalszą pracą w SCRUM-24/25; nie oznacza to
+ukończenia całego zadania. Kierowcy nadal będą wprowadzani ręcznie.
+
 ## Dalsze prace
 
 - Dawid: review backendu oraz SCRUM-12 — VPS, HTTPS i dostęp SSH zespołu.

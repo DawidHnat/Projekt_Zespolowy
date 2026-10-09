@@ -28,11 +28,14 @@ type FleetState = {
   pageSize: number;
   selectedId: string | null;
   selected: Vehicle | null;
+  detailsOpen: boolean;
   setQ: (q: string) => void;
   setStatus: (status: VehicleStatus | "") => void;
   setPage: (page: number) => void;
   setPageSize: (size: number) => void;
-  select: (id: string) => void;
+  select: (id: string | null) => void;
+  inspect: (id: string) => void;
+  closeDetails: () => void;
   refresh: () => void;
 };
 const Context = createContext<FleetState | null>(null);
@@ -67,6 +70,7 @@ export function FleetProvider({ children }: { children: ReactNode }) {
   };
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Vehicle | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [revision, setRevision] = useState(0);
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQ(q), 250);
@@ -132,6 +136,7 @@ export function FleetProvider({ children }: { children: ReactNode }) {
         if (!controller.signal.aborted) {
           setSelectedId(null);
           setSelected(null);
+          setDetailsOpen(false);
         }
       });
     return () => controller.abort();
@@ -140,11 +145,13 @@ export function FleetProvider({ children }: { children: ReactNode }) {
     setQuery(value);
     setPage(1);
     setSelectedId(null);
+    setDetailsOpen(false);
   };
   const setStatus = (value: VehicleStatus | "") => {
     setFilter(value);
     setPage(1);
     setSelectedId(null);
+    setDetailsOpen(false);
   };
   return (
     <Context
@@ -159,12 +166,21 @@ export function FleetProvider({ children }: { children: ReactNode }) {
         page,
         pageSize,
         selectedId,
-        selected,
+        selected: selected?.id === selectedId ? selected : null,
+        detailsOpen,
         setQ,
         setStatus,
         setPage,
         setPageSize,
-        select: setSelectedId,
+        select: (id) => {
+          setSelectedId(id);
+          setDetailsOpen(false);
+        },
+        inspect: (id) => {
+          setSelectedId(id);
+          setDetailsOpen(true);
+        },
+        closeDetails: () => setDetailsOpen(false),
         refresh: () => setRevision((v) => v + 1),
       }}
     >
