@@ -1,0 +1,360 @@
+.vehicle-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.vehicle-gallery-toolbar {
+  padding-bottom: 14px;
+  gap: 12px;
+}
+.vehicle-gallery-toolbar .fleet-filters {
+  padding-top: 16px;
+}
+.vehicle-gallery-toolbar .fleet-search {
+  max-width: 440px;
+}
+.vehicle-gallery-toolbar select {
+  flex: none;
+}
+.vehicle-gallery-hint {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 16px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+/* Fixed individual sizes. Wrapping only changes placement, never saved dimensions. */
+.vehicle-gallery-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 20px;
+}
+.vehicle-tile.widget {
+  flex: 0 0 auto;
+  max-width: 100%;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+.vehicle-tile-body {
+  padding: 18px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.vehicle-tile-body header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.vehicle-tile-body h2 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  letter-spacing: -0.4px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.vehicle-tile-body header > div > span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.vehicle-tile-body dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 0;
+}
+.vehicle-tile-body dl > div {
+  min-width: 0;
+}
+.vehicle-tile-body dt {
+  color: var(--muted);
+  font-size: 10px;
+  margin-bottom: 5px;
+}
+.vehicle-tile-body dd {
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vehicle-tile-time {
+  font-size: 10px;
+  color: var(--muted);
+}
+.vehicle-tile-body footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.vehicle-tile-body footer .button {
+  font-size: 11px;
+  padding: 8px 10px;
+}
+.vehicle-photo {
+  flex: 1;
+  min-height: 115px;
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(ellipse at 75% 15%, #73d6ef88, transparent 60%),
+    linear-gradient(135deg, #193e7a, #1c93c7);
+}
+.vehicle-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(145deg, #ffffff18, transparent 60%);
+  border-bottom: 1px solid #ffffff18;
+}
+.vehicle-photo:not(.has-photo) img {
+  width: 86px;
+  opacity: 0.94;
+  filter: drop-shadow(0 6px 10px #06254a55);
+}
+.vehicle-photo > span {
+  position: absolute;
+  bottom: 12px;
+  left: 16px;
+  color: #ffffffb8;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.vehicle-photo.has-photo {
+  background: var(--surface-muted);
+}
+.vehicle-photo.has-photo img {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  object-fit: cover;
+}
+.tile-editing {
+  outline: 1px dashed var(--accent);
+  outline-offset: 3px;
+}
+.tile-size-button.icon-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border);
+}
+.tile-resize-handle.icon-button {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 10px 0 0 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  cursor: nwse-resize;
+  touch-action: none;
+}
+.tile-editing .vehicle-tile-body footer {
+  padding-right: 24px;
+}
+.tile-resizing {
+  user-select: none;
+}
+.vehicle-photo-settings {
+  padding: 0 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.vehicle-photo-settings .vehicle-photo {
+  height: 210px;
+  flex: none;
+  border-radius: 16px;
+}
+.vehicle-photo-settings p,
+.vehicle-photo-settings small {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.vehicle-photo-settings small {
+  font-size: 10px;
+}
+.vehicle-photo-settings .button {
+  justify-content: center;
+}
+.vehicle-photo-settings .photo-error {
+  color: var(--danger);
+}
+.photo-upload {
+  position: relative;
+  cursor: pointer;
+}
+.photo-upload input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.photo-upload:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.fleet-map-marker {
+  --marker-color: #77869c;
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border: 2px solid white;
+  border-radius: 14px;
+  padding: 4px;
+  color: white;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--marker-color) 70%, white),
+    var(--marker-color)
+  );
+  box-shadow:
+    0 3px 10px #11213a38,
+    inset 0 1px 1px #ffffff99;
+  cursor: pointer;
+  overflow: visible;
+}
+.fleet-map-marker img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  border-radius: 10px;
+}
+.fleet-map-marker.has-photo {
+  padding: 2px;
+  background: var(--surface);
+}
+.fleet-map-marker.selected {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+  box-shadow: 0 4px 18px #11213a66;
+}
+.marker-moving {
+  --marker-color: #128c76;
+}
+.marker-stopped {
+  --marker-color: #be791e;
+}
+.fleet-marker-status {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid white;
+  background: var(--marker-color);
+  pointer-events: none;
+}
+.fleet-marker-label {
+  pointer-events: none;
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 7px;
+  padding: 5px 8px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 600;
+}
+.fleet-map-marker:is(:hover, :focus-visible, .selected) .fleet-marker-label {
+  display: block;
+}
+.map-overlap {
+  position: absolute;
+  top: 102px;
+  left: 14px;
+  width: min(280px, calc(100% - 64px));
+  z-index: 4;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+.map-overlap header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+.map-overlap > small {
+  display: block;
+  font-size: 10px;
+  margin: 0 0 10px;
+  color: var(--muted);
+}
+.map-overlap > div {
+  max-height: 170px;
+  overflow: auto;
+  display: grid;
+  gap: 5px;
+}
+.map-overlap > div > button {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+  border-radius: 9px;
+  padding: 10px;
+  background: var(--surface-muted);
+  color: var(--text);
+  font-size: 11px;
+}
+.map-overlap button > span {
+  font-size: 10px;
+  color: var(--muted);
+}
+:root[data-material="glass"] .map-overlap {
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(16px);
+}
+@media (max-width: 500px) {
+  .vehicle-gallery-grid {
+    gap: 16px;
+  }
+  .vehicle-tile-body {
+    padding: 16px;
+  }
+  .vehicle-gallery-toolbar select {
+    flex: 1;
+  }
+}
+@media (forced-colors: active) {
+  .fleet-map-marker {
+    border-color: CanvasText;
+    background: Canvas;
+  }
+  .fleet-map-marker.selected {
+    outline-color: Highlight;
+  }
+}

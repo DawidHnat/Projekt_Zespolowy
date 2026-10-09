@@ -26,10 +26,10 @@ npm run preview       # podgląd zbudowanego frontendu na 127.0.0.1:4173
 
 ## Co już działa
 
-- Pulpit oraz sekcje: Mapa, Serwis, Ewidencja przebiegu, Kierowcy,
+- Pulpit oraz sekcje: Mapa, Pojazdy, Serwis, Ewidencja przebiegu, Kierowcy,
   Karty paliwowe i Alerty.
 - Osobny widok Mapy z listą pojazdów obok (pod mapą na małym ekranie).
-  Nowe sekcje poza Mapą są pustymi widokami planowanych funkcji.
+  Serwis, Ewidencja przebiegu, Kierowcy, Karty paliwowe i Alerty czekają na implementację.
 - Sześć niezależnych kafelków; lista, mapa i wskaźniki mają dane z API,
   pozostałe czekają na implementację.
 - Motyw jasny, ciemny i zgodny z systemem; pięć akcentów i własny kolor.
@@ -40,8 +40,8 @@ npm run preview       # podgląd zbudowanego frontendu na 127.0.0.1:4173
 - Opcjonalne szkło z połyskiem na kartach, przyciskach i nawigacji oraz styl klasyczny.
 - Tło domyślne, galeria i własny obraz, z wyciszeniem i rozmyciem w obu stylach.
 - Zapamiętywanie ustawień na urządzeniu i przywracanie domyślnych.
-- Ustawienia aplikacji pod kołem zębatym, dostępne w każdej sekcji;
-  panel obsługuje Tab i Escape.
+- Osobna strona Ustawień (`#settings`): Wygląd, Tło oraz Układ i moduły.
+  Koło zębate prowadzi do tej strony; edycja układu pozostaje przy każdym widoku.
 - Lokalna czcionka Inter i ikony Lucide, bez pobierania fontu z Google.
 
 Mapa, lista i wskaźniki floty korzystają z API po zalogowaniu. Edycja przejazdów
@@ -74,7 +74,7 @@ i rozmiarami. Każdy widok zapamiętuje osobny układ dla telefonu i komputera.
 
 ## Tło przestrzeni
 
-W „Ustawieniach” → „Tło przestrzeni” wybierz „Galeria” albo „Własne”. Galeria zawiera miasto,
+W „Ustawieniach” → „Tło” → „Tło przestrzeni” wybierz „Galeria” albo „Własne”. Galeria zawiera miasto,
 góry oraz dwa gradienty. Wyciszenie nakłada osłonę zgodną z motywem:
 w jasnym rozjaśnia zdjęcie, w ciemnym je przyciemnia. Rozmycie ma zakres
 0–16 px. Nagłówek i podpisy zachowują czytelne powierzchnie nawet przy 0% osłony.
@@ -121,8 +121,10 @@ zrestartuj Vite. Publiczny token trafia do przeglądarki; ogranicz go w Mapbox
 wyłącznie do adresów aplikacji i uprawnień odczytu map. Nie wpisuj tokenu `sk.`.
 Dane serwera WEBFLEET i hasła pozostają poza zmiennymi `VITE_*`.
 
-Mapa pokazuje poprawne GPS, klastry i stan nieaktualnych pomiarów. Kliknięcie
-punktu wybiera pojazd; wybór na liście przybliża pozycję. „Cała flota” dopasowuje
+Mapa pokazuje poprawne GPS i osobne znaczniki pojazdów, bez grupowania.
+Znacznik używa lokalnego zdjęcia lub ikony samochodu, z oznaczeniem statusu.
+Kliknięcie nakładających się znaczników otwiera wybór konkretnego pojazdu;
+klawiaturą można wybrać każdy znacznik osobno. Kliknięcie wybiera pojazd; wybór na liście przybliża pozycję. „Cała flota” dopasowuje
 widok. Jasny/ciemny motyw zmienia styl mapy; Mapbox jest ładowany osobnym chunkiem.
 Podczas edycji układu gesty mapy są wyłączone, aby chwytać cały kafelek.
 Kontener reaguje na zmianę rozmiaru. Brak tokenu, WebGL lub błąd mapy nie blokuje
@@ -136,3 +138,29 @@ potwierdzenie. Link ze skrzynki otwiera osobny formularz hasła (minimum 12 znak
 Po sukcesie token jest usuwany z adresu i trzeba zalogować się ponownie.
 Administrator musi wcześniej przypisać danej osobie jej e-mail (`set-email`);
 konfiguracja skrzynki nadawcy nie zastępuje adresów użytkowników.
+
+
+## Pojazdy i personalizacja — SCRUM-45
+
+„Pojazdy” (`#vehicles`) pokazują dane API w kafelkach, ze wspólnymi filtrami
+nazwy/rejestracji i statusu oraz paginacją. Domyślny kafelek ma 320 × 440 px.
+„Edytuj układ” pozwala rozciągnąć narożnik każdego kafelka albo wybrać jego
+rozmiar suwakami/presetami. Minimum 280 × 420 px zostawia miejsce na zdjęcie,
+status, przebieg, kierowcę i czas pomiaru. Strzałki na uchwycie zmieniają rozmiar,
+a Enter otwiera suwaki. Zapis/Anuluj dotyczą wyłącznie tego widoku.
+
+Szerokości nie rozciągają się automatycznie do całego wiersza. Mniejszy ekran
+ogranicza tylko wyświetlanie szerokości, zachowując rozmiar zapisany przez
+użytkownika. Układ jest zapisywany lokalnie i osobno dla kont aplikacji.
+
+Ikona aparatu dodaje, zastępuje lub usuwa zdjęcie, wspólne dla kafelka i mapy.
+JPG/PNG/WebP do 10 MB są lokalnie zmniejszane do 1024 px, ponownie kodowane bez
+metadanych i zapisane w IndexedDB dla danego konta. Zdjęcia zapisują się od razu,
+niezależnie od szkicu układu. Nie trafiają do API ani Mapbox i nie są jeszcze
+współdzielone z zespołem. Usunięcie danych przeglądarki usuwa lokalne zdjęcia.
+Błąd zdjęcia przywraca ikonę samochodu; brak miejsca pozwala użyć zdjęcia w sesji.
+
+Ustawienia są osobną stroną z podziałem konfiguracji. Wygląd i tło zapisują się
+od razu. Widoczność modułów podczas edycji Pulpitu pozostaje szkicem do zatwierdzenia
+na Pulpicie. Reset ustawień przywraca wygląd oraz układy Pulpitu i Mapy;
+rozmiary Pojazdów resetuje się osobno podczas edycji tej sekcji.

@@ -1,11 +1,13 @@
 import {
   Bell,
+  CarFront,
   BookOpen,
   CreditCard,
   LayoutDashboard,
   MapPinned,
   Users,
   Wrench,
+  Settings,
 } from "lucide-react";
 
 // Page IDs are independent of the persisted dashboard layout groups.
@@ -21,6 +23,12 @@ export const sections = [
     title: "Mapa",
     icon: MapPinned,
     description: "Pozycje i lista pojazdów w jednym widoku.",
+  },
+  {
+    id: "vehicles",
+    title: "Pojazdy",
+    icon: CarFront,
+    description: "Twoje pojazdy, zdjęcia i kafelki o wybranym rozmiarze.",
   },
   {
     id: "service",
@@ -76,6 +84,12 @@ export const sections = [
       description:
         "Tu pojawią się alerty floty, ich statusy i reguły powiadomień, aby łatwo odnaleźć sprawy wymagające reakcji.",
     },
+  },
+  {
+    id: "settings",
+    title: "Ustawienia",
+    icon: Settings,
+    description: "Wygląd, tło i konfiguracja Twojej przestrzeni pracy.",
   },
 ] as const;
 

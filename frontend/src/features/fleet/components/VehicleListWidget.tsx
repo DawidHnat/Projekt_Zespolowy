@@ -1,9 +1,10 @@
-import { Truck, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Truck } from "lucide-react";
 import { WidgetFrame } from "../../../shared/components/WidgetFrame";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { useFleet } from "../model/FleetProvider";
-import { positionTime, statusLabels, type VehicleStatus } from "../model/types";
+import { positionTime, statusLabels } from "../model/types";
 import { FleetNotice } from "./FleetNotice";
+import { FleetFilters, FleetPagination } from "./FleetControls";
 export function VehicleListWidget({
   variant = "table",
 }: {
@@ -19,31 +20,7 @@ export function VehicleListWidget({
       className={`vehicles-widget vehicle-${variant}`}
     >
       <div className="fleet-list-content" aria-busy={f.loading}>
-        <div className="fleet-filters">
-          <label className="fleet-search">
-            <Search size={16} />
-            <input
-              type="search"
-              aria-label="Szukaj pojazdu"
-              placeholder="Nazwa lub rejestracja…"
-              maxLength={100}
-              value={f.q}
-              onChange={(e) => f.setQ(e.target.value)}
-            />
-          </label>
-          <select
-            aria-label="Status pojazdu"
-            value={f.status}
-            onChange={(e) => f.setStatus(e.target.value as VehicleStatus | "")}
-          >
-            <option value="">Wszystkie statusy</option>
-            {Object.entries(statusLabels).map(([k, v]) => (
-              <option key={k} value={k}>
-                {v}
-              </option>
-            ))}
-          </select>
-        </div>
+        <FleetFilters />
         <FleetNotice />
         {!items.length ? (
           <EmptyState
@@ -135,29 +112,7 @@ export function VehicleListWidget({
             </table>
           </div>
         )}
-        {f.list && f.list.total > 25 && (
-          <div className="fleet-pagination">
-            <button
-              className="icon-button"
-              aria-label="Poprzednia strona pojazdów"
-              disabled={f.page <= 1 || f.loading}
-              onClick={() => f.setPage(f.page - 1)}
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <span>
-              {f.page} / {Math.ceil(f.list.total / 25)}
-            </span>
-            <button
-              className="icon-button"
-              aria-label="Następna strona pojazdów"
-              disabled={f.page * 25 >= f.list.total || f.loading}
-              onClick={() => f.setPage(f.page + 1)}
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
-        )}
+        <FleetPagination />
       </div>
     </WidgetFrame>
   );

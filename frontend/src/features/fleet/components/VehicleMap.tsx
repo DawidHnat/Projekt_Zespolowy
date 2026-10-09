@@ -1,14 +1,15 @@
 import { useContext, useEffect, useRef, useState } from "react";
-import mapboxgl, { type GeoJSONSource } from "mapbox-gl";
+import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { MapPin, Scan } from "lucide-react";
+import { MapPin, Scan, X } from "lucide-react";
 import { useFleet } from "../model/FleetProvider";
 import { boundsForFeatures, validFeatures } from "../model/map-model";
 import { positionTime, statusLabels } from "../model/types";
 import { LayoutEditingContext } from "../../../shared/components/LayoutEditingContext";
 import { EmptyState } from "../../../shared/components/EmptyState";
+import { VehicleMarkers } from "./vehicle-markers";
+import { useVehiclePreferences } from "../model/VehiclePreferences";
 
-const sourceId = "fleet-vehicles";
 const token = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
 const style = () =>
   document.documentElement.dataset.theme === "dark"
@@ -16,15 +17,18 @@ const style = () =>
     : "mapbox://styles/mapbox/streets-v12";
 export default function VehicleMap() {
   const fleet = useFleet();
+  const preferences = useVehiclePreferences();
   const editing = useContext(LayoutEditingContext);
   const container = useRef<HTMLDivElement>(null);
   const instance = useRef<mapboxgl.Map | null>(null);
+  const markers = useRef<VehicleMarkers | null>(null);
   const latest = useRef(fleet);
   latest.current = fleet;
   const editRef = useRef(editing);
   editRef.current = editing;
   const [failure, setFailure] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [overlap, setOverlap] = useState<string[]>([]);
   const fitted = useRef(false);
   const features = validFeatures(fleet.map);
   useEffect(() => {
@@ -32,6 +36,8 @@ export default function VehicleMap() {
   }, [fleet.q, fleet.status]);
   useEffect(() => {
     if (!token?.startsWith("pk.") || !container.current) return;
+    setReady(false);
+    setFailure(null);
     if (!mapboxgl.supported()) {
       setFailure(
         "Ta przeglądarka nie obsługuje mapy. Lista pojazdów nadal działa.",
@@ -53,6 +59,12 @@ export default function VehicleMap() {
       return;
     }
     instance.current = map;
+    markers.current = new VehicleMarkers(map, (ids) => {
+      if (ids.length === 1) {
+        latest.current.select(ids[0]);
+        setOverlap([]);
+      } else setOverlap(ids);
+    });
     fitted.current = false;
     let frame = 0;
     map.addControl(
@@ -60,90 +72,7 @@ export default function VehicleMap() {
       "top-right",
     );
     const install = () => {
-      const data = {
-        type: "FeatureCollection" as const,
-        features: validFeatures(latest.current.map),
-      };
-      if (!map.getSource(sourceId)) {
-        map.addSource(sourceId, {
-          type: "geojson",
-          data,
-          cluster: true,
-          clusterMaxZoom: 14,
-          clusterRadius: 42,
-          promoteId: "id",
-        });
-        map.addLayer({
-          id: "fleet-clusters",
-          type: "circle",
-          source: sourceId,
-          filter: ["has", "point_count"],
-          paint: {
-            "circle-color": "#1479e8",
-            "circle-radius": [
-              "step",
-              ["get", "point_count"],
-              19,
-              20,
-              24,
-              50,
-              28,
-            ],
-            "circle-stroke-color": "#ffffff",
-            "circle-stroke-width": 2,
-          },
-        });
-        map.addLayer({
-          id: "fleet-counts",
-          type: "symbol",
-          source: sourceId,
-          filter: ["has", "point_count"],
-          layout: {
-            "text-field": ["get", "point_count_abbreviated"],
-            "text-size": 12,
-          },
-          paint: { "text-color": "#ffffff" },
-        });
-        map.addLayer({
-          id: "fleet-points",
-          type: "circle",
-          source: sourceId,
-          filter: ["!", ["has", "point_count"]],
-          paint: {
-            "circle-color": [
-              "match",
-              ["get", "status"],
-              "moving",
-              "#17a68b",
-              "stopped",
-              "#df982b",
-              "#8291a6",
-            ],
-            "circle-radius": 8,
-            "circle-stroke-color": "#ffffff",
-            "circle-stroke-width": 2,
-          },
-        });
-        map.addLayer({
-          id: "fleet-names",
-          type: "symbol",
-          source: sourceId,
-          minzoom: 9,
-          filter: ["!", ["has", "point_count"]],
-          layout: {
-            "text-field": ["get", "name"],
-            "text-size": 11,
-            "text-offset": [0, 1.5],
-            "text-anchor": "top",
-          },
-          paint: {
-            "text-color": "#192a42",
-            "text-halo-color": "#ffffff",
-            "text-halo-width": 1.5,
-          },
-        });
-      }
-      const bounds = boundsForFeatures(data.features);
+      const bounds = boundsForFeatures(validFeatures(latest.current.map));
       if (bounds && !fitted.current) {
         map.fitBounds(bounds, { padding: 50, maxZoom: 12, duration: 0 });
         fitted.current = true;
@@ -156,30 +85,8 @@ export default function VehicleMap() {
         "Nie udało się załadować mapy. Lista pojazdów pozostaje dostępna.",
       ),
     );
-    map.on("click", "fleet-points", (e) => {
-      if (!editRef.current) {
-        const id = e.features?.[0]?.properties?.id;
-        if (typeof id === "string") latest.current.select(id);
-      }
-    });
-    map.on("click", "fleet-clusters", (e) => {
-      if (editRef.current) return;
-      const feature = e.features?.[0];
-      if (!feature || feature.geometry.type !== "Point") return;
-      const center = feature.geometry.coordinates as [number, number];
-      const source = map.getSource(sourceId) as GeoJSONSource;
-      source.getClusterExpansionZoom(
-        Number(feature.properties?.cluster_id),
-        (error, zoom) => {
-          if (!error && zoom != null) map.easeTo({ center, zoom });
-        },
-      );
-    });
-    map.on("mouseenter", "fleet-points", () => {
-      if (!editRef.current) map.getCanvas().style.cursor = "pointer";
-    });
-    map.on("mouseleave", "fleet-points", () => {
-      map.getCanvas().style.cursor = "";
+    map.on("click", () => {
+      if (!editRef.current) setOverlap([]);
     });
     const observer = new ResizeObserver(() => {
       cancelAnimationFrame(frame);
@@ -198,6 +105,8 @@ export default function VehicleMap() {
       observer.disconnect();
       themes.disconnect();
       cancelAnimationFrame(frame);
+      markers.current?.remove();
+      markers.current = null;
       map.remove();
       instance.current = null;
     };
@@ -205,28 +114,21 @@ export default function VehicleMap() {
   useEffect(() => {
     const map = instance.current;
     if (!map || !ready) return;
-    const source = map.getSource(sourceId) as GeoJSONSource | undefined;
-    source?.setData({ type: "FeatureCollection", features });
+    markers.current?.update(
+      features,
+      preferences.photos,
+      fleet.selectedId,
+      editing,
+    );
     const bounds = boundsForFeatures(features);
     if (bounds && !fitted.current) {
       map.fitBounds(bounds, { padding: 50, maxZoom: 12, duration: 0 });
       fitted.current = true;
     }
-    if (map.getLayer("fleet-points")) {
-      map.setPaintProperty("fleet-points", "circle-stroke-color", [
-        "case",
-        ["==", ["get", "id"], fleet.selectedId || ""],
-        "#003dac",
-        "#ffffff",
-      ]);
-      map.setPaintProperty("fleet-points", "circle-stroke-width", [
-        "case",
-        ["==", ["get", "id"], fleet.selectedId || ""],
-        5,
-        2,
-      ]);
-    }
-  }, [fleet.map, fleet.selectedId, ready]);
+  }, [fleet.map, fleet.selectedId, ready, preferences.photos, editing]);
+  useEffect(() => {
+    setOverlap([]);
+  }, [fleet.q, fleet.status, editing]);
   useEffect(() => {
     const v = fleet.selected;
     const map = instance.current;
@@ -322,6 +224,37 @@ export default function VehicleMap() {
           {fleet.selected.latitude === null && (
             <small>Ten pojazd nie ma poprawnej pozycji GPS.</small>
           )}
+        </aside>
+      )}
+      {!!overlap.length && !editing && (
+        <aside className="map-overlap" aria-label="Pojazdy w tym miejscu">
+          <header>
+            <strong>Wybierz pojazd</strong>
+            <button
+              className="icon-button"
+              aria-label="Zamknij wybór pojazdu"
+              onClick={() => setOverlap([])}
+            >
+              <X size={16} />
+            </button>
+          </header>
+          <small>Znaczniki są blisko siebie.</small>
+          <div>
+            {features
+              .filter((f) => overlap.includes(f.properties.id))
+              .map((f) => (
+                <button
+                  key={f.properties.id}
+                  onClick={() => {
+                    fleet.select(f.properties.id);
+                    setOverlap([]);
+                  }}
+                >
+                  <strong>{f.properties.name}</strong>
+                  <span>{statusLabels[f.properties.status]}</span>
+                </button>
+              ))}
+          </div>
         </aside>
       )}
     </div>
