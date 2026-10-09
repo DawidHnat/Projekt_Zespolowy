@@ -2,61 +2,56 @@
 
 Backlog: https://fleet-flow.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog
 
-Przypisania uzupełniono 7 października 2026; aktualizacja z 8 października obejmuje
-przejęcie SCRUM-14 i SCRUM-36 przez Jakuba oraz zależne PR-y implementacji.
-Aktualne statusy i przypisania należy sprawdzać w Jirze.
-Liczba zadań nie jest miarą nakładu; kolejność i dostępność ustalamy wspólnie.
+Stan dokumentacji: 9 października 2026. PR-y #5–18 scalono do `main` po
+przeglądzie kodu i sprawdzeniu CI, zachowując autorów commitów. Nowe gałęzie
+zadań tworzymy z aktualnego `main`. Aktualne statusy i przypisania sprawdzamy
+w Jirze; scalenie częściowego przyrostu nie oznacza ukończenia całej Story.
 
-| Osoba | Obszar | Zadania |
-| --- | --- | --- |
-| Jakub Czaja | PO, struktura, kontrakt API, logowanie, lista floty, opis przejazdu i reguły alertów | SCRUM-1–5, SCRUM-7, SCRUM-11, SCRUM-13, SCRUM-14, SCRUM-16, SCRUM-20, SCRUM-26, SCRUM-31, SCRUM-34, SCRUM-36, SCRUM-38, SCRUM-41, SCRUM-43, SCRUM-44 |
-| Dawid Hnat | Infrastruktura, WEBFLEET, backend i dane | SCRUM-12, SCRUM-15, SCRUM-18, SCRUM-19, SCRUM-22, SCRUM-24, SCRUM-29, SCRUM-39 |
-| Jakub Nazarewicz | Mapa, historia i widoki analityki | SCRUM-6, SCRUM-21, SCRUM-25, SCRUM-27, SCRUM-30, SCRUM-32, SCRUM-35, SCRUM-42 |
-| Marcel Głowacki | Plan QA, testy funkcji i regresja | SCRUM-17, SCRUM-23, SCRUM-28, SCRUM-33, SCRUM-37, SCRUM-40 |
+## Scalona podstawa
 
-## Przyrost gotowy do przeglądu
-
-Jakub Czaja przygotował poniższe implementacje. Dawid i Jakub Nazarewicz
-sprawdzają kod w swoich obszarach, a Marcel wykonuje odbiór funkcjonalny.
-PR-y zależą od siebie: sprawdzamy je od najstarszej bazy, zgodnie z CONTRIBUTING.
-Zielone CI nie zastępuje review i QA; zadania nie są jeszcze ukończone.
-
-| Zadanie | Przygotowany zakres | PR | Następny krok |
+| Zadanie | Scalony zakres | PR | Pozostała praca |
 | --- | --- | --- | --- |
-| SCRUM-38 | Dashboard, wygląd i edycja układu | [#6](https://github.com/DawidHnat/Projekt_Zespolowy/pull/6) | Review frontendu, QA SCRUM-40 |
-| SCRUM-14 | Diagnostyka WEBFLEET i SMTP, rozpoznanie raportów | [#7](https://github.com/DawidHnat/Projekt_Zespolowy/pull/7), draft | Potwierdzenie jednostki prędkości snapshotu; do tego czasu API zwraca null |
-| SCRUM-36 | Model danych i kontrakt API | [#8](https://github.com/DawidHnat/Projekt_Zespolowy/pull/8) | Review Dawida i Jakuba Nazarewicza |
-| SCRUM-39 | FastAPI, PostgreSQL, migracje, health i CI | [#9](https://github.com/DawidHnat/Projekt_Zespolowy/pull/9) | Review Dawida, QA backendu |
-| SCRUM-16 | Logowanie i sesje chroniące dane floty | [#10](https://github.com/DawidHnat/Projekt_Zespolowy/pull/10), draft | Review oraz HTTPS na VPS w zadaniu infrastruktury; QA SCRUM-17 |
-| SCRUM-15 | Cache pojazdów i pomiarów, upsert, limit i obsługa awarii | [#11](https://github.com/DawidHnat/Projekt_Zespolowy/pull/11), draft | Review Dawida i kolejny przyrost synchronizacji historii |
-| SCRUM-19 | Chroniona lista, szczegóły, GeoJSON i wskaźniki | [#12](https://github.com/DawidHnat/Projekt_Zespolowy/pull/12) | Review Dawida, QA SCRUM-23 |
-| SCRUM-20 | Frontend logowania i lista z rzeczywistego API | [#13](https://github.com/DawidHnat/Projekt_Zespolowy/pull/13) | Review Jakuba Nazarewicza, QA SCRUM-23; zależy też od #6 |
-| SCRUM-21 | Mapbox, klastry, wybór pojazdu i wspólne filtry | [#14](https://github.com/DawidHnat/Projekt_Zespolowy/pull/14) | Review Jakuba Nazarewicza, QA SCRUM-23 |
-| SCRUM-44 | Opcjonalny reset hasła przez SMTP, podzadanie SCRUM-16 | [#15](https://github.com/DawidHnat/Projekt_Zespolowy/pull/15), draft | Review Dawida i QA Marcela; adres konta oraz test faktycznej dostawy później |
+| SCRUM-12 | Konta SSH OVH i instrukcje zespołu | [#5](https://github.com/DawidHnat/Projekt_Zespolowy/pull/5) | Klucze i własne testy trzech pozostałych osób |
+| SCRUM-38 | Pulpit, wygląd i edycja układu | [#6](https://github.com/DawidHnat/Projekt_Zespolowy/pull/6) | QA SCRUM-40 |
+| SCRUM-14 | Adapter i diagnostyka WEBFLEET/SMTP | [#7](https://github.com/DawidHnat/Projekt_Zespolowy/pull/7) | Potwierdzenie jednostek i pól; prędkość do tego czasu pozostaje null |
+| SCRUM-36 | Model danych i kontrakt API | [#8](https://github.com/DawidHnat/Projekt_Zespolowy/pull/8) | Uzgadnianie kontraktu kolejnych pól w zadaniach |
+| SCRUM-39 | FastAPI, PostgreSQL, migracje, health i CI | [#9](https://github.com/DawidHnat/Projekt_Zespolowy/pull/9) | Sprawdzenie uruchomienia na komputerach zespołu |
+| SCRUM-16 | Logowanie i sesje | [#10](https://github.com/DawidHnat/Projekt_Zespolowy/pull/10) | QA SCRUM-56; HTTPS na VPS w SCRUM-18 |
+| SCRUM-15 | Cache pojazdów i pomiarów, upsert, limit i obsługa awarii | [#11](https://github.com/DawidHnat/Projekt_Zespolowy/pull/11) | QA synchronizacji; historia w SCRUM-24 |
+| SCRUM-19 | Chroniona lista, szczegóły, GeoJSON i wskaźniki | [#12](https://github.com/DawidHnat/Projekt_Zespolowy/pull/12) | QA SCRUM-23 |
+| SCRUM-20 | Frontend logowania i lista z API | [#13](https://github.com/DawidHnat/Projekt_Zespolowy/pull/13) | QA SCRUM-23 |
+| SCRUM-21 | Mapbox, wybór pojazdu i wspólne filtry | [#14](https://github.com/DawidHnat/Projekt_Zespolowy/pull/14) | QA SCRUM-23 |
+| SCRUM-44 | Opcjonalny reset hasła przez SMTP | [#15](https://github.com/DawidHnat/Projekt_Zespolowy/pull/15) | QA SCRUM-56; uzgodniony odbiorca i test faktycznej dostawy później |
+| SCRUM-45 | Zdjęcia, kafelki pojazdów, znaczniki bez grupowania i Ustawienia | [#16](https://github.com/DawidHnat/Projekt_Zespolowy/pull/16) | QA zdjęć, motywów i mapy |
+| SCRUM-46 | Zbiorowa edycja rozmiarów i wspólna paginacja list | [#17](https://github.com/DawidHnat/Projekt_Zespolowy/pull/17) | QA układu, zaznaczania i stronicowania |
+| SCRUM-25 | Mały podgląd pojazdu, zakładki szczegółów i wybór dnia | [#18](https://github.com/DawidHnat/Projekt_Zespolowy/pull/18) | Ręczna kartoteka, treść zakładek, historia SCRUM-24 i QA SCRUM-28 |
 
-Kierowcy są wprowadzani ręcznie w SCRUM-42. Integracja nie pobiera ich z
-WEBFLEET i nie nadpisuje lokalnych przypisań. SMTP ma sprawdzone logowanie;
-przy diagnostyce nie wysyłamy wiadomości. Adres e-mail konta aplikacji jest
-opcjonalny i może pozostać pusty podczas pracy nad pierwszą wersją.
+Kierowcy są wprowadzani ręcznie. Integracja nie pobiera ich z WEBFLEET
+i nie nadpisuje lokalnych przypisań. Adres e-mail konta aplikacji jest opcjonalny;
+diagnostyka SMTP nie wysyła wiadomości. Historia przejazdów i geometria trasy
+nie są jeszcze pobierane; przygotowane widoki mają pusty stan.
 
-W SCRUM-25 przygotowano częściowy przyrost UI: panel pojazdu na mapie z
-czterema zakładkami oraz wybór dnia w Ostatnich przejazdach i Podróżach.
-PO wybrał na tym etapie wygląd i zakładki. Historia z API, wybór przejazdu
-i geometria trasy pozostają dalszą pracą w SCRUM-24/25; nie oznacza to
-ukończenia całego zadania. Kierowcy nadal będą wprowadzani ręcznie.
+## Następne przyrosty
 
-## Dalsze prace
+| Osoba | Obszar najbliższej pracy |
+| --- | --- |
+| Jakub Czaja | Odbiór produktu i zakres kolejnego przyrostu; SCRUM-57 — terminy i dokumenty pojazdu |
+| Dawid Hnat | SCRUM-14 — mapowanie źródła; SCRUM-51 — API ręcznej kartoteki; SCRUM-58 — API terminów i załączników; SCRUM-24 — historia; SCRUM-12/18 — SSH i HTTPS |
+| Jakub Nazarewicz | SCRUM-25 — formularz kartoteki i szczegóły; SCRUM-59 — UI terminów i załączników; dalsze widoki historii i ręcznych kierowców |
+| Marcel Głowacki | SCRUM-23 — lista/mapa; SCRUM-28 — kartoteka; SCRUM-40 — wygląd/układ; SCRUM-56 — logowanie/reset; SCRUM-60 — terminy i dokumenty |
 
-- Dawid: review backendu oraz SCRUM-12 — VPS, HTTPS i dostęp SSH zespołu.
-- Jakub Nazarewicz: review listy/mapy, potem historia i ręczne zarządzanie kierowcami.
-- Marcel: SCRUM-17 (logowanie, wygaśnięcie sesji, reset), SCRUM-23 (lista i mapa),
-  SCRUM-40 (wygląd i układ); scenariusze oraz dane syntetyczne w SCRUM-37.
-- Jakub: odbiór produktu, ustalenie kolejnego przyrostu i SCRUM-34 — przyjęcie zasad.
+SCRUM-51/25 obejmują markę, model, rok produkcji, VIN, typ pojazdu i przebieg.
+Kartoteka jest zarządzana ręcznie; potwierdzone pola WEBFLEET mogą pomóc w
+początkowym uzupełnieniu pustych wartości, ale synchronizacja nie nadpisuje
+wpisów użytkownika. Przebieg z pomiaru ma osobne źródło i czas odczytu.
 
-Serwis (SCRUM-41), kierowcy (SCRUM-42) i karty paliwowe (SCRUM-43) pozostają
-w backlogu. Nie rozszerzają automatycznie zakresu aktualnego sprintu.
+SCRUM-57 oraz podzadania 58/59/60 obejmują datę następnego przeglądu,
+ważność polisy i prywatne załączniki. Szczegółowe kryteria, typy plików i limity
+są zapisane w Jirze. Daty i dokumenty nie pochodzą z WEBFLEET.
 
-Można już uruchomić lokalnie bazę, API oraz frontend i rozwijać moduły według
-kontraktu z SCRUM-36. Nie trzeba czekać na VPS. Przy zmianie właściciela
-aktualizujemy pole osoby i opis w Jirze.
-Zasady gałęzi, PR i przeglądu są w [CONTRIBUTING](../CONTRIBUTING.md).
+Serwis, ręczni kierowcy i karty paliwowe pozostają dalszymi modułami.
+Backlog nie rozszerza automatycznie zakresu sprintu. Każda osoba wybiera
+przypisane zadanie z uzgodnionym zakresem i rozwija je na osobnej gałęzi.
+
+Instrukcja uruchomienia: [GETTING_STARTED](GETTING_STARTED.md).
+Zasady gałęzi, PR, przeglądu i odbioru: [CONTRIBUTING](../CONTRIBUTING.md).

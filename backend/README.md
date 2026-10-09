@@ -96,9 +96,10 @@ Certyfikaty weryfikuje zestaw CA `certifi`, również na Macach bez skonfigurowa
 systemowego magazynu CA dla Pythona. Nie wyłączamy weryfikacji TLS.
 
 Jeśli logowanie jest odrzucone, sprawdź hasło przez webmail, aktywność skrzynki
-w OVH oraz zapis `.env`. Nie uruchamiaj seryjnych prób. Obsługa wysyłki resetów haseł
-dojdzie do modułu uwierzytelniania: token jednorazowy z datą ważności, limit prób,
-neutralna odpowiedź dla nieistniejących kont i ograniczenie częstotliwości wysyłki.
+w OVH oraz zapis `.env`. Nie uruchamiaj seryjnych prób. Opcjonalny reset hasła
+jest zaimplementowany w module uwierzytelniania: token jednorazowy z datą ważności,
+limit prób i neutralna odpowiedź dla nieistniejących kont. Konfiguracja konta
+oraz ograniczenia dostawy są opisane w sekcji SCRUM-44 poniżej.
 Diagnostyka nie udostępnia publicznego endpointu wysyłania e-maili.
 
 ## Inny katalog pliku .env i weryfikacja kodu
@@ -147,8 +148,8 @@ PostgreSQL advisory lock i zapis czasu próby chronią limit także przy kilku
 procesach. Nie uruchamiaj równolegle diagnostyki w pętli. Awaria zachowuje dane
 ostatniego sukcesu; brak kompletnego raportu nie dezaktywuje pojazdów. Import
 aktualizuje wyłącznie pola pojazdu/pomiaru — nigdy ręcznych kierowców/przypisań.
-Historia przejazdów nie jest jeszcze synchronizowana; jest dalszym zakresem
-SCRUM-15 i zależy od importu historii, adnotacji oraz uzgodnienia harmonogramu.
+Historia przejazdów nie jest jeszcze synchronizowana. Jej import, postoje
+i harmonogram należą do SCRUM-24; adnotacje są kolejnym przyrostem.
 
 ## API floty — SCRUM-19
 
