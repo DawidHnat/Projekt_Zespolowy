@@ -152,3 +152,14 @@ zostanie dodany po sprawdzeniu dostępu, przed oddaniem zadania.
 - [Stan serwera i wymagane testy SSH](DEV_SERVER.md)
 - [Przygotowanie dostępu czterech osób](infra/vps/README.md)
 - [Podział pracy i pierwsze zadania](docs/TASKS.md)
+
+## Konfiguracja integracji — SCRUM-14
+
+Adapter backendu umożliwia lokalny test odczytu WEBFLEET oraz logowania SMTP OVH
+bez wysyłania poczty. Dane i hasła pobiera z lokalnego `.env`; do Git trafia tylko
+bezpieczny `.env.example`. Nie jest to jeszcze serwer API ani połączenie prawdziwej
+floty z interfejsem. FastAPI i baza pozostają w SCRUM-39, kontrakt w SCRUM-36,
+uwierzytelnienie w SCRUM-16, a endpointy pojazdów w SCRUM-19.
+
+- [Uruchomienie i testy integracji](backend/README.md)
+- [Mapowanie WEBFLEET i dalsze sprawdzenia](docs/WEBFLEET_INTEGRATION.md)
