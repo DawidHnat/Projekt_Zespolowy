@@ -294,10 +294,28 @@ przeglądarki na dużym i małym ekranie.
 
 `VehicleDetailsDialog` korzysta z natywnego `dialog` i wspólnej powierzchni
 dialogów. Jest montowany raz w aplikacji, poza siatką i przewijanymi kartami.
-`FleetProvider.inspect` otwiera panel, a `select` pozostaje wyborem pozycji
-bez okienka. Ładowanie innego pojazdu nie pokazuje danych poprzednika.
+`FleetProvider.select` wybiera pozycję i pokazuje niemodalny `VehicleMapPreview`.
+`inspect` otwiera większy panel dopiero po kliknięciu Szczegóły.
+Ładowanie innego pojazdu nie pokazuje danych poprzednika.
 Zamknięcie zachowuje zaznaczenie na mapie, ale ponowne otwarcie zaczyna od
 zakładki Pojazd. Zmiana filtrów zamyka panel.
+
+Podgląd używa wspólnego zdjęcia, statusu i materiału. Model `vehicle-preview.ts`
+obsługuje brak marki/modelu/adresu i nie pokazuje starej ani niepoprawnej
+prędkości jako bieżącej. Opcjonalne `make`, `model`, `position_address` są
+przygotowaniem frontendu do kolejnego przyrostu API, nie zmianą backendu.
+Adres należy do pozycji pomiaru; bez poprawnego GPS nie jest prezentowany
+jako lokalizacja pojazdu. Kliknięcie tła mapy usuwa wybór; Escape w karcie
+i krzyżyk zamykają ją z przywróceniem fokusu do mapy. Po otwarciu karty
+fokus umożliwia przejście Tab do zamknięcia i Szczegółów. Odświeżenie danych
+tego samego pojazdu nie przenosi fokusu ponownie.
+
+Karta jest w lewym dolnym rogu mapy, nad atrybucją. Zapytanie kontenerowe dla
+niskiej mapy zmniejsza odstępy i czasowo ukrywa licznik/Cała flota, aby nie
+nakładały się na podgląd. Długi tekst pozostaje dostępny przez przewijanie.
+W edycji układu podgląd jest ukryty, aby nie blokował chwytania mapy.
+Przy przybliżeniu kamera zostawia wybrany znacznik obok karty na szerokiej
+mapie lub nad nią na wąskiej.
 
 Zakładki mają powiązane `tab`/`tabpanel`, jeden element w kolejności Tab,
 obsługę strzałek, Home i End. Nagłówek używa wspólnego `VehiclePhoto` i tokenów

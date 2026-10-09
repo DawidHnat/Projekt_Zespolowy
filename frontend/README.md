@@ -124,8 +124,8 @@ Dane serwera WEBFLEET i hasła pozostają poza zmiennymi `VITE_*`.
 Mapa pokazuje poprawne GPS i osobne znaczniki pojazdów, bez grupowania.
 Znacznik używa lokalnego zdjęcia lub ikony samochodu, z oznaczeniem statusu.
 Kliknięcie nakładających się znaczników otwiera wybór konkretnego pojazdu;
-klawiaturą można wybrać każdy znacznik osobno. Kliknięcie otwiera panel pojazdu;
-wybór na liście przybliża pozycję i otwiera ten sam panel. „Cała flota” dopasowuje
+klawiaturą można wybrać każdy znacznik osobno. Kliknięcie pokazuje mały podgląd;
+wybór na liście przybliża pozycję i pokazuje ten sam podgląd. „Cała flota” dopasowuje
 widok. Jasny/ciemny motyw zmienia styl mapy; Mapbox jest ładowany osobnym chunkiem.
 Podczas edycji układu gesty mapy są wyłączone, aby chwytać cały kafelek.
 Kontener reaguje na zmianę rozmiaru. Brak tokenu, WebGL lub błąd mapy nie blokuje
@@ -142,8 +142,21 @@ konfiguracja skrzynki nadawcy nie zastępuje adresów użytkowników.
 
 ## Panel pojazdu i dzienny widok przejazdów — SCRUM-25
 
-Kliknięcie pojazdu na mapie lub na liście przy mapie otwiera okienko z nazwą,
-rejestracją, statusem i lokalnym zdjęciem (albo ikoną samochodu). Cztery zakładki
+Kliknięcie pojazdu na mapie lub na liście przy mapie pokazuje małą kartę
+z nazwą, zdjęciem/ikoną, statusem, lokalizacją i czasem pomiaru. Podgląd nie jest
+modalny: mapa pozostaje dostępna. Prędkość w km/h jest widoczna tylko dla
+pojazdu w ruchu ze świeżym pomiarem; brak odczytu nie jest traktowany jako zero.
+Stare pomiary mają etykietę Ostatnia lokalizacja. Krzyżyk, Escape w podglądzie
+lub kliknięcie tła mapy zamyka kartę i usuwa zaznaczenie.
+
+Frontend jest przygotowany na opcjonalne pola `make`, `model` oraz
+`position_address`. Obecne API ich nie zwraca; podgląd używa nazwy pojazdu
+i jawnej informacji o braku danych. Adres będzie wyświetlany po dostarczeniu
+go z API razem z poprawną pozycją GPS. Nie ma nowych wywołań geokodowania.
+`speed_kmh` pozostaje obecnie null zgodnie z kontraktem integracji.
+
+Dopiero Szczegóły otwierają większe okienko z nazwą, rejestracją, statusem
+i lokalnym zdjęciem (albo ikoną samochodu). Cztery zakładki
 to Pojazd, Kierowca, Przegląd i Podróże. Strzałki, Home i End przełączają
 zakładki; Escape zamyka panel i przywraca fokus. Panel jest wspólny dla Mapy
 i kafelka mapy na Pulpicie, poza przewijaną zawartością widgetu.

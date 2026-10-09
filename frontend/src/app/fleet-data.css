@@ -277,28 +277,6 @@
   font-size: 12px;
   box-shadow: var(--shadow-card);
 }
-.map-selection {
-  position: absolute;
-  bottom: 36px;
-  left: 14px;
-  max-width: calc(100% - 65px);
-  display: grid;
-  gap: 6px;
-  padding: 13px 16px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
-  backdrop-filter: blur(16px);
-  box-shadow: var(--shadow-card);
-}
-.map-selection strong {
-  font-size: 13px;
-}
-.map-selection span,
-.map-selection small {
-  font-size: 11px;
-  color: var(--muted);
-}
 .is-editing .mapbox-container {
   pointer-events: none;
 }

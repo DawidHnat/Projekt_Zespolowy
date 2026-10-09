@@ -33,7 +33,7 @@ type FleetState = {
   setStatus: (status: VehicleStatus | "") => void;
   setPage: (page: number) => void;
   setPageSize: (size: number) => void;
-  select: (id: string) => void;
+  select: (id: string | null) => void;
   inspect: (id: string) => void;
   closeDetails: () => void;
   refresh: () => void;
@@ -166,13 +166,16 @@ export function FleetProvider({ children }: { children: ReactNode }) {
         page,
         pageSize,
         selectedId,
-        selected,
+        selected: selected?.id === selectedId ? selected : null,
         detailsOpen,
         setQ,
         setStatus,
         setPage,
         setPageSize,
-        select: setSelectedId,
+        select: (id) => {
+          setSelectedId(id);
+          setDetailsOpen(false);
+        },
         inspect: (id) => {
           setSelectedId(id);
           setDetailsOpen(true);

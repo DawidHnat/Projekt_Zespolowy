@@ -4,11 +4,12 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { MapPin, Scan, X } from "lucide-react";
 import { useFleet } from "../model/FleetProvider";
 import { boundsForFeatures, validFeatures } from "../model/map-model";
-import { positionTime, statusLabels } from "../model/types";
+import { statusLabels } from "../model/types";
 import { LayoutEditingContext } from "../../../shared/components/LayoutEditingContext";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { VehicleMarkers } from "./vehicle-markers";
 import { useVehiclePreferences } from "../model/VehiclePreferences";
+import { VehicleMapPreview } from "./VehicleMapPreview";
 
 const token = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
 const style = () =>
@@ -29,6 +30,7 @@ export default function VehicleMap() {
   const [failure, setFailure] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [overlap, setOverlap] = useState<string[]>([]);
+  const [mapSize, setMapSize] = useState({ width: 0, height: 0 });
   const fitted = useRef(false);
   const features = validFeatures(fleet.map);
   useEffect(() => {
@@ -61,7 +63,7 @@ export default function VehicleMap() {
     instance.current = map;
     markers.current = new VehicleMarkers(map, (ids) => {
       if (ids.length === 1) {
-        latest.current.inspect(ids[0]);
+        latest.current.select(ids[0]);
         setOverlap([]);
       } else setOverlap(ids);
     });
@@ -86,11 +88,20 @@ export default function VehicleMap() {
       ),
     );
     map.on("click", () => {
-      if (!editRef.current) setOverlap([]);
+      if (!editRef.current) {
+        setOverlap([]);
+        latest.current.select(null);
+      }
     });
     const observer = new ResizeObserver(() => {
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => map.resize());
+      frame = requestAnimationFrame(() => {
+        map.resize();
+        const { clientWidth: width, clientHeight: height } = map.getContainer();
+        setMapSize((previous) => previous.width === width && previous.height === height
+          ? previous
+          : { width, height });
+      });
     });
     observer.observe(container.current);
     const themes = new MutationObserver(() => {
@@ -132,10 +143,14 @@ export default function VehicleMap() {
   useEffect(() => {
     const v = fleet.selected;
     const map = instance.current;
-    if (!v || !map || !ready || v.latitude === null || v.longitude === null)
+    if (!v || !map || !ready || editing || v.latitude === null || v.longitude === null)
       return;
     map.easeTo({
       center: [v.longitude, v.latitude],
+      // Leave the selected marker visible beside (or above) the preview card.
+      offset: map.getContainer().clientWidth >= 500
+        ? [Math.min(120, map.getContainer().clientWidth * 0.15), 0]
+        : [0, -Math.min(130, map.getContainer().clientHeight * 0.3)],
       zoom: Math.max(map.getZoom(), 12),
       duration: matchMedia("(prefers-reduced-motion: reduce)").matches
         ? 0
@@ -146,6 +161,9 @@ export default function VehicleMap() {
     fleet.selected?.latitude,
     fleet.selected?.longitude,
     ready,
+    editing,
+    mapSize.width,
+    mapSize.height,
   ]);
   useEffect(() => {
     const map = instance.current;
@@ -175,7 +193,7 @@ export default function VehicleMap() {
     );
   return (
     <div className="map-canvas live-map" aria-label="Mapa pozycji floty">
-      <div className="mapbox-container" ref={container} />
+      <div className="mapbox-container" ref={container} tabIndex={-1} />
       {failure && (
         <div className="map-fallback" role="alert">
           <EmptyState
@@ -214,17 +232,15 @@ export default function VehicleMap() {
         <Scan size={15} />
         <span>Cała flota</span>
       </button>
-      {fleet.selected && (
-        <aside className="map-selection">
-          <strong>{fleet.selected.name}</strong>
-          <span>
-            {statusLabels[fleet.selected.status]} ·{" "}
-            {positionTime(fleet.selected.position_at)}
-          </span>
-          {fleet.selected.latitude === null && (
-            <small>Ten pojazd nie ma poprawnej pozycji GPS.</small>
-          )}
-        </aside>
+      {fleet.selectedId && !editing && !overlap.length && (
+        <VehicleMapPreview
+          vehicle={fleet.selected}
+          onDetails={() => fleet.inspect(fleet.selectedId!)}
+          onClose={() => {
+            fleet.select(null);
+            container.current?.focus({ preventScroll: true });
+          }}
+        />
       )}
       {!!overlap.length && !editing && (
         <aside className="map-overlap" aria-label="Pojazdy w tym miejscu">
@@ -246,7 +262,7 @@ export default function VehicleMap() {
                 <button
                   key={f.properties.id}
                   onClick={() => {
-                    fleet.inspect(f.properties.id);
+                    fleet.select(f.properties.id);
                     setOverlap([]);
                   }}
                 >
