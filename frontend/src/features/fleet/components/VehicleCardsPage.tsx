@@ -35,20 +35,27 @@ const VehicleCard = memo(function VehicleCard({
     if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key))
       return;
     e.preventDefault();
-    p.change(v.id, {
-      width:
-        size.width +
-        (e.key === "ArrowLeft" ? -10 : e.key === "ArrowRight" ? 10 : 0),
-      height:
-        size.height +
-        (e.key === "ArrowUp" ? -10 : e.key === "ArrowDown" ? 10 : 0),
-    });
+    p.focus(v.id);
+    const horizontal = e.key === "ArrowLeft" || e.key === "ArrowRight";
+    p.change(
+      v.id,
+      horizontal
+        ? { width: size.width + (e.key === "ArrowLeft" ? -10 : 10) }
+        : { height: size.height + (e.key === "ArrowUp" ? -10 : 10) },
+    );
   };
   return (
     <article
-      className={`vehicle-tile widget ${p.editing ? "tile-editing" : ""} ${resize.live ? "tile-resizing" : ""}`}
+      className={`vehicle-tile widget ${p.editing ? "tile-editing" : ""} ${p.isSelected(v.id) ? "tile-selected" : ""} ${resize.live ? "tile-resizing" : ""}`}
       style={{ width: current.width, height: current.height }}
       aria-label={`Kafelek ${v.name}`}
+      onClick={(e) => {
+        if (
+          p.editing &&
+          !(e.target as Element).closest("button, a, input, select, label")
+        )
+          p.toggle(v.id);
+      }}
     >
       <VehiclePhoto src={p.photos[v.id]} name={v.name} />
       <div className="vehicle-tile-body">
@@ -103,6 +110,15 @@ const VehicleCard = memo(function VehicleCard({
       </div>
       {p.editing && (
         <>
+          <label className="tile-selection">
+            <input
+              type="checkbox"
+              aria-label={`Zaznacz pojazd: ${v.name}`}
+              checked={p.isSelected(v.id)}
+              onChange={() => p.toggle(v.id)}
+            />
+            <span>{p.isSelected(v.id) ? "Zaznaczony" : "Wybierz"}</span>
+          </label>
           <button
             className="tile-size-button icon-button"
             aria-label={`Rozmiar: ${v.name}`}
@@ -116,6 +132,10 @@ const VehicleCard = memo(function VehicleCard({
             aria-label={`Zmień rozmiar: ${v.name}`}
             title="Przeciągnij lub użyj strzałek; Enter otwiera ustawienia"
             {...resize.handle}
+            onPointerDown={(e) => {
+              if (e.button === 0 && e.isPrimary) p.focus(v.id);
+              resize.handle.onPointerDown(e);
+            }}
             onKeyDown={keyboardResize}
             onClick={(e) => {
               if (e.detail === 0) onSize();
@@ -131,7 +151,7 @@ const VehicleCard = memo(function VehicleCard({
 export function VehicleCardsPage() {
   const f = useFleet();
   const p = useVehiclePreferences();
-  const [sizing, setSizing] = useState<Vehicle | null>(null);
+  const [sizing, setSizing] = useState(false);
   const [photo, setPhoto] = useState<Vehicle | null>(null);
   return (
     <section
@@ -146,7 +166,7 @@ export function VehicleCardsPage() {
           <span>
             {f.list ? `${f.list.total} pojazdów` : "Lista floty"} ·{" "}
             {p.editing
-              ? "Rozciągnij narożnik lub otwórz rozmiar kafelka."
+              ? "Zaznacz kafelki i dopasuj je razem. Narożnik zmienia rozmiar wybranej grupy."
               : "Twój widok floty. Każdy kafelek ma własny rozmiar."}
           </span>
           {!p.persistent && (
@@ -170,7 +190,10 @@ export function VehicleCardsPage() {
             <VehicleCard
               key={v.id}
               vehicle={v}
-              onSize={() => setSizing(v)}
+              onSize={() => {
+                p.focus(v.id);
+                setSizing(true);
+              }}
               onPhoto={() => setPhoto(v)}
             />
           ))}
@@ -178,8 +201,8 @@ export function VehicleCardsPage() {
       )}
       <FleetPagination />
       <VehicleSizeDialog
-        vehicle={p.editing ? sizing : null}
-        onClose={() => setSizing(null)}
+        open={p.editing && sizing}
+        onClose={() => setSizing(false)}
       />
       <VehiclePhotoDialog vehicle={photo} onClose={() => setPhoto(null)} />
     </section>

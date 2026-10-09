@@ -226,15 +226,6 @@
   background: var(--accent-soft);
   border-color: var(--accent);
 }
-.fleet-pagination {
-  display: flex;
-  gap: 14px;
-  justify-content: center;
-  align-items: center;
-  flex: none;
-  font-size: 11px;
-  padding: 5px 12px 12px;
-}
 .vehicle-table {
   min-width: 690px;
 }

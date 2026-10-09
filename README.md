@@ -139,6 +139,10 @@ Frontend ma Pulpit, motywy, edytor układu, logowanie, listę i kafelki pojazdó
 oraz Mapbox bez grupowania znaczników. Osobna strona Ustawień obejmuje wygląd,
 tło i moduły. Zdjęcia pojazdów oraz indywidualne rozmiary kafelków są lokalnymi
 preferencjami użytkownika; zdjęcia nie są jeszcze współdzielone z zespołem.
+Edycja Pojazdów pozwala zaznaczyć kilka kafelków i wspólnie zmienić ich rozmiar
+lub wyrównać całą flotę. Wspólna paginacja galerii, tabeli i listy przy mapie
+oferuje 10/25/50/100 elementów na stronę; mapa nadal pokazuje wszystkie
+pasujące pojazdy z GPS.
 Backend ma FastAPI, PostgreSQL, migracje, sesje i synchronizację pojazdów WEBFLEET.
 Kierowcy są wpisywani ręcznie i nigdy nie są importowani z WEBFLEET. Pozostałe
 moduły historii, analityki, serwisu i kart paliwowych są kolejnymi przyrostami.

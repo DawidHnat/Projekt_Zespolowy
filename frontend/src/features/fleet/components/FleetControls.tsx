@@ -1,4 +1,5 @@
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search } from "lucide-react";
+import { ListPagination } from "../../../shared/components/ListPagination";
 import { useFleet } from "../model/FleetProvider";
 import { statusLabels, type VehicleStatus } from "../model/types";
 
@@ -34,29 +35,15 @@ export function FleetFilters() {
 }
 export function FleetPagination() {
   const f = useFleet();
-  if (!f.list || f.list.total <= f.list.page_size) return null;
-  const pages = Math.ceil(f.list.total / f.list.page_size);
   return (
-    <div className="fleet-pagination">
-      <button
-        className="icon-button"
-        aria-label="Poprzednia strona pojazdów"
-        disabled={f.page <= 1 || f.loading}
-        onClick={() => f.setPage(f.page - 1)}
-      >
-        <ChevronLeft size={18} />
-      </button>
-      <span>
-        {f.page} / {pages}
-      </span>
-      <button
-        className="icon-button"
-        aria-label="Następna strona pojazdów"
-        disabled={f.page >= pages || f.loading}
-        onClick={() => f.setPage(f.page + 1)}
-      >
-        <ChevronRight size={18} />
-      </button>
-    </div>
+    <ListPagination
+      page={f.page}
+      pageSize={f.pageSize}
+      total={f.list?.total ?? 0}
+      loading={f.loading}
+      label="pojazdy"
+      onPage={f.setPage}
+      onPageSize={f.setPageSize}
+    />
   );
 }

@@ -147,6 +147,134 @@
   outline: 1px dashed var(--accent);
   outline-offset: 3px;
 }
+.tile-editing {
+  cursor: pointer;
+}
+.tile-selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.tile-selected .vehicle-tile-body {
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+.tile-selection {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-card);
+  font-size: 10px;
+  cursor: pointer;
+}
+.tile-selection input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+.vehicles-page-heading {
+  flex-wrap: wrap;
+}
+.vehicles-page-heading .page-heading-copy {
+  flex: 1 1 180px;
+}
+.vehicle-layout-editor {
+  flex: 2 1 600px;
+  min-width: 0;
+  min-height: 108px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+.vehicle-layout-actions,
+.vehicle-layout-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px 16px;
+}
+.vehicle-layout-actions .layout-editor-controls {
+  width: auto;
+}
+.vehicle-edit-scope {
+  display: flex;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+}
+.vehicle-edit-scope button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  background: transparent;
+  color: var(--muted);
+}
+.vehicle-edit-scope button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-on);
+  box-shadow: var(--shadow-card);
+}
+.vehicle-edit-scope button span {
+  font-size: 10px;
+  min-width: 15px;
+}
+.vehicle-selection-actions {
+  display: flex;
+  gap: 16px;
+}
+.vehicle-selection-actions button {
+  background: transparent;
+  color: var(--accent);
+  font-size: 11px;
+  padding: 8px 0;
+}
+.page-heading .vehicle-layout-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+  text-align: right;
+  max-width: none;
+}
+.vehicle-size-picker {
+  height: 34px;
+  font-size: 11px;
+  padding: 8px 10px;
+}
+@media (max-width: 760px) {
+  .vehicle-layout-editor {
+    flex-basis: 100%;
+    min-height: 108px;
+  }
+  .vehicle-layout-actions,
+  .vehicle-layout-options {
+    justify-content: flex-start;
+  }
+  .vehicle-layout-actions .layout-editor-controls {
+    flex-basis: auto;
+  }
+  .page-heading .vehicle-layout-status {
+    text-align: left;
+  }
+}
+@media (forced-colors: active) {
+  .tile-selected {
+    outline-color: Highlight;
+  }
+}
 .tile-size-button.icon-button {
   position: absolute;
   top: 10px;

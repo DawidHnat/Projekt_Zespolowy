@@ -47,8 +47,13 @@ export function LayoutEditorControls({
           </button>
         </>
       ) : (
-        <button className="button button-primary" onClick={onEdit}>
-          <Grip size={17} /> Edytuj układ
+        <button
+          className="button button-primary layout-edit-trigger"
+          aria-label="Edytuj układ"
+          title="Edytuj układ"
+          onClick={onEdit}
+        >
+          <Grip size={24} aria-hidden="true" />
         </button>
       )}
     </div>

@@ -140,18 +140,33 @@ Administrator musi wcześniej przypisać danej osobie jej e-mail (`set-email`);
 konfiguracja skrzynki nadawcy nie zastępuje adresów użytkowników.
 
 
-## Pojazdy i personalizacja — SCRUM-45
+## Pojazdy i personalizacja — SCRUM-45 / SCRUM-46
 
 „Pojazdy” (`#vehicles`) pokazują dane API w kafelkach, ze wspólnymi filtrami
 nazwy/rejestracji i statusu oraz paginacją. Domyślny kafelek ma 320 × 440 px.
-„Edytuj układ” pozwala rozciągnąć narożnik każdego kafelka albo wybrać jego
-rozmiar suwakami/presetami. Minimum 280 × 420 px zostawia miejsce na zdjęcie,
+„Edytuj układ” udostępnia zakres Wszystkie pojazdy lub Zaznaczone.
+Wybór zakresu jest w nagłówku obok Zapisz/Anuluj, a poniżej są akcje
+zaznaczania i lista rozmiarów (Małe, Standardowe, Duże, Własny rozmiar).
+Edycja nie rozwija dodatkowego panelu nad galerią. Kliknięcie
+kafelka/checkbox zaznacza go i podświetla; wybór pozostaje podczas zmiany strony
+i filtrów. Można rozciągnąć narożnik wybranej grupy albo zmienić rozmiar
+suwakami/presetami. Suwak zmienia jeden wymiar, preset wyrównuje oba.
+Wszystkie pojazdy obejmuje całą flotę, również poza stroną i filtrami.
+Minimum 280 × 420 px zostawia miejsce na zdjęcie,
 status, przebieg, kierowcę i czas pomiaru. Strzałki na uchwycie zmieniają rozmiar,
 a Enter otwiera suwaki. Zapis/Anuluj dotyczą wyłącznie tego widoku.
 
 Szerokości nie rozciągają się automatycznie do całego wiersza. Mniejszy ekran
 ogranicza tylko wyświetlanie szerokości, zachowując rozmiar zapisany przez
 użytkownika. Układ jest zapisywany lokalnie i osobno dla kont aplikacji.
+Odczyt starszych rozmiarów jest zachowany; nowy zapis v2 obejmuje domyślny
+rozmiar floty oraz indywidualne nadpisania.
+
+Wspólny `ListPagination` jest na dole listy, po prawej: 10/25/50/100 elementów,
+zakres wyników i strony. W galerii znajduje się pod ostatnim rzędem kafelków,
+w widgetach jest poza przewijaną treścią. Limit jest wspólny dla galerii,
+tabeli i listy przy mapie, zapamiętany lokalnie dla konta. Zmiana limitu wraca
+na stronę 1 i nie ogranicza pojazdów z GPS wyświetlanych na mapie.
 
 Ikona aparatu dodaje, zastępuje lub usuwa zdjęcie, wspólne dla kafelka i mapy.
 JPG/PNG/WebP do 10 MB są lokalnie zmniejszane do 1024 px, ponownie kodowane bez

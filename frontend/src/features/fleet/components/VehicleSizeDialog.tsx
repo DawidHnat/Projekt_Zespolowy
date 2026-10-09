@@ -1,23 +1,22 @@
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
-import { CARD_MIN, CARD_MAX } from "../model/vehicle-layout";
+import { CARD_MIN, CARD_MAX, CARD_PRESETS } from "../model/vehicle-layout";
 import { useVehiclePreferences } from "../model/VehiclePreferences";
-import type { Vehicle } from "../model/types";
 
 export function VehicleSizeDialog({
-  vehicle,
+  open,
   onClose,
 }: {
-  vehicle: Vehicle | null;
+  open: boolean;
   onClose: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const p = useVehiclePreferences();
   useEffect(() => {
-    if (vehicle && !ref.current?.open) ref.current?.showModal();
-    if (!vehicle) ref.current?.close();
-  }, [vehicle]);
-  const size = vehicle ? p.size(vehicle.id) : CARD_MIN;
+    if (open && !ref.current?.open) ref.current?.showModal();
+    if (!open) ref.current?.close();
+  }, [open]);
+  const size = p.groupSize.first;
   return (
     <dialog
       ref={ref}
@@ -25,12 +24,16 @@ export function VehicleSizeDialog({
       aria-labelledby="vehicle-size-title"
       onClose={onClose}
     >
-      {vehicle && (
+      {open && (
         <>
           <header className="panel-header">
             <div>
-              <span className="eyebrow">ROZMIAR KAFELKA</span>
-              <h2 id="vehicle-size-title">{vehicle.name}</h2>
+              <span className="eyebrow">ROZMIAR KAFELKÓW</span>
+              <h2 id="vehicle-size-title">
+                {p.editScope === "all"
+                  ? "Wszystkie pojazdy"
+                  : `Zaznaczone: ${p.selectedIds.length}`}
+              </h2>
             </div>
             <button
               className="icon-button"
@@ -42,13 +45,23 @@ export function VehicleSizeDialog({
           </header>
           <div className="widget-settings-content">
             <p>
-              Zmieniasz tylko ten pojazd. Zatwierdź później przyciskiem „Zapisz
-              układ”.
+              {p.editScope === "all"
+                ? "Zmieniasz całą flotę, także pojazdy na innych stronach i poza filtrami."
+                : "Zmieniasz wyłącznie zaznaczone pojazdy, także na innych stronach."}{" "}
+              Zatwierdź przyciskiem „Zapisz układ”.
             </p>
             {(["width", "height"] as const).map((axis) => (
               <label key={axis} className="size-control">
                 {axis === "width" ? "Szerokość" : "Wysokość"}
-                <output>{size[axis]} px</output>
+                <output>
+                  {(
+                    axis === "width"
+                      ? p.groupSize.mixedWidth
+                      : p.groupSize.mixedHeight
+                  )
+                    ? "Różne rozmiary"
+                    : `${size[axis]} px`}
+                </output>
                 <input
                   type="range"
                   aria-label={
@@ -59,33 +72,26 @@ export function VehicleSizeDialog({
                   step={10}
                   value={size[axis]}
                   onChange={(e) =>
-                    p.change(vehicle.id, {
-                      ...size,
-                      [axis]: Number(e.target.value),
-                    })
+                    p.changeGroup({ [axis]: Number(e.target.value) })
                   }
                 />
               </label>
             ))}
             <div className="size-presets">
-              {[
-                { name: "Mały", width: 280, height: 420 },
-                { name: "Standardowy", width: 320, height: 440 },
-                { name: "Duży", width: 480, height: 500 },
-              ].map(({ name, ...next }) => (
+              {CARD_PRESETS.map(({ name, ...next }) => (
                 <button
                   key={name}
                   className="button button-secondary"
-                  onClick={() => p.change(vehicle.id, next)}
+                  onClick={() => p.changeGroup(next)}
                 >
                   {name}
                 </button>
               ))}
             </div>
             <p>
-              Minimum zachowuje zdjęcie, nazwę, status i podstawowe dane. Na
-              mniejszym ekranie szerokość zmieści się w widoku bez zmiany
-              zapisu.
+              Suwak wyrównuje jeden wymiar, preset oba. Minimum zachowuje
+              zdjęcie, nazwę, status i podstawowe dane. Na mniejszym ekranie
+              szerokość zmieści się w widoku bez zmiany zapisu.
             </p>
           </div>
           <footer className="widget-settings-footer">
