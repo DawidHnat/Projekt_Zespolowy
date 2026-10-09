@@ -173,7 +173,9 @@ błędzie odczytu obrazu. Nie zapisuj prawdziwych zdjęć lub pozycji klientów 
 
 ### Edytowanie układu
 
-Osobny przycisk „Edytuj układ” na Pulpicie i Mapie otwiera szkic tego widoku.
+Kwadratowy przycisk z kropkami (48 × 48 px, ikona Grip 24 px) na Pulpicie,
+Mapie i Pojazdach otwiera szkic tego widoku. Nazwa „Edytuj układ” jest w
+podpowiedzi oraz `aria-label`; powierzchnia korzysta ze wspólnego akcentu i materiału.
 Cały kafelek można chwycić poza przyciskami, linkami i polami formularzy.
 Narożnik rozciąga, a przycisk ustawień otwiera szerokość, wysokość i ukrycie
 (ukrycie jest dostępne tylko na Pulpicie).
