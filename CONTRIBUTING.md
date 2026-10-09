@@ -32,3 +32,11 @@ a ustalenia zespołu w TEAM_CONTRACT.md.
 Sekrety, klucze prywatne i `.env` pozostają poza repozytorium. Przed pushem
 sprawdzamy zakres zmian; testy i kontrole dodamy wraz z kodem, który sprawdzają.
 Automatyczne PR-y, CI, przegląd API AI i automerge nie są obecnie skonfigurowane.
+
+## Zależne zadania
+
+Gdy następne zadanie wymaga kodu z PR oczekującego na review, utwórz gałąź
+z gałęzi tego PR. PR kieruj tymczasowo do bezpośredniej gałęzi bazowej i wskaż
+zależność w opisie. Po sprawdzeniu i scaleniu poprzednika przestaw bazę na
+`main`. Każda gałąź ma własny klucz zadania i własne nowe commity. Takie PR-y
+sprawdzamy i scalamy od najstarszej zależności. Nie omija to review ani QA.
