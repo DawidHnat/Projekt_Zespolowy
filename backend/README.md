@@ -150,3 +150,13 @@ ostatniego sukcesu; brak kompletnego raportu nie dezaktywuje pojazdów. Import
 aktualizuje wyłącznie pola pojazdu/pomiaru — nigdy ręcznych kierowców/przypisań.
 Historia przejazdów nie jest jeszcze synchronizowana; jest dalszym zakresem
 SCRUM-15 i zależy od importu historii, adnotacji oraz uzgodnienia harmonogramu.
+
+## API floty — SCRUM-19
+
+Po zalogowaniu: `/api/v1/fleet/vehicles`, `/fleet/map`, `/fleet/summary` oraz
+`/fleet/vehicles/{UUID}` (wspólny prefiks `/api/v1`). Lista i mapa obsługują `q`
+i `status`; lista dodatkowo `page`/`page_size`. Mapa zwraca GeoJSON i obejmuje
+pasujące pozycje z całej listy, niezależnie od jej bieżącej strony. Pojazdy bez
+GPS pozostają na liście. Dane stare i brakujące mają jawne oznaczenia; prędkość
+pozostaje `null` do potwierdzenia jednostki. Publiczne API nie zwraca UID źródła.
+`/docs` pokazuje aktualny OpenAPI; plan kolejnych operacji jest w contracts/.
