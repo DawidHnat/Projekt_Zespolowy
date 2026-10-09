@@ -1,0 +1,241 @@
+import { useEffect, useRef } from "react";
+import {
+  Check,
+  Monitor,
+  Moon,
+  RotateCcw,
+  SlidersHorizontal,
+  Sun,
+  X,
+  LayoutGrid,
+  Sparkles,
+} from "lucide-react";
+import {
+  ACCENT_PRESETS,
+  type DashboardPreferences,
+  type ThemeMode,
+} from "../preferences";
+import {
+  WIDGET_IDS,
+  type WidgetId,
+} from "../../features/dashboard/model/widget-types";
+import { widgetRegistry } from "../../features/dashboard/model/widget-registry";
+import { BackgroundPicker } from "../../features/dashboard/components/BackgroundPicker";
+import type { BackgroundPreferences } from "../../features/dashboard/model/background-model";
+import type { BackgroundImageController } from "../../features/dashboard/model/useBackgroundImage";
+
+type Props = {
+  open: boolean;
+  onClose: () => void;
+  preferences: DashboardPreferences;
+  persistent: boolean;
+  onChange: (value: DashboardPreferences) => void;
+  onToggle: (id: WidgetId) => void;
+  onReset: () => void;
+  editing: boolean;
+  backgroundMedia: BackgroundImageController;
+  onBackgroundChange: (value: BackgroundPreferences) => void;
+};
+const modes = [
+  { id: "light", label: "Jasny", icon: Sun },
+  { id: "dark", label: "Ciemny", icon: Moon },
+  { id: "system", label: "System", icon: Monitor },
+] as const;
+
+export function AppSettingsPanel({
+  open,
+  onClose,
+  preferences,
+  persistent,
+  onChange,
+  onToggle,
+  onReset,
+  editing,
+  backgroundMedia,
+  onBackgroundChange,
+}: Props) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (open && dialog && !dialog.open) dialog.showModal();
+    if (!open && dialog?.open) dialog.close();
+  }, [open]);
+  const setTheme = (theme: ThemeMode) => onChange({ ...preferences, theme });
+  return (
+    <dialog
+      ref={dialogRef}
+      id="app-settings"
+      className="appearance-panel"
+      onClose={onClose}
+      aria-labelledby="app-settings-title"
+      onClick={(event) => {
+        const bounds = event.currentTarget.getBoundingClientRect();
+        if (
+          event.target === event.currentTarget &&
+          (event.clientX < bounds.left ||
+            event.clientX > bounds.right ||
+            event.clientY < bounds.top ||
+            event.clientY > bounds.bottom)
+        )
+          onClose();
+      }}
+    >
+      <header className="panel-header">
+        <div>
+          <span className="eyebrow">WYGLĄD I WIDOK</span>
+          <h2 id="app-settings-title">Ustawienia aplikacji</h2>
+        </div>
+        <button
+          className="icon-button"
+          aria-label="Zamknij ustawienia"
+          onClick={onClose}
+        >
+          <X size={20} />
+        </button>
+      </header>
+      <div className="panel-content">
+        <fieldset>
+          <legend>Styl powierzchni</legend>
+          <p>Szkło z połyskiem lub klasyczna, jednolita powierzchnia.</p>
+          <div className="material-options">
+            {[
+              { id: "glass", label: "Szkło", icon: Sparkles },
+              { id: "solid", label: "Klasyczny", icon: LayoutGrid },
+            ].map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                aria-pressed={preferences.material === id}
+                className={preferences.material === id ? "selected" : ""}
+                onClick={() =>
+                  onChange({
+                    ...preferences,
+                    material: id as DashboardPreferences["material"],
+                  })
+                }
+              >
+                <span className={`material-preview material-preview-${id}`}>
+                  <Icon size={22} />
+                </span>
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Motyw</legend>
+          <p>Wybierz jasne lub ciemne powierzchnie.</p>
+          <div className="theme-options">
+            {modes.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                className={preferences.theme === id ? "selected" : ""}
+                aria-pressed={preferences.theme === id}
+                onClick={() => setTheme(id)}
+              >
+                <Icon size={21} />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+        <BackgroundPicker
+          value={preferences.background}
+          onChange={onBackgroundChange}
+          media={backgroundMedia}
+        />
+        <fieldset>
+          <legend>Kolor akcentu</legend>
+          <p>Jeden kolor spójnie zmienia cały interfejs.</p>
+          <div className="accent-options">
+            {ACCENT_PRESETS.map((accent) => (
+              <button
+                key={accent.value}
+                className="accent-swatch"
+                style={{ background: accent.value }}
+                aria-label={`Akcent: ${accent.name}`}
+                aria-pressed={preferences.accent.toLowerCase() === accent.value}
+                title={accent.name}
+                onClick={() =>
+                  onChange({ ...preferences, accent: accent.value })
+                }
+              >
+                {preferences.accent.toLowerCase() === accent.value && (
+                  <Check size={18} />
+                )}
+              </button>
+            ))}
+          </div>
+          <label className="custom-color">
+            <span>
+              Własny kolor<small>{preferences.accent.toUpperCase()}</small>
+            </span>
+            <input
+              type="color"
+              aria-label="Własny kolor akcentu"
+              value={preferences.accent}
+              onInput={(event) =>
+                onChange({ ...preferences, accent: event.currentTarget.value })
+              }
+            />
+          </label>
+        </fieldset>
+        <fieldset>
+          <legend>
+            Moduły Pulpitu{" "}
+            <span className="module-count">
+              {preferences.visibleWidgets.length}/{WIDGET_IDS.length}
+            </span>
+          </legend>
+          <p>Włącz informacje, które chcesz widzieć na Pulpicie.</p>
+          <div className="module-options">
+            {WIDGET_IDS.map((id) => {
+              const widget = widgetRegistry[id];
+              const Icon = widget.icon;
+              return (
+                <label className="module-option" key={id}>
+                  <Icon size={19} aria-hidden="true" />
+                  <span>
+                    {widget.title}
+                    <small>{widget.description}</small>
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={preferences.visibleWidgets.includes(id)}
+                    onChange={() => onToggle(id)}
+                    aria-label={`Pokaż moduł: ${widget.title}`}
+                  />
+                  <span className="switch-track" aria-hidden="true" />
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+        <div className="typography-note">
+          <span className="font-sample">Aa</span>
+          <div>
+            <strong>Inter</strong>
+            <p>Jedna czcionka. Spójny rytm całej aplikacji.</p>
+          </div>
+        </div>
+      </div>
+      <footer className="panel-footer">
+        <p>
+          <SlidersHorizontal size={13} />
+          {editing
+            ? "Zapisz lub anuluj edycję układu na Pulpicie"
+            : persistent
+              ? "Ustawienia zapisane na tym urządzeniu"
+              : "Ustawienia działają w tej sesji"}
+        </p>
+        <button
+          className="button button-secondary"
+          onClick={onReset}
+          disabled={backgroundMedia.busy}
+        >
+          <RotateCcw size={16} />
+          Przywróć domyślne
+        </button>
+      </footer>
+    </dialog>
+  );
+}

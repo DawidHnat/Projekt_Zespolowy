@@ -1,0 +1,219 @@
+# Wygląd i moduły Fleet-Flow
+
+Pierwsza implementacja (SCRUM-38) ustala wygląd dashboardu inspirowany
+referencją zespołu. Przyjęto Inter, jasne tło, niebieski akcent i turkusowy
+kolor statusu sukcesu. Motyw i akcent są niezależne od zawartości kafelków.
+
+## Wspólne tokeny
+
+Źródło: `frontend/src/app/tokens.css`. Używaj zmiennych CSS zamiast
+wpisywania kolorów w komponentach. Motyw zmienia `data-theme` elementu
+`html`, a akcent zmienia zmienne `--accent` i `--accent-on`.
+
+| Token | Motyw jasny | Motyw ciemny | Zastosowanie |
+| --- | --- | --- | --- |
+| `--background` | `#f3f7fb` | `#0b121e` | tło aplikacji |
+| `--surface` | `#ffffff` | `#131e2e` | karty i panel |
+| `--text` | `#192a42` | `#e7eef8` | główna treść |
+| `--muted` | `#63758a` | `#a1b1c6` | opisy |
+| `--border` | `#e3ebf3` | `#253247` | podziały i obramowania |
+| `--accent` | `#1479e8` domyślnie | kolor użytkownika | aktywne elementy |
+| `--success` | `#138c76` | jaśniejszy turkus | stan poprawny |
+
+`--accent-on` wybiera czarny lub biały tekst zgodnie z luminancją akcentu.
+Nie używaj akcentu jako jedynego znaczenia błędu lub sukcesu. Status ma też
+opis i ikonę. Kolor tekstu na dodatkowych tłach wymaga sprawdzenia kontrastu.
+
+Font Inter jest dostarczany lokalnie z pakietu npm. Wielkości, odstępy,
+siatka i responsywność są we wspólnych arkuszach `app/`. Promień karty
+wynosi 12 px w stylu klasycznym i 18 px w stylu szkła. Kafelki układają się
+w siatce 12 kolumn, poniżej 720 px szerokości kontenera w jednej.
+Przyciski zachowują ten sam rozmiar i promień w obu materiałach: nawigacja
+14 px, zwykłe przyciski 12 px. Materiał zmienia ich powierzchnię.
+Nowy wariant komponentu dopisuj wspólnie, zamiast kopiować style do modułu.
+
+## Komponenty i rejestr
+
+- `Brand` składa wybrany przez zespół monogram FF ze strzałką i napis
+  „Fleet Flow”. Jeden plik `frontend/public/brand/fleet-flow-mark.svg` służy
+  jako znak w nawigacji i favicon. SVG ma przezroczyste tło, a w ciemnym
+  motywie rozjaśnia najciemniejsze fragmenty. Napis korzysta z lokalnego
+  Inter; `Fleet` używa `--text`, a `Flow` tokenu `--brand-wordmark`.
+  Kolory marki są stałe i niezależne od personalizacji `--accent`.
+  Nie dodawaj tła ani efektów szkła do samego znaku.
+- `WidgetFrame` zapewnia tytuł, ikonę, obramowanie i przewijalną zawartość.
+  Kontrolki edycji należą do `DashboardGrid`, nie do modułów domeny.
+- `EmptyState` zapewnia spójny stan oczekiwania na dane.
+- `features/dashboard/model/widget-registry.ts` łączy ID modułu, tytuł,
+  ikonę, komponent i grupy modelu układu. Panel ustawień korzysta z tego samego rejestru.
+
+Dodanie modułu:
+
+1. Uzgodnij zakres w Jirze i utwórz komponent w odpowiednim module domeny.
+2. Dodaj trwałe ID w `widget-types.ts` i definicję w `widget-registry.ts`.
+3. Użyj `WidgetFrame` i wspólnych tokenów. W `widget-layout.ts` dodaj moduł
+   do Pulpitu oraz domyślne rozmiary dla obu profili. W `widget-sizing.ts`
+   ustal budżet minimalnej szerokości i wysokości treści. Komponent
+   dostosowuje zawartość do szerokości kontenera, nie tylko okna przeglądarki.
+4. Obsłuż brak danych, ładowanie i błąd, gdy moduł otrzyma API.
+5. Sprawdź jasny i ciemny motyw, wybrany akcent, mały ekran i klawiaturę.
+
+ID istniejących modułów nie zmieniaj bez migracji preferencji. Kafelki należą
+do `fleet`, `trips` lub `analytics`; dashboard odpowiada za ich kompozycję.
+Wywołania API należy później wydzielić do wspólnego klienta, bez sekretów
+WEBFLEET w przeglądarce. Przy równoległej pracy uzgodnij zmiany rejestru
+i arkusza stylów z osobą pracującą w tych samych plikach.
+
+## Preferencje i dostępność
+
+`app/preference-model.ts` waliduje `theme`, `accent`, `material`, `background`,
+`visibleWidgets` i `layouts`. Hook `app/preferences.ts` zapisuje je w
+`fleet-flow.dashboard.v2` w localStorage; odczyt starszego klucza v1 zachowuje
+motyw, akcent i widoczność. Są to preferencje przeglądarki bez synchronizacji
+pomiędzy urządzeniami. Zablokowany zapis działa w pamięci sesji.
+Nieznane ID, duplikaty i niepoprawne rozmiary są odrzucane lub ograniczane.
+Ukrycie wszystkich modułów jest dozwolone; można je ponownie włączyć.
+
+### Nawigacja i strony
+
+`app/navigation.ts` jest rejestrem sekcji aplikacji: Pulpit, Mapa, Serwis,
+Ewidencja przebiegu, Kierowcy, Karty paliwowe i Alerty. Nowa strona ma trwałe
+ID, polski tytuł, ikonę i opis. `WorkspacePage` zapewnia wspólny pusty widok
+sekcji planowanych. Logikę tych funkcji dodajemy w osobnych zadaniach.
+
+Rejestr stron jest niezależny od `SectionId` i grup zapisanych w preferencjach układu.
+Stare grupy `fleet`, `trips`, `analytics` pozostają w modelu, aby zachować
+wcześniejsze zapisy. Ich linki prowadzą odpowiednio do Mapy, Ewidencji
+przebiegu i Pulpitu. Link `#dashboard` nadal otwiera Pulpit.
+
+`FleetMapPage` korzysta ze wspólnego `DashboardGrid`, z własną grupą `map`.
+Domyślnie mapa zajmuje osiem kolumn, a boczny wariant listy pojazdów cztery.
+Poniżej 720 px szerokości kontenera lista przechodzi pod mapę. Rejestr
+widgetów może wskazać `presentations` dla konkretnej grupy: w Mapie pojazdy
+mają boczną listę i własne minimum szerokości, a na Pulpicie nadal tabelę.
+Ten widok pozostaje niezależny od ukrywania kafelków na Pulpicie.
+Starsze preferencje v2 otrzymują domyślną grupę `map` bez zmiany innych układów.
+Mapa nadal jest oznaczoną ilustracją do czasu podłączenia dostawcy i API.
+
+`app/components/AppSettingsPanel.tsx` otwiera się pod kołem zębatym
+„Ustawienia”. Zawiera motyw, materiał, akcent, tło i widoczność kafelków
+Pulpitu. Na telefonie ustawienia mają również skrót w górnym pasku.
+Edycja układu jest osobnym działaniem na Pulpicie i Mapie. Przejście do innej
+sekcji zachowuje szkice w pamięci; zapis i anulowanie są dostępne po powrocie.
+
+### Edytowanie układu
+
+Osobny przycisk „Edytuj układ” na Pulpicie i Mapie otwiera szkic tego widoku.
+Cały kafelek można chwycić poza przyciskami, linkami i polami formularzy.
+Narożnik rozciąga, a przycisk ustawień otwiera szerokość, wysokość i ukrycie
+(ukrycie jest dostępne tylko na Pulpicie).
+„Zapisz układ” zatwierdza szkic, „Anuluj” odrzuca kolejność, rozmiary i zmiany
+widoczności wykonane podczas edycji. Wygląd (motyw, materiał, akcent, tło) działa
+od razu. Reset w trybie edycji też wymaga zatwierdzenia układu.
+
+`app/useLayoutEditor.ts` zarządza niezależnymi szkicami obu widoków.
+`layout-draft.ts` tworzy szkic i zatwierdza wyłącznie wybrany widok do bieżących
+preferencji. Zapis Mapy nie nadpisuje ustawień wyglądu ani szkicu Pulpitu.
+`LayoutEditorControls` zastępuje przycisk edycji kontrolkami w nagłówku.
+Slot ma tę samą szerokość i wysokość w obu trybach, także w mobilnym wierszu
+akcji. Nie dodawaj osobnego pasa ani komunikatów w przepływie nad siatką:
+wejście w edycję i zapis muszą zachować jej położenie. Informacja o profilu
+ekranu pozostaje dostępna dla czytników ekranu.
+
+Pulpit i Mapa mają osobne układy dla dużych i małych ekranów. Zmiana
+na telefonie nie nadpisuje desktopu. Widoczność dotyczy kafelków Pulpitu;
+ukryty kafelek zachowuje rozmiar. Tylko widoczny podzbiór jest zagęszczany,
+co chroni zapisany widok przed zmianą pozycji po odświeżeniu.
+
+Układ obsługuje `react-grid-layout` v2. Zapis używa 12 kolumn i logicznego
+rzędu 18 px z przerwą 16 px, z dokładnością do połowy jednostki. Silnik
+interakcji otrzymuje dwukrotnie gęstszą siatkę (24 kolumny i rząd 1 px),
+co zachowuje geometrię starszych zapisów i zmniejsza skok wysokości do 17 px.
+Model `widget-layout.ts` odpowiada za konwersję, walidację i kolizje.
+
+`useGesturePaint` grupuje odświeżanie trzymanego kafelka w klatkach animacji.
+RGL v2 przechowuje pikselową pozycję w refie i memoizuje kartę według komórek
+siatki; zmiana tożsamości tylko aktywnego dziecka pozwala malować również
+ruch wewnątrz komórki. Pozostałe dzieci i konfiguracja siatki pozostają
+stabilne, a silnik nadal obsługuje pozycję, kolizje i przewijanie przy krawędzi.
+Podgląd przeciągania wyznacza obrys po zagęszczeniu układu, zgodnie z miejscem
+zatwierdzanym przy puszczeniu. Sąsiednie karty animują zmianę położenia;
+trzymana karta porusza się bez przejścia CSS, aby nadążać za kursorem.
+
+`widget-sizing.ts` przechowuje budżety treści, zależne od szerokości kafelka.
+`useWidgetMinimums` mierzy naturalną zawartość `.widget-content-inner`,
+nagłówek, a w tabeli nagłówki kolumn i pierwszy wiersz. Kolejne wiersze
+pozostają przewijalne. Mapa korzysta z minimalnej wysokości płótna z CSS.
+Pomiar może podnieść minimum, również ponad zwykły limit suwaka, gdy
+pierwszy rekord jest wysoki. Pusty stan też mieści się w całości.
+
+Jeden ResizeObserver grupuje pomiary w jednej klatce animacji. Podczas
+gestu pomiary są wstrzymane; ograniczenie rozmiaru zależne od szerokości
+działa w silniku, a pomiar treści odświeża się po puszczeniu kafelka.
+Komponenty domeny są memoizowane. Kontrolki zajmują miejsce w nagłówku,
+bez osobnego pasa zmniejszającego treść. Nie dodawaj zależności od
+kontrolera edytora w komponentach domeny.
+
+Uchwyt obsługuje strzałki (przesunięcie), Shift + strzałki (rozmiar) i Enter
+(ustawienia). Ustawienia mają także suwaki, presety i przyciski kierunku.
+Ruch ogłaszany jest przez region statusu. Dialogi używają natywnego fokusu
+modalnego i Escape. `prefers-reduced-motion` wyłącza animację kafelków.
+
+### Tło przestrzeni
+
+Tło jest niezależne od `solid` / `glass`; karty w klasycznym materiale
+pozostają nieprzezroczyste. `DashboardBackground` renderuje jedną nieruchomą,
+dekoracyjną warstwę pod aplikacją, bez animacji i bez ingerencji w widgety.
+`backgrounds.css` odpowiada za osłonę zgodną z motywem, rozmycie, kadrowanie
+`cover` i czytelne powierzchnie nagłówka, etykiety wskaźników oraz stopki.
+Nie stosuj efektów tła do zawartości kafelków. Tryby zwiększonego kontrastu,
+forced-colors i ograniczenia przezroczystości wyłączają dekorację.
+Przy własnym tle powierzchnie nawigacji i panelu szkła mają 90% wypełnienia,
+a opisy używają tokenu `--wallpaper-muted` (`#53657a` w jasnym,
+`#a1b1c6` w ciemnym), aby zachować czytelność również przy 0% osłony zdjęcia.
+
+`background-model.ts` definiuje galerię, domyślne ustawienia i walidację
+zakresów. Nowe preferencje mieszczą się w zapisie v2; starsze zapisy
+otrzymują domyślne tło, zachowując układ. Nie przyjmuj adresów obrazów
+z localStorage. Galeria korzysta z lokalnych zdjęć i gradientów CSS;
+pochodzenie i prompty są w `frontend/public/backgrounds/README.md`.
+
+`background-image.ts` dekoduje plik JPG/PNG/WebP, ogranicza rozmiar do 10 MB,
+40 megapikseli i 2560 px na dłuższym boku. Canvas zapisuje nowy bitmapowy
+obraz bez metadanych oryginału. Blob trafia do IndexedDB `fleet-flow.media.v1`,
+do pojedynczego wpisu `custom`. URL obiektowy jest zwalniany po zmianie
+obrazu lub odmontowaniu. Preferencje przechowują UUID, a nie obraz.
+
+`useBackgroundImage` zarządza odtworzeniem, przygotowaniem i usunięciem
+obrazu; `BackgroundPicker` odpowiada za wybór i kontrolki. Błąd dekodowania
+nie usuwa wcześniejszego zdjęcia. Błąd zapisu pozwala używać nowego obrazu
+w sesji. UUID zapobiega przywróceniu starszego zdjęcia po nieudanym zapisie.
+Brak blobu pozostawia zwykłe tło i możliwość ponownego dodania obrazu.
+Reset przywraca preferencje, a przycisk usuwania osobno kasuje zapisany blob.
+
+### Szkło i czytelność
+
+`data-material` przełącza `glass` / `solid`. Arkusz `app/glass.css` stosuje
+przezroczystość i blur głównie w nawigacji, nagłówku i panelach. Połysk,
+jasne krawędzie i delikatny cień obejmują też aktywną nawigację, przyciski
+i kolorowe ikony. Karty mają
+mocne tło, żeby dane pozostały czytelne. To efekt CSS inspirowany materiałami
+Apple; nie implementacja natywnego Liquid Glass.
+
+Brak obsługi backdrop-filter, ograniczenie przezroczystości, zwiększony
+kontrast lub forced-colors przywracają pełne tło. Nie dodawaj kolejnych
+warstw blur ani ciągłej animacji szkła. Kierunek projektu opiera się na
+[wytycznych materiałów Apple](https://developer.apple.com/design/human-interface-guidelines/materials).
+
+Motyw systemowy korzysta z
+[`prefers-color-scheme`](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/prefers-color-scheme)
+i reaguje na jego zmianę. Właściwość
+[`color-scheme`](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/color-scheme)
+dopasowuje natywne kontrolki do wybranego motywu.
+
+Przyciski mają nazwy, elementy interaktywne widoczny fokus, panel używa
+natywnego `dialog` z obsługą Escape i ograniczeniem fokusu. Zachowuj
+`prefers-reduced-motion` i opisy tekstowe przy ikonach. Po zmianie modelu
+wykonaj `npm test`; testy sprawdzają migrację, granice układu, kolizje i
+zapis z ukrytymi modułami. Po zmianie UI wykonaj build i sprawdzenie
+przeglądarki na dużym i małym ekranie.

@@ -1,0 +1,101 @@
+import { useLayoutEffect, useState, type RefObject } from "react";
+import type { WidgetId } from "../model/widget-types";
+
+export type ContentMinimums = Partial<Record<WidgetId, number>>;
+
+function contentHeight(id: WidgetId, body: HTMLElement): number {
+  // The map is stretched, so use its readable canvas minimum instead of its
+  // current height. Tables reserve the heading and first row, not the whole list.
+  if (id === "map") {
+    const canvas = body.querySelector(".map-canvas");
+    if (canvas)
+      return Number.parseFloat(getComputedStyle(canvas).minHeight) || 0;
+  }
+  if (id === "vehicles") {
+    const head = body.querySelector("thead");
+    const row = body.querySelector("tbody tr");
+    const card = body.querySelector(".vehicle-card");
+    const fixed = [
+      ".fleet-filters",
+      ".fleet-notice",
+      ".fleet-update",
+      ".fleet-pagination",
+    ].reduce(
+      (sum, selector) =>
+        sum +
+        (body.querySelector(selector)?.getBoundingClientRect().height ?? 0),
+      36,
+    );
+    if (head)
+      return (
+        fixed +
+        head.getBoundingClientRect().height +
+        Math.max(44, row?.getBoundingClientRect().height ?? 0)
+      );
+    if (card) return fixed + card.getBoundingClientRect().height;
+  }
+  return body.getBoundingClientRect().height;
+}
+
+// One observer and one animation frame batch all measurements. Observe natural
+// content, not the stretched card, so enlarging a widget never raises its minimum.
+// During a gesture the grid owns its layout; refresh measurements on release.
+export function useWidgetMinimums(
+  container: RefObject<HTMLDivElement | null>,
+  signature: string,
+  paused: boolean,
+) {
+  const [minimums, setMinimums] = useState<ContentMinimums>({});
+  useLayoutEffect(() => {
+    const root = container.current;
+    if (!root || paused) return;
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const next: ContentMinimums = {};
+      root.querySelectorAll<HTMLElement>("[data-widget]").forEach((tile) => {
+        const id = tile.dataset.widget as WidgetId;
+        const header = tile.querySelector<HTMLElement>(".widget-header");
+        const body = tile.querySelector<HTMLElement>(".widget-content-inner");
+        if (!header || !body) return;
+        next[id] = Math.ceil(
+          header.getBoundingClientRect().height + contentHeight(id, body) + 18,
+        );
+      });
+      setMinimums((previous) => {
+        const ids = Object.keys(next) as WidgetId[];
+        return ids.length === Object.keys(previous).length &&
+          ids.every((id) => next[id] === previous[id])
+          ? previous
+          : next;
+      });
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(measure);
+    };
+    const observer = new ResizeObserver(schedule);
+    const observeContent = () =>
+      root
+        .querySelectorAll(
+          ".widget-header, .widget-content-inner, .fleet-filters, .fleet-pagination, .fleet-notice, .vehicle-card:first-child, .vehicle-table thead, .vehicle-table tbody tr:first-child",
+        )
+        .forEach((element) => observer.observe(element));
+    observeContent();
+    const mutations = new MutationObserver(() => {
+      observeContent();
+      schedule();
+    });
+    mutations.observe(root, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+    measure();
+    return () => {
+      observer.disconnect();
+      mutations.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, [container, signature, paused]);
+  return minimums;
+}
