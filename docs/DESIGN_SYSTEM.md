@@ -45,7 +45,7 @@ Nowy wariant komponentu dopisuj wspólnie, zamiast kopiować style do modułu.
   Kontrolki edycji należą do `DashboardGrid`, nie do modułów domeny.
 - `EmptyState` zapewnia spójny stan oczekiwania na dane.
 - `features/dashboard/model/widget-registry.ts` łączy ID modułu, tytuł,
-  ikonę, komponent i grupy modelu układu. Panel ustawień korzysta z tego samego rejestru.
+  ikonę, komponent i grupy modelu układu. Strona ustawień korzysta z tego samego rejestru.
 
 Dodanie modułu:
 
@@ -76,8 +76,8 @@ Ukrycie wszystkich modułów jest dozwolone; można je ponownie włączyć.
 
 ### Nawigacja i strony
 
-`app/navigation.ts` jest rejestrem sekcji aplikacji: Pulpit, Mapa, Serwis,
-Ewidencja przebiegu, Kierowcy, Karty paliwowe i Alerty. Nowa strona ma trwałe
+`app/navigation.ts` jest rejestrem sekcji aplikacji: Pulpit, Mapa, Pojazdy, Serwis,
+Ewidencja przebiegu, Kierowcy, Karty paliwowe, Alerty i Ustawienia. Nowa strona ma trwałe
 ID, polski tytuł, ikonę i opis. `WorkspacePage` zapewnia wspólny pusty widok
 sekcji planowanych. Logikę tych funkcji dodajemy w osobnych zadaniach.
 
@@ -93,16 +93,44 @@ widgetów może wskazać `presentations` dla konkretnej grupy: w Mapie pojazdy
 mają boczną listę i własne minimum szerokości, a na Pulpicie nadal tabelę.
 Ten widok pozostaje niezależny od ukrywania kafelków na Pulpicie.
 Starsze preferencje v2 otrzymują domyślną grupę `map` bez zmiany innych układów.
-Mapa korzysta z Mapbox i chronionego GeoJSON API. Klaster grupuje pojazdy,
-a wybór na liście i mapie jest wspólny. Brak tokenu lub WebGL pozostawia
+Mapa korzysta z Mapbox i chronionego GeoJSON API. Każdy pojazd ma osobny
+znacznik HTML: zdjęcie lub ikonę samochodu, opis statusu i wyróżnienie wyboru.
+Nie ma klastrów ani automatycznego grupowania. `VehicleMarkers` aktualizuje
+istniejące znaczniki po trwałym ID, zachowując kamerę. Kliknięcie nakładających
+się znaczników pozwala wybrać konkretny pojazd; klawiaturą każdy jest dostępny
+osobno. Wybór na liście i mapie jest wspólny. Brak tokenu lub WebGL pozostawia
 czytelną informację oraz działającą listę. Podczas edycji układu gesty mapy
 są wyłączone, aby można było chwycić cały kafelek.
 
-`app/components/AppSettingsPanel.tsx` otwiera się pod kołem zębatym
-„Ustawienia”. Zawiera motyw, materiał, akcent, tło i widoczność kafelków
-Pulpitu. Na telefonie ustawienia mają również skrót w górnym pasku.
-Edycja układu jest osobnym działaniem na Pulpicie i Mapie. Przejście do innej
-sekcji zachowuje szkice w pamięci; zapis i anulowanie są dostępne po powrocie.
+`app/components/AppSettingsPage.tsx` jest osobną stroną `#settings`, dostępną
+pod kołem zębatym, także na telefonie. Kategorie Wygląd, Tło oraz Układ i moduły
+korzystają ze wspólnych tokenów i komponentu `BackgroundPicker`. Motyw, materiał,
+akcent i tło zmieniają się od razu. Widoczność widgetów podczas edycji Pulpitu
+pozostaje jego szkicem. Edycja układu jest osobnym działaniem na Pulpicie, Mapie
+i Pojazdach; przejście do ustawień zachowuje szkice w pamięci.
+
+### Kafelki i zdjęcia pojazdów — SCRUM-45
+
+`VehicleCardsPage` korzysta z API i wspólnych kontrolek `FleetControls`.
+Kafelki mają stały indywidualny rozmiar, minimum 280 × 420, domyślnie 320 × 440,
+maksimum 720 × 720 px. Flex-wrap zmienia położenie wierszy, nie zapisane rozmiary.
+`useCardResize` maluje tylko aktywny kafelek w klatkach animacji i zatwierdza
+rozmiar do szkicu przy puszczeniu; cancel/lost pointer capture odrzuca gest.
+Suwaki i strzałki zapewniają alternatywę dla przeciągania. CSS ogranicza szerokość
+na telefonie bez nadpisywania rozmiaru użytkownika.
+
+`VehiclePreferencesProvider` udostępnia zdjęcia i niezależny szkic rozmiarów.
+Klucz localStorage `fleet-flow.vehicles.v1.<user-id>` oraz IndexedDB
+`fleet-flow.vehicle-photos.v1` izolują preferencje kont. Wylogowanie zwalnia URL-e
+obiektowe; podmiana i usunięcie zdjęcia też je zwalniają. Upload zapisuje się
+od razu, niezależnie od Zapisz/Anuluj układu. Brak zapisu ma jawny stan sesji.
+
+Wspólne `shared/media` waliduje format i limity obrazu oraz koduje go ponownie
+bez metadanych. Zdjęcia pojazdów mają maksymalny bok 1024 px, tła 2560 px.
+Mapa i karty używają tego samego URL-a blob; zdjęcia nie trafiają do dostawcy map
+ani na serwer. Udostępnienie zdjęć zespołowi wymaga osobnego zadania backendu.
+`vehicle-fallback.svg` i gradient karty zapewniają zastępczy wygląd, również po
+błędzie odczytu obrazu. Nie zapisuj prawdziwych zdjęć lub pozycji klientów w repo.
 
 ### Edytowanie układu
 
@@ -168,7 +196,7 @@ Tło jest niezależne od `solid` / `glass`; karty w klasycznym materiale
 pozostają nieprzezroczyste. `DashboardBackground` renderuje jedną nieruchomą,
 dekoracyjną warstwę pod aplikacją, bez animacji i bez ingerencji w widgety.
 `backgrounds.css` odpowiada za osłonę zgodną z motywem, rozmycie, kadrowanie
-`cover` i czytelne powierzchnie nagłówka, etykiety wskaźników oraz stopki.
+`cover` i czytelne powierzchnie nagłówka i etykiety wskaźników.
 Nie stosuj efektów tła do zawartości kafelków. Tryby zwiększonego kontrastu,
 forced-colors i ograniczenia przezroczystości wyłączają dekorację.
 Przy własnym tle powierzchnie nawigacji i panelu szkła mają 90% wypełnienia,
@@ -214,7 +242,7 @@ i reaguje na jego zmianę. Właściwość
 [`color-scheme`](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/color-scheme)
 dopasowuje natywne kontrolki do wybranego motywu.
 
-Przyciski mają nazwy, elementy interaktywne widoczny fokus, panel używa
+Przyciski mają nazwy, elementy interaktywne widoczny fokus, dialogi rozmiaru i zdjęcia używają
 natywnego `dialog` z obsługą Escape i ograniczeniem fokusu. Zachowuj
 `prefers-reduced-motion` i opisy tekstowe przy ikonach. Po zmianie modelu
 wykonaj `npm test`; testy sprawdzają migrację, granice układu, kolizje i

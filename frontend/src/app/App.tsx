@@ -12,7 +12,10 @@ import { useDashboardPreferences } from "./preferences";
 import { useLayoutEditor } from "./useLayoutEditor";
 import { LayoutEditorControls } from "../features/dashboard/components/LayoutEditorControls";
 import { FleetMapPage } from "../features/fleet/components/FleetMapPage";
-import { AppSettingsPanel } from "./components/AppSettingsPanel";
+import {
+  AppSettingsPage,
+  type SettingsCategory,
+} from "./components/AppSettingsPage";
 import { sections, sectionFromHash } from "./navigation";
 import { WorkspacePage } from "./WorkspacePage";
 import { Brand } from "../shared/components/Brand";
@@ -25,11 +28,14 @@ import { widgetRegistry } from "../features/dashboard/model/widget-registry";
 import { WIDGET_IDS } from "../features/dashboard/model/widget-types";
 
 import { useAuth } from "../features/auth/AuthProvider";
+import { VehicleCardsPage } from "../features/fleet/components/VehicleCardsPage";
+import { useVehiclePreferences } from "../features/fleet/model/VehiclePreferences";
 
 const readSection = () => sectionFromHash(window.location.hash);
 
 export function App() {
   const auth = useAuth();
+  const vehiclePreferences = useVehiclePreferences();
   const [logoutError, setLogoutError] = useState(false);
   const settings = useDashboardPreferences();
   const backgroundMedia = useBackgroundImage();
@@ -41,10 +47,12 @@ export function App() {
   const effective = editor.effective;
   const [section, setSection] = useState(readSection);
   const [query, setQuery] = useState("");
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsCategory, setSettingsCategory] =
+    useState<SettingsCategory>("appearance");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const openSettings = () => {
-    setSettingsOpen(true);
+  const openSettings = (category: SettingsCategory = "appearance") => {
+    setSettingsCategory(category);
+    window.location.hash = "settings";
     setSidebarOpen(false);
   };
   useEffect(() => {
@@ -79,7 +87,6 @@ export function App() {
     if (!editableView) return;
     editor.start(editableView);
     setQuery("");
-    setSettingsOpen(false);
     setSidebarOpen(false);
   };
   useEffect(() => {
@@ -131,30 +138,30 @@ export function App() {
         </div>
         <span className="nav-label">PRZEGLĄD</span>
         <nav aria-label="Sekcje aplikacji">
-          {sections.map(({ id, title, icon: Icon }) => (
-            <a
-              key={id}
-              href={`#${id}`}
-              className={`nav-item ${section === id ? "active" : ""}`}
-              aria-current={section === id ? "page" : undefined}
-            >
-              <Icon size={19} aria-hidden="true" />
-              <span>{title}</span>
-              {section === id && <span className="nav-indicator" />}
-            </a>
-          ))}
+          {sections
+            .filter((value) => value.id !== "settings")
+            .map(({ id, title, icon: Icon }) => (
+              <a
+                key={id}
+                href={`#${id}`}
+                className={`nav-item ${section === id ? "active" : ""}`}
+                aria-current={section === id ? "page" : undefined}
+              >
+                <Icon size={19} aria-hidden="true" />
+                <span>{title}</span>
+                {section === id && <span className="nav-indicator" />}
+              </a>
+            ))}
         </nav>
         <div className="sidebar-bottom">
-          <button
-            className="nav-item settings-nav-item"
-            onClick={openSettings}
-            aria-haspopup="dialog"
-            aria-expanded={settingsOpen}
-            aria-controls="app-settings"
+          <a
+            className={`nav-item settings-nav-item ${section === "settings" ? "active" : ""}`}
+            href="#settings"
+            aria-current={section === "settings" ? "page" : undefined}
           >
             <Settings size={19} aria-hidden="true" />
             <span>Ustawienia</span>
-          </button>
+          </a>
           <div className="workspace">
             <span className="workspace-avatar">FF</span>
             <div>
@@ -206,20 +213,13 @@ export function App() {
               <i />
               Połączono z API
             </span>
-            <button
+            <a
               className="icon-button settings-shortcut"
-              onClick={openSettings}
+              href="#settings"
               aria-label="Ustawienia aplikacji"
-              aria-haspopup="dialog"
-              aria-expanded={settingsOpen}
-              aria-controls="app-settings"
             >
               <Settings size={18} />
-            </button>
-            <span className="topbar-divider" />
-            <span className="topbar-avatar" aria-label="Przestrzeń zespołu">
-              FF
-            </span>
+            </a>
           </div>
         </header>
         <main
@@ -243,10 +243,22 @@ export function App() {
                 title={current.title}
                 editing={Boolean(draft)}
                 onEdit={startEditing}
-                onWidgets={isDashboard ? openSettings : undefined}
+                onWidgets={
+                  isDashboard ? () => openSettings("modules") : undefined
+                }
                 onReset={() => editor.resetView(editableView)}
                 onCancel={() => editor.cancel(editableView)}
                 onSave={() => editor.save(editableView)}
+              />
+            )}
+            {section === "vehicles" && (
+              <LayoutEditorControls
+                title="Pojazdy"
+                editing={vehiclePreferences.editing}
+                onEdit={vehiclePreferences.start}
+                onSave={vehiclePreferences.save}
+                onCancel={vehiclePreferences.cancel}
+                onReset={vehiclePreferences.reset}
               />
             )}
           </div>
@@ -284,7 +296,7 @@ export function App() {
                   )}
                   <button
                     className="button button-primary"
-                    onClick={openSettings}
+                    onClick={() => openSettings("modules")}
                   >
                     Wybierz moduły
                   </button>
@@ -297,39 +309,38 @@ export function App() {
               editing={Boolean(draft)}
               onLayout={editor.update}
             />
+          ) : section === "vehicles" ? (
+            <VehicleCardsPage />
+          ) : section === "settings" ? (
+            <AppSettingsPage
+              category={settingsCategory}
+              onCategory={setSettingsCategory}
+              preferences={effective}
+              persistent={settings.persistent}
+              editing={Boolean(editor.drafts.dashboard)}
+              backgroundMedia={backgroundMedia}
+              onBackgroundChange={(background) =>
+                settings.setPreferences((previous) => ({
+                  ...previous,
+                  background,
+                }))
+              }
+              onChange={(next) =>
+                settings.setPreferences({
+                  ...settings.preferences,
+                  theme: next.theme,
+                  accent: next.accent,
+                  material: next.material,
+                })
+              }
+              onToggle={editor.toggleWidget}
+              onReset={editor.resetAll}
+            />
           ) : (
             <WorkspacePage section={current} />
           )}
-          <footer className="page-footer">
-            <span>
-              Fleet-Flow <span className="footer-dot">·</span> Twoja flota pod
-              kontrolą
-            </span>
-            <span>Pomiary WEBFLEET · kierowcy wpisywani ręcznie</span>
-          </footer>
         </main>
       </div>
-      <AppSettingsPanel
-        open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        preferences={effective}
-        persistent={settings.persistent}
-        editing={Boolean(editor.drafts.dashboard)}
-        backgroundMedia={backgroundMedia}
-        onBackgroundChange={(background) =>
-          settings.setPreferences((previous) => ({ ...previous, background }))
-        }
-        onChange={(next) =>
-          settings.setPreferences({
-            ...settings.preferences,
-            theme: next.theme,
-            accent: next.accent,
-            material: next.material,
-          })
-        }
-        onToggle={editor.toggleWidget}
-        onReset={editor.resetAll}
-      />
     </div>
   );
 }

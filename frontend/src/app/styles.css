@@ -184,8 +184,7 @@ svg {
   gap: 10px;
   padding: 20px 6px 0;
 }
-.workspace-avatar,
-.topbar-avatar {
+.workspace-avatar {
   display: grid;
   place-items: center;
   width: 34px;
@@ -262,11 +261,6 @@ svg {
   height: 6px;
   border-radius: 50%;
   background: var(--muted);
-}
-.topbar-divider {
-  width: 1px;
-  height: 24px;
-  background: var(--border);
 }
 .icon-button {
   width: 32px;
@@ -702,17 +696,6 @@ svg {
 .trips-widget .empty-state h3 {
   margin-right: auto;
 }
-.page-footer {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding-top: 22px;
-  color: var(--muted);
-  font-size: 9px;
-}
-.footer-dot {
-  margin: 0 5px;
-}
 .dashboard-empty {
   border: 1px dashed var(--border);
   border-radius: var(--radius-card);
@@ -733,29 +716,6 @@ svg {
 }
 .dashboard-empty .button {
   margin: 4px;
-}
-.appearance-panel {
-  position: fixed;
-  inset: 0 0 0 auto;
-  width: 390px;
-  max-width: 100%;
-  height: 100dvh;
-  max-height: 100dvh;
-  margin: 0 0 0 auto;
-  padding: 0;
-  border: 0;
-  border-left: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: -15px 0 60px #00000015;
-}
-.appearance-panel[open] {
-  display: flex;
-  flex-direction: column;
-}
-.appearance-panel::backdrop {
-  background: #07132335;
-  backdrop-filter: blur(2px);
 }
 .panel-header {
   display: flex;
@@ -1095,13 +1055,6 @@ svg {
   .topbar .settings-shortcut {
     display: grid;
   }
-  .topbar-avatar {
-    width: 29px;
-    height: 29px;
-  }
-  .topbar-divider {
-    display: none;
-  }
   .main-content {
     padding: 22px 18px 18px;
   }
@@ -1150,10 +1103,6 @@ svg {
     padding-left: 15px;
     padding-right: 15px;
   }
-  .page-footer {
-    flex-direction: column;
-    gap: 4px;
-  }
   .trips-widget .empty-state {
     display: block;
     text-align: center;
@@ -1163,9 +1112,6 @@ svg {
   }
   .trips-widget .empty-state p {
     margin-top: 5px;
-  }
-  .appearance-panel {
-    width: min(390px, 100vw);
   }
 }
 @media (max-width: 390px) {

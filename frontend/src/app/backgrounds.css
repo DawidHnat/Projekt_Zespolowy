@@ -40,12 +40,7 @@
   border-radius: 7px;
   background: var(--surface);
 }
-.app-shell[data-background="true"] .page-footer {
-  margin-top: 22px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: var(--surface);
-}
+
 .app-shell[data-background="true"] .dashboard-empty {
   background: var(--surface);
 }
