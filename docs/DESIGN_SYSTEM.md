@@ -109,21 +109,54 @@ akcent i tło zmieniają się od razu. Widoczność widgetów podczas edycji Pul
 pozostaje jego szkicem. Edycja układu jest osobnym działaniem na Pulpicie, Mapie
 i Pojazdach; przejście do ustawień zachowuje szkice w pamięci.
 
-### Kafelki i zdjęcia pojazdów — SCRUM-45
+### Kafelki i zdjęcia pojazdów — SCRUM-45 i SCRUM-46
 
 `VehicleCardsPage` korzysta z API i wspólnych kontrolek `FleetControls`.
 Kafelki mają stały indywidualny rozmiar, minimum 280 × 420, domyślnie 320 × 440,
 maksimum 720 × 720 px. Flex-wrap zmienia położenie wierszy, nie zapisane rozmiary.
 `useCardResize` maluje tylko aktywny kafelek w klatkach animacji i zatwierdza
 rozmiar do szkicu przy puszczeniu; cancel/lost pointer capture odrzuca gest.
+Przy edycji zbiorowej reszta wybranej grupy otrzymuje rozmiar przy puszczeniu,
+bez przeliczania całej galerii w każdej klatce.
 Suwaki i strzałki zapewniają alternatywę dla przeciągania. CSS ogranicza szerokość
 na telefonie bez nadpisywania rozmiaru użytkownika.
 
 `VehiclePreferencesProvider` udostępnia zdjęcia i niezależny szkic rozmiarów.
-Klucz localStorage `fleet-flow.vehicles.v1.<user-id>` oraz IndexedDB
+Klucz localStorage `fleet-flow.vehicles.v2.<user-id>` oraz IndexedDB
 `fleet-flow.vehicle-photos.v1` izolują preferencje kont. Wylogowanie zwalnia URL-e
 obiektowe; podmiana i usunięcie zdjęcia też je zwalniają. Upload zapisuje się
 od razu, niezależnie od Zapisz/Anuluj układu. Brak zapisu ma jawny stan sesji.
+
+`vehicle-layout.ts` przechowuje domyślny rozmiar całej floty i nadpisania
+poszczególnych pojazdów. Odczyt v1 zachowuje istniejące rozmiary; zapis v2
+następuje dopiero po zatwierdzeniu. Operacje na szkicu są niemutowalne.
+Tryb „Wszystkie pojazdy” obejmuje całą flotę, także poza stroną i filtrami,
+oraz przyszłe pojazdy. Tryb „Zaznaczone” dotyczy trwałych ID, zachowuje wybór
+podczas zmiany strony i filtrów. Zaznaczenia są tylko stanem edycji, nie zapisem.
+Kliknięcie treści karty oraz checkbox zaznaczają; przyciski i linki zachowują
+swoją funkcję. W trybie Wszystkie kliknięcie karty rozpoczyna wybór pojedynczy.
+Otwarcie rozmiaru lub narożnik niezaznaczonej karty wybiera wyłącznie tę kartę;
+zaznaczona karta zmienia wybraną grupę. Suwak i strzałka wyrównują jeden wymiar,
+presety i narożnik oba. Dialog opisuje zakres i mieszane rozmiary.
+Zapisz/Anuluj obejmują całość szkicu. Reset także wymaga zatwierdzenia.
+
+### Wspólna paginacja list — SCRUM-46
+
+`shared/components/ListPagination` jest niezależny od domeny. Przyjmuje stronę,
+limit, liczbę wyników, stan ładowania i callbacki. Pokazuje zakres i wybór
+10/25/50/100, także dla pustego wyniku i jednej strony. Kontrolki są na dole
+po prawej, poza przewijaną zawartością; zawijają się w małym kontenerze.
+Ładowanie blokuje kolejne żądania z kontrolek. Zakres nie przekracza liczby
+wyników. `pagination-model.ts` ogranicza wartości zgodnie z limitem API.
+
+`FleetProvider` dzieli limit między galerią, tabelą i listą Mapy. Zmiana limitu
+wraca na stronę 1. Preferencja limitu jest lokalna dla konta pod kluczem
+`fleet-flow.list-page-size.v1.<user-id>`; brak localStorage pozostawia stan sesji.
+Filtrowanie i mapowanie floty pozostają niezależne od stronicowania listy.
+`useWidgetMinimums` uwzględnia footer i pierwszy rekord, a dla pustej listy
+mierzy komunikat zamiast rozciągniętego kontenera, aby uniknąć pętli wzrostu.
+Nowe rzeczywiste listy powinny używać tego komponentu; puste sekcje planowane
+nie otrzymują sztucznej paginacji.
 
 Wspólne `shared/media` waliduje format i limity obrazu oraz koduje go ponownie
 bez metadanych. Zdjęcia pojazdów mają maksymalny bok 1024 px, tła 2560 px.

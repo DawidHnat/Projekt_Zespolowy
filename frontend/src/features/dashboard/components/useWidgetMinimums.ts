@@ -19,7 +19,7 @@ function contentHeight(id: WidgetId, body: HTMLElement): number {
       ".fleet-filters",
       ".fleet-notice",
       ".fleet-update",
-      ".fleet-pagination",
+      ".list-pagination",
     ].reduce(
       (sum, selector) =>
         sum +
@@ -33,6 +33,8 @@ function contentHeight(id: WidgetId, body: HTMLElement): number {
         Math.max(44, row?.getBoundingClientRect().height ?? 0)
       );
     if (card) return fixed + card.getBoundingClientRect().height;
+    const empty = body.querySelector(".empty-state");
+    if (empty) return fixed + empty.getBoundingClientRect().height;
   }
   return body.getBoundingClientRect().height;
 }
@@ -77,7 +79,7 @@ export function useWidgetMinimums(
     const observeContent = () =>
       root
         .querySelectorAll(
-          ".widget-header, .widget-content-inner, .fleet-filters, .fleet-pagination, .fleet-notice, .vehicle-card:first-child, .vehicle-table thead, .vehicle-table tbody tr:first-child",
+          ".widget-header, .widget-content-inner, .fleet-filters, .list-pagination, .fleet-notice, .vehicle-card:first-child, .vehicle-table thead, .vehicle-table tbody tr:first-child",
         )
         .forEach((element) => observer.observe(element));
     observeContent();

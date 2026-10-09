@@ -14,29 +14,37 @@ import {
   deleteVehiclePhoto,
 } from "./vehicle-photo-store";
 import {
-  CARD_DEFAULT,
-  normalizeVehicleLayout,
-  resizeCard,
+  normalizeLayoutConfig,
+  cardSize,
+  resizeCards,
+  targetSizes,
+  validVehicleId,
   type CardSize,
-  type VehicleLayout,
+  type VehicleLayoutConfig,
 } from "./vehicle-layout";
 
 function usePreferences(scope: string) {
-  const storageKey = `fleet-flow.vehicles.v1.${scope}`;
+  const storageKey = `fleet-flow.vehicles.v2.${scope}`;
   const [initial] = useState(() => {
     try {
       return {
-        layout: normalizeVehicleLayout(
-          JSON.parse(localStorage.getItem(storageKey) || "{}"),
+        layout: normalizeLayoutConfig(
+          JSON.parse(
+            localStorage.getItem(storageKey) ??
+              localStorage.getItem(`fleet-flow.vehicles.v1.${scope}`) ??
+              "{}",
+          ),
         ),
         persistent: true,
       };
     } catch {
-      return { layout: {}, persistent: false };
+      return { layout: normalizeLayoutConfig(null), persistent: false };
     }
   });
-  const [saved, setSaved] = useState<VehicleLayout>(initial.layout);
-  const [draft, setDraft] = useState<VehicleLayout | null>(null);
+  const [saved, setSaved] = useState<VehicleLayoutConfig>(initial.layout);
+  const [draft, setDraft] = useState<VehicleLayoutConfig | null>(null);
+  const [editScope, setEditScope] = useState<"all" | "selected">("selected");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [persistent, setPersistent] = useState(initial.persistent);
   const [photos, setPhotos] = useState<Record<string, string>>({});
   const [photosLoading, setPhotosLoading] = useState(true);
@@ -139,17 +147,78 @@ function usePreferences(scope: string) {
     remove,
     persistent,
     editing: draft !== null,
-    size: (id: string) => (draft ?? saved)[id] ?? CARD_DEFAULT,
-    start: () => setDraft((previous) => previous ?? { ...saved }),
-    change: (id: string, size: CardSize) =>
+    editScope,
+    selectedIds,
+    setEditScope,
+    isSelected: (id: string) =>
+      draft !== null && (editScope === "all" || selectedIds.includes(id)),
+    groupSize: targetSizes(
+      draft ?? saved,
+      editScope === "all" ? "all" : selectedIds,
+    ),
+    toggle: (id: string) => {
+      if (!draft || !validVehicleId(id)) return;
+      if (editScope === "all") {
+        setEditScope("selected");
+        setSelectedIds([id]);
+      } else
+        setSelectedIds((ids) =>
+          ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id],
+        );
+    },
+    selectVisible: (ids: string[]) => {
+      setEditScope("selected");
+      setSelectedIds((previous) => [
+        ...new Set([...previous, ...ids.filter(validVehicleId)]),
+      ]);
+    },
+    clearSelection: () => {
+      setEditScope("selected");
+      setSelectedIds([]);
+    },
+    focus: (id: string) => {
+      if (editScope === "selected" && !selectedIds.includes(id))
+        setSelectedIds([id]);
+    },
+    size: (id: string) => cardSize(draft ?? saved, id),
+    start: () => {
+      if (draft) return;
+      setEditScope("selected");
+      setSelectedIds([]);
+      setDraft(saved);
+    },
+    change: (id: string, patch: Partial<CardSize>) =>
       setDraft((previous) =>
-        previous ? resizeCard(previous, id, size) : previous,
+        previous
+          ? resizeCards(
+              previous,
+              editScope === "all"
+                ? "all"
+                : selectedIds.includes(id)
+                  ? selectedIds
+                  : [id],
+              patch,
+            )
+          : previous,
       ),
-    reset: () => setDraft((previous) => (previous ? {} : previous)),
+    changeGroup: (patch: Partial<CardSize>) =>
+      setDraft((previous) =>
+        previous
+          ? resizeCards(
+              previous,
+              editScope === "all" ? "all" : selectedIds,
+              patch,
+            )
+          : previous,
+      ),
+    reset: () =>
+      setDraft((previous) =>
+        previous ? normalizeLayoutConfig(null) : previous,
+      ),
     cancel: () => setDraft(null),
     save: () => {
       if (!draft) return;
-      const next = normalizeVehicleLayout(draft);
+      const next = normalizeLayoutConfig(draft);
       try {
         localStorage.setItem(storageKey, JSON.stringify(next));
         setPersistent(true);

@@ -6,6 +6,8 @@ import {
   type ReactNode,
 } from "react";
 import { api } from "../../../shared/api/client";
+import { useAuth } from "../../auth/AuthProvider";
+import { normalizePageSize } from "../../../shared/components/pagination-model";
 import type {
   FleetMap,
   Summary,
@@ -23,16 +25,20 @@ type FleetState = {
   q: string;
   status: VehicleStatus | "";
   page: number;
+  pageSize: number;
   selectedId: string | null;
   selected: Vehicle | null;
   setQ: (q: string) => void;
   setStatus: (status: VehicleStatus | "") => void;
   setPage: (page: number) => void;
+  setPageSize: (size: number) => void;
   select: (id: string) => void;
   refresh: () => void;
 };
 const Context = createContext<FleetState | null>(null);
 export function FleetProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const storageKey = `fleet-flow.list-page-size.v1.${user?.id}`;
   const [list, setList] = useState<VehicleList | null>(null);
   const [map, setMap] = useState<FleetMap | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -42,6 +48,23 @@ export function FleetProvider({ children }: { children: ReactNode }) {
   const [debouncedQ, setDebouncedQ] = useState("");
   const [status, setFilter] = useState<VehicleStatus | "">("");
   const [page, setPage] = useState(1);
+  const [pageSize, setSize] = useState(() => {
+    try {
+      return normalizePageSize(Number(localStorage.getItem(storageKey)));
+    } catch {
+      return 25;
+    }
+  });
+  const setPageSize = (value: number) => {
+    const next = normalizePageSize(value);
+    setSize(next);
+    setPage(1);
+    try {
+      localStorage.setItem(storageKey, String(next));
+    } catch {
+      /* Session-only preference. */
+    }
+  };
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Vehicle | null>(null);
   const [revision, setRevision] = useState(0);
@@ -63,7 +86,7 @@ export function FleetProvider({ children }: { children: ReactNode }) {
       try {
         const [nextList, nextMap, nextSummary] = await Promise.all([
           api<VehicleList>(
-            `/fleet/vehicles?${filter}&page=${page}&page_size=25`,
+            `/fleet/vehicles?${filter}&page=${page}&page_size=${pageSize}`,
             { signal: controller.signal },
           ),
           api<FleetMap>(`/fleet/map?${filter}`, { signal: controller.signal }),
@@ -92,7 +115,7 @@ export function FleetProvider({ children }: { children: ReactNode }) {
       controller.abort();
       clearInterval(timer);
     };
-  }, [debouncedQ, status, page, revision]);
+  }, [debouncedQ, status, page, pageSize, revision]);
   useEffect(() => {
     if (!selectedId) {
       setSelected(null);
@@ -134,11 +157,13 @@ export function FleetProvider({ children }: { children: ReactNode }) {
         q,
         status,
         page,
+        pageSize,
         selectedId,
         selected,
         setQ,
         setStatus,
         setPage,
+        setPageSize,
         select: setSelectedId,
         refresh: () => setRevision((v) => v + 1),
       }}
