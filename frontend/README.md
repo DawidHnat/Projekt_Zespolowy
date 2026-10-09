@@ -144,7 +144,10 @@ konfiguracja skrzynki nadawcy nie zastępuje adresów użytkowników.
 
 „Pojazdy” (`#vehicles`) pokazują dane API w kafelkach, ze wspólnymi filtrami
 nazwy/rejestracji i statusu oraz paginacją. Domyślny kafelek ma 320 × 440 px.
-„Edytuj układ” udostępnia zakres Wszystkie pojazdy lub Zaznaczone. Kliknięcie
+„Edytuj układ” udostępnia zakres Wszystkie pojazdy lub Zaznaczone.
+Wybór zakresu jest w nagłówku obok Zapisz/Anuluj, a poniżej są akcje
+zaznaczania i lista rozmiarów (Małe, Standardowe, Duże, Własny rozmiar).
+Edycja nie rozwija dodatkowego panelu nad galerią. Kliknięcie
 kafelka/checkbox zaznacza go i podświetla; wybór pozostaje podczas zmiany strony
 i filtrów. Można rozciągnąć narożnik wybranej grupy albo zmienić rozmiar
 suwakami/presetami. Suwak zmienia jeden wymiar, preset wyrównuje oba.

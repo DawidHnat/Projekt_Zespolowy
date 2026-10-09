@@ -139,6 +139,10 @@ Otwarcie rozmiaru lub narożnik niezaznaczonej karty wybiera wyłącznie tę kar
 zaznaczona karta zmienia wybraną grupę. Suwak i strzałka wyrównują jeden wymiar,
 presety i narożnik oba. Dialog opisuje zakres i mieszane rozmiary.
 Zapisz/Anuluj obejmują całość szkicu. Reset także wymaga zatwierdzenia.
+`VehicleLayoutEditorControls` komponuje wspólne przyciski Zapisz/Anuluj z zakresem
+edycji w nagłówku Pojazdów. Zaznaczanie i wybór rozmiaru pozostają w tym samym
+nagłówku; nie rozwijaj osobnego panelu w filtrach nad galerią. Lista rozmiarów
+oferuje presety oraz dialog własnego rozmiaru. Kontrolki zawijają się na telefonie.
 
 ### Wspólna paginacja list — SCRUM-46
 

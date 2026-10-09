@@ -29,13 +29,12 @@ import { WIDGET_IDS } from "../features/dashboard/model/widget-types";
 
 import { useAuth } from "../features/auth/AuthProvider";
 import { VehicleCardsPage } from "../features/fleet/components/VehicleCardsPage";
-import { useVehiclePreferences } from "../features/fleet/model/VehiclePreferences";
+import { VehicleLayoutEditorControls } from "../features/fleet/components/VehicleLayoutEditorControls";
 
 const readSection = () => sectionFromHash(window.location.hash);
 
 export function App() {
   const auth = useAuth();
-  const vehiclePreferences = useVehiclePreferences();
   const [logoutError, setLogoutError] = useState(false);
   const settings = useDashboardPreferences();
   const backgroundMedia = useBackgroundImage();
@@ -227,7 +226,9 @@ export function App() {
           className={`main-content ${section === "map" ? "map-main-content" : ""}`}
           tabIndex={-1}
         >
-          <div className="page-heading">
+          <div
+            className={`page-heading ${section === "vehicles" ? "vehicles-page-heading" : ""}`}
+          >
             <div className="page-heading-copy">
               <span className="eyebrow">
                 FLEET-FLOW / {current.title.toLocaleUpperCase("pl")}
@@ -252,14 +253,7 @@ export function App() {
               />
             )}
             {section === "vehicles" && (
-              <LayoutEditorControls
-                title="Pojazdy"
-                editing={vehiclePreferences.editing}
-                onEdit={vehiclePreferences.start}
-                onSave={vehiclePreferences.save}
-                onCancel={vehiclePreferences.cancel}
-                onReset={vehiclePreferences.reset}
-              />
+              <VehicleLayoutEditorControls />
             )}
           </div>
           {isDashboard ? (

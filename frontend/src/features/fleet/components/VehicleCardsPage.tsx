@@ -14,7 +14,6 @@ import { VehiclePhoto } from "./VehiclePhoto";
 import { FleetFilters, FleetPagination } from "./FleetControls";
 import { FleetNotice } from "./FleetNotice";
 import { VehicleSizeDialog } from "./VehicleSizeDialog";
-import { VehicleBulkEditor } from "./VehicleBulkEditor";
 import { VehiclePhotoDialog } from "./VehiclePhotoDialog";
 import { EmptyState } from "../../../shared/components/EmptyState";
 
@@ -176,12 +175,6 @@ export function VehicleCardsPage() {
             </span>
           )}
         </div>
-        {p.editing && (
-          <VehicleBulkEditor
-            visibleIds={f.list?.items.map((v) => v.id) ?? []}
-            onSize={() => setSizing(true)}
-          />
-        )}
       </div>
       {!f.list?.items.length ? (
         <EmptyState

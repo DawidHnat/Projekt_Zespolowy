@@ -178,19 +178,31 @@
   margin: 0;
   accent-color: var(--accent);
 }
-.vehicle-bulk-editor {
-  padding: 14px 16px 0;
-  margin-top: 12px;
-  border-top: 1px solid var(--border);
-  display: grid;
-  gap: 12px;
+.vehicles-page-heading {
+  flex-wrap: wrap;
 }
-.vehicle-bulk-row {
+.vehicles-page-heading .page-heading-copy {
+  flex: 1 1 180px;
+}
+.vehicle-layout-editor {
+  flex: 2 1 600px;
+  min-width: 0;
+  min-height: 108px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+.vehicle-layout-actions,
+.vehicle-layout-options {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: flex-end;
+  gap: 10px 16px;
+}
+.vehicle-layout-actions .layout-editor-controls {
+  width: auto;
 }
 .vehicle-edit-scope {
   display: flex;
@@ -203,7 +215,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 12px;
+  padding: 7px 10px;
   border-radius: 9px;
   font-size: 12px;
   font-weight: 600;
@@ -227,29 +239,36 @@
   background: transparent;
   color: var(--accent);
   font-size: 11px;
-  padding: 5px 0;
+  padding: 8px 0;
 }
-.vehicle-bulk-row p {
+.page-heading .vehicle-layout-status {
   margin: 0;
   color: var(--muted);
   font-size: 11px;
   line-height: 1.6;
+  text-align: right;
+  max-width: none;
 }
-.vehicle-bulk-sizes {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-.vehicle-bulk-sizes > span {
-  color: var(--muted);
-  font-size: 10px;
-  margin-right: 4px;
-}
-.vehicle-bulk-sizes .button {
+.vehicle-size-picker {
+  height: 34px;
   font-size: 11px;
   padding: 8px 10px;
-  min-height: 34px;
+}
+@media (max-width: 760px) {
+  .vehicle-layout-editor {
+    flex-basis: 100%;
+    min-height: 108px;
+  }
+  .vehicle-layout-actions,
+  .vehicle-layout-options {
+    justify-content: flex-start;
+  }
+  .vehicle-layout-actions .layout-editor-controls {
+    flex-basis: auto;
+  }
+  .page-heading .vehicle-layout-status {
+    text-align: left;
+  }
 }
 @media (forced-colors: active) {
   .tile-selected {
