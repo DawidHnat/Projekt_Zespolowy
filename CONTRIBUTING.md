@@ -1,6 +1,7 @@
 # Współpraca
 
-Frontend ma uruchamialny szkielet dashboardu. Pozostałe puste pliki pozostają
+`main` ma uruchamialny frontend, backend i konfigurację lokalnej bazy.
+Pozostałe puste pliki pozostają
 puste, dopóki osobne zadanie nie dotyczy implementacji. Zakres produktu
 i role są w README, a ustalenia zespołu w TEAM_CONTRACT.md.
 
@@ -26,11 +27,13 @@ i role są w README, a ustalenia zespołu w TEAM_CONTRACT.md.
    sprawdzenia. Niedokończony PR oznacz jako draft.
 6. Drugi developer sprawdza zmianę, a QA potwierdza kryteria, jeśli dotyczy
    zachowania aplikacji. Poprawki trafiają na tę samą gałąź.
-7. Po przeglądzie scal PR, zachowując autorstwo commitów. Następnie ustaw
-   **Done** w Jirze i dodaj link do PR. Nie wysyłaj zmian bezpośrednio na `main`.
+7. Po przeglądzie scal PR, zachowując autorstwo commitów, i dodaj link w Jirze.
+   Ustaw **Done** dopiero po spełnieniu wszystkich kryteriów zadania oraz odbiorze
+   QA. Scalenie częściowego przyrostu nie zamyka całej Story.
+   Nie wysyłaj zmian bezpośrednio na `main`.
 
 Sekrety, klucze prywatne i `.env` pozostają poza repozytorium. Przed pushem
-sprawdzamy zakres zmian; testy i kontrole dodamy wraz z kodem, który sprawdzają.
+sprawdzamy zakres zmian; nowe zachowanie sprawdzamy odpowiednimi testami.
 CI sprawdza backend i frontend. Automatyczne PR-y, płatny przegląd API AI
 i automerge nie są skonfigurowane.
 
@@ -45,4 +48,3 @@ sprawdzamy i scalamy od najstarszej zależności. Nie omija to review ani QA.
 Frontend sprawdzamy poleceniami `npm test` i `npm run build` w `frontend/`.
 Zmiany wyglądu wymagają sprawdzenia w przeglądarce na komputerze i małym ekranie.
 Uzgodnienia UI opisuje [system wyglądu](docs/DESIGN_SYSTEM.md).
-

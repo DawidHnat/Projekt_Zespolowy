@@ -150,7 +150,8 @@ treść zakładek oraz synchronizacja historii są kolejnym przyrostem.
 Backend ma FastAPI, PostgreSQL, migracje, sesje i synchronizację pojazdów WEBFLEET.
 Kierowcy są wpisywani ręcznie i nigdy nie są importowani z WEBFLEET. Pozostałe
 moduły historii, analityki, serwisu i kart paliwowych są kolejnymi przyrostami.
-Implementacja jest w zależnych PR-ach do przeglądu.
+Podstawa aplikacji jest scalona do `main`. Kolejne zadania rozpoczynamy
+z aktualnego `main`; pozostały zakres i odbiór QA śledzimy w Jirze.
 
 1. Skopiuj `.env.example` do lokalnego `.env` i uzupełnij wartości.
 2. Uruchom bazę, migracje, utwórz konto i uruchom API według [backend/README.md](backend/README.md).

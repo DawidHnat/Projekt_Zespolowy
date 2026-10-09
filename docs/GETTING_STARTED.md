@@ -1,50 +1,54 @@
 # Rozpoczęcie pracy
 
-Repozytorium ma na razie puste pliki źródłowe. Nie ma jeszcze polecenia,
-które uruchamia aplikację. Pracę lokalną można rozpocząć niezależnie od VPS.
+Podstawa aplikacji jest w `main`: React + TypeScript, FastAPI, PostgreSQL,
+logowanie, lista i mapa floty oraz personalizacja widoków. Puste moduły czekają
+na swoje zadania implementacji. Pracę lokalną można rozpocząć niezależnie od VPS.
 
 ## Każdy członek zespołu
 
 1. Klonuje `https://github.com/DawidHnat/Projekt_Zespolowy` na własny komputer.
-2. Ustawia w tym repozytorium własne `git config user.name` oraz
-   `git config user.email` zgodne z kontem GitHub. Sprawdza `git config --get
-   user.name` i `git config --get user.email` przed pierwszym commitem.
-3. Wybiera przypisane zadanie z [podziału pracy](TASKS.md), czyta kryteria
-   akceptacji i tworzy gałąź zgodnie z [CONTRIBUTING](../CONTRIBUTING.md).
-4. Dostarcza Dawidowi własny publiczny klucz SSH `.pub` według
-   [instrukcji VPS](../infra/vps/README.md). Prywatnego klucza nie przekazuje.
-5. Po dodaniu klucza zapisuje własny test SSH z kodem wyjścia w
-   [SCRUM-12](https://fleet-flow.atlassian.net/browse/SCRUM-12).
+   Jeśli już pracuje w repozytorium, zapisuje rozpoczęte zmiany na swojej gałęzi,
+   następnie aktualizuje podstawę:
 
-## Pierwszy PR z uruchamianiem — SCRUM-13, Jakub Czaja
+   ```bash
+   git fetch origin
+   git switch main
+   git pull --ff-only
+   ```
 
-Minimalna podstawa obejmuje konfigurację React i TypeScript, FastAPI,
-PostgreSQL oraz wspólne polecenia uruchomienia. Kryteria tego etapu:
+2. Ustawia własne `git config user.name` i `git config user.email` zgodne z kontem
+   GitHub. Sprawdza je przed pierwszym commitem.
+3. Przygotowuje Node.js wskazany w `frontend/.nvmrc`, Python 3.12 lub 3.13
+   i lokalny Docker do PostgreSQL.
+4. Uruchamia bazę, migracje, tworzy własne konto aplikacji i uruchamia API według
+   [backend/README.md](../backend/README.md). Uzupełnia własny lokalny `.env`
+   zgodnie z `.env.example`; istniejącego `.env` nie nadpisuje.
+5. W drugim terminalu wykonuje `npm ci` i `npm run dev` w `frontend/`, według
+   [frontend/README.md](../frontend/README.md). Loguje się swoim kontem aplikacji.
+   Dane WEBFLEET pobiera backend; publiczny token Mapbox jest potrzebny do mapy.
+6. Czyta przypisane zadanie oraz kryteria akceptacji w Jirze i tworzy gałąź
+   zadania z aktualnego `main`, zgodnie z [CONTRIBUTING](../CONTRIBUTING.md).
+   Zmiana trafia do osobnego PR z opisem i wynikami sprawdzeń.
+7. Dostarcza Dawidowi własny publiczny klucz SSH `.pub` według
+   [instrukcji VPS](../infra/vps/README.md), a po dodaniu klucza zapisuje własny
+   test SSH z kodem wyjścia w [SCRUM-12](https://fleet-flow.atlassian.net/browse/SCRUM-12).
+   Klucza prywatnego nie przekazuje.
 
-- wersje Node i Python oraz zależności zapisane w repozytorium, pliki blokad
-  aktualizowane razem ze zmianą zależności;
-- frontend wyświetla tylko ekran startowy, backend udostępnia sprawdzalny
-  stan działania, baza uruchamia się lokalnie i ma migracje;
-- instrukcja uruchomienia działa po świeżym klonowaniu na drugim komputerze;
-- `.env.example` zawiera wyłącznie nazwy zmiennych i bezpieczne przykłady;
-  rzeczywiste dane WEBFLEET pozostają w lokalnym `.env` backendu;
-- GitHub Actions sprawdza build TypeScript oraz odpowiednie kontrole backendu;
-- baza nasłuchuje lokalnie; dostęp do rzeczywistych danych floty pozostaje
-  po stronie backendu i wymaga uwierzytelnienia aplikacji.
+## Kolejne prace
 
-Dokładne wersje narzędzi ustalamy w tym PR. Nie trzeba instalować ich globalnie
-na VPS, aby spełnić kryterium logowania SSH z zadania zespołowego.
+Aktualne przypisania i statusy są w [Jirze](https://fleet-flow.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog).
+[Podział pracy](TASKS.md) opisuje scalony zakres oraz następne przyrosty:
+ręczną kartotekę pojazdu, dokumenty, historię przejazdów i QA.
 
-## Prace równoległe
+Frontend i backend pracują według [modelu danych](DATA_MODEL.md)
+oraz [kontraktu API](../contracts/api-design.json). Nowe pola uzgadniamy w zadaniu
+przed równoległą implementacją. Kierowcy są wpisywani ręcznie.
 
-| Osoba | Pierwsze zadanie | Wynik |
-| --- | --- | --- |
-| Jakub Czaja | SCRUM-13 | Minimalne uruchomienie i CI, bez implementacji trzech funkcji |
-| Dawid Hnat | SCRUM-36 oraz SCRUM-14 | Kontrakt API, model danych i sprawdzenie dostępnych danych WEBFLEET |
-| Jakub Nazarewicz | SCRUM-35 | Szkice trzech widoków i przepływy użytkownika |
-| Marcel Głowacki | SCRUM-37 | Plan QA i przypadki syntetyczne z oczekiwanymi wynikami |
+Weryfikacja frontendu: `npm test` i `npm run build` w `frontend/` oraz zachowanie
+w przeglądarce. Weryfikacja backendu: `ruff check .`, `ruff format --check .`
+i `pytest` w `backend/`. Testy działają bez prawdziwych danych i sekretów;
+szczegóły osobnej bazy testowej opisuje instrukcja backendu.
 
-Po uzgodnieniu kontraktu API i scaleniu podstawy można rozpocząć zadania
-implementacji przypisane w Jirze. Kod i dokumentacja trafiają przez gałąź
-zadania i PR. Automatyczne tworzenie PR, przegląd przez płatne API AI i
-automatyczne scalanie wymagają osobnego przygotowania.
+Scalenie PR nie oznacza automatycznie odbioru całej Story. Pozostałe kryteria
+i QA nadal realizujemy w Jirze. Przegląd przez płatne API AI oraz stałe
+automatyczne scalanie wymagają osobnej decyzji i konfiguracji.
