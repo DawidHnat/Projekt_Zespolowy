@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, pool
 
 from app.core.models import Base
 from app.core.settings import Settings
+from app.modules.auth import models as auth_models  # noqa: F401
 
 url = Settings.from_environment().database_url
 if context.is_offline_mode():

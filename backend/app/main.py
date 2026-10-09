@@ -9,6 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.core.database import make_engine, make_sessions
 from app.core.errors import register_handlers
 from app.core.settings import Settings
+from app.modules.auth.router import router as auth_router
 
 
 def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
@@ -32,6 +33,7 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
         allow_headers=["Content-Type"],
     )
     register_handlers(app)
+    app.include_router(auth_router)
 
     @app.middleware("http")
     async def private_responses(request: Request, call_next):
