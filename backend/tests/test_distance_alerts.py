@@ -1,4 +1,6 @@
 import os
+import subprocess
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
@@ -11,7 +13,7 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
 from app.core.config import WebfleetSettings
-from app.core.models import Base, Measurement, Vehicle
+from app.core.models import Measurement, Vehicle
 from app.modules.analytics.models import Alert, AlertReceipt, DailyDistance, Rule
 from app.modules.analytics.service import WARSAW, evaluate_distance_rules, record_distance_interval
 from app.modules.auth.models import User
@@ -420,8 +422,16 @@ def test_postgres_parallel_evaluation_and_sync_share_deduplication():
     if not url:
         pytest.skip("Requires an isolated PostgreSQL database")
     assert make_url(url).database.startswith("fleet_flow_test"), "Refusing a non-test database"
+    # Use the real migrations; create_all before migration tests would leave an
+    # unversioned schema and make upgrade try to recreate existing tables.
+    migration = subprocess.run(
+        [sys.executable, "-m", "alembic", "upgrade", "head"],
+        env={**os.environ, "DATABASE_URL": url, "SYNC_ENABLED": "false"},
+        capture_output=True,
+        text=True,
+    )
+    assert migration.returncode == 0, "Failed to initialize the isolated test schema"
     engine = create_engine(url)
-    Base.metadata.create_all(engine)
     try:
         source = "synthetic-alerts-" + uuid4().hex
         now = datetime(2026, 1, 10, 12, tzinfo=UTC)
