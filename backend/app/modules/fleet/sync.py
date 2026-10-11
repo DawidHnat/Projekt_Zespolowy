@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.core.models import Measurement, SyncState, Vehicle
 from app.integrations.webfleet.client import WebfleetClient, WebfleetError
 from app.integrations.webfleet.models import ObjectSnapshot
+from app.modules.analytics.service import evaluate_distance_rules, record_distance_interval
 from app.modules.auth.service import aware
 
 
@@ -71,6 +72,7 @@ def apply_records(session, source, masters, readings, now):
             if not measurement:
                 measurement = Measurement(vehicle_id=vehicle.id, received_at=now)
                 session.add(measurement)
+            record_distance_interval(session, vehicle.id, measurement, reading, now)
             for field in (
                 "latitude",
                 "longitude",
@@ -116,6 +118,8 @@ def sync_once(engine, settings, *, client_factory=WebfleetClient, now=None):
                     masters, snapshots = asyncio.run(read_vehicle_data(settings, client_factory))
                     indexed, readings = validate_records(masters, snapshots)
                     apply_records(session, source, indexed, readings, now)
+                    session.flush()
+                    evaluate_distance_rules(session, source, now=now)
                     state.last_success_at = now
                     state.error_code = None
                     session.commit()

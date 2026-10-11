@@ -148,8 +148,11 @@ panel z zakładkami Pojazd, Kierowca, Przegląd i Podróże.
 Panel i kafelek Ostatnie przejazdy mają wybór dnia;
 treść zakładek oraz synchronizacja historii są kolejnym przyrostem.
 Backend ma FastAPI, PostgreSQL, migracje, sesje i synchronizację pojazdów WEBFLEET.
+Ma też API reguł dziennego dystansu i trwałych alertów z ochroną przed duplikatami
+(SCRUM-31). Dystans obejmuje odebrane pomiary, z jawnym niepełnym pokryciem dnia;
+formularz reguł i lista alertów we frontendzie są kolejnym zadaniem (SCRUM-32).
 Kierowcy są wpisywani ręcznie i nigdy nie są importowani z WEBFLEET. Pozostałe
-moduły historii, analityki, serwisu i kart paliwowych są kolejnymi przyrostami.
+moduły historii, zestawień analitycznych, serwisu i kart paliwowych są kolejnymi przyrostami.
 Podstawa aplikacji jest scalona do `main`. Kolejne zadania rozpoczynamy
 z aktualnego `main`; pozostały zakres i odbiór QA śledzimy w Jirze.
 

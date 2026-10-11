@@ -15,6 +15,7 @@ opis operacji nie oznacza jej implementacji.
 | Trip | UUID; Vehicle + unikalny identyfikator przejazdu źródła | WEBFLEET: czas, dystans, punkty trasy; import historii w dalszym zadaniu |
 | TripAnnotation | jeden rekord na Trip, autor User, wersja | ręczny cel/opis; synchronizacja nie nadpisuje |
 | Rule | UUID, typ, próg, aktywność, opcjonalny Vehicle | użytkownik; tylko obsługiwane typy reguł |
+| DailyDistance | Vehicle + polska data pomiaru; dystans i granice obserwacji | dolna granica dystansu z kolejnych pomiarów, nie pełna historia dnia (SCRUM-31) |
 | Alert | UUID, Rule, Vehicle, czas zdarzenia, klucz deduplikacji | wynik reguły; odczyt osobno per User w AlertReceipt |
 | User / Session | UUID / hash losowego tokenu sesji, termin ważności | lokalne konta aplikacji, niezależne od Driver i WEBFLEET |
 | SyncState | klucz konta źródła, próba/sukces, bezpieczny kod błędu | koordynacja odpytywania i stan pamięci podręcznej |
@@ -68,7 +69,25 @@ Brak publicznej rejestracji. Błędy: `{ "error": { "code": "...", "message":
 Przyszła edycja celu/opisu używa wersji optymistycznej (`version`); zmiana
 przez drugą osobę zwraca 409 zamiast nadpisania. AlertReceipt przechowuje stan
 odczytu osobno od Alert. Analityka jawnie podaje pokrycie okresu i nie liczy
-brakujących danych jako zera. Nie ma jeszcze API obliczeń ani historii.
+brakujących danych jako zera. API zestawień i historii nie jest jeszcze zaimplementowane.
+
+SCRUM-31 implementuje `daily_distance_threshold`, zgodnie z dziennym dystansem
+ze Story SCRUM-7. Zastępuje wcześniejszą propozycję `odometer_threshold`, która
+dotyczyła wartości licznika. Obserwowany dystans sumuje różnice licznika z
+kolejnych pomiarów w tym samym dniu `Europe/Warsaw`, z odstępem do 15 minut.
+Pierwszy odczyt, brak danych, cofnięcie licznika, większa luka i odcinek przez
+północ nie dopisują zgadywanego dystansu. Pokrycie pozostaje `partial`; pełne
+obliczenia z historii przejazdów należą do SCRUM-24/29. To nie jest dzienna
+wartość absolutnego licznika ani twierdzenie o pełnym pokryciu dnia.
+
+Reguły obsługują GET/POST/PATCH, dodatni próg 0,1 km, jeden aktywny pojazd lub
+całą flotę. Wyłączenie nie usuwa historii. Alert powstaje po przekroczeniu progu
+(równość nie wystarcza), tylko ze świeżej obserwacji; ma niezmienny snapshot
+dystansu i progu oraz UNIQUE `(rule_id, vehicle_id, event_day)`. Lista alertów
+jawnie zwraca polską datę zdarzenia i czas UTC, paginację oraz odczyt aktualnego
+użytkownika. Ponowny zapis odczytu jest idempotentny. API rozróżnia reguły
+według bieżącego konta źródła; admin/editor edytują, viewer czyta i oznacza
+własny odczyt. Pozostałe moduły tego projektu modelu zachowują swój status.
 
 Reset hasła jest osobnym przyrostem po potwierdzeniu SMTP: jednorazowy token
 przechowywany jako hash, krótki termin ważności, neutralne odpowiedzi, limit
