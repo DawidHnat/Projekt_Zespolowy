@@ -4,6 +4,7 @@ Backend ma adapter WEBFLEET i polecenia diagnostyczne integracji. Python 3.12 lu
 3.13. Testy działają bez konta WEBFLEET, skrzynki SMTP i danych klientów.
 FastAPI, PostgreSQL, migracje i health: SCRUM-39. Logowanie i sesje: SCRUM-16.
 Synchronizacja pojazdów: SCRUM-15. Zabezpieczone API listy/mapy: SCRUM-19.
+Reguły i alerty dziennego dystansu: SCRUM-31.
 Przeglądarka nie odpytuje WEBFLEET bezpośrednio.
 
 ## Uruchomienie z czystego checkoutu
@@ -188,3 +189,46 @@ Trwały outbox pozostaje dalszym usprawnieniem. Testy używają atrapy SMTP — 
 wysyłają do prawdziwych skrzynek. Dostarczenie wiadomości wymaga osobnego odbioru
 QA na zatwierdzony adres. Konta startowe bez przypisanego e-maila nadal mogą
 logować się hasłem ustawionym przez administratora.
+
+## Reguły i alerty dziennego dystansu — SCRUM-31
+
+Migracja `0004` dodaje reguły, obserwowany dzienny dystans, alerty i osobny stan
+przeczytania każdej osoby. Uruchom `alembic upgrade head` przed startem nowej wersji.
+Wszystkie operacje poniżej mają prefiks `/api/v1/analytics` i wymagają sesji:
+
+- `GET /rules` — lista z `page` / `page_size` (domyślnie 25, maksymalnie 100).
+- `POST /rules` — `type: "daily_distance_threshold"`, dodatni `threshold_km`
+  z dokładnością do 0,1 km, opcjonalny `vehicle_id` i `active` (domyślnie true).
+  `vehicle_id: null` obejmuje całą flotę bieżącego konta źródła; UUID wskazuje
+  jeden aktywny pojazd. Zapis wymaga roli admin/editor i poprawnego Origin.
+- `PATCH /rules/{UUID}` — zmiana progu, pojazdu lub aktywności; co najmniej jedno
+  pole. `{"active": false}` wyłącza regułę i zachowuje wcześniejsze alerty.
+- `GET /alerts` — paginacja jak wyżej, opcjonalne `read=true/false`; najnowsze
+  zdarzenie najpierw, UUID rozstrzyga ten sam czas. Odpowiedź zawiera próg,
+  `distance_km`, `event_day`, czas zdarzenia i `read_at` danej osoby.
+- `PATCH /alerts/{UUID}/receipt` — `{"read": true}` lub false; dostępne także
+  dla viewer, z kontrolą Origin. Nie zmienia odczytu innych użytkowników.
+
+Próg dotyczy **dystansu przejechanego w dniu**, a nie wartości licznika. Worker
+wykorzystuje już pobierane odczyty WEBFLEET, bez dodatkowych wywołań dostawcy.
+Sumuje dodatnie różnice licznika pomiędzy kolejnymi pomiarami z tego samego dnia
+`Europe/Warsaw`, oddalonymi o maksymalnie 15 minut. Pierwszy odczyt ustala punkt
+startowy. Powtórzony/starszy lub przyszły pomiar, brak wartości, cofnięcie licznika,
+luka dłuższa niż 15 minut i odcinek przez północ nie dopisują dystansu.
+Po cofnięciu licznika następny poprawny odcinek może rozpocząć nową obserwację.
+
+To dolna granica zaobserwowanego dystansu. API podaje `coverage: "partial"`;
+nie udaje pełnej historii dnia ani zerowego dystansu przy braku danych.
+Historia przejazdów i pełne zestawienia pozostają SCRUM-24/29. Dane utrzymują się
+po ponownym uruchomieniu, ponieważ dystans i checkpoint pomiaru są w PostgreSQL.
+
+Świeża obserwacja (do 15 minut) **ściśle większa** od progu generuje alert.
+Równość nie wystarcza. Przeliczenie następuje w transakcji udanej synchronizacji
+oraz po utworzeniu/edycji reguły. Klucz UNIQUE `(rule_id, vehicle_id, event_day)`
+i UPSERT chronią ponowne odczyty i równoległe procesy. Dzień jest przypisany
+według pomiaru w polskiej strefie; znaczniki czasu API są UTC. Alert przechowuje
+próg i dystans z chwili wykrycia, więc późniejsza edycja reguły nie zmienia historii.
+Reguły i alerty są ograniczone do bieżącego konta źródła. Formularze i lista we
+frontendzie pozostają SCRUM-32; odbiór zespołowy alertów jest w SCRUM-33.
+
+Przypadki testowe i instrukcja sprawdzenia: [QA SCRUM-31](../docs/qa/SCRUM-31.md).

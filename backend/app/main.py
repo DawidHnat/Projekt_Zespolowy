@@ -11,6 +11,7 @@ from app.core.config import WebfleetSettings, load_environment
 from app.core.database import make_engine, make_sessions
 from app.core.errors import register_handlers
 from app.core.settings import Settings
+from app.modules.analytics.router import router as analytics_router
 from app.modules.auth.reset import router as reset_router
 from app.modules.auth.router import router as auth_router
 from app.modules.fleet.router import router as fleet_router
@@ -53,6 +54,7 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
     app.include_router(auth_router)
     app.include_router(reset_router)
     app.include_router(fleet_router)
+    app.include_router(analytics_router)
 
     @app.middleware("http")
     async def private_responses(request: Request, call_next):

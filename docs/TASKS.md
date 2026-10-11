@@ -33,6 +33,12 @@ nie są jeszcze pobierane; przygotowane widoki mają pusty stan.
 
 ## Następne przyrosty
 
+SCRUM-31 (Jakub Czaja) dodaje backend reguł **dziennego dystansu**, trwałe
+alerty i odczyt per użytkownik. Dystans z odebranych pomiarów ma jawne niepełne
+pokrycie; nie jest wartością licznika. Szczegóły i przypadki odbioru:
+[QA SCRUM-31](qa/SCRUM-31.md). Frontend SCRUM-32 i odbiór Marcel/SCRUM-33
+pozostają osobnymi zadaniami; samo dodanie API ich nie zamyka.
+
 | Osoba | Obszar najbliższej pracy |
 | --- | --- |
 | Jakub Czaja | Odbiór produktu i zakres kolejnego przyrostu; SCRUM-57 — terminy i dokumenty pojazdu |

@@ -461,18 +461,26 @@
     {
       "method": "GET",
       "path": "/analytics/rules",
-      "delivery": "later",
-      "request_example": {},
+      "delivery": "first-SCRUM-31",
+      "request_example": {
+        "query": {
+          "page": 1,
+          "page_size": 25
+        }
+      },
       "response_example": {
         "items": [
           {
             "id": "22222222-2222-4222-8222-222222222222",
-            "type": "odometer_threshold",
+            "type": "daily_distance_threshold",
             "threshold_km": 2000,
             "vehicle_id": "11111111-1111-4111-8111-111111111111",
             "active": true
           }
-        ]
+        ],
+        "total": 1,
+        "page": 1,
+        "page_size": 25
       },
       "error_example": {
         "status": 401,
@@ -487,10 +495,10 @@
     {
       "method": "POST",
       "path": "/analytics/rules",
-      "delivery": "later",
+      "delivery": "first-SCRUM-31",
       "request_example": {
         "body": {
-          "type": "odometer_threshold",
+          "type": "daily_distance_threshold",
           "threshold_km": 2000,
           "vehicle_id": "11111111-1111-4111-8111-111111111111",
           "active": true
@@ -498,7 +506,7 @@
       },
       "response_example": {
         "id": "22222222-2222-4222-8222-222222222222",
-        "type": "odometer_threshold",
+        "type": "daily_distance_threshold",
         "threshold_km": 2000,
         "vehicle_id": "11111111-1111-4111-8111-111111111111",
         "active": true
@@ -516,7 +524,7 @@
     {
       "method": "PATCH",
       "path": "/analytics/rules/{id}",
-      "delivery": "later",
+      "delivery": "first-SCRUM-31",
       "request_example": {
         "path": {
           "id": "22222222-2222-4222-8222-222222222222"
@@ -527,7 +535,7 @@
       },
       "response_example": {
         "id": "22222222-2222-4222-8222-222222222222",
-        "type": "odometer_threshold",
+        "type": "daily_distance_threshold",
         "threshold_km": 2000,
         "vehicle_id": "11111111-1111-4111-8111-111111111111",
         "active": false
@@ -545,7 +553,7 @@
     {
       "method": "GET",
       "path": "/analytics/alerts",
-      "delivery": "later",
+      "delivery": "first-SCRUM-31",
       "request_example": {
         "query": {
           "read": false,
@@ -560,7 +568,11 @@
             "vehicle_id": "11111111-1111-4111-8111-111111111111",
             "rule_id": "22222222-2222-4222-8222-222222222222",
             "occurred_at": "2026-01-10T12:00:00Z",
-            "read_at": null
+            "read_at": null,
+            "event_day": "2026-01-10",
+            "threshold_km": 2000,
+            "distance_km": 2000.1,
+            "coverage": "partial"
           }
         ],
         "total": 1,
@@ -580,7 +592,7 @@
     {
       "method": "PATCH",
       "path": "/analytics/alerts/{id}/receipt",
-      "delivery": "later",
+      "delivery": "first-SCRUM-31",
       "request_example": {
         "path": {
           "id": "22222222-2222-4222-8222-222222222222"
