@@ -174,8 +174,9 @@ z aktualnego `main`; pozostały zakres i odbiór QA śledzimy w Jirze.
 
 Aplikację rozwijamy lokalnie. Wspólny serwer VPS OVHcloud z Ubuntu jest aktywny:
 `57.129.179.53` (`vps-9171bf52.vps.ovh.net`). Cztery indywidualne konta zespołu
-są utworzone. Logowanie kluczem `jczaja51` sprawdzono z kodem `0`;
-pozostałe trzy konta czekają na własne klucze publiczne i testy właścicieli.
+są utworzone i mają własne klucze publiczne. Po dodaniu trzech kluczy
+14 października 2026 ponownie sprawdzono logowanie `jczaja51` z kodem `0`;
+pozostałe trzy osoby muszą jeszcze wykonać testy ze swoich komputerów.
 
 - [Stan serwera i wymagane testy SSH](DEV_SERVER.md)
 - [Przygotowanie dostępu czterech osób](infra/vps/README.md)
