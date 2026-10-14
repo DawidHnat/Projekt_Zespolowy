@@ -1,6 +1,6 @@
 # Serwer deweloperski Fleet-Flow
 
-Stan: **7 października 2026 — cztery konta utworzone; SSH jczaja51 działa, trzy klucze oczekujące**.
+Stan: **14 października 2026 — wszystkie cztery klucze zainstalowane; SSH jczaja51 działa, trzy testy właścicieli oczekujące**.
 
 | Parametr | Wartość |
 | --- | --- |
@@ -29,13 +29,21 @@ wyłączeń nie jest planowany.
 | Osoba | GitHub | Docelowy login SSH | Stan |
 | --- | --- | --- | --- |
 | Jakub Czaja | `jczaja51` | `jczaja51` | Klucz dodany; rzeczywisty test BatchMode zakończony kodem `0` |
-| Dawid Hnat | `DawidHnat` | `dawidhnat` | Konto utworzone; potrzebny własny klucz publiczny i test |
-| Jakub Nazarewicz | `jnazarewiczs` | `jnazarewiczs` | Konto utworzone; potrzebny własny klucz publiczny i test |
-| Marcel Głowacki | `mglowacki0` | `mglowacki0` | Konto utworzone; potrzebny własny klucz publiczny i test |
+| Dawid Hnat | `DawidHnat` | `dawidhnat` | Własny klucz zainstalowany 14.10.2026; oczekuje testu właściciela |
+| Jakub Nazarewicz | `jnazarewiczs` | `jnazarewiczs` | Własny klucz zainstalowany 14.10.2026; oczekuje testu właściciela |
+| Marcel Głowacki | `mglowacki0` | `mglowacki0` | Własny klucz zainstalowany 14.10.2026; oczekuje testu właściciela |
 
 Każda osoba używa własnego klucza prywatnego przechowywanego na swoim
 komputerze. Instrukcja przygotowania kont jest w [infra/vps](infra/vps/README.md).
 Właściciel zadania infrastruktury: Dawid Hnat; konfiguracja: SCRUM-12.
+
+14 października administrator dodał trzy dostarczone klucze przez istniejący
+skrypt `setup-accounts.sh`, zachowując dotychczasowy klucz Jakuba Czai.
+Odciski zapisane w `authorized_keys` porównano z
+[listą kluczy publicznych](infra/vps/public-keys/README.md).
+Na wszystkich kontach `.ssh` ma prawa `700`, a `authorized_keys` — `600`,
+z właścicielem odpowiadającym kontu. To potwierdza instalację kluczy;
+testy logowania trzech pozostałych osób muszą wykonać ich właściciele.
 
 ## Zastosowana konfiguracja
 
@@ -53,7 +61,8 @@ Właściciel zadania infrastruktury: Dawid Hnat; konfiguracja: SCRUM-12.
 
 ## Wykonany test Jakuba Czai
 
-7 października 2026 wykonano świeże połączenie z Maca z `BatchMode=yes`,
+14 października 2026, po dodaniu kluczy zespołu, ponownie wykonano świeże
+połączenie z Maca z `BatchMode=yes`,
 `IdentitiesOnly=yes`, własnym kluczem i ścisłą weryfikacją zapisanego klucza
 hosta. Polecenie `hostname` na koncie `jczaja51@57.129.179.53` zwróciło:
 
@@ -93,4 +102,4 @@ Klucz z hasłem wcześniej dodajemy do `ssh-agent`; tryb BatchMode nie pyta o ha
 
 Każdy test ma zwrócić nazwę `fleet-flow-dev` i kod `0`. Każda osoba wkleja
 własny rzeczywisty wynik do SCRUM-12. Zadanie pozostaje otwarte do czasu
-konfiguracji czterech kluczy i testów.
+otrzymania trzech pozostałych testów oraz przeglądu i odbioru QA.

@@ -1,7 +1,9 @@
 # Przygotowanie VPS OVHcloud
 
 VPS jest aktywny pod adresem `57.129.179.53`. Cztery konta są utworzone;
-logowanie kluczem `jczaja51` sprawdzono, pozostałe konta czekają na klucze.
+wszystkie cztery klucze publiczne zainstalowano. Logowanie `jczaja51`
+sprawdzono ponownie 14 października 2026; pozostałe trzy osoby muszą
+jeszcze potwierdzić logowanie ze swoich komputerów.
 Szczegóły i wynik testu są w [DEV_SERVER.md](../../DEV_SERVER.md),
 właściciel zadania: Dawid (SCRUM-12).
 
