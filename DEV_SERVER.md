@@ -29,7 +29,7 @@ wyłączeń nie jest planowany.
 | Osoba | GitHub | Docelowy login SSH | Stan |
 | --- | --- | --- | --- |
 | Jakub Czaja | `jczaja51` | `jczaja51` | Klucz dodany; rzeczywisty test BatchMode zakończony kodem `0` |
-| Dawid Hnat | `DawidHnat` | `dawidhnat` | Własny klucz zainstalowany 14.10.2026; oczekuje testu właściciela |
+| Dawid Hnat | `DawidHnat` | `dawidhnat` | Klucz dodany; rzeczywisty test BatchMode zakończony kodem `0` |
 | Jakub Nazarewicz | `jnazarewiczs` | `jnazarewiczs` | Własny klucz zainstalowany 14.10.2026; oczekuje testu właściciela |
 | Marcel Głowacki | `mglowacki0` | `mglowacki0` | Własny klucz zainstalowany 14.10.2026; oczekuje testu właściciela |
 
