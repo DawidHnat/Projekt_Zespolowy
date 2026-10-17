@@ -104,7 +104,7 @@ Przykładowe zastosowania:
 | Jakub Czaja | Lider / Product Owner, Developer |
 | Dawid Hnat | Infrastruktura, Developer |
 | Jakub Nazarewicz | Developer |
-| Marcel Głowacki | QA | Developer |
+| Marcel Głowacki | QA, Developer |
 
 Jedna osoba może pełnić więcej niż jedną rolę. Każda z czterech wymaganych ról ma przypisanego właściciela.
 
