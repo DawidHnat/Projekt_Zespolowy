@@ -30,7 +30,7 @@ wyłączeń nie jest planowany.
 | --- | --- | --- | --- |
 | Jakub Czaja | `jczaja51` | `jczaja51` | Klucz dodany; rzeczywisty test BatchMode zakończony kodem `0` |
 | Dawid Hnat | `DawidHnat` | `dawidhnat` | Klucz dodany; rzeczywisty test BatchMode zakończony kodem `0` |
-| Jakub Nazarewicz | `jnazarewiczs` | `jnazarewiczs` | Własny klucz zainstalowany 14.10.2026; oczekuje testu właściciela |
+| Jakub Nazarewicz | `jnazarewiczs` | `jnazarewiczs` | Klucz dodany; rzeczywisty test BatchMode zakończony kodem `0` |
 | Marcel Głowacki | `mglowacki0` | `mglowacki0` | Własny klucz zainstalowany 14.10.2026; oczekuje testu właściciela |
 
 Każda osoba używa własnego klucza prywatnego przechowywanego na swoim
