@@ -168,6 +168,7 @@ z aktualnego `main`; pozostały zakres i odbiór QA śledzimy w Jirze.
 - [Podział katalogów](docs/STRUCTURE.md)
 - [Rozpoczęcie pracy i zakres pierwszego PR](docs/GETTING_STARTED.md)
 - [Zasady współpracy i PR](CONTRIBUTING.md)
+- [Warunki ukończenia przyrostu](DEFINITION_OF_DONE.md)
 - [Instrukcje dla agentów AI](AGENTS.md)
 
 ## Serwer deweloperski
