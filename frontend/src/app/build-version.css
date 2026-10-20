@@ -1,0 +1,18 @@
+#root .app-shell,
+#root .login-page {
+  min-height: calc(100dvh - 28px);
+}
+
+.build-version {
+  min-height: 28px;
+  padding: 6px 16px;
+  color: var(--muted);
+  background: var(--background);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: right;
+}
+
+.build-version code {
+  color: var(--text);
+}

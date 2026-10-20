@@ -1,0 +1,35 @@
+{
+    auto_https disable_redirects
+}
+
+# Publiczny HTTP udostępnia wyłącznie wersję i odnośnik do HTTPS.
+# Nie ma tutaj formularza logowania, API ani danych floty.
+http:// {
+    header Cache-Control "no-store"
+    @home path /
+    handle @home {
+        root * /srv/frontend
+        rewrite * /status.html
+        file_server
+    }
+    handle {
+        respond "Otwórz aplikację przez HTTPS." 404
+    }
+}
+
+{$APP_DOMAIN} {
+    encode zstd gzip
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy same-origin
+    }
+    handle /api/* {
+        reverse_proxy api:8000
+    }
+    handle {
+        root * /srv/frontend
+        try_files {path} /index.html
+        header Cache-Control "no-cache"
+        file_server
+    }
+}

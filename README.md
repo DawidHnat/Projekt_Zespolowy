@@ -178,8 +178,17 @@ są utworzone i mają własne klucze publiczne. Po dodaniu trzech kluczy
 14 października 2026 ponownie sprawdzono logowanie `jczaja51` z kodem `0`;
 pozostałe trzy osoby muszą jeszcze wykonać testy ze swoich komputerów.
 
+Testowe wdrożenie SCRUM-18 działa pod
+[adresem HTTPS serwera](https://vps-9171bf52.vps.ovh.net/).
+Jest to sprawdzona wersja `e30cadd` z PR #23, przed jego scaleniem do `main`.
+Na VPS działają FastAPI, PostgreSQL i Caddy. Synchronizacja WEBFLEET jest
+wyłączona; nie ma domyślnych kont ani haseł aplikacji. Publiczny
+[adres HTTP](http://57.129.179.53/) pokazuje wersję i link do HTTPS.
+Domena `fleet-flow.pl` wymaga jeszcze skierowania DNS na VPS.
+
 - [Stan serwera i wymagane testy SSH](DEV_SERVER.md)
 - [Przygotowanie dostępu czterech osób](infra/vps/README.md)
+- [CI, ochrona main i wdrożenie aplikacji](infra/deploy/README.md)
 - [Podział pracy i pierwsze zadania](docs/TASKS.md)
 
 ## Konfiguracja integracji
