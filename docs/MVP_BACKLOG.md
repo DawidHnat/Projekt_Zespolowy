@@ -1,7 +1,8 @@
 # Plan backlogu MVP — 20.10.2026
 
 Źródłem bieżącego statusu pozostaje [backlog SCRUM](https://fleet-flow.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog).
-Poniższa kolejność porządkuje zależności przyrostów; punkty to względna
+Poniższą kolejność ustawiono w Jirze i sprawdzono po odświeżeniu tablicy.
+Porządkuje zależności przyrostów; punkty to względna
 złożoność, a nie godziny. Estymaty wpisano do pól Story point estimate.
 Każda z ośmiu Story ma formę Jako/chcę/aby oraz listę co najmniej czterech
 kryteriów akceptacji w opisie.
@@ -32,21 +33,23 @@ kryteriów akceptacji w opisie.
   Zachowano historię, autorów i stany istniejących zgłoszeń.
 
 Przypisania rodziców czterech wydzielonych podzadań są zapisane i sprawdzone:
-SCRUM-26/27 należą do SCRUM-62, a SCRUM-29/30 do SCRUM-61. Kolejność Rank
-w Jirze wymaga jeszcze końcowego ustawienia. Powyższa tabela opisuje plan
-kolejności; nie stanowi potwierdzenia zmiany pola Rank.
+SCRUM-26/27 należą do SCRUM-62, a SCRUM-29/30 do SCRUM-61. SCRUM-62
+pozostaje w planowanym Sprincie 2 razem z historią, a SCRUM-61 w planowanym
+Sprincie 3 przed alertami. SCRUM-42 jest na początku dalszego backlogu.
 
 ## Sprint 1
 
 Istniejący **FF Sprint 1 - flota i mapa** jest aktywny i obejmuje trzy Story:
-SCRUM-16, SCRUM-15 oraz SCRUM-5. [Prototyp](PROTOTYPE.md) ma osobny nazwany
+SCRUM-16, SCRUM-15 oraz SCRUM-5, łącznie 21 SP. [Prototyp](PROTOTYPE.md) ma osobny nazwany
 przepływ dla każdej z nich. Zadania infrastruktury i QA pozostają wsparciem
 tych historyjek.
 
+Zapisany cel: zalogowany kierownik floty widzi na wspólnym VPS listę i mapę
+pojazdów z synchronizacją WEBFLEET oraz jawną aktualnością danych; zakres
+obejmuje trzy Story i wspierające zadania szkieletu, infrastruktury i QA.
+
 Zapisany termin sprintu, 19.10.2026, minął. PO powinien uzgodnić dalszy
-termin i aktualizację celu; nie resetowano sprintu ani jego historii.
-Wymagany rezultat celu: zalogowany kierownik widzi listę i mapę floty
-z synchronizacją oraz jawną aktualnością danych na wspólnym VPS.
+termin; nie resetowano sprintu ani jego historii.
 
 Poza tym zakresem pozostają m.in. serwis, karty paliwowe, eksporty,
 rozbudowana administracja kontami i dokumenty pojazdów. Ich istniejące

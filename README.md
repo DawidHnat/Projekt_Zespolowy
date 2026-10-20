@@ -135,7 +135,7 @@ Bardziej rozbudowane raporty, dodatkowe możliwości personalizacji oraz kolejne
 
 ## Prototyp Sprintu 1
 
-[Klikalny prototyp w Figmie](https://www.figma.com/proto/4EFjRAUbCoTjemZpQRVDu9?node-id=2-46&starting-point-node-id=2%3A46)
+[Klikalny prototyp w Figmie](https://www.figma.com/proto/4EFjRAUbCoTjemZpQRVDu9?node-id=2-46&starting-point-node-id=2%3A46&scaling=scale-down)
 obejmuje logowanie (SCRUM-16), listę i mapę floty (SCRUM-5) oraz aktualność
 danych i synchronizację (SCRUM-15). Plik ma 18 edytowalnych ekranów i trzy
 nazwane przepływy. Korzysta z tokenów i znaku Fleet-Flow; przykładowe pojazdy

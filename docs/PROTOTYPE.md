@@ -8,13 +8,18 @@ przełączają połączone ekrany. Dane logowania, pojazdy, pomiary, godziny
 i mapa są przykładowe; prototyp nie łączy się z API ani bazą danych.
 Pola pokazują przygotowane stany, bez wpisywania prawdziwego hasła.
 
+20.10.2026 sprawdzono rzeczywiste kliknięcia w trybie prezentacji: logowanie
+i wylogowanie, lista → wyszukiwanie → mapa z zachowanym filtrem → pełna flota,
+wybór FF002 oraz nieaktualność → awaria → ponowienie → synchronizacja
+→ odczyt 09:41. Sprawdzono też wygląd ekranów w pełnym rozmiarze.
+
 ## Powiązanie z historyjkami
 
 | Story | Nazwany przepływ | Początek w prezentacji | Ekran w edytorze |
 | --- | --- | --- | --- |
-| [SCRUM-16](https://fleet-flow.atlassian.net/browse/SCRUM-16) | S1 / Logowanie → Pulpit → Wylogowanie | [Logowanie](https://www.figma.com/proto/4EFjRAUbCoTjemZpQRVDu9?node-id=2-46&starting-point-node-id=2%3A46) | [01 Logowanie](https://www.figma.com/design/4EFjRAUbCoTjemZpQRVDu9?node-id=2-46) |
-| [SCRUM-5](https://fleet-flow.atlassian.net/browse/SCRUM-5) | S1 / Lista i mapa floty | [Lista i mapa](https://www.figma.com/proto/4EFjRAUbCoTjemZpQRVDu9?node-id=2-49&starting-point-node-id=2%3A49) | [04 Lista pojazdów](https://www.figma.com/design/4EFjRAUbCoTjemZpQRVDu9?node-id=2-49) |
-| [SCRUM-15](https://fleet-flow.atlassian.net/browse/SCRUM-15) | S1 / Aktualność danych → Awaria źródła → Odzyskane połączenie | [Aktualność danych](https://www.figma.com/proto/4EFjRAUbCoTjemZpQRVDu9?node-id=2-53&starting-point-node-id=2%3A53) | [08 Nieaktualne dane](https://www.figma.com/design/4EFjRAUbCoTjemZpQRVDu9?node-id=2-53) |
+| [SCRUM-16](https://fleet-flow.atlassian.net/browse/SCRUM-16) | S1 / Logowanie → Pulpit → Wylogowanie | [Logowanie](https://www.figma.com/proto/4EFjRAUbCoTjemZpQRVDu9?node-id=2-46&starting-point-node-id=2%3A46&scaling=scale-down) | [01 Logowanie](https://www.figma.com/design/4EFjRAUbCoTjemZpQRVDu9?node-id=2-46) |
+| [SCRUM-5](https://fleet-flow.atlassian.net/browse/SCRUM-5) | S1 / Lista i mapa floty | [Lista i mapa](https://www.figma.com/proto/4EFjRAUbCoTjemZpQRVDu9?node-id=2-49&starting-point-node-id=2%3A49&scaling=scale-down) | [04 Lista pojazdów](https://www.figma.com/design/4EFjRAUbCoTjemZpQRVDu9?node-id=2-49) |
+| [SCRUM-15](https://fleet-flow.atlassian.net/browse/SCRUM-15) | S1 / Aktualność danych → Awaria źródła → Odzyskane połączenie | [Aktualność danych](https://www.figma.com/proto/4EFjRAUbCoTjemZpQRVDu9?node-id=2-53&starting-point-node-id=2%3A53&scaling=scale-down) | [08 Nieaktualne dane](https://www.figma.com/design/4EFjRAUbCoTjemZpQRVDu9?node-id=2-53) |
 
 W opisach Story należy zachować te same nazwy przepływów i odnośniki.
 Sam prototyp nie potwierdza odbioru implementacji ani kryteriów technicznych
