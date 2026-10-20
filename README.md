@@ -133,6 +133,21 @@ W pierwszej wersji najważniejsze jest przygotowanie działającej podstawy apli
 
 Bardziej rozbudowane raporty, dodatkowe możliwości personalizacji oraz kolejne moduły mogą być rozwijane w dalszych etapach projektu.
 
+## Prototyp Sprintu 1
+
+[Klikalny prototyp w Figmie](https://www.figma.com/proto/4EFjRAUbCoTjemZpQRVDu9?node-id=2-46&starting-point-node-id=2%3A46&scaling=scale-down)
+obejmuje logowanie (SCRUM-16), listę i mapę floty (SCRUM-5) oraz aktualność
+danych i synchronizację (SCRUM-15). Plik ma 18 edytowalnych ekranów i trzy
+nazwane przepływy. Korzysta z tokenów i znaku Fleet-Flow; przykładowe pojazdy
+i lokalizacje służą wyłącznie prototypowi.
+
+- [Plik źródłowy Figmy](https://www.figma.com/design/4EFjRAUbCoTjemZpQRVDu9)
+- [Przepływy, ekrany i instrukcja przeglądu](docs/PROTOTYPE.md)
+- [Historyjki MVP i podział dużych Story](docs/MVP_BACKLOG.md)
+- [Odbiór zadania kursowego, linki i polecenia do oddania](docs/COURSE_SUBMISSION.md)
+
+Udostępnienie pliku prowadzącemu oczekuje na podanie jego adresu e-mail.
+
 ## Uruchomienie lokalne
 
 Frontend ma Pulpit, motywy, edytor układu, logowanie, listę i kafelki pojazdów
@@ -173,8 +188,14 @@ z aktualnego `main`; pozostały zakres i odbiór QA śledzimy w Jirze.
 
 ## Serwer deweloperski
 
-Aplikację rozwijamy lokalnie. Wspólny serwer VPS OVHcloud z Ubuntu jest aktywny:
-`57.129.179.53` (`vps-9171bf52.vps.ovh.net`). Cztery indywidualne konta zespołu
+Aplikację rozwijamy lokalnie i na wspólnym VPS OVHcloud z Ubuntu:
+`57.129.179.53` (`vps-9171bf52.vps.ovh.net`). Serwer udostępnia
+[aplikację HTTPS](https://vps-9171bf52.vps.ovh.net/) oraz
+[stronę wersji HTTP](http://57.129.179.53/) z siedmioznakowym SHA. Automatyczne
+wdrażanie opisuje [PR #23](https://github.com/DawidHnat/Projekt_Zespolowy/pull/23).
+Przy odbiorze potwierdzamy zgodność wersji serwera z aktualnym `origin/main`
+według instrukcji oddania.
+Cztery indywidualne konta zespołu
 są utworzone i mają własne klucze publiczne. Po dodaniu trzech kluczy
 14 października 2026 ponownie sprawdzono logowanie `jczaja51` z kodem `0`;
 pozostałe trzy osoby muszą jeszcze wykonać testy ze swoich komputerów.
