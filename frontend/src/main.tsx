@@ -18,6 +18,7 @@ import "./app/vehicle-details.css";
 import "./app/map-preview.css";
 import "./app/trips.css";
 import "./shared/components/list-pagination.css";
+import "./app/build-version.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

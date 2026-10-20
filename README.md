@@ -180,6 +180,7 @@ pozostałe trzy osoby muszą jeszcze wykonać testy ze swoich komputerów.
 
 - [Stan serwera i wymagane testy SSH](DEV_SERVER.md)
 - [Przygotowanie dostępu czterech osób](infra/vps/README.md)
+- [CI, ochrona main i wdrożenie aplikacji](infra/deploy/README.md)
 - [Podział pracy i pierwsze zadania](docs/TASKS.md)
 
 ## Konfiguracja integracji

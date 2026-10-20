@@ -1,0 +1,58 @@
+services:
+  database:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    image: fleet-flow-api:${FLEET_FLOW_BUILD_SHA:?Set FLEET_FLOW_BUILD_SHA}
+    build:
+      context: ../..
+      dockerfile: infra/deploy/backend.Dockerfile
+    restart: unless-stopped
+    env_file: ${FLEET_FLOW_ENV_FILE:?Set FLEET_FLOW_ENV_FILE}
+    environment:
+      COOKIE_SECURE: 'true'
+      CORS_ORIGINS: https://${APP_DOMAIN:?Set APP_DOMAIN}
+      SYNC_ENABLED: 'false'
+    depends_on:
+      database:
+        condition: service_healthy
+    read_only: true
+    tmpfs: [/tmp]
+    healthcheck:
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8000/api/health/ready", timeout=3)']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  web:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN}
+    ports: ['80:80', '443:443']
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../../frontend/dist:/srv/frontend:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  database:
+  caddy_data:
+  caddy_config:
