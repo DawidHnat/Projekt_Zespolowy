@@ -133,6 +133,20 @@ W pierwszej wersji najważniejsze jest przygotowanie działającej podstawy apli
 
 Bardziej rozbudowane raporty, dodatkowe możliwości personalizacji oraz kolejne moduły mogą być rozwijane w dalszych etapach projektu.
 
+## Prototyp Sprintu 1
+
+[Klikalny prototyp w Figmie](https://www.figma.com/proto/4EFjRAUbCoTjemZpQRVDu9?node-id=2-46&starting-point-node-id=2%3A46)
+obejmuje logowanie (SCRUM-16), listę i mapę floty (SCRUM-5) oraz aktualność
+danych i synchronizację (SCRUM-15). Plik ma 18 edytowalnych ekranów i trzy
+nazwane przepływy. Korzysta z tokenów i znaku Fleet-Flow; przykładowe pojazdy
+i lokalizacje służą wyłącznie prototypowi.
+
+- [Plik źródłowy Figmy](https://www.figma.com/design/4EFjRAUbCoTjemZpQRVDu9)
+- [Przepływy, ekrany i instrukcja przeglądu](docs/PROTOTYPE.md)
+- [Historyjki MVP i podział dużych Story](docs/MVP_BACKLOG.md)
+
+Udostępnienie pliku prowadzącemu oczekuje na podanie jego adresu e-mail.
+
 ## Uruchomienie lokalne
 
 Frontend ma Pulpit, motywy, edytor układu, logowanie, listę i kafelki pojazdów
