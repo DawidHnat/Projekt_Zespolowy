@@ -5,9 +5,16 @@ buduje się w GitHub Actions, backend w obrazie Pythona na VPS. Caddy obsługuje
 HTTPS i przekazuje `/api` do niepublicznego backendu. Baza nie publikuje portu.
 Synchronizacja WEBFLEET jest wyłączona w tym przyroście.
 
-To konfiguracja do przeglądu. Samo dodanie plików nie oznacza istniejącego
-wdrożenia, ochrony `main` ani wprowadzonych sekretów. Pierwszy odbiór wymaga
-działającego DNS, konfiguracji właściciela repozytorium i rzeczywistego runu CI.
+20 października 2026 przetestowano na VPS wydanie `e30cadd` z PR #23 pod
+`https://vps-9171bf52.vps.ovh.net/`. Przeszły także ponowne wdrożenie, kopia
+zmigrowanej bazy i próba jej odtworzenia. Trzy sekrety Actions są zapisane,
+a dedykowany klucz odrzuca polecenia inne niż `deploy <SHA>`. Zwykłe konta SSH
+zespołu zachowują dotychczasowy dostęp.
+
+Nie jest to jeszcze dowód wdrożenia aktualnego `main`. PR wymaga review,
+a właściciel musi włączyć ochronę gałęzi. Domena `fleet-flow.pl` nadal wskazuje
+parking OVH; tymczasowo `DEV_PUBLIC_URL` i `APP_DOMAIN` wskazują hostname VPS.
+Nie ma domyślnych kont aplikacji. WEBFLEET pozostaje wyłączony.
 
 ## CI i publikacja
 
@@ -34,8 +41,11 @@ Zmiany niezgodne ze starym schematem wymagają osobnego planu migracji.
 
 1. Skieruj rekord A `fleet-flow.pl` na `57.129.179.53`. Rekord AAAA dodaj tylko
    z poprawnym IPv6 VPS. Zachowaj rekordy poczty, TXT i weryfikacji domeny.
+   Do tego czasu można używać istniejącego hostname `vps-9171bf52.vps.ovh.net`;
+   ustaw go zgodnie w `DEV_PUBLIC_URL` i `APP_DOMAIN`.
 2. Na VPS zainstaluj Docker z `docker compose`, Python 3.12+ i curl ze
-   wspieranych pakietów. Zachowaj działające konta SSH zespołu.
+   wspieranych pakietów. Budowa obrazu wymaga też wtyczki Buildx.
+   Zachowaj działające konta SSH zespołu.
 3. Wygeneruj osobny klucz ED25519 dla Actions **poza repozytorium**. Nie używaj
    kluczy prywatnych członków zespołu. Klucz CI ma dostęp do wdrażania aplikacji;
    należy traktować go jako sekret administracyjny.
