@@ -1,7 +1,7 @@
 # Backlog, prototyp i pipeline — odbiór zadania
 
-Stan przygotowania na 20 października 2026. Ten dokument oddziela gotowe
-artefakty od dowodów, które trzeba zebrać po włączeniu ochrony i scaleniu PR.
+Stan sprawdzony 23 października 2026. Dowody wdrożenia trzeba odświeżyć
+po ostatnim scaleniu, również po scaleniu zmian samej dokumentacji.
 
 ## Linki do odpowiedzi
 
@@ -25,60 +25,69 @@ dostęp do repozytorium, Figmy i Jiry.
   kryteriami akceptacji i oszacowaniami ze skali 1, 2, 3, 5, 8.
   [Lista i zakres Story](MVP_BACKLOG.md).
 - Aktywny Sprint 1 ma cel i trzy Story: SCRUM-16, SCRUM-15 i SCRUM-5.
-  Każda zawiera link do swojego przepływu Figmy.
-- Prototyp ma 18 edytowalnych ekranów i trzy nazwane przepływy Sprintu 1.
+  Każda zawiera link do swojego przepływu Figmy. Na polecenie PO ustawiono
+  daty 26.10.2026, godz. 18:33 – 9.11.2026, godz. 18:33 (Europe/Warsaw),
+  zachowując cel, skład i historię istniejącego sprintu.
+- Prototyp ma 25 edytowalnych ekranów i trzy nazwane przepływy Sprintu 1.
+  Szklany widok z tapetą miasta odpowiada wybranemu wariantowi aplikacji.
   [Scenariusze przeglądu](PROTOTYPE.md).
 - [PR #22](https://github.com/DawidHnat/Projekt_Zespolowy/pull/22)
-  dodaje `DEFINITION_OF_DONE.md` z 12 sprawdzalnymi warunkami.
+  jest scalony; `DEFINITION_OF_DONE.md` ma 12 sprawdzalnych warunków.
 - [PR #23](https://github.com/DawidHnat/Projekt_Zespolowy/pull/23)
-  dodaje CI każdego PR, `Required CI`, wdrożenie po scaleniu do `main`
-  i siedmioznakowe SHA w HTML. Wymagane kontrole przeszły w
-  [runie CI](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/39381389953).
+  jest scalony: CI każdego PR, `Required CI`, wdrożenie po scaleniu do `main`
+  i siedmioznakowe SHA w HTML. Budowa i wdrożenie `main` przeszły w
+  [runie CI](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/39485972458).
 - [PR #25](https://github.com/DawidHnat/Projekt_Zespolowy/pull/25)
-  dodaje link do prototypu w README i dokumentację MVP.
+  jest scalony; README zawiera link do prototypu i dokumentacji MVP.
 - Sekrety Actions `DEV_RUNTIME_ENV`, `DEV_SSH_PRIVATE_KEY` i
   `DEV_SSH_KNOWN_HOSTS` są skonfigurowane. `DEV_RUNTIME_ENV` zawiera
   konfigurację wdrożenia, a nie automatyczną kopię lokalnego `.env`.
   Wartości pozostają prywatne; do Git trafiają wyłącznie szablony `.env.example`.
 
-Na VPS działa testowa wersja PR #23 (`e30cadd`), a gotowość API została
-sprawdzona. Końcowym dowodem jest dopiero zgodność serwera z aktualnym
-`origin/main` po automatycznym wdrożeniu.
+21.10.2026 serwer pokazał `23dd927` zgodne z ówczesnym `origin/main`.
+Dokładne polecenie kursowe zwróciło HTML z tym SHA i kod 0; API ready
+odpowiedziało `{"status":"ok"}`. To dowód dla tego commita, wymagający
+powtórzenia po każdym kolejnym scaleniu.
 
-## Kolejność dokończenia
+## Ochrona i czerwone CI — potwierdzone
 
-1. **Dawid — plan i ochrona `main`.** Repozytorium jest prywatne. Odczyt
-   reguł zwraca HTTP 403 z żądaniem GitHub Pro albo upublicznienia repozytorium.
-   Konto `jczaja51` ma prawo push, ale nie admin. Właściciel musi zapewnić
-   obsługiwany plan na swoim koncie albo podjąć decyzję o widoczności repo.
-   Następnie stosuje konfigurację
-   [main-protection.json z PR #23](https://github.com/DawidHnat/Projekt_Zespolowy/blob/feat/SCRUM-18-continuous-delivery/infra/deploy/main-protection.json).
-   Reguła musi wymagać PR, jednego approval, aktualnego zielonego `Required CI`
-   i obowiązywać administratorów bez wyjątków. Automerge pozostaje wyłączone.
-2. **Drugi developer i QA — odbiór oraz scalenie.** Najpierw sprawdzić
-   i scalić #23, potem zaktualizować #22 i #25 względem nowego `main`,
-   uzyskać zielone CI i review oraz je scalić. Ostatnie scalenie także
-   uruchomi wdrożenie; z dowodem SHA poczekać do końca tego wdrożenia.
-   Autor PR nie zatwierdza własnej zmiany. Obowiązują
-   [zasady współpracy](../CONTRIBUTING.md).
-3. **Dowód czerwonego CI.** Dopiero po scaleniu #23 przestawić bazę #24
-   z gałęzi zależnej na `main`, zaktualizować gałąź i zakończyć tryb draft.
-   Zachować błąd składni. Sprawdzić, że `Frontend build` oraz `Required CI`
-   są czerwone, a ochrona `main` blokuje scalenie. Sam tryb draft nie jest
-   dowodem wymuszenia CI. Tego PR nigdy nie scalać.
-4. **Prowadzący — dostęp.** Po uzyskaniu jego adresu e-mail udostępnić plik
-   Figmy jako **Can view** i potwierdzić dostęp do Jiry oraz repozytorium.
-   Ten krok został odłożony przez zespół do czasu podania danych.
-5. **PO — termin Sprintu 1.** Sprint pozostaje aktywny, ale zapisane daty
-   to 5–19.10.2026. Uzgodnić ze zespołem i prowadzącym dalszy termin;
-   samo przepisanie dat nie zastępuje odbioru historyjek.
-6. **Zebrać wyniki poniższych poleceń** i wkleić je do własnej odpowiedzi.
+Repozytorium jest publiczne. Odczyt gałęzi potwierdził `protected: true`
+oraz wymagany `Required CI` z `enforcement_level: everyone`. Widok PR
+potwierdził wymóg co najmniej jednego approval oraz zatwierdzenia ostatniego
+pusha przez inną osobę. Konto współpracownika `jczaja51` ma push, ale nie
+admin; pełne ustawienia ochrony przez API są dla niego niedostępne (404).
+
+Przekazany przez Dawida zrzut pokazuje nowy commit `be4bc42` i odrzucenie
+`git push origin main` przez GH006: wymagany PR i `Required CI`.
+Wcześniejszy pusty test commit `23dd927` został przyjęty; dowodem odrzucenia
+jest późniejsza próba `be4bc42`.
+
+PR #24 ma bazę `main`, nie jest draftem i zawiera celowy błąd TypeScript.
+W [runie 39552495593](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/39552495593)
+`Frontend build` i `Required CI` mają FAILURE, backend i obraz przeszły,
+wdrożenie zostało pominięte. Scalenie jest blokowane. **Tego PR nigdy nie scalać.**
+
+Historycznie PR #23 został scalony bez wpisu approval w API reviews;
+PR-y #22 i #25 mają APPROVED. Nie przedstawiamy scalenia #23 jako dowodu
+przeglądu. Bieżące reguły wymagają approval dla kolejnych zmian.
+
+## Pozostałe kroki do oddania
+
+1. **Prowadzący — dostęp.** Udostępnić plik Figmy jako **Can view**
+   i potwierdzić dostęp do Jiry. Ten krok odłożono na prośbę zespołu;
+   adresu prowadzącego jeszcze nie podano. Publiczne repo daje dostęp do odczytu.
+2. **Przegląd kolejnych PR.** Zmiany dokumentacji także przechodzą review
+   drugiego developera i zielone CI przed scaleniem, zgodnie z
+   [zasadami współpracy](../CONTRIBUTING.md). Nie włączamy automerge.
+3. **Odświeżyć dowód wdrożenia po ostatnim scaleniu.** Poczekać na zielony
+   job wdrożenia, wykonać poniższe polecenie z `git fetch` i zapisać wynik.
+4. **Każdy oddaje osobno.** Wkleić linki, własny login, pełne odrzucenie
+   pusha administratora oraz aktualny wynik porównania SHA.
 
 ## Dowód ochrony — wykonuje administrator
 
-Próbę wykonać po włączeniu i odczytaniu ochrony, z konta administratora
-repozytorium. Przy obecnej niechronionej gałęzi push mógłby się powieść.
-Właściciel może najpierw sprawdzić konto i regułę:
+Poniższa instrukcja służy powtórzeniu dowodu z konta administratora.
+Przed próbą właściciel sprawdza konto i regułę:
 
 ```bash
 gh api user --jq .login

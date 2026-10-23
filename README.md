@@ -137,9 +137,12 @@ Bardziej rozbudowane raporty, dodatkowe możliwości personalizacji oraz kolejne
 
 [Klikalny prototyp w Figmie](https://www.figma.com/proto/4EFjRAUbCoTjemZpQRVDu9?node-id=2-46&starting-point-node-id=2%3A46&scaling=scale-down)
 obejmuje logowanie (SCRUM-16), listę i mapę floty (SCRUM-5) oraz aktualność
-danych i synchronizację (SCRUM-15). Plik ma 18 edytowalnych ekranów i trzy
-nazwane przepływy. Korzysta z tokenów i znaku Fleet-Flow; przykładowe pojazdy
-i lokalizacje służą wyłącznie prototypowi.
+danych i synchronizację (SCRUM-15). Plik ma 25 edytowalnych ekranów i trzy
+nazwane przepływy Sprintu 1. Aktualizacja z 21.10.2026 dopasowuje go do
+szklanego widoku aplikacji z tapetą miasta, boczną nawigacją, modułami Pulpitu
+i kafelkami pojazdów. Ustawienia i edycja układu mają podgląd; przyszłe moduły
+są oznaczone jako „w przygotowaniu”. Przykładowe pojazdy i lokalizacje służą
+wyłącznie prototypowi. Poprzednią wersję zachowano na stronie archiwalnej Figmy.
 
 - [Plik źródłowy Figmy](https://www.figma.com/design/4EFjRAUbCoTjemZpQRVDu9)
 - [Przepływy, ekrany i instrukcja przeglądu](docs/PROTOTYPE.md)
@@ -200,9 +203,10 @@ są utworzone i mają własne klucze publiczne. Po dodaniu trzech kluczy
 14 października 2026 ponownie sprawdzono logowanie `jczaja51` z kodem `0`;
 pozostałe trzy osoby muszą jeszcze wykonać testy ze swoich komputerów.
 
-Testowe wdrożenie SCRUM-18 działa pod
+Automatyczne wdrożenie `main` działa pod
 [adresem HTTPS serwera](https://vps-9171bf52.vps.ovh.net/).
-Jest to sprawdzona wersja `e30cadd` z PR #23, przed jego scaleniem do `main`.
+21.10.2026 potwierdzono wersję `23dd927` zgodną z ówczesnym `origin/main`.
+Po każdym kolejnym scaleniu zgodność należy sprawdzić ponownie.
 Na VPS działają FastAPI, PostgreSQL i Caddy. Synchronizacja WEBFLEET jest
 wyłączona; nie ma domyślnych kont ani haseł aplikacji. Publiczny
 [adres HTTP](http://57.129.179.53/) pokazuje wersję i link do HTTPS.
