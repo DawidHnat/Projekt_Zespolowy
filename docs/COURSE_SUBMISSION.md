@@ -1,6 +1,6 @@
 # Backlog, prototyp i pipeline — odbiór zadania
 
-Stan sprawdzony 21 października 2026. Dowody wdrożenia trzeba odświeżyć
+Stan sprawdzony 23 października 2026. Dowody wdrożenia trzeba odświeżyć
 po ostatnim scaleniu, również po scaleniu zmian samej dokumentacji.
 
 ## Linki do odpowiedzi
@@ -25,8 +25,9 @@ dostęp do repozytorium, Figmy i Jiry.
   kryteriami akceptacji i oszacowaniami ze skali 1, 2, 3, 5, 8.
   [Lista i zakres Story](MVP_BACKLOG.md).
 - Aktywny Sprint 1 ma cel i trzy Story: SCRUM-16, SCRUM-15 i SCRUM-5.
-  Każda zawiera link do swojego przepływu Figmy. Na polecenie PO koniec
-  sprintu przedłużono do 26.10.2026, godz. 18:33, zachowując start i historię.
+  Każda zawiera link do swojego przepływu Figmy. Na polecenie PO ustawiono
+  daty 26.10.2026, godz. 18:33 – 9.11.2026, godz. 18:33 (Europe/Warsaw),
+  zachowując cel, skład i historię istniejącego sprintu.
 - Prototyp ma 25 edytowalnych ekranów i trzy nazwane przepływy Sprintu 1.
   Szklany widok z tapetą miasta odpowiada wybranemu wariantowi aplikacji.
   [Scenariusze przeglądu](PROTOTYPE.md).
