@@ -2,10 +2,31 @@
 
 Backlog: https://fleet-flow.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog
 
-Stan dokumentacji: 9 października 2026. PR-y #5–18 scalono do `main` po
+Stan pierwotnego zestawienia: 9 października 2026; podział sprintów
+zaktualizowano 24 października w sekcji poniżej. PR-y #5–18 scalono do `main` po
 przeglądzie kodu i sprawdzeniu CI, zachowując autorów commitów. Nowe gałęzie
 zadań tworzymy z aktualnego `main`. Aktualne statusy i przypisania sprawdzamy
 w Jirze; scalenie częściowego przyrostu nie oznacza ukończenia całej Story.
+
+## Bieżący podział sprintów — 24.10.2026
+
+| Osoba | Sprint 1 | Planowany Sprint 2 |
+| --- | --- | --- |
+| Jakub Czaja | Logowanie SCRUM-16 i prowadzenie produktu | Ewidencja SCRUM-62, zapis celu/opisu SCRUM-26; decyzja o regule przypisań w SCRUM-52 |
+| Dawid Hnat | Synchronizacja SCRUM-15, API SCRUM-19/22 oraz VPS | Właściciel ręcznych kierowców SCRUM-42; historia API SCRUM-24 i kartoteka API SCRUM-52 |
+| Jakub Nazarewicz | Właściciel listy/mapy SCRUM-5, mapa SCRUM-21 | Właściciel historii SCRUM-6; UI SCRUM-25/27/53 |
+| Marcel Głowacki | Plan QA SCRUM-37, odbiór SCRUM-23/40/56 | Odbiór SCRUM-28/54 oraz przekrojowy test SCRUM-63 |
+
+SCRUM-37 przeniesiono do Sprintu 1. Główne Story nadal mają 21 SP;
+przypisania istniejących podzadań i ich historia pozostają zachowane.
+Sprint 2 poszerzono o istniejące SCRUM-42 i nowe zadanie QA SCRUM-63:
+trzy Story, 21 SP, cztery zgłoszenia główne oraz osiem podzadań.
+Pozostaje planowany, bez dat i bez uruchamiania przed Planningiem.
+Szczegółowy zakres i zależności: [plan MVP](MVP_BACKLOG.md).
+
+Ręczne wprowadzanie kierowców pozostaje obowiązującą decyzją PO.
+Sprzeczny punkt 16 `wymagania.txt` o imporcie z WEBFLEET wymaga
+osobnego uzgodnienia. Raporty/CSV są już w SCRUM-50 i nie są dublowane.
 
 ## Scalona podstawa
 
