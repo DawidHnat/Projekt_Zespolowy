@@ -29,6 +29,11 @@ dostęp do repozytorium, Figmy i Jiry.
   Każda zawiera link do swojego przepływu Figmy. Na polecenie PO ustawiono
   daty 24.10.2026, godz. 18:33 – 7.11.2026, godz. 18:33 (Europe/Warsaw),
   zachowując cel, skład i historię istniejącego sprintu.
+- Podział pracy z 24.10.2026 obejmuje całą czwórkę: SCRUM-16 — Czaja,
+  SCRUM-15 — Dawid, SCRUM-5 — Nazarewicz, SCRUM-37 — Marcel.
+  Sprint 1 ma dziewięć zgłoszeń głównych, nadal trzy Story i 21 SP.
+  Planowany Sprint 2 obejmuje SCRUM-6/62/42 (21 SP) oraz zadanie
+  integracyjnego odbioru SCRUM-63; pozostaje nieuruchomiony.
 - Prototyp ma 25 edytowalnych ekranów i trzy nazwane przepływy Sprintu 1.
   Szklany widok z tapetą miasta odpowiada wybranemu wariantowi aplikacji.
   [Scenariusze przeglądu](PROTOTYPE.md).
