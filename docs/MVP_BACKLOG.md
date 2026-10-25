@@ -9,6 +9,11 @@ złożoność, a nie godziny. Estymaty wpisano do pól Story point estimate.
 Każda z ośmiu Story ma formę Jako/chcę/aby oraz listę co najmniej czterech
 kryteriów akceptacji w opisie.
 
+Przegląd 24–25.10 uzupełnił również 30 podzadań o robocze estymaty,
+uzasadnienia i zasady ich odrębnego liczenia. Logowanie i szkielet oraz
+trzy zadania odbioru są w fazie Testowanie. Szczegóły, zapisane punkty,
+kolejka QA i ocena obecnej bazy: [estymaty i testowanie](ESTIMATION_AND_QA.md).
+
 | Kolejność planu | Story | Przyrost | SP |
 | --- | --- | --- | --- |
 | 1 | [SCRUM-16](https://fleet-flow.atlassian.net/browse/SCRUM-16) | Logowanie i ograniczenie dostępu do floty | 5 |

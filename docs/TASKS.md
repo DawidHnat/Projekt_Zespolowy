@@ -24,6 +24,13 @@ trzy Story, 21 SP, cztery zgłoszenia główne oraz osiem podzadań.
 Pozostaje planowany, bez dat i bez uruchamiania przed Planningiem.
 Szczegółowy zakres i zależności: [plan MVP](MVP_BACKLOG.md).
 
+Przegląd 24–25.10.2026: 30 podzadań ma robocze punkty w polu
+Story point estimate. SCRUM-13/16 i odbiory Marcela SCRUM-23/40/56
+przekazano do Testowania; wyniki niezależnego QA pozostają do wykonania.
+Kolumny ustawiono w kolejności review → Testowanie → Gotowe.
+[Tabela punktów, warunki odbioru i decyzja o PostgreSQL](ESTIMATION_AND_QA.md)
+wyjaśnia rozdzielenie estymat dzieci od Story oraz pozostałe blokady.
+
 Ręczne wprowadzanie kierowców pozostaje obowiązującą decyzją PO.
 Sprzeczny punkt 16 `wymagania.txt` o imporcie z WEBFLEET wymaga
 osobnego uzgodnienia. Raporty/CSV są już w SCRUM-50 i nie są dublowane.
@@ -37,7 +44,7 @@ osobnego uzgodnienia. Raporty/CSV są już w SCRUM-50 i nie są dublowane.
 | SCRUM-14 | Adapter i diagnostyka WEBFLEET/SMTP | [#7](https://github.com/DawidHnat/Projekt_Zespolowy/pull/7) | Potwierdzenie jednostek i pól; prędkość do tego czasu pozostaje null |
 | SCRUM-36 | Model danych i kontrakt API | [#8](https://github.com/DawidHnat/Projekt_Zespolowy/pull/8) | Uzgadnianie kontraktu kolejnych pól w zadaniach |
 | SCRUM-39 | FastAPI, PostgreSQL, migracje, health i CI | [#9](https://github.com/DawidHnat/Projekt_Zespolowy/pull/9) | Sprawdzenie uruchomienia na komputerach zespołu |
-| SCRUM-16 | Logowanie i sesje | [#10](https://github.com/DawidHnat/Projekt_Zespolowy/pull/10) | QA SCRUM-56; HTTPS na VPS w SCRUM-18 |
+| SCRUM-16 | Logowanie i sesje | [#10](https://github.com/DawidHnat/Projekt_Zespolowy/pull/10) | QA SCRUM-56, w tym cookie i sesje na działającym HTTPS VPS |
 | SCRUM-15 | Cache pojazdów i pomiarów, upsert, limit i obsługa awarii | [#11](https://github.com/DawidHnat/Projekt_Zespolowy/pull/11) | QA synchronizacji; historia w SCRUM-24 |
 | SCRUM-19 | Chroniona lista, szczegóły, GeoJSON i wskaźniki | [#12](https://github.com/DawidHnat/Projekt_Zespolowy/pull/12) | QA SCRUM-23 |
 | SCRUM-20 | Frontend logowania i lista z API | [#13](https://github.com/DawidHnat/Projekt_Zespolowy/pull/13) | QA SCRUM-23 |
