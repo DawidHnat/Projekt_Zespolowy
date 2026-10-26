@@ -47,9 +47,10 @@ Stan po scaleniu PR #28 dnia 26.10.2026:
 | Jakub Nazarewicz — jnazarewiczs | Brak | Brak | Dostarczyć własny PR i przejrzeć cudzy. |
 | Marcel Głowacki — mglowacki0 | #28 | Brak | Przejrzeć cudzy PR oraz wykonać odbiory QA. |
 
-Starsze PR-y #1/#2 nie mają klucza Jiry w nazwie gałęzi ani opisie, #4 nie ma
-klucza w opisie; nie są dowodem wymaganej poprawnej konwencji. Nie zmieniamy
-historycznego autorstwa ani nie tworzymy pustych commitów dla statystyki.
+Starsze PR-y #1/#2 nie mają klucza Jiry w nazwie gałęzi — to pozostaje
+historyczną niezgodnością. W opisach #1/#2/#4 uzupełniono powiązanie SCRUM-12
+podczas audytu. Nie zmieniamy historycznego autorstwa ani nie tworzymy
+pustych commitów dla statystyki. Nie przedstawiamy starszych nazw jako zgodnych.
 Każdy przyszły PR ma klucz Jiry w opisie i nazwie gałęzi oraz review innej osoby.
 
 ## 3. Conventional Commits od włączenia ochrony
