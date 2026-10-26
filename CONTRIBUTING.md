@@ -8,7 +8,7 @@ i role są w README, a ustalenia zespołu w TEAM_CONTRACT.md.
 ## Jedno zadanie — jedna gałąź — jeden PR
 
 1. Wybierz zadanie w projekcie **SCRUM**, przypisz je sobie i ustal kryteria
-   akceptacji. Przed pracą ustaw **In Progress**.
+   akceptacji. Przed pracą ustaw **W toku**.
 2. Pobierz aktualny `main` i utwórz gałąź z rzeczywistym kluczem zadania:
 
    ```bash
@@ -48,3 +48,8 @@ sprawdzamy i scalamy od najstarszej zależności. Nie omija to review ani QA.
 Frontend sprawdzamy poleceniami `npm test` i `npm run build` w `frontend/`.
 Zmiany wyglądu wymagają sprawdzenia w przeglądarce na komputerze i małym ekranie.
 Uzgodnienia UI opisuje [system wyglądu](docs/DESIGN_SYSTEM.md).
+
+Statusy **W trakcie weryfikacji** i **Testowanie** rozdzielają niezależne review
+od odbioru QA; oba należą do kategorii W toku. Kryteria przejść, sposób
+zapisu błędów i proponowany rytm spotkań opisują
+[zasady pracy Scrum](docs/SCRUM_WORKFLOW.md).
