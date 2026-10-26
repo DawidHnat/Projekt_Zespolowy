@@ -1,4 +1,3 @@
-import secrets
 from datetime import timedelta
 from typing import Annotated
 
@@ -18,6 +17,7 @@ from app.modules.auth.service import (
     digest,
     dummy_hash,
     find_user,
+    issue_session,
     now_utc,
     password_hasher,
     user_payload,
@@ -72,7 +72,7 @@ def login(
     username = body.username.strip().lower()
     count_attempt(session, digest("ip:" + (request.client.host if request.client else "unknown")))
     count_attempt(session, digest("account:" + username))
-    user = find_user(session, username)
+    user = find_user(session, username, lock=True)
     valid = password_hasher.verify(
         body.password.get_secret_value(), user.password_hash if user else dummy_hash
     )
@@ -86,23 +86,8 @@ def login(
         row = session.get(LoginSession, digest(previous))
         if row:
             session.delete(row)
-    token = secrets.token_urlsafe(32)
-    seconds = request.app.state.settings.session_hours * 3600
-    session.add(
-        LoginSession(
-            token_hash=digest(token), user_id=user.id, expires_at=now + timedelta(seconds=seconds)
-        )
-    )
+    issue_session(request, response, session, user)
     session.commit()
-    response.set_cookie(
-        COOKIE_NAME,
-        token,
-        max_age=seconds,
-        httponly=True,
-        secure=request.app.state.settings.cookie_secure,
-        samesite="strict",
-        path="/",
-    )
     return user_payload(user)
 
 

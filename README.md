@@ -153,6 +153,11 @@ Udostępnienie pliku prowadzącemu oczekuje na podanie jego adresu e-mail.
 
 ## Uruchomienie lokalne
 
+Pierwszy przyrost SCRUM-49 dodaje **Profil** dostępny po kliknięciu własnej nazwy
+w menu (`#profile`). Pokazuje dane konta, pozwala zmienić własne hasło oraz
+wylogować wszystkie sesje. Potwierdzanie zmiany e-maila pozostaje kolejnym
+przyrostem tej Story. [Zakres i scenariusze odbioru](docs/qa/SCRUM-49.md).
+
 Frontend ma Pulpit, motywy, edytor układu, logowanie, listę i kafelki pojazdów
 oraz Mapbox bez grupowania znaczników. Osobna strona Ustawień obejmuje wygląd,
 tło i moduły. Zdjęcia pojazdów oraz indywidualne rozmiary kafelków są lokalnymi

@@ -142,6 +142,29 @@ zaufanych proxy; przed wystawieniem zdalnie wymagane są HTTPS i Secure cookie.
 Reset e-mail jest osobnym przyrostem SCRUM-44 opisanym poniżej.
 Administrator może także ustawić hasło lokalnym poleceniem powyżej.
 
+## Profil i bezpieczeństwo konta — SCRUM-49 (pierwszy przyrost)
+
+- `GET /api/v1/auth/profile`: własna nazwa, login, e-mail lub `null` i rola;
+  wymaga sesji, nie udostępnia edycji roli/statusu.
+- `POST /api/v1/auth/password/change`: `current_password`, `new_password`.
+  Nowe hasło ma 12–1024 znaki i musi być inne. Wymaga sesji oraz Origin;
+  dostępne także dla viewer. Limit prób: 5/15 min na konto, 10/15 min na IP.
+  Błędne obecne hasło daje 400 bez wylogowania. Błędy walidacji nie odbijają
+  haseł. Udana zmiana usuwa wszystkie stare sesje i tokeny resetu; bieżąca
+  przeglądarka otrzymuje nowy losowy token HttpOnly/SameSite=Strict/Secure w HTTPS.
+- `POST /api/v1/auth/sessions/logout-all`: unieważnia wszystkie sesje własnego
+  konta, także bieżącą, i usuwa cookie. Kolejny odczyt wymaga logowania.
+
+Operacje oraz logowanie blokują rekord User w PostgreSQL. Po uzyskaniu blokady
+zmiana hasła/wylogowanie ponownie sprawdzają ważność sesji, aby drugie żądanie
+ze starym tokenem nie ominęło unieważnienia. Nie potrzeba nowej migracji.
+
+Powiadomienie o zmianie hasła trafia wyłącznie na przypisany adres, gdy jest
+skonfigurowane SMTP. Nie zawiera haseł ani linku resetu. Jest zadaniem w tle,
+bez gwarancji trwałego doręczenia; awaria SMTP nie cofa udanej zmiany hasła.
+Zmiana adresu i jego potwierdzanie pozostają poza tym przyrostem. Testy używają
+atrap SMTP, a rzeczywista wysyłka wymaga osobnego uzgodnienia.
+
 ## Synchronizacja pojazdów — SCRUM-15
 
 `SYNC_ENABLED=true` w lokalnym `.env` włącza jeden wspólny odczyt co 60 s.
