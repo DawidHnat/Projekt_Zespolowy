@@ -2,9 +2,9 @@
 .date-picker-field {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 0;
   min-height: 36px;
-  padding: 8px 10px;
+  padding: 0;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--surface-muted);
@@ -15,22 +15,31 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
 }
 .date-picker-field[data-disabled] { opacity: .55; }
-.date-picker-field input {
+.date-picker-trigger {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   min-width: 0;
-  width: 94px;
+  min-height: 34px;
+  margin: 0;
   border: 0;
   outline: none;
-  padding: 0;
+  padding: 8px 10px;
+  border-radius: inherit;
   background: transparent;
   color: var(--text);
   font: inherit;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
 }
-/* The field supplies the focus ring; override the global input:focus-visible. */
-.date-picker-field input:focus-visible { outline: none; box-shadow: none; }
-.date-picker-field input::placeholder { color: var(--muted); }
-.date-picker-field:has(input[aria-invalid="true"]) { border-color: var(--danger); }
+.date-picker-trigger span { width: 94px; user-select: none; -webkit-user-select: none; }
+.date-picker-trigger:disabled { cursor: not-allowed; }
+/* The shared field supplies the focus ring, including keyboard focus. */
+.date-picker-trigger:focus-visible { outline: none; box-shadow: none; }
 .date-picker-clear {
   display: grid;
   place-items: center;
@@ -76,6 +85,7 @@
 .ff-calendar .flatpickr-monthDropdown-months {
   appearance: none; -webkit-appearance: none; cursor: pointer;
 }
+.ff-calendar input.cur-year { pointer-events: none; user-select: none; -webkit-user-select: none; }
 .ff-calendar .flatpickr-monthDropdown-month { color: var(--text); background: var(--surface); }
 .ff-calendar .flatpickr-months :is(.flatpickr-prev-month, .flatpickr-next-month) {
   position: static; display: grid; place-items: center;

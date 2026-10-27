@@ -78,9 +78,13 @@ Kontrakt: `value` i `onChange` przekazują datę kalendarzową `YYYY-MM-DD`
 (pusty string oznacza brak), natomiast pole pokazuje `DD.MM.RRRR`.
 `label` jest wymagany; opcjonalne są `id`, `minDate`, `maxDate`, `disabled`,
 `required` i `allowClear`. Granice są włączające, w formacie `YYYY-MM-DD`.
-Wymaganej daty nie można wyczyścić przyciskiem; wpisywanie ma walidację
-formatu, rzeczywistego dnia i ograniczeń. Formularz zapisuje kontrolowaną
-wartość stanu, nie parsuje tekstu widocznego pola. Nie konwertujemy tych dat
+Wymaganej daty nie można wyczyścić przyciskiem. Datę zmienia się wyłącznie
+przez wybór z kalendarza lub istniejące skróty Dzisiaj/Wczoraj. Widoczne pole
+jest przyciskiem z datą: nie przyjmuje wpisywania, wklejania ani zaznaczania
+tekstu. Techniczne pole Flatpickr jest ukryte i tylko do odczytu; również
+rok w nagłówku kalendarza nie przyjmuje ręcznego wpisu.
+Formularz zapisuje kontrolowaną wartość stanu i sprawdza jej wymagalność,
+nie parsuje tekstu widocznego przycisku. Nie konwertujemy tych dat
 przez `toISOString()` ani UTC. Zakres dat, sam miesiąc i godzina wymagają
 osobnego rozszerzenia kontraktu.
 
@@ -95,9 +99,9 @@ strzałek po prawej. Wybrany dzień ma delikatne tło i obramowanie akcentu;
 fokus pola pokazuje wspólna otoczka, bez drugiej ramki na tekście.
 Pozycja kalendarza jest liczona od całego pola, razem z ikoną i obramowaniem.
 
-Tydzień zaczyna się od poniedziałku. Można wpisać datę i zatwierdzić Enterem,
-Tabem lub opuszczeniem pola; błędne daty nie są normalizowane do innego dnia.
-Strzałka w dół przenosi fokus na dni kalendarza; Escape zamyka kalendarz
+Tydzień zaczyna się od poniedziałku. Kliknięcie, Enter lub Spacja otwierają
+kalendarz; tekst daty pozostaje nieedytowalny. Strzałka w dół przenosi fokus
+na dni kalendarza; Escape zamyka kalendarz
 i wraca do pola, bez zamykania nadrzędnego dialogu. Na telefonie używamy tego
 samego widoku. Kalendarz jest potomkiem komponentu i korzysta z Popover API,
 aby pojawiać się nad zawartością bez obcięcia w natywnym dialogu. W starszych

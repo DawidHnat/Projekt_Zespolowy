@@ -20,22 +20,3 @@ export function calendarValue(date: Date): string {
 export function displayCalendarDate(value: string): string {
   return calendarDate(value) ? value.split("-").reverse().join(".") : "";
 }
-
-export function calendarInputValue(text: string): string | undefined {
-  if (!text.trim()) return "";
-  const parts = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(text.trim());
-  const value = parts ? `${parts[3]}-${parts[2]}-${parts[1]}` : "";
-  return calendarDate(value) ? value : undefined;
-}
-
-export function calendarInputError(
-  text: string,
-  { required = false, minDate, maxDate }: { required?: boolean; minDate?: string; maxDate?: string },
-): string {
-  if (!text.trim()) return required ? "Wybierz datę." : "";
-  const value = calendarInputValue(text);
-  if (!value) return "Wpisz poprawną datę w formacie DD.MM.RRRR.";
-  if (minDate && value < minDate) return `Najwcześniejsza data: ${displayCalendarDate(minDate)}.`;
-  if (maxDate && value > maxDate) return `Najpóźniejsza data: ${displayCalendarDate(maxDate)}.`;
-  return "";
-}
