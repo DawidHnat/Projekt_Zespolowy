@@ -24,7 +24,7 @@ services:
     environment:
       COOKIE_SECURE: 'true'
       CORS_ORIGINS: https://${APP_DOMAIN:?Set APP_DOMAIN}
-      SYNC_ENABLED: 'false'
+      # SYNC_ENABLED comes from env_file; default false in runtime.env.example.
     depends_on:
       database:
         condition: service_healthy
