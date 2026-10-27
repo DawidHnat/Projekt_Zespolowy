@@ -14,6 +14,7 @@ import "./app/glass.css";
 import "./app/backgrounds.css";
 import "./app/workspace-pages.css";
 import "./app/settings.css";
+import "./app/profile.css";
 import "./app/vehicle-details.css";
 import "./app/map-preview.css";
 import "./app/trips.css";

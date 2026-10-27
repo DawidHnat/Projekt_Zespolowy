@@ -1,4 +1,4 @@
-"""OVH SMTP: authentication-only diagnostic and separate password-reset delivery."""
+"""OVH SMTP: authentication diagnostics and account notifications."""
 
 import smtplib
 import ssl
@@ -43,6 +43,23 @@ def send_password_reset(settings: SmtpSettings, recipient: str, url: str) -> Non
         + url
         + "\n\nJeśli nie prosisz o zmianę hasła, zignoruj tę wiadomość."
     )
+    _send(settings, recipient, message)
+
+
+def send_password_changed(settings: SmtpSettings, recipient: str) -> None:
+    message = EmailMessage()
+    message["From"] = settings.username
+    message["To"] = recipient
+    message["Subject"] = "Fleet-Flow — zmieniono hasło"
+    message.set_content(
+        "Hasło Twojego konta Fleet-Flow zostało zmienione. "
+        "Poprzednie sesje zostały wylogowane. "
+        "Jeżeli nie wykonujesz tej zmiany, skontaktuj się z administratorem zespołu."
+    )
+    _send(settings, recipient, message)
+
+
+def _send(settings: SmtpSettings, recipient: str, message: EmailMessage) -> None:
     try:
         with smtplib.SMTP_SSL(
             settings.host,

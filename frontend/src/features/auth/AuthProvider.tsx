@@ -19,6 +19,7 @@ type AuthState = {
   error: string | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  logoutAll: () => Promise<void>;
   retry: () => void;
   clearSession: () => void;
 };
@@ -71,6 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await api("/auth/logout", { method: "POST" }, false);
     setUser(null);
   };
+  const logoutAll = async () => {
+    await api("/auth/sessions/logout-all", { method: "POST" });
+    setUser(null);
+  };
   return (
     <AuthContext
       value={{
@@ -79,6 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         error,
         login,
         logout,
+        logoutAll,
         retry: () => setRevision((v) => v + 1),
         clearSession: () => setUser(null),
       }}
