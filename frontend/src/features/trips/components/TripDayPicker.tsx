@@ -1,4 +1,4 @@
-import { CalendarDays } from "lucide-react";
+import { DatePicker } from "../../../shared/components/DatePicker";
 import { previousDay } from "../model/trip-day";
 
 export function TripDayPicker({
@@ -29,17 +29,7 @@ export function TripDayPicker({
           </button>
         ))}
       </div>
-      <label className="trip-day-calendar">
-        <CalendarDays size={15} aria-hidden="true" />
-        <input
-          type="date"
-          aria-label={label}
-          value={value}
-          max={today}
-          required
-          onChange={(event) => onChange(event.target.value)}
-        />
-      </label>
+      <DatePicker value={value} maxDate={today} required label={label} onChange={onChange} />
     </div>
   );
 }

@@ -1,0 +1,142 @@
+.date-picker { min-width: 0; }
+.date-picker-field {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-height: 36px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-muted);
+  color: var(--muted);
+}
+.date-picker-field:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.date-picker-field[data-disabled] { opacity: .55; }
+.date-picker-trigger {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 34px;
+  margin: 0;
+  border: 0;
+  outline: none;
+  padding: 8px 10px;
+  border-radius: inherit;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.date-picker-trigger span { width: 94px; user-select: none; -webkit-user-select: none; }
+.date-picker-trigger:disabled { cursor: not-allowed; }
+/* The shared field supplies the focus ring, including keyboard focus. */
+.date-picker-trigger:focus-visible { outline: none; box-shadow: none; }
+.date-picker-clear {
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  padding: 3px;
+  cursor: pointer;
+}
+.date-picker-clear:hover { background: var(--surface-hover); color: var(--text); }
+.date-picker-clear:focus-visible { outline: 2px solid var(--accent); }
+.ff-calendar.flatpickr-calendar {
+  position: fixed;
+  inset: auto;
+  width: min(280px, calc(100vw - 16px));
+  max-height: calc(100dvh - 16px);
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--text) 12%, transparent);
+  font-family: var(--font-sans);
+}
+.ff-calendar.flatpickr-calendar::before,
+.ff-calendar.flatpickr-calendar::after { display: none; }
+.ff-calendar .flatpickr-months { align-items: center; gap: 4px; margin-bottom: 8px; }
+.ff-calendar .flatpickr-months .flatpickr-month {
+  display: flex; align-items: center; flex: 1; order: 0;
+  height: 30px; overflow: visible; color: var(--text); fill: currentColor;
+}
+.ff-calendar .flatpickr-current-month {
+  position: static; display: flex; align-items: center; gap: 5px;
+  width: auto; height: auto; padding: 0; font-size: 13px;
+}
+.ff-calendar .flatpickr-current-month :is(.flatpickr-monthDropdown-months, input.cur-year) {
+  color: var(--text); background: transparent; border-radius: 6px; font: inherit; font-weight: 600;
+  margin: 0; padding: 3px 0;
+}
+.ff-calendar .flatpickr-monthDropdown-months {
+  appearance: none; -webkit-appearance: none; cursor: pointer;
+}
+.ff-calendar input.cur-year { pointer-events: none; user-select: none; -webkit-user-select: none; }
+.ff-calendar .flatpickr-monthDropdown-month { color: var(--text); background: var(--surface); }
+.ff-calendar .flatpickr-months :is(.flatpickr-prev-month, .flatpickr-next-month) {
+  position: static; display: grid; place-items: center;
+  flex: 0 0 28px; width: 28px; height: 28px; padding: 7px;
+  border: 1px solid var(--border); border-radius: 8px; color: var(--muted); fill: currentColor;
+}
+.ff-calendar .flatpickr-months .flatpickr-prev-month { order: 1; }
+.ff-calendar .flatpickr-months .flatpickr-next-month { order: 2; }
+.ff-calendar .flatpickr-months .flatpickr-disabled { opacity: .3; pointer-events: none; }
+.ff-calendar .flatpickr-months :is(.flatpickr-prev-month, .flatpickr-next-month):hover {
+  color: var(--text); background: var(--surface-hover);
+}
+.ff-calendar .flatpickr-months :is(.flatpickr-prev-month, .flatpickr-next-month):hover svg { fill: currentColor; }
+.ff-calendar .numInputWrapper:hover { background: var(--surface-hover); }
+.ff-calendar .numInputWrapper span { border-color: var(--border); }
+.ff-calendar .numInputWrapper span.arrowUp::after { border-bottom-color: var(--muted); }
+.ff-calendar .numInputWrapper span.arrowDown::after { border-top-color: var(--muted); }
+.ff-calendar :is(.flatpickr-innerContainer, .flatpickr-rContainer, .flatpickr-days, .dayContainer) { width: 100%; min-width: 0; max-width: none; }
+.ff-calendar .flatpickr-weekdays { height: 24px; }
+.ff-calendar .flatpickr-weekday { color: var(--muted); font-size: 11px; font-weight: 500; }
+.ff-calendar .dayContainer {
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px 0; padding-top: 4px;
+}
+.ff-calendar .flatpickr-day {
+  justify-self: center; width: 30px; max-width: 30px; height: 30px; line-height: 28px;
+  border-radius: 9px; color: var(--text); font-size: 12px;
+}
+.ff-calendar .flatpickr-day:is(.prevMonthDay, .nextMonthDay) { color: var(--muted); }
+.ff-calendar .flatpickr-day:is(:hover, :focus) { background: var(--surface-hover); border-color: var(--surface-hover); }
+.ff-calendar .flatpickr-day.today { border-color: var(--accent); }
+.ff-calendar .flatpickr-day.selected,
+.ff-calendar .flatpickr-day.selected:is(:hover, :focus) {
+  color: var(--text); background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--border)); font-weight: 700;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.ff-calendar .flatpickr-day.flatpickr-disabled,
+.ff-calendar .flatpickr-day.flatpickr-disabled:hover { color: var(--muted); opacity: .4; background: transparent; border-color: transparent; cursor: not-allowed; }
+.ff-calendar :is(.flatpickr-day, select, input):focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+.ff-calendar.ff-calendar-inline { position: relative; margin-top: 8px; }
+:root[data-material="glass"] .date-picker-field { background: var(--glass-control); border-color: var(--glass-edge); }
+:root[data-material="glass"] .ff-calendar {
+  background: linear-gradient(135deg, var(--glass-reflection), transparent 50%), var(--glass-card);
+  border-color: var(--glass-edge);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+}
+@media (pointer: coarse) {
+  .ff-calendar.flatpickr-calendar { width: min(320px, calc(100vw - 16px)); }
+  .ff-calendar .flatpickr-day { width: 36px; max-width: 36px; height: 36px; line-height: 34px; }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
+  :root[data-material="glass"] .ff-calendar { background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
