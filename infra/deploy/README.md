@@ -5,6 +5,10 @@ buduje się w GitHub Actions, backend w obrazie Pythona na VPS. Caddy obsługuje
 HTTPS i przekazuje `/api` do niepublicznego backendu. Baza nie publikuje portu.
 Synchronizacja WEBFLEET jest wyłączona w tym przyroście.
 
+Cykliczny szyfrowany backup poza VPS i izolowane sprawdzenie odtworzenia opisuje
+[SCRUM-84](../backup/README.md). Wymaga osobnej konfiguracji storage i aktywacji
+timerów; lokalny dump przy deployu nie zastępuje tej kopii.
+
 20 października 2026 przetestowano na VPS wydanie `e30cadd` z PR #23 pod
 `https://vps-9171bf52.vps.ovh.net/`. Przeszły także ponowne wdrożenie, kopia
 zmigrowanej bazy i próba jej odtworzenia. Trzy sekrety Actions są zapisane,
