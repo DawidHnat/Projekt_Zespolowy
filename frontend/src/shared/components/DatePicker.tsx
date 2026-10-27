@@ -94,7 +94,7 @@ export function DatePicker(props: Props) {
     const floating = typeof HTMLElement.prototype.showPopover === "function";
     const position = (instance: Instance) => {
       if (!floating || !instance.isOpen) return;
-      const rect = field.getBoundingClientRect();
+      const rect = field.parentElement!.getBoundingClientRect();
       const calendar = instance.calendarContainer;
       const width = calendar.offsetWidth;
       const height = calendar.offsetHeight;

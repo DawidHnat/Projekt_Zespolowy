@@ -85,10 +85,15 @@ przez `toISOString()` ani UTC. Zakres dat, sam miesiąc i godzina wymagają
 osobnego rozszerzenia kontraktu.
 
 `date-picker.css` nadpisuje bazową geometrię Flatpickr tokenami `--surface`,
-`--text`, `--muted`, `--border`, `--accent` i `--accent-on`. Motyw i kolor
+`--text`, `--muted`, `--border`, `--accent` i `--accent-soft`. Motyw i kolor
 zmieniają się przez istniejące zmienne CSS, również bez ponownej inicjalizacji
 kalendarza. Szkło korzysta z tych samych tokenów co reszta aplikacji;
 preferencje ograniczenia przezroczystości wyłączają rozmycie.
+Na komputerze kalendarz ma 280 px szerokości, a na urządzeniach z głównym
+wskaźnikiem dotykowym 320 px, zawsze w granicach ekranu. Nagłówek ma parę
+strzałek po prawej. Wybrany dzień ma delikatne tło i obramowanie akcentu;
+fokus pola pokazuje wspólna otoczka, bez drugiej ramki na tekście.
+Pozycja kalendarza jest liczona od całego pola, razem z ikoną i obramowaniem.
 
 Tydzień zaczyna się od poniedziałku. Można wpisać datę i zatwierdzić Enterem,
 Tabem lub opuszczeniem pola; błędne daty nie są normalizowane do innego dnia.

@@ -22,8 +22,14 @@ Sprawdzono w działającym localhost, w przeglądarce w aplikacji:
 - Polski język, poniedziałek na początku tygodnia, dni po dzisiaj niedostępne.
 - Jasne szkło z niebieskim akcentem oraz ciemne szkło z fioletowym akcentem:
   kolory powierzchni i zaznaczenia pochodzą z aktualnego motywu.
-- Przy szerokości 390 px kalendarz ma 320 px; przy szerokości 320 px mieści
-  się między x=8 a x=312. Tymczasowe zmiany viewportu wycofano po odbiorze.
+- Kompaktowy widok komputera ma 280 × 282 px. Przy szerokości viewportu
+  320 px mieści się między x=32 a x=312. Tymczasowe zmiany viewportu
+  wycofano po odbiorze. Reguła CSS dla wskaźnika dotykowego powiększa dni
+  i szerokość do 320 px; wymaga osobnego odbioru na urządzeniu dotykowym.
+- Pole z aktywnym `:focus-visible` nie ma dodatkowego czarnego obrysu tekstu;
+  fokus pozostaje widoczny na całej otoczce. Nagłówek mieści miesiąc, rok
+  i obie strzałki, w tym nieaktywną strzałkę przyszłego miesiąca. Po zmianie
+  siatki wybór 26 października nadal ustawia Wczoraj i wartość pola.
 - Strzałka w dół ustawia fokus na dniu. Escape zamyka kalendarz i wraca
   do pola. W Podróżach pojazdu wybranie dnia działa, a Escape pozostawia
   nadrzędny dialog otwarty. Kalendarz nie jest schowany pod dialogiem.
