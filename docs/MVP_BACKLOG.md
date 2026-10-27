@@ -1,18 +1,18 @@
-# Plan backlogu MVP — aktualizacja 24.10.2026
+# Plan backlogu MVP — aktualizacja 27.10.2026
 
 Źródłem bieżącego statusu pozostaje [backlog SCRUM](https://fleet-flow.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog).
-Poniższą bazową kolejność ustawiono w Jirze i sprawdzono 23.10.2026
-po odświeżeniu tablicy. Podział pracy i plan Sprintu 2 zaktualizowano
-24.10.2026 zgodnie z sekcjami poniżej.
-Porządkuje zależności przyrostów; punkty to względna
-złożoność, a nie godziny. Estymaty wpisano do pól Story point estimate.
-Każda z ośmiu Story ma formę Jako/chcę/aby oraz listę co najmniej czterech
-kryteriów akceptacji w opisie.
+Kolejność ośmiu Story MVP zachowuje zależności: logowanie i synchronizacja,
+lista/mapa, historia i opisy, analityka/alerty oraz ręczna kartoteka kierowców.
+Punkty to robocza względna złożoność, a nie godziny. Opisy i estymaty są w Jirze.
 
-Przegląd 24–25.10 uzupełnił również 30 podzadań o robocze estymaty,
-uzasadnienia i zasady ich odrębnego liczenia. Logowanie i szkielet oraz
-trzy zadania odbioru są w fazie Testowanie. Szczegóły, zapisane punkty,
-kolejka QA i ocena obecnej bazy: [estymaty i testowanie](ESTIMATION_AND_QA.md).
+27.10.2026 na polecenie PO rozplanowano cały backlog, wydzielono rozszerzenia
+SCRUM-68–76, a następnie połączono plan w pięć sprintów. Cztery opróżnione
+sprinty 6–9 usunięto po wyraźnym potwierdzeniu PO. Zgłoszenia, ich właściciele,
+estymaty i statusy pozostały zachowane; podzadania są razem z rodzicami.
+
+Trzy Story Sprintu 1 nadal mają 21 SP. Suma jego wycenionych zgłoszeń głównych
+wynosi 27 SP po uwzględnieniu wsparcia SCRUM-64/66. Nie sumujemy punktów
+podzadań ponownie. Zasady i kolejka QA: [estymaty i testowanie](ESTIMATION_AND_QA.md).
 
 | Kolejność planu | Story | Przyrost | SP |
 | --- | --- | --- | --- |
@@ -64,41 +64,69 @@ formularza w Jirze; zachowano godzinę lokalną mimo zmiany czasu.
 Zaktualizowano daty istniejącego sprintu; Jira zachowała aktywny status,
 cel, trzy Story oraz historię. Zmiana dat nie oznacza odbioru historyjek.
 
-## Podział pracy — 24.10.2026
+## Podział pracy w Sprincie 1
 
-Główne przypisania Sprintu 1 pokazują pracę całej czwórki:
-
-| Osoba | Odpowiedzialność w Sprincie 1 |
+| Osoba | Odpowiedzialność |
 | --- | --- |
-| Jakub Czaja | SCRUM-16 — logowanie; PO, kontrakt i zasady ukończenia |
-| Dawid Hnat | SCRUM-15 — synchronizacja; API i infrastruktura |
-| Jakub Nazarewicz | SCRUM-5 — właściciel listy i mapy; SCRUM-21 — mapa |
-| Marcel Głowacki | SCRUM-37 — plan QA; odbiór w SCRUM-23/40/56 |
+| Jakub Czaja | Logowanie SCRUM-16, PO i planowanie, kontrakt API SCRUM-36, kalendarz SCRUM-66 oraz własne przyrosty listy/układu |
+| Dawid Hnat | Synchronizacja SCRUM-15, mapowanie źródła SCRUM-14, API i infrastruktura, uruchomienie odczytu VPS SCRUM-64 |
+| Jakub Nazarewicz | Lista/mapa SCRUM-5, mapa SCRUM-21, aktualność SCRUM-22 i przepływy/prototyp SCRUM-35 |
+| Marcel Głowacki | Plan QA SCRUM-37, odbiory SCRUM-23/40/56 |
 
-SCRUM-37 przeniesiono z backlogu do Sprintu 1. Sprint ma teraz dziewięć
-zgłoszeń głównych, w tym te same trzy Story o łącznej estymacie 21 SP.
-Zachowano wykonawców podzadań i ich stany; zmiana właściciela Story
-nie przepisuje autorstwa dotychczasowej implementacji ani nie oznacza Done.
+Sprint ma 16 zgłoszeń głównych. Podstawowe trzy Story nie są ukończone przez
+samo scalenie ich fragmentów. Materiały organizacyjne i wspólny kalendarz są
+pracą wspierającą; nie tworzą kolejnych głównych funkcji MVP.
 
-## Plan Sprintu 2
+## Aktualny plan pięciu sprintów
 
-**FF Sprint 2 - historia** pozostaje planowany, bez dat i bez uruchamiania.
-Cel obejmuje historię pojazdu, trwały cel/opis i sumę okresu oraz ręczną
-kartotekę kierowców. Trzy Story mają razem **21 SP**:
+Wartości obejmują pola zgłoszeń głównych; podzadań nie liczymy drugi raz.
+Nowe wyceny są robocze, do potwierdzenia na Planningu. Połączenie etapów
+zwiększa zakres sprintów i nie gwarantuje wykonania całej listy w pięciu
+cyklach po dwa tygodnie. Przyszłe daty i długość ustala zespół.
 
-| Zgłoszenie | Właściciel przyrostu | SP | Podzadania |
+| Sprint | Zgłoszenia główne | SP w polach | Cel etapu |
 | --- | --- | --- | --- |
-| [SCRUM-6](https://fleet-flow.atlassian.net/browse/SCRUM-6) — historia | Jakub Nazarewicz | 8 | API SCRUM-24 — Dawid; UI SCRUM-25 — Nazarewicz; QA SCRUM-28 — Marcel |
-| [SCRUM-62](https://fleet-flow.atlassian.net/browse/SCRUM-62) — ewidencja | Jakub Czaja | 5 | Cel/opis SCRUM-26 — Czaja; podsumowanie SCRUM-27 — Nazarewicz |
-| [SCRUM-42](https://fleet-flow.atlassian.net/browse/SCRUM-42) — ręczni kierowcy | Dawid Hnat | 8 | API SCRUM-52 — Dawid; UI SCRUM-53 — Nazarewicz; QA SCRUM-54 — Marcel |
+| 1 — flota i mapa | 16 | 27 | Logowanie, synchronizacja, lista/mapa i jawna aktualność; dotychczasowe daty 24.10–7.11.2026. |
+| 2 — historia i auta | 7 | 38 | Historia, podstawowa ewidencja, ręczni kierowcy, pełna kartoteka, zdjęcia i dokumenty; odbiór SCRUM-63, usprawnienie po retro SCRUM-65. |
+| 3 — serwis i alerty | 7 | 32 | Analityka i alerty dystansu, regresja, wdrożenie/domena SCRUM-67, olej i centrum terminów. |
+| 4 — ewidencja/konta | 6 | 39 | Ręczne wpisy, filtry i kolejność tras, zgodność uprawnień, konta/profil oraz trwałe e-maile. |
+| 5 — paliwo i raporty | 5 | 32 | Karty paliwowe, anonimowe wzory MOL/ORLEN, import i deduplikacja, statystyki i CSV. |
 
-Dodano [SCRUM-63](https://fleet-flow.atlassian.net/browse/SCRUM-63), zadanie
-Marcela dotyczące przekrojowego odbioru historii, ewidencji i ręcznych
-kierowców. Ma pięć kryteriów akceptacji, zależności od implementacji
-i odbiorów SCRUM-28/54 oraz stan Do zrobienia. Nie ma osobnych SP,
-aby nie dublować estymat Story. Nie zastępuje końcowej regresji MVP SCRUM-17.
-Sprint 2 ma cztery zgłoszenia główne oraz osiem podzadań w trzech Story.
-Ostateczny zakres wymaga potwierdzenia dostępności zespołu na Planningu.
+Sprint 1 jest jedynym aktywnym. Sprinty 2–5 pozostają planowane bez dat.
+Przed startem trzeba potwierdzić dostępność w danym okresie i terminy spotkań;
+orientacyjne godziny w kontrakcie nie zastępują tego uzgodnienia. Ten dokument
+nie deklaruje odbycia Planningu, Review, retro ani zaliczenia QA.
+
+### Sprint 2 — kolejność wykonania
+
+| Zgłoszenie | Właściciel | SP | Powiązania |
+| --- | --- | --- | --- |
+| SCRUM-6 — historia | Jakub Nazarewicz | 8 | API SCRUM-24 Dawida; UI SCRUM-25; QA SCRUM-28 Marcela |
+| SCRUM-62 — podstawowa ewidencja | Jakub Czaja | 5 | Cel/opis SCRUM-26; sumy SCRUM-27 Nazarewicza |
+| SCRUM-42 — ręczni kierowcy | Dawid Hnat | 8 | API SCRUM-52; UI SCRUM-53 Nazarewicza; QA SCRUM-54 Marcela |
+| SCRUM-57 — zdjęcia, daty i dokumenty | Jakub Czaja | 8 | API SCRUM-58 Dawida; UI SCRUM-59 Nazarewicza; QA SCRUM-60 Marcela |
+| SCRUM-68 — pełna kartoteka/leasing | Dawid Hnat | 8 | Wspólne pola i zdjęcie z SCRUM-57; UI Nazarewicza, odbiór Marcela |
+| SCRUM-63 — odbiór przekrojowy | Marcel Głowacki | — | Historia, ewidencja i kierowcy; nie zastępuje końcowej regresji SCRUM-17 |
+| SCRUM-65 — usprawnienie z retro | Jakub Czaja | 1 | Codzienne review PR i kompletne dowody DoD; potwierdzenie na rzeczywistej retrospektywie |
+
+### Granice rozszerzeń
+
+- SCRUM-5/51: podstawowe metadane i rzeczywista telemetria w Sprincie 1.
+  Pełny formularz, leasing i dodatkowe dane są w SCRUM-68 (Sprint 2).
+- SCRUM-42/52/53/54: ręczna kartoteka i przypisania w Sprincie 2.
+  Egzekwowanie macierzy uprawnień kierowca–pojazd: SCRUM-70 (Sprint 4).
+- SCRUM-62/26/27: trwały cel/opis i podstawowe sumy w Sprincie 2.
+  Rozbudowane CRUD, filtry i KPI: SCRUM-71; kolejność i ostrzeżenia:
+  SCRUM-72 (Sprint 4).
+- SCRUM-7/32/33: alerty dziennego dystansu w Sprincie 3. Centrum terminów:
+  SCRUM-69 w tym samym sprincie, e-mail: SCRUM-73 w Sprincie 4.
+- SCRUM-43: rejestr kart w Sprincie 5. Anonimowe wzory SCRUM-74 poprzedzają
+  import SCRUM-75; statystyki SCRUM-76 korzystają z potwierdzonych danych.
+
+W opisach zachowano wcześniejsze wymagania i dodano datowane granice etapów.
+Domyślne progi pilności, macierz uprawnień i formaty MOL/ORLEN trzeba
+potwierdzić przed implementacją odpowiedniego zakresu. Automatyczne
+podpowiadanie celu przejazdu pozostaje pomysłem do dalszego Refinementu.
 
 ## Uzgodnienia z plikiem wymagań
 
@@ -108,6 +136,7 @@ ręczne wprowadzanie kierowców; import wymaga osobnego uzgodnienia.
 Raporty i CSV mają już SCRUM-50 zależne od historii, agregacji i kartoteki;
 nie dodano drugiego zgłoszenia o tym samym zakresie.
 
-Poza tym zakresem pozostają m.in. serwis, karty paliwowe, eksporty,
-rozbudowana administracja kontami i dokumenty pojazdów. Ich istniejące
-zgłoszenia zachowano jako dalszy backlog produktu.
+Serwis, karty paliwowe, eksporty, rozbudowana administracja i dokumenty
+pozostają rozszerzeniami MVP, z miejscem w planowanych Sprintach 2–5.
+Plan w Jirze nie potwierdza ich implementacji ani nie rozszerza automatycznie
+bieżącego zobowiązania Sprintu 1.

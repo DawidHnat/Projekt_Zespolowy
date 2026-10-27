@@ -1,7 +1,8 @@
 # Estymaty podzadań i kolejka QA
 
-Stan dokumentacji: 25.10.2026. Zmiany w Jirze zapisano podczas przeglądu
-24–25.10.2026; adnotacje estymat noszą datę rozpoczęcia przeglądu 24.10.
+Stan dokumentacji: 27.10.2026. Pierwszy przegląd punktów odbył się
+24–25.10.2026; jego adnotacje zachowują datę 24.10. Aktualny plan pięciu
+sprintów i granice rozszerzeń opisuje [backlog MVP](MVP_BACKLOG.md).
 
 ## Jak czytać punkty
 
@@ -12,7 +13,9 @@ Planning Poker, godziny ani pozostały czas pracy. Dla już ukończonych SCRUM-3
 wyraźnie zaznaczono, że punkty dodano później.
 
 Story zachowują swoje odrębne estymaty. Nie dodajemy punktów rodzica i dzieci
-do jednej sumy; Sprint 1 i planowany Sprint 2 nadal mają po trzy Story i 21 SP.
+do jednej sumy. Trzy główne Story Sprintu 1 mają 21 SP, a suma wycenionych
+zgłoszeń głównych wynosi 27 SP z zadaniami SCRUM-64/66. Planowany Sprint 2
+po dołączeniu kartoteki, dokumentów i SCRUM-65 ma 38 SP.
 Raport velocity Jiry nie uwzględnia estymat podzadań —
 [dokumentacja Atlassian](https://support.atlassian.com/jira-software-cloud/docs/what-is-the-velocity-report/).
 Zadania główne wspierające sprint, np. plan QA SCRUM-37 i integracyjny odbiór
@@ -67,7 +70,7 @@ Przekazanie do tej kolumny nie jest wynikiem PASS ani dowodem ukończenia.
 | --- | --- | --- |
 | SCRUM-13 — szkielet | Testowanie | Marcel w SCRUM-40 |
 | SCRUM-16 — logowanie | Testowanie, nadal 5 SP | Marcel w SCRUM-56 |
-| SCRUM-23 — lista/mapa | Testowanie, 3 SP | Marcel; najpierw scalone przyrosty, następnie retest SCRUM-51 |
+| SCRUM-23 — lista/mapa | W toku, 3 SP | Marcel; najpierw scalone przyrosty, następnie retest SCRUM-51 |
 | SCRUM-40 — szablon i układ | Testowanie, 3 SP | Marcel |
 | SCRUM-56 — sesje/reset | Testowanie, 3 SP | Marcel; rzeczywista dostawa SMTP pozostaje osobnym nieuzgodnionym testem |
 
@@ -82,7 +85,8 @@ po rozwinięciu karty. Dlatego liczba kart w Testowaniu zależy od widoku.
 
 ## Najbliższa praca Marcela
 
-1. Potwierdź plan i syntetyczne dane w SCRUM-37. Zapisz testowany SHA,
+1. Plan SCRUM-37 jest przyjęty jako dokumentacja: PR #28 jest scalony.
+   Scenariusze aplikacji nadal wymagają rzeczywistego wykonania; zapisz SHA,
    środowisko, datę, przeglądarkę i rozmiar ekranu.
 2. SCRUM-56: brak sesji, poprawne/błędne logowanie, wylogowanie, wygaśnięcie
    i cookies po HTTPS. Reset: neutralna odpowiedź, token wygasły/wykorzystany,
@@ -130,9 +134,10 @@ Ograniczenia relacyjne: [dokumentacja PostgreSQL](https://www.postgresql.org/doc
 ## Pozostałe otwarte sprawy
 
 - Wykonać i udokumentować niezależne QA wskazane wyżej; sama kolumna nie zamyka odbioru.
-- Potwierdzić robocze punkty i zakres na Planningu. Rozbudowane dzieci, zwłaszcza
-  SCRUM-25/51, wymagają kontroli zakresu; nie uznajemy ich za małą pracę tylko dlatego,
-  że Story zachowała wcześniejszą estymatę.
+- Potwierdzić robocze punkty i zakres na Planningu. Rozszerzenia kartoteki,
+  ewidencji i alertów wydzielono do SCRUM-68–76; starsze wyceny dotyczą
+  zakresu MVP określonego w datowanych notatkach Jiry. Nowe szacunki
+  nie są dowodem dostępności ani uzgodnioną velocity.
 - Zatwierdzić i scalić PR dokumentacji #27 przez inną osobę; po scaleniu
   poczekać na wdrożenie i odświeżyć dowód zgodności serwera z origin/main.
 - Udostępnienie Figmy/Jiry prowadzącemu pozostaje niepotwierdzone; PO odroczył
