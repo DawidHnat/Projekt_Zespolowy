@@ -23,6 +23,7 @@ def test_postgres_search_and_lightweight_queries():
         session = Session(bind=connection)
         vehicle = Vehicle(source_account=source, external_uid="fictional", name="ŁÓDŹ 100%_A")
         session.add(vehicle)
+        session.add(Vehicle(source_account=source, external_uid="unicode-casefold", name="Straße"))
         session.flush()
         session.add(
             Measurement(
@@ -38,16 +39,17 @@ def test_postgres_search_and_lightweight_queries():
         session.flush()
         items, total = fleet_page(session, source, 900, " łódź 100%_a ", "moving", 1, 25)
         assert total == 1 and items[0]["name"] == vehicle.name
-        assert fleet_page(session, source, 900, "", None, 2, 25) == ([], 1)
+        assert fleet_page(session, source, 900, "łódź", None, 2, 25) == ([], 1)
+        assert fleet_page(session, source, 900, "STRASSE", None, 1, 25)[1] == 1
         assert fleet_page(session, "another-source", 900, "", None, 1, 25) == ([], 0)
         features, total = fleet_markers(session, source, 900, "łódź", "moving")
         assert total == 1 and features[0]["geometry"]["coordinates"] == [0.0, 0.0]
         assert fleet_summary(session, source, 900) == {
-            "total": 1,
+            "total": 2,
             "moving": 1,
             "stopped": 0,
             "offline": 0,
-            "unknown": 0,
+            "unknown": 1,
         }
         session.close()
         transaction.rollback()

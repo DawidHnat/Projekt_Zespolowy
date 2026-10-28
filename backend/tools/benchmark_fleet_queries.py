@@ -13,7 +13,7 @@ from uuid import uuid4
 
 from sqlalchemy import create_engine, event, insert, select
 from sqlalchemy.engine import make_url
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, load_only
 
 from app.core.models import Driver, Measurement, Vehicle
 from app.modules.fleet.service import fleet_markers, fleet_page, fleet_summary, serialize_vehicle
@@ -65,6 +65,19 @@ def main():
             connection.exec_driver_sql("ANALYZE measurements")
             legacy_statement = (
                 select(Vehicle, Measurement, Driver)
+                .options(
+                    load_only(
+                        Vehicle.id,
+                        Vehicle.source_account,
+                        Vehicle.external_uid,
+                        Vehicle.name,
+                        Vehicle.number,
+                        Vehicle.license_plate,
+                        Vehicle.vehicle_type,
+                        Vehicle.active,
+                        Vehicle.driver_id,
+                    )
+                )
                 .outerjoin(Measurement, Measurement.vehicle_id == Vehicle.id)
                 .outerjoin(Driver, Driver.id == Vehicle.driver_id)
                 .where(Vehicle.source_account == source, Vehicle.active.is_(True))
