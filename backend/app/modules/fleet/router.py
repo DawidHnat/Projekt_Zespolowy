@@ -12,11 +12,13 @@ from app.core.models import Driver, Measurement, Vehicle
 from app.modules.auth.models import User
 from app.modules.auth.service import check_origin, current_user, editor
 from app.modules.fleet.service import (
+    fleet_driver_summaries,
     fleet_markers,
     fleet_page,
     fleet_summary,
     serialize_vehicle,
     source_payload,
+    with_driver_summary,
 )
 from app.modules.fleet.sync import account_key
 
@@ -137,11 +139,15 @@ def vehicle_detail(vehicle_id: UUID, request: Request, session: SessionDep):
     ).first()
     if not row:
         raise ApiError(404, "NOT_FOUND", "Pojazd nie istnieje")
-    return serialize_vehicle(
-        *row,
-        datetime.now(UTC),
-        settings.stale_seconds,
-        metadata["status"] == "degraded",
+    drivers = fleet_driver_summaries(session, [vehicle_id], source)
+    return with_driver_summary(
+        serialize_vehicle(
+            *row,
+            datetime.now(UTC),
+            settings.stale_seconds,
+            metadata["status"] == "degraded",
+        ),
+        drivers.get(vehicle_id),
     )
 
 
@@ -171,11 +177,15 @@ def update_vehicle_card(
             setattr(vehicle, field, val)
             vehicle.locally_edited = True
     session.commit()
-    return serialize_vehicle(
-        vehicle,
-        measurement,
-        driver,
-        datetime.now(UTC),
-        settings.stale_seconds,
-        metadata["status"] == "degraded",
+    drivers = fleet_driver_summaries(session, [vehicle_id], source)
+    return with_driver_summary(
+        serialize_vehicle(
+            vehicle,
+            measurement,
+            driver,
+            datetime.now(UTC),
+            settings.stale_seconds,
+            metadata["status"] == "degraded",
+        ),
+        drivers.get(vehicle_id),
     )

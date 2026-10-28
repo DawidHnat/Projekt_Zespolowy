@@ -15,12 +15,13 @@ from sqlalchemy import create_engine, delete, select
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
-from app.core.models import Measurement, SyncState, Vehicle
+from app.core.models import Driver, Measurement, SyncState, Vehicle
 from app.core.settings import Settings
 from app.main import create_app
 from app.modules.analytics.models import Alert, AlertReceipt, DailyDistance, Rule
 from app.modules.auth.models import LoginAttempt, LoginSession, User
 from app.modules.auth.service import password_hasher
+from app.modules.drivers.models import DriverAssignment, DriverCategory
 from app.modules.fleet.sync import account_key
 from app.modules.preferences.models import AccountPreference
 from app.modules.trips.models import Trip
@@ -130,6 +131,10 @@ def main():
                 select(User).where(User.username.in_(("e2e-editor", "e2e-viewer")))
             ):
                 user.password_hash = password_hasher.hash("synthetic-e2e-password")
+            session.get(Vehicle, VEHICLE).driver_id = None
+            session.flush()
+            for model in (DriverAssignment, DriverCategory, Driver):
+                session.execute(delete(model))
             for model in (AlertReceipt, Alert, Rule, DailyDistance):
                 session.execute(delete(model))
             measurement = session.get(Measurement, VEHICLE)
@@ -137,6 +142,26 @@ def main():
             measurement.standing_still = True
             session.commit()
         source_state(engine, "ok")
+        engine.dispose()
+        return
+    if sys.argv[1:] == ["multiple-drivers"]:
+        with Session(engine) as session:
+            for suffix in ("A", "B"):
+                person = Driver(
+                    source_account=account_key(ACCOUNT),
+                    first_name="Kierowca",
+                    last_name=f"E2E {suffix}",
+                    display_name=f"Kierowca E2E {suffix}",
+                    identifier=f"SYN-E2E-{suffix}",
+                )
+                session.add(person)
+                session.flush()
+                session.add(
+                    DriverAssignment(
+                        driver_id=person.id, vehicle_id=VEHICLE, started_at=datetime.now(UTC)
+                    )
+                )
+            session.commit()
         engine.dispose()
         return
     if len(sys.argv) == 3 and sys.argv[1] == "alerts-case":
