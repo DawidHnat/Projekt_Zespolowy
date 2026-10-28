@@ -15,10 +15,10 @@ wpisywania kolorów w komponentach. Motyw zmienia `data-theme` elementu
 | `--background` | `#f3f7fb` | `#0b121e` | tło aplikacji |
 | `--surface` | `#ffffff` | `#131e2e` | karty i panel |
 | `--text` | `#192a42` | `#e7eef8` | główna treść |
-| `--muted` | `#63758a` | `#a1b1c6` | opisy |
+| `--muted` | `#596b80` | `#a1b1c6` | opisy |
 | `--border` | `#e3ebf3` | `#253247` | podziały i obramowania |
 | `--accent` | `#1479e8` domyślnie | kolor użytkownika | aktywne elementy |
-| `--success` | `#138c76` | jaśniejszy turkus | stan poprawny |
+| `--success` | `#10725f` | jaśniejszy turkus | stan poprawny |
 
 `--accent-on` wybiera czarny lub biały tekst zgodnie z luminancją akcentu.
 Nie używaj akcentu jako jedynego znaczenia błędu lub sukcesu. Status ma też
@@ -80,6 +80,13 @@ Ukrycie wszystkich modułów jest dozwolone; można je ponownie włączyć.
 Ewidencja przebiegu, Kierowcy, Karty paliwowe, Alerty i Ustawienia. Nowa strona ma trwałe
 ID, polski tytuł, ikonę i opis. `WorkspacePage` zapewnia wspólny pusty widok
 sekcji planowanych. Logikę tych funkcji dodajemy w osobnych zadaniach.
+Nawigacja pobiera oznaczenie „Planowane” z obecności `placeholder` w rejestrze;
+to samo oznaczenie jest na stronie sekcji. Po implementacji usuń `placeholder`
+i podłącz rzeczywisty widok. Nie zmieniaj przy tym trwałego ID sekcji.
+Ustawienia, galeria pojazdów i dodawanie zdjęć jawnie informują o zapisie
+tylko na urządzeniu i w danej przeglądarce. Zdjęcia pojazdów są dodatkowo
+rozdzielone według konta, a preferencje dashboardu i jego tło należą do
+przeglądarki. Nie obiecuj synchronizacji między urządzeniami (SCRUM-91).
 
 Rejestr stron jest niezależny od `SectionId` i grup zapisanych w preferencjach układu.
 Stare grupy `fleet`, `trips`, `analytics` pozostają w modelu, aby zachować
@@ -328,3 +335,12 @@ odświeża wybory Dzisiaj/Wczoraj po polskiej północy i powrocie do karty.
 Natywne pole daty ma opis i ograniczenie do dzisiaj. Puste stany pozostają
 jednoznaczne do czasu podłączenia rzeczywistej historii; nie pokazuj
 przykładowych tras jako danych floty.
+
+### Kontrast i fokus panelu (SCRUM-107)
+
+Stopka wersji oraz opisy fallbacku mapy używają `--wallpaper-muted`, aby zachować
+kontrast nad jasnym tłem. Panel pojazdu stosuje ten sam token dla opisów nad szkłem.
+Aktywna zakładka ma tekst `--text` i podkreślenie `--accent`; jej czytelność nie
+zależy od wybranego koloru akcentu. Jasny motyw używa ciemniejszych tokenów tekstowych: muted #596b80, success #10725f, warning #8f570b oraz danger #b83e57.
+Dialog zawija Tab/Shift+Tab między widocznymi kontrolkami, a Escape zachowuje
+potwierdzenie niezapisanego szkicu i przywraca fokus do otwarcia.

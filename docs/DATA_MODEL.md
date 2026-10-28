@@ -66,10 +66,28 @@ Brak publicznej rejestracji. Błędy: `{ "error": { "code": "...", "message":
 400/422 — walidacja, 401 — brak sesji, 403 — rola/Origin, 404 — brak rekordu,
 409 — konflikt wersji, 429 — limit, 503 — niedostępna zależność.
 
-Przyszła edycja celu/opisu używa wersji optymistycznej (`version`); zmiana
-przez drugą osobę zwraca 409 zamiast nadpisania. AlertReceipt przechowuje stan
-odczytu osobno od Alert. Analityka jawnie podaje pokrycie okresu i nie liczy
-brakujących danych jako zera. API zestawień i historii nie jest jeszcze zaimplementowane.
+SCRUM-26 dodaje tabelę `trips`, odczyt zapisanych przejazdów oraz osobną tabelę
+`trip_annotations` na cel i opis. Brak notatki ma w API wersję 1; pierwszy zapis
+tworzy wersję 2. Każdy zapis wymaga bieżącej wersji, roli admin/editor i poprawnego
+Origin. Blokada rekordu Trip w PostgreSQL obejmuje również pierwszy zapis;
+drugi edytor otrzymuje 409 zamiast cichego nadpisania. Notatka ma autora i czas
+ostatniej zmiany; nie jest pełnym dziennikiem wcześniejszych wersji.
+
+GET `/trips` wymaga pojazdu i zakresu ze strefą czasu (maks. 93 dni), zwraca
+przejazdy przecinające `[from, to)`, od najnowszego początku, z UUID jako drugim
+kluczem sortowania. Przy braku końca przejazd traktujemy jako punkt początku;
+dystans i czas końca mogą być `null`. Geometria pozostaje `null`.
+Cel ma maks. 200 znaków w jednym wierszu, opis 2000; tekst jest przycinany,
+pusty wpis lub `null` usuwa wartość. PATCH zmienia tylko podane pola, nie dane
+źródłowe. Odczyt wymaga sesji i pojazdu z bieżącego konta źródła.
+
+Import historii WEBFLEET pozostaje w SCRUM-24: importer ma aktualizować Trip
+według `(vehicle_id, external_uid)`, zachowując UUID oraz TripAnnotation.
+Nie może usuwać i odtwarzać przejazdów przy ponownej synchronizacji. Nie ma
+publicznego endpointu tworzącego przejazdy ani danych demo w aplikacji.
+AlertReceipt przechowuje stan odczytu osobno od Alert. Analityka jawnie podaje
+pokrycie okresu i nie liczy brakujących danych jako zera. API zestawień pozostaje
+przyszłym zadaniem.
 
 SCRUM-31 implementuje `daily_distance_threshold`, zgodnie z dziennym dystansem
 ze Story SCRUM-7. Zastępuje wcześniejszą propozycję `odometer_threshold`, która
@@ -92,3 +110,12 @@ własny odczyt. Pozostałe moduły tego projektu modelu zachowują swój status.
 Reset hasła jest osobnym przyrostem po potwierdzeniu SMTP: jednorazowy token
 przechowywany jako hash, krótki termin ważności, neutralne odpowiedzi, limit
 wysyłki i unieważnienie sesji. Obecna diagnostyka SMTP nie wysyła wiadomości.
+
+## Automatyczna weryfikacja — SCRUM-108
+
+`contracts/api-design.json` pozostaje jedynym źródłem. Jego `$defs` i referencje
+odpowiedzi generują typy frontendu oraz walidują realne syntetyczne odpowiedzi API.
+`implementation_status` oddziela działające operacje od przyszłych propozycji.
+Generator `tools/generate_api_types.py --check` i pytest kontraktu są częścią
+Required CI. Status proposed-for-review i wymagany odbiór SCRUM-36 pozostają
+w mocy; procedurę aktualizacji/migracji opisuje `docs/qa/SCRUM-108.md`.

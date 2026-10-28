@@ -1,6 +1,6 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import case, false, func, or_, select
 
 from app.core.errors import ApiError
 from app.core.models import Driver, Measurement, SyncState, Vehicle
@@ -62,30 +62,124 @@ def serialize_vehicle(vehicle, measurement, driver, now, stale_seconds):
     }
 
 
-def fleet_rows(session, source, stale_seconds, q="", status=None):
-    statement = (
+def fleet_status(now, stale_seconds):
+    """Use the same time boundaries as the detail serializer, including future GPS."""
+    stale = or_(
+        Measurement.position_at.is_(None),
+        Measurement.position_at < now - timedelta(seconds=stale_seconds),
+        Measurement.position_at > now + timedelta(seconds=300),
+    )
+    return case(
+        (Measurement.vehicle_id.is_(None), "unknown"),
+        (stale, "offline"),
+        (Measurement.standing_still.is_(True), "stopped"),
+        (Measurement.standing_still.is_(False), "moving"),
+        else_="unknown",
+    )
+
+
+def fleet_filters(source, q, status, status_expression):
+    conditions = [Vehicle.source_account == source, Vehicle.active.is_(True)]
+    needle = q.strip().casefold()
+    if "\x00" in needle:
+        # PostgreSQL text cannot contain NUL; avoid sending an invalid SQL parameter.
+        conditions.append(false())
+    elif needle:
+        # Escape LIKE metacharacters: user input is a literal substring, not a pattern.
+        conditions.append(
+            or_(
+                *(
+                    field.contains(needle, autoescape=True)
+                    for field in (
+                        Vehicle.search_name,
+                        Vehicle.search_number,
+                        Vehicle.search_license_plate,
+                    )
+                )
+            )
+        )
+    if status:
+        conditions.append(status_expression == status)
+    return conditions
+
+
+def fleet_count(session, conditions):
+    return session.scalar(
+        select(func.count())
+        .select_from(Vehicle)
+        .outerjoin(Measurement, Measurement.vehicle_id == Vehicle.id)
+        .where(*conditions)
+    )
+
+
+def fleet_page(session, source, stale_seconds, q, status, page, page_size):
+    now = datetime.now(UTC)
+    conditions = fleet_filters(source, q, status, fleet_status(now, stale_seconds))
+    total = fleet_count(session, conditions)
+    rows = session.execute(
         select(Vehicle, Measurement, Driver)
         .outerjoin(Measurement, Measurement.vehicle_id == Vehicle.id)
         .outerjoin(Driver, Driver.id == Vehicle.driver_id)
-        .where(Vehicle.source_account == source, Vehicle.active.is_(True))
+        .where(*conditions)
         .order_by(Vehicle.name, Vehicle.id)
-        .limit(10001)
-    )
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    ).all()
+    return [serialize_vehicle(*row, now, stale_seconds) for row in rows], total
+
+
+def fleet_markers(session, source, stale_seconds, q, status):
     now = datetime.now(UTC)
-    records = session.execute(statement).all()
-    if len(records) > 10000:
-        raise ApiError(503, "FLEET_TOO_LARGE", "Flota wymaga dodatkowej konfiguracji stronicowania")
-    items = [serialize_vehicle(*row, now, stale_seconds) for row in records]
-    needle = q.strip().casefold()
-    return [
-        item
-        for item in items
-        if (not status or item["status"] == status)
-        and (
-            not needle
-            or any(
-                needle in (item[field] or "").casefold()
-                for field in ("name", "number", "license_plate")
-            )
+    status_expression = fleet_status(now, stale_seconds)
+    conditions = fleet_filters(source, q, status, status_expression)
+    total = fleet_count(session, conditions)
+    # Coordinates of stale positions remain useful; only invalid/missing/future GPS is hidden.
+    rows = session.execute(
+        select(
+            Vehicle.id,
+            Vehicle.name,
+            Measurement.longitude,
+            Measurement.latitude,
+            Measurement.position_at,
+            status_expression.label("status"),
         )
+        .join(Measurement, Measurement.vehicle_id == Vehicle.id)
+        .where(
+            *conditions,
+            Measurement.gps_quality == "A",
+            Measurement.position_at <= now + timedelta(seconds=300),
+            Measurement.latitude.is_not(None),
+            Measurement.longitude.is_not(None),
+        )
+        .order_by(Vehicle.name, Vehicle.id)
+    ).all()
+    features = [
+        {
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": [row.longitude, row.latitude]},
+            "properties": {
+                "id": str(row.id),
+                "name": row.name,
+                "status": row.status,
+                "is_stale": (now - aware(row.position_at)).total_seconds() > stale_seconds,
+                "position_at": timestamp(row.position_at),
+            },
+        }
+        for row in rows
     ]
+    return features, total
+
+
+def fleet_summary(session, source, stale_seconds):
+    now = datetime.now(UTC)
+    status_expression = fleet_status(now, stale_seconds)
+    rows = session.execute(
+        select(status_expression, func.count())
+        .select_from(Vehicle)
+        .outerjoin(Measurement, Measurement.vehicle_id == Vehicle.id)
+        .where(Vehicle.source_account == source, Vehicle.active.is_(True))
+        .group_by(status_expression)
+    ).all()
+    counts = dict.fromkeys(("moving", "stopped", "offline", "unknown"), 0)
+    counts.update(rows)
+    return {"total": sum(counts.values()), **counts}
