@@ -27,3 +27,8 @@ Niezależny QA: potwierdzić czytelność etykiet w menu telefonu, wejście i po
 klawiaturą, zachowanie zapisanych wcześniej układów, poprawny komunikat
 przy zablokowanym IndexedDB/localStorage. Sprawdzić także Safari. Wynik
 implementacyjny E2E nie jest podpisem niezależnego QA ani zatwierdzeniem PR.
+
+Dalszy przyrost SCRUM-32 podłącza rzeczywisty widok Alerty i usuwa jego
+`placeholder`. Oznaczenie pozostałych czterech sekcji nadal wynika z rejestru.
+Wyniki SCRUM-105 dotyczą SHA podanego w jego PR; nowe scenariusze funkcji
+alertów znajdują się w `e2e/alerts.spec.ts`.

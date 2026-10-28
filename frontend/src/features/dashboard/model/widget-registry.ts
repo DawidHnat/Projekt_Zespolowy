@@ -46,7 +46,7 @@ export const widgetRegistry: Record<WidgetId, WidgetDefinition> = {
   },
   activity: {
     title: "Alerty i aktywność",
-    description: "Zdarzenia i wybrane parametry",
+    description: "Nieprzeczytane przekroczenia dziennego dystansu",
     icon: Activity,
     sections: sectionsFor("activity"),
     component: ActivityWidget,
