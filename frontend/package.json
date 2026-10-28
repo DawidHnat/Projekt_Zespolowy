@@ -24,6 +24,7 @@
     "react-resizable": "3.2.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@playwright/test": "1.64.1",
     "@types/geojson": "7946.0.16",
     "@types/node": "^22.18.0",
