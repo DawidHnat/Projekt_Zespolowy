@@ -2,7 +2,10 @@
 
 import asyncio
 import hashlib
+import json
+import logging
 from datetime import UTC, datetime, timedelta
+from uuid import uuid4
 
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
@@ -12,6 +15,15 @@ from app.integrations.webfleet.client import WebfleetClient, WebfleetError
 from app.integrations.webfleet.models import ObjectSnapshot
 from app.modules.analytics.service import evaluate_distance_rules, record_distance_interval
 from app.modules.auth.service import aware
+
+logger = logging.getLogger("fleet_flow.sync")
+
+
+def log_sync_failure(code):
+    # Fixed codes only. Never log exceptions, SQL, source accounts or provider payloads.
+    logger.error(
+        json.dumps({"event": "webfleet_sync_failed", "code": code, "event_id": uuid4().hex})
+    )
 
 
 def account_key(account: str) -> str:
@@ -130,6 +142,12 @@ def sync_once(engine, settings, *, client_factory=WebfleetClient, now=None):
                     state.error_code = error.code
                     session.commit()
                     return "degraded"
+                except Exception:
+                    session.rollback()
+                    state = session.get(SyncState, source)
+                    state.error_code = "SYNC_INTERNAL_ERROR"
+                    session.commit()
+                    raise
         finally:
             connection.execute(text("SELECT pg_advisory_unlock(:key)"), {"key": lock_id})
             connection.commit()
@@ -138,9 +156,9 @@ def sync_once(engine, settings, *, client_factory=WebfleetClient, now=None):
 async def sync_worker(engine, settings, interval):
     while True:
         try:
-            await asyncio.to_thread(sync_once, engine, settings)
+            result = await asyncio.to_thread(sync_once, engine, settings)
+            if result == "degraded":
+                log_sync_failure("SOURCE_DEGRADED")
         except Exception:
-            # No provider/SQL exceptions in logs: may contain credentials or telemetry.
-            # Readiness and last-success timestamps expose availability to the UI.
-            pass
+            log_sync_failure("SYNC_INTERNAL_ERROR")
         await asyncio.sleep(interval)
