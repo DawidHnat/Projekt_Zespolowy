@@ -1,0 +1,92 @@
+.alerts-page {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+.alerts-page .widget-content-inner {
+  padding: 20px;
+}
+.alert-controls {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-block: 12px;
+}
+.alert-controls label, .rule-form > label, .rule-vehicle-picker > label {
+  display: grid;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 550;
+}
+.alerts-page :is(input:not([type="checkbox"]):not([type="radio"]), select) {
+  min-height: 40px;
+  max-width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 8px 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+.alerts-page :is(p, span), .activity-alerts p {
+  overflow-wrap: anywhere;
+}
+.alert-note, .alert-list p, .activity-alerts p {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--wallpaper-muted);
+}
+.alert-list, .rule-list, .rule-vehicle-picker ul, .activity-alerts ul {
+  list-style: none;
+  padding: 0;
+  margin-block: 16px;
+}
+.alert-list li, .rule-list li {
+  border-top: 1px solid var(--border);
+  padding-block: 18px;
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+.alert-list p { margin: 0; }
+.alert-row-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+.alert-row-heading > span { font-size: 12px; }
+.alert-unread .alert-row-heading > span { font-weight: 700; }
+.alert-vehicle {
+  display: inline-flex;
+  align-items: center;
+  text-align: start;
+  gap: 8px;
+  color: var(--text);
+  background: none;
+  border: 0;
+  padding: 5px 0;
+  font: inherit;
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+.rule-form {
+  display: grid;
+  gap: 18px;
+  border-top: 1px solid var(--border);
+  padding-block: 20px;
+}
+.rule-form > label { max-width: 420px; }
+.rule-form > .rule-active { display: flex; align-items: center; }
+.rule-vehicle-picker { border: 1px solid var(--border); border-radius: 12px; min-width: 0; padding: 16px; }
+.rule-vehicle-picker li label { display: flex; align-items: center; gap: 10px; padding-block: 8px; }
+.activity-alerts { padding: 16px; }
+.activity-alerts li { display: grid; gap: 6px; padding-block: 10px; border-top: 1px solid var(--border); }
+.activity-alerts li span { font-size: 12px; color: var(--wallpaper-muted); }
+@media (max-width: 420px) {
+  .alerts-page .widget-content-inner { padding: 14px; }
+  .alert-controls > label, .alert-controls select { width: 100%; }
+  .alert-list .button { white-space: normal; text-align: start; }
+}

@@ -344,3 +344,12 @@ Aktywna zakładka ma tekst `--text` i podkreślenie `--accent`; jej czytelność
 zależy od wybranego koloru akcentu. Jasny motyw używa ciemniejszych tokenów tekstowych: muted #596b80, success #10725f, warning #8f570b oraz danger #b83e57.
 Dialog zawija Tab/Shift+Tab między widocznymi kontrolkami, a Escape zachowuje
 potwierdzenie niezapisanego szkicu i przywraca fokus do otwarcia.
+
+### Alerty dziennego dystansu — SCRUM-32
+
+`AlertsPage` podłącza rzeczywistą listę i reguły; `alerts` nie ma już
+`placeholder` ani oznaczenia Planowane. `AlertRows` rozróżnia odczyt tekstem,
+nie samym kolorem. Formularz reguły i wybór pojazdu korzystają ze wspólnych
+przycisków, tokenów i ListPagination, także wewnątrz formularza (type=button).
+Istniejący widget `activity` pokazuje liczbę nieprzeczytanych dla konta oraz
+trzy najnowsze alerty. Rejestr i ID układu pozostają zgodne ze starszym zapisem.

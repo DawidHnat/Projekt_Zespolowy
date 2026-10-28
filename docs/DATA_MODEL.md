@@ -119,3 +119,7 @@ odpowiedzi generują typy frontendu oraz walidują realne syntetyczne odpowiedzi
 Generator `tools/generate_api_types.py --check` i pytest kontraktu są częścią
 Required CI. Status proposed-for-review i wymagany odbiór SCRUM-36 pozostają
 w mocy; procedurę aktualizacji/migracji opisuje `docs/qa/SCRUM-108.md`.
+
+SCRUM-32 dodaje opcjonalne nazwy/rejestracje pojazdów do stron list alertów
+i reguł (JOIN bez N+1). Nie zmienia to źródłowego dystansu, dnia ani progu
+zachowanego alertu. Odczyt pozostaje relacją AlertReceipt per użytkownik.

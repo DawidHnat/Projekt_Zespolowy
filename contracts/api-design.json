@@ -1423,6 +1423,26 @@
         },
         "active": {
           "type": "boolean"
+        },
+        "vehicle_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "license_plate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -1482,6 +1502,19 @@
           "type": "string",
           "enum": [
             "partial"
+          ]
+        },
+        "vehicle_name": {
+          "type": "string"
+        },
+        "license_plate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
           ]
         }
       },
