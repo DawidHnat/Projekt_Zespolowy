@@ -22,9 +22,19 @@ http:// {
     header {
         X-Content-Type-Options nosniff
         Referrer-Policy same-origin
+        X-Frame-Options DENY
+        Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+        Content-Security-Policy "frame-ancestors 'none'; base-uri 'self'; object-src 'none'"
+        Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.mapbox.com; font-src 'self'; connect-src 'self' https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; object-src 'none'"
+        # HSTS intentionally awaits accepted HTTPS/domain. Activation and rollback: SCRUM-96.md.
     }
     handle /api/* {
-        reverse_proxy api:8000
+        reverse_proxy api-proxy:8000 {
+            # Caddy is the public edge: never trust a client-provided forwarding chain.
+            header_up X-Forwarded-For {remote_host}
+            header_up -Forwarded
+            header_up -X-Real-IP
+        }
     }
     handle {
         root * /srv/frontend
