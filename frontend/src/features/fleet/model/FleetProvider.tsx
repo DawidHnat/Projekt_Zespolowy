@@ -132,11 +132,16 @@ export function FleetProvider({ children }: { children: ReactNode }) {
       .then((vehicle) => {
         if (!controller.signal.aborted) setSelected(vehicle);
       })
-      .catch(() => {
+      .catch((err) => {
         if (!controller.signal.aborted) {
-          setSelectedId(null);
-          setSelected(null);
-          setDetailsOpen(false);
+          if (err.status === 403 || err.status === 404) {
+            setSelectedId(null);
+            setSelected(null);
+            setDetailsOpen(false);
+          } else {
+            // A transient refresh failure must not discard an open annotation draft.
+            setError("Nie udało się odświeżyć pojazdu. Spróbuj ponownie.");
+          }
         }
       });
     return () => controller.abort();
