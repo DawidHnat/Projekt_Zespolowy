@@ -9,7 +9,7 @@ export type Author = { "id": string; "display_name": string; };
 export type Driver = { "id": string; "display_name": string; };
 export type VehicleStatus = "moving" | "stopped" | "offline" | "unknown";
 export type Source = { "status": "ok" | "degraded"; "last_success_at": string | null; "error_code": string | null; };
-export type Vehicle = { "id": string; "name": string; "number": string | null; "license_plate": string | null; "vehicle_type": string | null; "status": VehicleStatus; "driver": Driver | null; "latitude": number | null; "longitude": number | null; "position_at": string | null; "received_at": string | null; "is_stale": boolean; "odometer_km": number | null; "speed_kmh": number | null; "ignition_on": boolean | null; "standing_still": boolean | null; };
+export type Vehicle = { "id": string; "name": string; "number": string | null; "license_plate": string | null; "vehicle_type": string | null; "status": VehicleStatus; "driver": Driver | null; "latitude": number | null; "longitude": number | null; "position_at": string | null; "received_at": string | null; "is_stale": boolean; "odometer_km": number | null; "speed_kmh": number | null; "ignition_on": boolean | null; "standing_still": boolean | null; "driver_count"?: number; "driver_preview"?: Array<Driver>; };
 export type FleetFeature = { "type": "Feature"; "geometry": { "type": "Point"; "coordinates": [number, number]; }; "properties": { "id": string; "name": string; "status": VehicleStatus; "is_stale": boolean; "position_at": string | null; }; };
 export type FleetMap = { "type": "FeatureCollection"; "features": Array<FleetFeature>; "located": number; "total": number; "source": Source; };
 export type Summary = { "total": number; "moving": number; "stopped": number; "offline": number; "unknown": number; "source": Source; };
@@ -23,6 +23,15 @@ export type VehicleList = { "items": Array<Vehicle>; "total": number; "page": nu
 export type TripList = { "items": Array<Trip>; "total": number; "page": number; "page_size": number; };
 export type RuleList = { "items": Array<Rule>; "total": number; "page": number; "page_size": number; };
 export type AlertList = { "items": Array<Alert>; "total": number; "page": number; "page_size": number; };
+export type DriverCompatibility = { "status": "not_evaluated"; "reason": "SCRUM-70"; };
+export type DriverVehiclePreview = { "id": string; "name": string; "active": boolean; };
+export type DriverProfile = { "id": string; "display_name": string; "first_name": string | null; "last_name": string | null; "identifier": string | null; "phone": string | null; "email": string | null; "active": boolean; "version": number; "needs_completion": boolean; "categories": Array<"AM" | "A1" | "A2" | "A" | "B1" | "B" | "B+E" | "C1" | "C1+E" | "C" | "C+E" | "D1" | "D1+E" | "D" | "D+E" | "T">; "categories_version": "pl-driving-categories-v1"; "vehicles_total": number; "first_vehicle": DriverVehiclePreview | null; "compatibility": DriverCompatibility; };
+export type DriverSummary = { "total": number; "active": number; "active_unassigned": number; "active_missing_categories": number; "assignments_to_check": { "status": "not_evaluated"; "total": null; "reason": "SCRUM-70"; }; "scope": "current_source_and_filters"; };
+export type DriverList = { "items": Array<DriverProfile>; "total": number; "page": number; "page_size": number; "summary"?: DriverSummary; };
+export type DriverAssignment = { "id": string; "driver_id": string; "vehicle": { "id": string; "name": string; "license_plate": string | null; "active": boolean; }; "active": boolean; "started_at": string | null; "ended_at": string | null; "recorded_at": string; "start_known": boolean; };
+export type DriverAssignmentList = { "items": Array<DriverAssignment>; "total": number; "page": number; "page_size": number; };
+export type DriverAssignmentResult = { "assignment": DriverAssignment; "driver_version": number; };
+export type DriverCategoryCatalog = { "version": "pl-driving-categories-v1"; "items": Array<{ "id": "AM" | "A1" | "A2" | "A" | "B1" | "B" | "B+E" | "C1" | "C1+E" | "C" | "C+E" | "D1" | "D1+E" | "D" | "D+E" | "T"; "label": "AM" | "A1" | "A2" | "A" | "B1" | "B" | "B+E" | "C1" | "C1+E" | "C" | "C+E" | "D1" | "D1+E" | "D" | "D+E" | "T"; }>; "compatibility": "not_evaluated"; };
 
 export type Responses = {
   "POST /auth/login": UserResponse;
@@ -32,6 +41,8 @@ export type Responses = {
   "GET /fleet/map": FleetMap;
   "GET /fleet/summary": Summary;
   "GET /fleet/vehicles/{id}": Vehicle;
+  "GET /drivers": DriverList;
+  "POST /drivers": DriverProfile;
   "GET /trips": TripList;
   "GET /trips/{id}": Trip;
   "PATCH /trips/{id}/annotation": Annotation;
@@ -42,4 +53,12 @@ export type Responses = {
   "PATCH /analytics/alerts/{id}/receipt": Receipt;
   "POST /auth/password/request": OkResponse;
   "POST /auth/password/confirm": OkResponse;
+  "GET /drivers/categories": DriverCategoryCatalog;
+  "GET /drivers/summary": DriverSummary;
+  "POST /drivers/search": DriverList;
+  "GET /drivers/{id}": DriverProfile;
+  "PATCH /drivers/{id}": DriverProfile;
+  "GET /drivers/{id}/assignments": DriverAssignmentList;
+  "POST /drivers/{id}/assignments": DriverAssignmentResult;
+  "PATCH /drivers/{id}/assignments/{assignment_id}/close": DriverAssignmentResult;
 };

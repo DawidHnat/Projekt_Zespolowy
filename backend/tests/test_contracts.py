@@ -209,6 +209,35 @@ def test_every_implemented_operation_has_a_real_success_response(logged_in, monk
         f"/analytics/alerts/{alert}/receipt",
         json={"read": False},
     )
+    profile = check(
+        "POST",
+        "/drivers",
+        expected=201,
+        json={"first_name": "Jan", "last_name": "Kontrakt", "identifier": "contract-driver"},
+    )
+    driver_id = profile["id"]
+    check("GET", "/drivers/categories")
+    check("GET", "/drivers/summary")
+    check("GET", "/drivers")
+    check("POST", "/drivers/search", json={"q": "Kontrakt"})
+    check("GET", "/drivers/{id}", f"/drivers/{driver_id}")
+    updated = check(
+        "PATCH", "/drivers/{id}", f"/drivers/{driver_id}", json={"version": 1, "categories": ["B"]}
+    )
+    assigned = check(
+        "POST",
+        "/drivers/{id}/assignments",
+        f"/drivers/{driver_id}/assignments",
+        expected=201,
+        json={"version": updated["version"], "vehicle_id": vehicle},
+    )
+    check("GET", "/drivers/{id}/assignments", f"/drivers/{driver_id}/assignments")
+    check(
+        "PATCH",
+        "/drivers/{id}/assignments/{assignment_id}/close",
+        f"/drivers/{driver_id}/assignments/{assigned['assignment']['id']}/close",
+        json={"version": assigned["driver_version"]},
+    )
     check("POST", "/auth/logout")
     check(
         "POST", "/auth/password/request", json={"username": "nonexistent-synthetic-contract-user"}

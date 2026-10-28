@@ -2,7 +2,17 @@ from datetime import datetime
 from decimal import Decimal
 from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Numeric, String, UniqueConstraint, event
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+    event,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -12,9 +22,32 @@ class Base(DeclarativeBase):
 
 class Driver(Base):
     __tablename__ = "drivers"
+    __table_args__ = (
+        UniqueConstraint("source_account", "identifier_key", name="uq_driver_identifier"),
+        CheckConstraint("version >= 1", name="ck_driver_version"),
+    )
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    display_name: Mapped[str] = mapped_column(String(120))
+    display_name: Mapped[str] = mapped_column(String(201))
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+    source_account: Mapped[str | None] = mapped_column(String(64), index=True)
+    first_name: Mapped[str | None] = mapped_column(String(100))
+    last_name: Mapped[str | None] = mapped_column(String(100))
+    identifier: Mapped[str | None] = mapped_column(String(100))
+    identifier_key: Mapped[str | None] = mapped_column(String(300))
+    phone: Mapped[str | None] = mapped_column(String(50))
+    email: Mapped[str | None] = mapped_column(String(254))
+    search_text: Mapped[str] = mapped_column(Text, default="", server_default="")
+    version: Mapped[int] = mapped_column(default=1, server_default="1")
+
+
+@event.listens_for(Driver, "before_insert")
+@event.listens_for(Driver, "before_update")
+def update_driver_search(mapper, connection, driver):
+    driver.identifier_key = driver.identifier.casefold() if driver.identifier else None
+    driver.search_text = " ".join(
+        getattr(driver, field) or ""
+        for field in ("display_name", "first_name", "last_name", "identifier", "phone", "email")
+    ).casefold()
 
 
 def folded_default(field):

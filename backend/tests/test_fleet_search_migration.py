@@ -71,6 +71,9 @@ def test_search_migration_backfills_unicode_without_changing_vehicle_ownership()
     finally:
         migrate("upgrade", "head")
         with engine.begin() as connection:
+            # Later manual-driver migration preserves this fixture's legacy pointer.
+            assignments = Table("driver_assignments", MetaData(), autoload_with=connection)
+            connection.execute(assignments.delete().where(assignments.c.vehicle_id == identity))
             connection.execute(vehicles.delete().where(vehicles.c.id == identity))
             connection.execute(drivers.delete().where(drivers.c.id == driver_id))
         engine.dispose()

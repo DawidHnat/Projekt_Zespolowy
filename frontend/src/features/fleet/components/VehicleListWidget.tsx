@@ -1,3 +1,4 @@
+import { driverLabel, driverNames } from "../model/driver-label";
 import { Truck } from "lucide-react";
 import { WidgetFrame } from "../../../shared/components/WidgetFrame";
 import { EmptyState } from "../../../shared/components/EmptyState";
@@ -99,7 +100,7 @@ export function VehicleListWidget({
                         <small className="no-gps">Brak GPS</small>
                       )}
                     </td>
-                    <td>{v.driver?.display_name || "Nieprzypisany"}</td>
+                    <td title={driverNames(v)}>{driverLabel(v)}</td>
                     <td>
                       {v.odometer_km === null
                         ? "—"
