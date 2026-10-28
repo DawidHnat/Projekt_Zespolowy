@@ -2,10 +2,12 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
-import { api } from "../../../shared/api/client";
+import { ApiError, api } from "../../../shared/api/client";
+import { browserPollingEnvironment, startPolling } from "../../../shared/api/polling";
 import { useAuth } from "../../auth/AuthProvider";
 import { normalizePageSize } from "../../../shared/components/pagination-model";
 import type {
@@ -41,6 +43,11 @@ type FleetState = {
 const Context = createContext<FleetState | null>(null);
 export function FleetProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  return user ? <AccountFleetProvider key={user.id}>{children}</AccountFleetProvider> : null;
+}
+
+function AccountFleetProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const storageKey = `fleet-flow.list-page-size.v1.${user?.id}`;
   const [list, setList] = useState<VehicleList | null>(null);
   const [map, setMap] = useState<FleetMap | null>(null);
@@ -71,17 +78,14 @@ export function FleetProvider({ children }: { children: ReactNode }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Vehicle | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [revision, setRevision] = useState(0);
+  const listPoll = useRef<ReturnType<typeof startPolling> | null>(null);
+  const detailPoll = useRef<ReturnType<typeof startPolling> | null>(null);
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQ(q), 250);
     return () => clearTimeout(timer);
   }, [q]);
   useEffect(() => {
-    const controller = new AbortController();
-    let running = false;
-    const load = async () => {
-      if (running) return;
-      running = true;
+    const load = async (signal: AbortSignal) => {
       setLoading(true);
       const filter = new URLSearchParams({
         q: debouncedQ,
@@ -91,12 +95,12 @@ export function FleetProvider({ children }: { children: ReactNode }) {
         const [nextList, nextMap, nextSummary] = await Promise.all([
           api<VehicleList>(
             `/fleet/vehicles?${filter}&page=${page}&page_size=${pageSize}`,
-            { signal: controller.signal },
+            { signal },
           ),
-          api<FleetMap>(`/fleet/map?${filter}`, { signal: controller.signal }),
-          api<Summary>("/fleet/summary", { signal: controller.signal }),
+          api<FleetMap>(`/fleet/map?${filter}`, { signal }),
+          api<Summary>("/fleet/summary", { signal }),
         ]);
-        if (controller.signal.aborted) return;
+        if (signal.aborted) return;
         setList(nextList);
         setMap(nextMap);
         setSummary(nextSummary);
@@ -104,48 +108,47 @@ export function FleetProvider({ children }: { children: ReactNode }) {
         if (page > 1 && nextList.items.length === 0 && nextList.total > 0)
           setPage(1);
       } catch (err) {
-        if (!controller.signal.aborted)
+        if (!signal.aborted)
           setError(
             err instanceof Error ? err.message : "Nie można pobrać floty.",
           );
+        throw err;
       } finally {
-        running = false;
-        if (!controller.signal.aborted) setLoading(false);
+        if (!signal.aborted) setLoading(false);
       }
     };
-    void load();
-    const timer = setInterval(() => void load(), 60000);
+    const poll = startPolling(load, browserPollingEnvironment(), () => setLoading(false));
+    listPoll.current = poll;
     return () => {
-      controller.abort();
-      clearInterval(timer);
+      poll.dispose();
+      listPoll.current = null;
     };
-  }, [debouncedQ, status, page, pageSize, revision]);
+  }, [debouncedQ, status, page, pageSize]);
   useEffect(() => {
     if (!selectedId) {
       setSelected(null);
       return;
     }
-    const controller = new AbortController();
-    api<Vehicle>(`/fleet/vehicles/${encodeURIComponent(selectedId)}`, {
-      signal: controller.signal,
-    })
-      .then((vehicle) => {
-        if (!controller.signal.aborted) setSelected(vehicle);
-      })
-      .catch((err) => {
-        if (!controller.signal.aborted) {
-          if (err.status === 403 || err.status === 404) {
-            setSelectedId(null);
-            setSelected(null);
-            setDetailsOpen(false);
-          } else {
-            // A transient refresh failure must not discard an open annotation draft.
-            setError("Nie udało się odświeżyć pojazdu. Spróbuj ponownie.");
-          }
+    const poll = startPolling(async signal => {
+      try {
+        const vehicle = await api<Vehicle>(`/fleet/vehicles/${encodeURIComponent(selectedId)}`, { signal });
+        if (!signal.aborted) setSelected(vehicle);
+      } catch (err) {
+        if (!signal.aborted && err instanceof ApiError && err.status === 404) {
+          setSelectedId(null);
+          setSelected(null);
+          setDetailsOpen(false);
         }
-      });
-    return () => controller.abort();
-  }, [selectedId, list]);
+        // Keep the last detail and mounted editor on a transient failure.
+        throw err;
+      }
+    }, browserPollingEnvironment());
+    detailPoll.current = poll;
+    return () => {
+      poll.dispose();
+      detailPoll.current = null;
+    };
+  }, [selectedId]);
   const setQ = (value: string) => {
     setQuery(value);
     setPage(1);
@@ -186,7 +189,10 @@ export function FleetProvider({ children }: { children: ReactNode }) {
           setDetailsOpen(true);
         },
         closeDetails: () => setDetailsOpen(false),
-        refresh: () => setRevision((v) => v + 1),
+        refresh: () => {
+          listPoll.current?.refresh();
+          detailPoll.current?.refresh();
+        },
       }}
     >
       {children}
