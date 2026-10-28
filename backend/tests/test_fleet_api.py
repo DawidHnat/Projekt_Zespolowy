@@ -203,3 +203,32 @@ def test_large_fleet_only_materializes_the_requested_page(logged_in):
         assert len(loaded) == 4  # Summary and markers never load vehicle ORM objects.
     finally:
         event.remove(app.state.sessions, "loaded_as_persistent", track_load)
+
+
+def test_sql_search_preserves_unicode_casefold_and_recomputes_on_edits(logged_in):
+    app, client = logged_in
+    add_fleet(app)
+    names = ["Straße", "ﬃ Truck", "ΟΣ", "İstanbul", "ᏣᎳᎩ", "ŁÓDŹ"]
+    needles = ["STRASSE", "FFI", "ος", "i\u0307stanbul", "ᏣᎳᎩ".lower(), "łódź"]
+    with app.state.sessions() as session:
+        source = account_key(app.state.settings.webfleet_account)
+        vehicles = [
+            Vehicle(source_account=source, external_uid=f"unicode-{i}", name=name)
+            for i, name in enumerate(names)
+        ]
+        session.add_all(vehicles)
+        session.flush()
+        identity = vehicles[0].id
+        session.commit()
+    for name, needle in zip(names, needles, strict=True):
+        result = client.get("/api/v1/fleet/vehicles", params={"q": needle}).json()
+        assert result["total"] == 1 and result["items"][0]["name"] == name
+    assert client.get("/api/v1/fleet/vehicles", params={"q": "\x00"}).json()["total"] == 0
+    with app.state.sessions() as session:
+        vehicle = session.get(Vehicle, identity)
+        vehicle.name = "Renamed"
+        vehicle.number = "Straße 100%_"
+        session.commit()
+    result = client.get("/api/v1/fleet/vehicles", params={"q": "STRASSE 100%_"}).json()
+    assert result["total"] == 1 and result["items"][0]["name"] == "Renamed"
+    assert "search_name" not in result["items"][0]

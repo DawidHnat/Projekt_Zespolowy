@@ -1,6 +1,6 @@
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import case, func, or_, select
+from sqlalchemy import case, false, func, or_, select
 
 from app.core.errors import ApiError
 from app.core.models import Driver, Measurement, SyncState, Vehicle
@@ -80,14 +80,21 @@ def fleet_status(now, stale_seconds):
 
 def fleet_filters(source, q, status, status_expression):
     conditions = [Vehicle.source_account == source, Vehicle.active.is_(True)]
-    needle = q.strip().lower()
-    if needle:
+    needle = q.strip().casefold()
+    if "\x00" in needle:
+        # PostgreSQL text cannot contain NUL; avoid sending an invalid SQL parameter.
+        conditions.append(false())
+    elif needle:
         # Escape LIKE metacharacters: user input is a literal substring, not a pattern.
         conditions.append(
             or_(
                 *(
-                    func.lower(field).contains(needle, autoescape=True)
-                    for field in (Vehicle.name, Vehicle.number, Vehicle.license_plate)
+                    field.contains(needle, autoescape=True)
+                    for field in (
+                        Vehicle.search_name,
+                        Vehicle.search_number,
+                        Vehicle.search_license_plate,
+                    )
                 )
             )
         )
