@@ -17,7 +17,7 @@
   --accent-soft: color-mix(in srgb, var(--accent) 7%, var(--surface));
   --success: #138c76;
   --warning: #a96a16;
-  --danger: #ca4d66;
+  --danger: #b83e57;
   --switch-off: #c0cbd8;
   --shadow-card: 0 3px 12px #1a3a5e04;
   --map-land: #eaf0ed;
