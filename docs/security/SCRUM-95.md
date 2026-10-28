@@ -10,7 +10,7 @@ Required CI zależy od frontend, dwóch wersji backendu, obrazu, E2E oraz trzech
 jobów bezpieczeństwa. Niepowodzenie, anulowanie lub pominięcie któregokolwiek
 z nich daje czerwony Required CI. Nie zmieniono nazwy wymaganego checka.
 
-* Dependency security: dependency review zmian PR od poziomu High, pełny
+* Dependency security: pełny
   `npm audit --audit-level=high` (także devDependencies) oraz pip-audit wszystkich
   zainstalowanych zależności aplikacji i testów w osobnym venv. pip-audit blokuje
   każdą znaną podatność; awaria skanera/źródła danych także zatrzymuje gate.
@@ -32,6 +32,13 @@ Actions mają pełne SHA odczytane z oficjalnych repozytoriów 28.10.2026. Trivy
 0.76.1 i Gitleaks 8.30.1 mają przypięte digesty OCI; wersje pip-audit/Semgrep są
 w requirements narzędzi. Nie używa się tokena platformy Semgrep, zdalnych reguł,
 telemetrii, trace ani płatnego API. SCA pobiera publiczne dane pakietów/CVE.
+
+Pierwszy run CI potwierdził, że GitHub Dependency Graph jest wyłączony w tym
+repozytorium, więc natywna akcja dependency-review nie jest obsługiwana. Zastąpiono
+ją działającym pełnym SCA npm/pip, które sprawdza cały rozwiązywany graf zależności
+każdego PR oraz main, w tym transitive/dev. Nie dodano continue-on-error ani
+warunkowego pomijania skanu. Ewentualne włączenie Dependency Graph przez admina
+może później uzupełnić SCA o natywne porównanie zmian, nie jest jego zamiennikiem.
 
 ## Usunięte problemy
 
