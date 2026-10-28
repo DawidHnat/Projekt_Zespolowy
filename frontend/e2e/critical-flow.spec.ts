@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { execFileSync } from "node:child_process";
 import { test, expect, type Page } from "@playwright/test";
 
@@ -290,4 +291,71 @@ test("switching accounts resets selected details, filters and the per-user page 
   await expect(page.getByRole("combobox", { name: "Elementów na stronę: pojazdy", exact: true })).toHaveValue("25");
   await expect(page.getByRole("searchbox", { name: "Szukaj pojazdu" })).toHaveValue("");
   await expect(page.getByRole("dialog")).toHaveCount(0);
+});
+
+
+async function accessible(page: Page, state: string) {
+  const result = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  const findings = result.violations.map(item => ({
+    id: item.id, impact: item.impact,
+    targets: item.nodes.map(node => node.target),
+  }));
+  expect(findings, `axe: ${state}`).toEqual([]);
+}
+
+for (const theme of ["light", "dark"]) {
+  test(`axe ${theme}: login, list, map fallback, details, annotation and error`, async ({ page }) => {
+    await page.goto("/#vehicles");
+    await expect(page.getByLabel("Login", { exact: true })).toBeVisible();
+    await page.evaluate(value => document.documentElement.setAttribute("data-theme", value), theme);
+    await accessible(page, "login");
+    await login(page);
+    await page.evaluate(value => document.documentElement.setAttribute("data-theme", value), theme);
+    await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+    await accessible(page, "vehicle list");
+    await page.goto("/#map");
+    await expect(page.getByText("Mapa czeka na konfigurację").first()).toBeVisible();
+    await accessible(page, "map fallback");
+    await page.goto("/#vehicles");
+    await page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await accessible(page, "vehicle details dialog");
+    await page.getByRole("dialog").getByRole("tab", { name: "Podróże", exact: true }).click();
+    await page.getByRole("dialog").getByRole("list", { name: "Przejazdy pojazdu", exact: true }).getByRole("button").first().click();
+    const form = page.getByRole("form", { name: "Cel i opis przejazdu", exact: true });
+    await expect(form).toBeVisible();
+    await accessible(page, "annotation editor");
+    await form.getByLabel(/Cel przejazdu/).fill("Syntetyczny błąd dostępności");
+    await page.route(`**/api/v1/trips/${trip}/annotation`, route => route.fulfill({
+      status: 503, contentType: "application/json", body: JSON.stringify({ error: { code: "UNAVAILABLE" } }),
+    }));
+    await form.getByRole("button", { name: "Zapisz cel i opis", exact: true }).click();
+    await expect(form.getByRole("alert")).toBeVisible();
+    await accessible(page, "save error with retained draft");
+    await page.screenshot({ path: test.info().outputPath(`axe-${theme}-error.png`) });
+  });
+}
+
+test("keyboard opens details, traps focus, switches tabs and returns focus on Escape", async ({ page }) => {
+  await login(page);
+  const opener = page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ });
+  await opener.focus();
+  await page.keyboard.press("Enter");
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Zamknij szczegóły pojazdu" })).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  expect(await dialog.evaluate(element => element.contains(document.activeElement))).toBe(true);
+  await page.keyboard.press("Tab");
+  expect(await dialog.evaluate(element => element.contains(document.activeElement))).toBe(true);
+  const vehicleTab = dialog.getByRole("tab", { name: "Pojazd", exact: true });
+  await vehicleTab.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(dialog.getByRole("tab", { name: "Podróże", exact: true })).toBeFocused();
+  await expect(dialog.getByRole("tab", { name: "Podróże", exact: true })).toHaveAttribute("aria-selected", "true");
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+  await expect(opener).toBeFocused();
 });
