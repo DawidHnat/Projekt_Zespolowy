@@ -45,6 +45,13 @@ Każdy scenariusz działa w Chromium na desktopie i ekranie 390 px:
 - Unieważniona sesja i logout: powrót do logowania oraz ponowne 401 z API.
 - Równoległy zapis: 409, zachowany szkic i porównanie aktualnej wersji.
 - Limit 10 prób logowania: blokada kolejnej próby i komunikat w przeglądarce.
+- Odrzucenie natywnego potwierdzenia zamknięcia, zmiany zakładki oraz Escape
+  zachowuje szkic. Świadome odrzucenie usuwa wyłącznie niezapisany tekst;
+  zapis w PostgreSQL pozostaje bez zmian.
+- Kontrolowane 503 przy PATCH zachowuje szkic i bazę, a ponowienie po
+  przywróceniu odpowiedzi zapisuje przez rzeczywiste API do PostgreSQL.
+- Unieważniona sesja podczas edycji: odrzucony zapis usuwa prywatny formularz
+  i wraca do logowania.
 
 Testy nie potwierdzają renderowania mapy Mapbox/WebGL ani działania żywej integracji,
 SMTP, fizycznego telefonu lub pełnego planu 57 scenariuszy. Nie zastępują
@@ -60,3 +67,13 @@ produkcyjnemu serwerowi. Brak retries ujawnia flaky test zamiast ukrywać błąd
 
 Odbiór: URL runu, SHA, projekty desktop/mobile, liczba PASS/FAIL, dowody regresji,
 niezależny reviewer. Wyniku E2E nie przenosimy automatycznie na całą Story.
+
+## Sprawdzenie 28.10.2026
+
+Gałąź SCRUM-26 zsynchronizowano z `origin/main` bez przepisywania historii,
+a tę bazę włączono do SCRUM-83. Wynik lokalny: 20/20 Chromium E2E,
+desktop i 390 px, prawdziwy FastAPI/PostgreSQL 17; frontend 44/44 i build PASS.
+Backend podstawy SCRUM-26: ruff/format oraz 124/124 pytest z migracjami
+i współbieżnością PASS. Baza i kontener są jednorazowe, bez żywych integracji.
+To weryfikacja developerska. Formalny review innego developera, odbiór QA
+i przestawienie PR na `main` po scaleniu PR #30 pozostają wymagane.

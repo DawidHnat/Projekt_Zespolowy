@@ -27,6 +27,17 @@ async function annotation(page: Page) {
   return dialog.getByRole("form", { name: "Cel i opis przejazdu", exact: true });
 }
 
+async function confirmUnsaved(page: Page, action: () => Promise<unknown>, accept: boolean) {
+  const prompt = page.waitForEvent("dialog");
+  const pending = action();
+  const dialog = await prompt;
+  expect(dialog.type()).toBe("confirm");
+  expect(dialog.message()).toContain("niezapisany cel lub opis");
+  if (accept) await dialog.accept();
+  else await dialog.dismiss();
+  await pending;
+}
+
 test.beforeEach(async ({ page }) => {
   execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", "reset-case"], {
     cwd: "../backend", env: { ...process.env, PYTHONPATH: ".", FLEET_FLOW_E2E: "true" },
@@ -146,4 +157,58 @@ test("login rate limit is enforced and shown in the browser", async ({ page }) =
   await page.getByLabel("Hasło", { exact: true }).fill("synthetic-e2e-password");
   await page.getByRole("button", { name: "Zaloguj się", exact: true }).click();
   await expect(page.getByRole("alert")).toHaveText("Zbyt wiele prób. Spróbuj ponownie za minutę.");
+});
+
+test("rejecting close, tab change and Escape preserves an unsaved annotation", async ({ page }) => {
+  await login(page);
+  const original = (await (await page.request.get(`/api/v1/trips/${trip}`)).json()).annotation;
+  const form = await annotation(page);
+  const draft = `Niezapisany szkic ${Date.now()}`;
+  await form.getByLabel(/Cel przejazdu/).fill(draft);
+  await expect(page.getByText("Przed zmianą dnia lub przejazdu zapisz albo anuluj edycję.")).toBeVisible();
+  const close = () => page.getByRole("button", { name: "Zamknij szczegóły pojazdu" }).click();
+  await confirmUnsaved(page, close, false);
+  await expect(form.getByLabel(/Cel przejazdu/)).toHaveValue(draft);
+  await confirmUnsaved(page, () => page.getByRole("tab", { name: "Pojazd", exact: true }).click(), false);
+  await expect(page.getByRole("tab", { name: "Podróże", exact: true })).toHaveAttribute("aria-selected", "true");
+  await confirmUnsaved(page, () => page.keyboard.press("Escape"), false);
+  await expect(form.getByLabel(/Cel przejazdu/)).toHaveValue(draft);
+  expect((await (await page.request.get(`/api/v1/trips/${trip}`)).json()).annotation).toEqual(original);
+  await confirmUnsaved(page, close, true);
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+  const reopened = await annotation(page);
+  await expect(reopened.getByLabel(/Cel przejazdu/)).toHaveValue(original.purpose ?? "");
+});
+
+test("temporary save failure preserves the draft and retry writes to PostgreSQL", async ({ page }) => {
+  await login(page);
+  const original = (await (await page.request.get(`/api/v1/trips/${trip}`)).json()).annotation;
+  const form = await annotation(page);
+  const draft = `Ponowienie ${Date.now()}`;
+  await form.getByLabel(/Cel przejazdu/).fill(draft);
+  await page.route(`**/api/v1/trips/${trip}/annotation`, route => route.fulfill({
+    status: 503, contentType: "application/json",
+    body: JSON.stringify({ error: { code: "TEMPORARY_FAILURE", message: "synthetic failure" } }),
+  }));
+  await form.getByRole("button", { name: "Zapisz cel i opis", exact: true }).click();
+  await expect(form.getByRole("alert")).toBeVisible();
+  await expect(form.getByLabel(/Cel przejazdu/)).toHaveValue(draft);
+  expect((await (await page.request.get(`/api/v1/trips/${trip}`)).json()).annotation).toEqual(original);
+  await page.unroute(`**/api/v1/trips/${trip}/annotation`);
+  await form.getByRole("button", { name: "Zapisz cel i opis", exact: true }).click();
+  await expect(form.getByRole("status")).toHaveText("Cel i opis zostały zapisane.");
+  expect((await (await page.request.get(`/api/v1/trips/${trip}`)).json()).annotation.purpose).toBe(draft);
+});
+
+test("expired session removes the private draft when a save is rejected", async ({ page }) => {
+  await login(page);
+  const form = await annotation(page);
+  await form.getByLabel(/Cel przejazdu/).fill("Prywatny niezapisany szkic E2E");
+  expect((await page.request.post("/api/v1/auth/logout", {
+    headers: { Origin: "http://127.0.0.1:54173" },
+  })).ok()).toBeTruthy();
+  await form.getByRole("button", { name: "Zapisz cel i opis", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Zaloguj się", exact: true })).toBeVisible();
+  await expect(page.getByRole("form", { name: "Cel i opis przejazdu", exact: true })).toHaveCount(0);
+  await expect(page.getByLabel(/Cel przejazdu/)).toHaveCount(0);
 });
