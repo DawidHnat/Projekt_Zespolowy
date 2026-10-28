@@ -435,3 +435,22 @@ for (const theme of ["light", "dark"]) {
     await expect(opener).toBeFocused();
   });
 }
+
+test("multiple manual drivers are represented without an arbitrary primary driver", async ({ page }) => {
+  execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", "multiple-drivers"], {
+    cwd: "../backend", env: { ...process.env, PYTHONPATH: ".", FLEET_FLOW_E2E: "true" }, stdio: "pipe",
+  });
+  await login(page);
+  await expect(page.getByText("2 kierowców", { exact: true })).toBeVisible();
+  const response = await (await page.request.get("/api/v1/fleet/vehicles/11111111-1111-4111-8111-111111111111")).json();
+  expect(response.driver).toBeNull();
+  expect(response.driver_count).toBe(2);
+  expect(response.driver_preview.map((driver: { display_name: string }) => driver.display_name)).toEqual(["Kierowca E2E A", "Kierowca E2E B"]);
+  const search = await page.request.post("/api/v1/drivers/search", {
+    headers: { Origin: "http://127.0.0.1:54173" }, data: { vehicle_id: "11111111-1111-4111-8111-111111111111" },
+  });
+  expect((await search.json()).total).toBe(2);
+  await page.goto("/#dashboard");
+  await expect(page.getByRole("cell", { name: "2 kierowców", exact: true })).toBeVisible();
+  await page.screenshot({ path: test.info().outputPath("multiple-drivers.png") });
+});

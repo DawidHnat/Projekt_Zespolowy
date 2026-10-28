@@ -353,3 +353,7 @@ nie samym kolorem. Formularz reguły i wybór pojazdu korzystają ze wspólnych
 przycisków, tokenów i ListPagination, także wewnątrz formularza (type=button).
 Istniejący widget `activity` pokazuje liczbę nieprzeczytanych dla konta oraz
 trzy najnowsze alerty. Rejestr i ID układu pozostają zgodne ze starszym zapisem.
+
+SCRUM-52 dodaje liczbę i podgląd wielu kierowców do istniejących kafelków oraz
+tabeli floty. Etykieta „N kierowców” nie wybiera arbitralnej osoby. Pełna
+kartoteka jest w SCRUM-53; jej oznaczenie Planowane pozostaje do podłączenia.

@@ -257,3 +257,11 @@ lokalnie. Testy kontraktu nadal używają schematu wewnętrznie.
 Role `admin`, `editor`, `viewer` mają constraint bazy. Migracja nie poprawia
 nieznanych ról za operatora i nie zmienia istniejących uprawnień.
 [Sprawdzenie danych, rollout i rollback](../docs/security/SCRUM-103.md).
+
+## Ręczna kartoteka kierowców (SCRUM-52)
+
+Chronione `/api/v1/drivers` udostępnia profile, katalog kategorii i historię
+przypisań wiele do wielu. POST `/api/v1/drivers/search` przenosi wyszukiwanie
+kontaktu do treści żądania. Zapis wymaga admin/editor i bieżącego version;
+viewer ma odczyt. Ocena kategorii pozostaje not_evaluated do SCRUM-70.
+[Migracja 0008, stare rekordy i instrukcja odbioru](../docs/qa/SCRUM-52.md).
