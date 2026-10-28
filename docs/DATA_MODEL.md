@@ -110,3 +110,12 @@ własny odczyt. Pozostałe moduły tego projektu modelu zachowują swój status.
 Reset hasła jest osobnym przyrostem po potwierdzeniu SMTP: jednorazowy token
 przechowywany jako hash, krótki termin ważności, neutralne odpowiedzi, limit
 wysyłki i unieważnienie sesji. Obecna diagnostyka SMTP nie wysyła wiadomości.
+
+## Automatyczna weryfikacja — SCRUM-108
+
+`contracts/api-design.json` pozostaje jedynym źródłem. Jego `$defs` i referencje
+odpowiedzi generują typy frontendu oraz walidują realne syntetyczne odpowiedzi API.
+`implementation_status` oddziela działające operacje od przyszłych propozycji.
+Generator `tools/generate_api_types.py --check` i pytest kontraktu są częścią
+Required CI. Status proposed-for-review i wymagany odbiór SCRUM-36 pozostają
+w mocy; procedurę aktualizacji/migracji opisuje `docs/qa/SCRUM-108.md`.

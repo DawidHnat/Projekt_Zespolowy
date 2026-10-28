@@ -1,22 +1,7 @@
 import { validTripDay } from "./trip-day.ts";
 
-export type Annotation = {
-  purpose: string | null;
-  description: string | null;
-  version: number;
-  updated_at: string | null;
-  updated_by: { id: string; display_name: string } | null;
-};
-export type Trip = {
-  id: string;
-  vehicle_id: string;
-  start_at: string;
-  end_at: string | null;
-  distance_km: number | null;
-  duration_seconds: number | null;
-  annotation: Annotation;
-};
-export type TripList = { items: Trip[]; total: number; page: number; page_size: number };
+import type { Annotation } from "../../../shared/api/generated/contracts";
+export type { Annotation, Trip, TripList } from "../../../shared/api/generated/contracts";
 export type AnnotationDraft = { purpose: string; description: string };
 
 export const annotationDraft = (value: Annotation): AnnotationDraft => ({
