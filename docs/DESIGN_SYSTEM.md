@@ -328,3 +328,12 @@ odświeża wybory Dzisiaj/Wczoraj po polskiej północy i powrocie do karty.
 Natywne pole daty ma opis i ograniczenie do dzisiaj. Puste stany pozostają
 jednoznaczne do czasu podłączenia rzeczywistej historii; nie pokazuj
 przykładowych tras jako danych floty.
+
+### Kontrast i fokus panelu (SCRUM-107)
+
+Stopka wersji oraz opisy fallbacku mapy używają `--wallpaper-muted`, aby zachować
+kontrast nad jasnym tłem. Panel pojazdu stosuje ten sam token dla opisów nad szkłem.
+Aktywna zakładka ma tekst `--text` i podkreślenie `--accent`; jej czytelność nie
+zależy od wybranego koloru akcentu. Token błędu jasnego motywu ma wartość #b83e57.
+Dialog zawija Tab/Shift+Tab między widocznymi kontrolkami, a Escape zachowuje
+potwierdzenie niezapisanego szkicu i przywraca fokus do otwarcia.

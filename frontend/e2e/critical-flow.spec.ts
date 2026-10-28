@@ -307,12 +307,19 @@ async function accessible(page: Page, state: string) {
 
 for (const theme of ["light", "dark"]) {
   test(`axe ${theme}: login, list, map fallback, details, annotation and error`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.addInitScript(value => {
+      localStorage.setItem("fleet-flow.dashboard.v2", JSON.stringify({ theme: value }));
+    }, theme);
     await page.goto("/#vehicles");
     await expect(page.getByLabel("Login", { exact: true })).toBeVisible();
-    await page.evaluate(value => document.documentElement.setAttribute("data-theme", value), theme);
     await accessible(page, "login");
+    await page.getByLabel("Login", { exact: true }).fill("e2e-editor");
+    await page.getByLabel("Hasło", { exact: true }).fill("synthetic-wrong-password");
+    await page.getByRole("button", { name: "Zaloguj się", exact: true }).click();
+    await expect(page.getByRole("alert")).toBeVisible();
+    await accessible(page, "login error");
     await login(page);
-    await page.evaluate(value => document.documentElement.setAttribute("data-theme", value), theme);
     await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
     await accessible(page, "vehicle list");
     await page.goto("/#map");
@@ -352,10 +359,17 @@ test("keyboard opens details, traps focus, switches tabs and returns focus on Es
   expect(await dialog.evaluate(element => element.contains(document.activeElement))).toBe(true);
   const vehicleTab = dialog.getByRole("tab", { name: "Pojazd", exact: true });
   await vehicleTab.focus();
-  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("End");
   await expect(dialog.getByRole("tab", { name: "Podróże", exact: true })).toBeFocused();
   await expect(dialog.getByRole("tab", { name: "Podróże", exact: true })).toHaveAttribute("aria-selected", "true");
   await page.keyboard.press("Escape");
   await expect(dialog).not.toBeVisible();
+  await expect(opener).toBeFocused();
+  await page.keyboard.press("Space");
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("tab", { name: "Pojazd", exact: true }).focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(dialog.getByRole("tab", { name: "Kierowca", exact: true })).toBeFocused();
+  await page.keyboard.press("Escape");
   await expect(opener).toBeFocused();
 });
