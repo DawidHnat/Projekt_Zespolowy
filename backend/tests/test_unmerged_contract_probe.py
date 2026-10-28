@@ -3,7 +3,6 @@
 import copy
 
 import pytest
-
 from test_contracts import OPERATIONS, validator
 
 
