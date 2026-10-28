@@ -129,6 +129,8 @@ jobs:
       - run: docker build -f infra/deploy/backend.Dockerfile -t fleet-flow-api:ci .
       - name: Verify non-root backend can load application code
         run: docker run --rm --entrypoint python fleet-flow-api:ci -c 'import app.main'
+      - name: Verify headers and client limits through real Caddy
+        run: python3 infra/tests/check_proxy.py --image fleet-flow-api:ci
 
   e2e:
     name: Critical browser flows
