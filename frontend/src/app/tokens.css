@@ -8,15 +8,15 @@
   --surface-muted: #f7f9fc;
   --surface-hover: #edf2f8;
   --text: #192a42;
-  --muted: #63758a;
+  --muted: #596b80;
   --wallpaper-muted: #53657a;
   --brand-wordmark: #0078dc;
   --border: #e3ebf3;
   --accent: #1479e8;
   --accent-on: #ffffff;
   --accent-soft: color-mix(in srgb, var(--accent) 7%, var(--surface));
-  --success: #138c76;
-  --warning: #a96a16;
+  --success: #10725f;
+  --warning: #8f570b;
   --danger: #b83e57;
   --switch-off: #c0cbd8;
   --shadow-card: 0 3px 12px #1a3a5e04;

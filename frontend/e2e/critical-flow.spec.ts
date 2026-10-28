@@ -11,6 +11,13 @@ function sourceState(value: "ok" | "degraded" | "unavailable") {
   });
 }
 
+function measurementState(value: "moving" | "stopped" | "offline" | "unknown") {
+  execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", "measurement-state", value], {
+    cwd: "../backend", env: { ...process.env, PYTHONPATH: ".", FLEET_FLOW_E2E: "true" },
+    stdio: "pipe",
+  });
+}
+
 async function login(page: Page, role = "editor") {
   await page.goto("/#vehicles");
   await page.getByLabel("Login", { exact: true }).fill(`e2e-${role}`);
@@ -321,7 +328,16 @@ for (const theme of ["light", "dark"]) {
     await accessible(page, "login error");
     await login(page);
     await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
-    await accessible(page, "vehicle list");
+    await accessible(page, "vehicle list: stopped");
+    for (const status of ["moving", "offline", "unknown"] as const) {
+      measurementState(status);
+      await page.reload();
+      await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+      await accessible(page, `vehicle list: ${status}`);
+    }
+    measurementState("stopped");
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
     await page.goto("/#map");
     await expect(page.getByText("Mapa czeka na konfigurację").first()).toBeVisible();
     await accessible(page, "map fallback");
