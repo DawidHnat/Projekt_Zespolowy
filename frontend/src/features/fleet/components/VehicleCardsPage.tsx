@@ -2,6 +2,7 @@ import { useState, memo, type KeyboardEvent } from "react";
 import {
   Camera,
   CarFront,
+  Info,
   MapPin,
   MoveDiagonal2,
   Settings2,
@@ -99,6 +100,14 @@ const VehicleCard = memo(function VehicleCard({
           </a>
           <button
             className="icon-button"
+            aria-label={`Szczegóły: ${v.name}`}
+            title="Szczegóły i podróże pojazdu"
+            onClick={() => f.inspect(v.id)}
+          >
+            <Info size={17} />
+          </button>
+          <button
+            className="icon-button"
             aria-label={`Zdjęcie: ${v.name}`}
             title="Zdjęcie pojazdu"
             disabled={p.photosLoading}
@@ -168,6 +177,9 @@ export function VehicleCardsPage() {
             {p.editing
               ? "Zaznacz kafelki i dopasuj je razem. Narożnik zmienia rozmiar wybranej grupy."
               : "Twój widok floty. Każdy kafelek ma własny rozmiar."}
+          </span>
+          <span>
+            Zdjęcia i układ kafelków: tylko na tym urządzeniu i w tej przeglądarce.
           </span>
           {!p.persistent && (
             <span role="status">

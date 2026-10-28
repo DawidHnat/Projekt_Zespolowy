@@ -24,10 +24,15 @@ services:
     environment:
       COOKIE_SECURE: 'true'
       CORS_ORIGINS: https://${APP_DOMAIN:?Set APP_DOMAIN}
-      SYNC_ENABLED: 'false'
+      # SYNC_ENABLED comes from env_file; default false in runtime.env.example.
+      FORWARDED_ALLOW_IPS: ${FLEET_FLOW_PROXY_IP:-172.30.96.3}
     depends_on:
       database:
         condition: service_healthy
+    networks:
+      default:
+      proxy:
+        aliases: [api-proxy]
     read_only: true
     tmpfs: [/tmp]
     healthcheck:
@@ -38,11 +43,15 @@ services:
       start_period: 10s
 
   web:
-    image: caddy:2-alpine
+    image: caddy:2-alpine@sha256:eb4d35b7452d1ab6171fbdbe8d9275b2301dad6dad92115d91e19fb9b24d510f
     restart: unless-stopped
     environment:
       APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN}
     ports: ['80:80', '443:443']
+    networks:
+      default:
+      proxy:
+        ipv4_address: ${FLEET_FLOW_PROXY_IP:-172.30.96.3}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ../../frontend/dist:/srv/frontend:ro
@@ -56,3 +65,12 @@ volumes:
   database:
   caddy_data:
   caddy_config:
+
+# Only the edge has a trusted, fixed address. API/database have no published ports.
+# Operators must check subnet collisions before the approved infrastructure rollout.
+networks:
+  proxy:
+    internal: true
+    ipam:
+      config:
+        - subnet: ${FLEET_FLOW_PROXY_SUBNET:-172.30.96.0/28}

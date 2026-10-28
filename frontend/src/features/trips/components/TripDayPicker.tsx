@@ -6,11 +6,13 @@ export function TripDayPicker({
   today,
   onChange,
   label,
+  disabled = false,
 }: {
   value: string;
   today: string;
   onChange: (day: string) => void;
   label: string;
+  disabled?: boolean;
 }) {
   return (
     <div className="trip-day-picker" role="group" aria-label={label}>
@@ -23,6 +25,7 @@ export function TripDayPicker({
             key={name}
             className="button button-secondary"
             aria-pressed={value === day}
+            disabled={disabled}
             onClick={() => onChange(day)}
           >
             {name}
@@ -37,6 +40,7 @@ export function TripDayPicker({
           value={value}
           max={today}
           required
+          disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
         />
       </label>

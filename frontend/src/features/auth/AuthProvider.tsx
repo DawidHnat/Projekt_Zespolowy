@@ -7,12 +7,7 @@ import {
 } from "react";
 import { api, onSessionExpired } from "../../shared/api/client";
 
-type User = {
-  id: string;
-  username: string;
-  display_name: string;
-  role: string;
-};
+import type { User } from "../../shared/api/generated/contracts";
 type AuthState = {
   user: User | null;
   loading: boolean;

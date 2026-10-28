@@ -3,7 +3,10 @@
 Stos pozostaje uzgodniony: React/TypeScript, FastAPI i PostgreSQL. Frontend
 buduje się w GitHub Actions, backend w obrazie Pythona na VPS. Caddy obsługuje
 HTTPS i przekazuje `/api` do niepublicznego backendu. Baza nie publikuje portu.
-Synchronizacja WEBFLEET jest wyłączona w tym przyroście.
+Synchronizacja WEBFLEET domyślnie pozostaje wyłączona. Compose respektuje
+`SYNC_ENABLED` z prywatnego środowiska; nie nadpisuje go stałym `false`.
+[Runbook SCRUM-64](../../docs/qa/SCRUM-64.md) opisuje canary, pomiar aktualności
+i rollback. Kod nie stanowi potwierdzenia uruchomienia źródła na VPS.
 
 Cykliczny szyfrowany backup poza VPS i izolowane sprawdzenie odtworzenia opisuje
 [SCRUM-84](../backup/README.md). Wymaga osobnej konfiguracji storage i aktywacji

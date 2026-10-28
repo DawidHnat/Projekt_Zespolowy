@@ -5,7 +5,14 @@ Backend ma adapter WEBFLEET i polecenia diagnostyczne integracji. Python 3.12 lu
 FastAPI, PostgreSQL, migracje i health: SCRUM-39. Logowanie i sesje: SCRUM-16.
 Synchronizacja pojazdów: SCRUM-15. Zabezpieczone API listy/mapy: SCRUM-19.
 Reguły i alerty dziennego dystansu: SCRUM-31.
+Cel i opis zapisanych przejazdów, audyt i konflikt wersji: SCRUM-26.
 Przeglądarka nie odpytuje WEBFLEET bezpośrednio.
+
+SCRUM-26 wymaga migracji `0005_trip_annotations` (`alembic upgrade head`).
+GET `/api/v1/trips` i `/api/v1/trips/{id}` czytają zapisane przejazdy;
+PATCH `/api/v1/trips/{id}/annotation` zapisuje wyłącznie ręczne pola.
+Import historii ze źródła pozostaje w SCRUM-24. Szczegóły kontraktu i scenariusze
+odbioru: [model danych](../docs/DATA_MODEL.md) i [QA SCRUM-26](../docs/qa/SCRUM-26.md).
 
 ## Uruchomienie z czystego checkoutu
 
@@ -144,6 +151,13 @@ Administrator może także ustawić hasło lokalnym poleceniem powyżej.
 
 ## Synchronizacja pojazdów — SCRUM-15
 
+Operator ma `python -m app.sync_control once` (pojedynczy **żywy import**, tylko
+po wyraźnym uzgodnieniu) oraz `python -m app.sync_control status` (odczyt cache,
+bez wywołania dostawcy). Status zwraca niezerowy kod przy braku/awarii lub wieku
+ostatniego sukcesu ponad 180 s. Procedura VPS i wymagane dowody:
+[SCRUM-64](../docs/qa/SCRUM-64.md). Nieoczekiwane błędy workera mają stały kod
+zdarzenia i losowe event_id; log nie zawiera wyjątku, SQL ani telemetryki.
+
 `SYNC_ENABLED=true` w lokalnym `.env` włącza jeden wspólny odczyt co 60 s.
 PostgreSQL advisory lock i zapis czasu próby chronią limit także przy kilku
 procesach. Nie uruchamiaj równolegle diagnostyki w pętli. Awaria zachowuje dane
@@ -232,3 +246,14 @@ Reguły i alerty są ograniczone do bieżącego konta źródła. Formularze i li
 frontendzie pozostają SCRUM-32; odbiór zespołowy alertów jest w SCRUM-33.
 
 Przypadki testowe i instrukcja sprawdzenia: [QA SCRUM-31](../docs/qa/SCRUM-31.md).
+
+## Dokumentacja API i role (SCRUM-103)
+
+Swagger `/docs`, ReDoc `/redoc` i `/openapi.json` są domyślnie dostępne przy
+lokalnych CORS_ORIGINS. Zdalny origin wyłącza je; jawne włączenie docs dla
+zdalnego originu jest odrzucane. `API_DOCS_ENABLED=false` wyłącza docs także
+lokalnie. Testy kontraktu nadal używają schematu wewnętrznie.
+
+Role `admin`, `editor`, `viewer` mają constraint bazy. Migracja nie poprawia
+nieznanych ról za operatora i nie zmienia istniejących uprawnień.
+[Sprawdzenie danych, rollout i rollback](../docs/security/SCRUM-103.md).
