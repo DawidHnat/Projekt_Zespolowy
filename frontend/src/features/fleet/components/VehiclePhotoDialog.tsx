@@ -44,6 +44,10 @@ export function VehiclePhotoDialog({
             <p>
               To samo zdjęcie zobaczysz na kafelku i jako znacznik na mapie.
             </p>
+            <p>
+              Tylko na tym urządzeniu i w tej przeglądarce, dla Twojego konta.
+              Zdjęcie nie jest wysyłane na serwer ani współdzielone z zespołem.
+            </p>
             <label className="button button-primary photo-upload">
               <Camera size={17} />
               {p.busy === vehicle.id
@@ -79,9 +83,8 @@ export function VehiclePhotoDialog({
               </p>
             )}
             <small>
-              JPG, PNG lub WebP · do 10 MB. Zdjęcie zapisuje się od razu, tylko
-              na tym urządzeniu i dla Twojego konta. Współdzielenie z zespołem
-              dodamy później.
+              JPG, PNG lub WebP · do 10 MB. Zdjęcie zapisuje się od razu.
+              Wyczyszczenie danych przeglądarki usuwa lokalne zdjęcie.
             </small>
           </div>
           <footer className="widget-settings-footer">

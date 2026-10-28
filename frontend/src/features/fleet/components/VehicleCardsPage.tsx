@@ -178,6 +178,9 @@ export function VehicleCardsPage() {
               ? "Zaznacz kafelki i dopasuj je razem. Narożnik zmienia rozmiar wybranej grupy."
               : "Twój widok floty. Każdy kafelek ma własny rozmiar."}
           </span>
+          <span>
+            Zdjęcia i układ kafelków: tylko na tym urządzeniu i w tej przeglądarce.
+          </span>
           {!p.persistent && (
             <span role="status">
               Układ działa w tej sesji — zapis przeglądarki jest niedostępny.

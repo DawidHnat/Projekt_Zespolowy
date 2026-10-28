@@ -80,6 +80,13 @@ Ukrycie wszystkich modułów jest dozwolone; można je ponownie włączyć.
 Ewidencja przebiegu, Kierowcy, Karty paliwowe, Alerty i Ustawienia. Nowa strona ma trwałe
 ID, polski tytuł, ikonę i opis. `WorkspacePage` zapewnia wspólny pusty widok
 sekcji planowanych. Logikę tych funkcji dodajemy w osobnych zadaniach.
+Nawigacja pobiera oznaczenie „Planowane” z obecności `placeholder` w rejestrze;
+to samo oznaczenie jest na stronie sekcji. Po implementacji usuń `placeholder`
+i podłącz rzeczywisty widok. Nie zmieniaj przy tym trwałego ID sekcji.
+Ustawienia, galeria pojazdów i dodawanie zdjęć jawnie informują o zapisie
+tylko na urządzeniu i w danej przeglądarce. Zdjęcia pojazdów są dodatkowo
+rozdzielone według konta, a preferencje dashboardu i jego tło należą do
+przeglądarki. Nie obiecuj synchronizacji między urządzeniami (SCRUM-91).
 
 Rejestr stron jest niezależny od `SectionId` i grup zapisanych w preferencjach układu.
 Stare grupy `fleet`, `trips`, `analytics` pozostają w modelu, aby zachować
