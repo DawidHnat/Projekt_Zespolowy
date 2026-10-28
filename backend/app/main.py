@@ -40,7 +40,15 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
                     await worker
             engine.dispose()
 
-    app = FastAPI(title="Fleet-Flow", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(
+        title="Fleet-Flow",
+        version="0.1.0",
+        lifespan=lifespan,
+        docs_url="/docs" if settings.local_api_docs else None,
+        redoc_url="/redoc" if settings.local_api_docs else None,
+        openapi_url="/openapi.json" if settings.local_api_docs else None,
+        swagger_ui_oauth2_redirect_url="/docs/oauth2-redirect" if settings.local_api_docs else None,
+    )
     app.state.settings = settings
     app.state.engine = engine
     app.state.sessions = make_sessions(engine)
