@@ -228,3 +228,9 @@ wymaga osobistego adresu przypisanego do konta oraz działającego SMTP. Zdalne 
 
 - [Uruchomienie i testy integracji](backend/README.md)
 - [Mapowanie WEBFLEET i dalsze sprawdzenia](docs/WEBFLEET_INTEGRATION.md)
+
+## Inwentarz danych
+
+[SCRUM-112: dane, przepływy i rejestr decyzji](docs/privacy/SCRUM-112-inventory.md)
+opisuje stan kodu main oraz osobno oczekujące PR. Rejestr wskazuje wejście do
+zatwierdzeń SCRUM-113 i implementacji retencji/eksportu/usuwania SCRUM-109–111.
