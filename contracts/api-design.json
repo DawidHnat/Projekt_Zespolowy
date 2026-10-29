@@ -955,6 +955,22 @@
       },
       "error_schema": {
         "$ref": "#/$defs/Error"
+      },
+      "request_example": {
+        "body": {
+          "q": "synthetic@example.com",
+          "active": null,
+          "assigned": null,
+          "category": null,
+          "missing_categories": null,
+          "vehicle_id": null,
+          "sort": "custom",
+          "custom_order": [
+            "11111111-1111-4111-8111-111111111111"
+          ],
+          "page": 1,
+          "page_size": 25
+        }
       }
     },
     {

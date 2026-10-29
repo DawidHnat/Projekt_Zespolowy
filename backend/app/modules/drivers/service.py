@@ -33,7 +33,9 @@ def current_relations(source):
     )
 
 
-def profile_filters(query, source, q, active, assigned, category, vehicle_id=None):
+def profile_filters(
+    query, source, q, active, assigned, category, vehicle_id=None, missing_categories=None
+):
     if active is not None:
         query = query.where(Driver.active.is_(active))
     relation = current_relations(source).where(DriverAssignment.driver_id == Driver.id).exists()
@@ -55,6 +57,11 @@ def profile_filters(query, source, q, active, assigned, category, vehicle_id=Non
             .where(DriverCategory.driver_id == Driver.id, DriverCategory.category == category)
             .exists()
         )
+    if missing_categories is not None:
+        known = (
+            select(DriverCategory.driver_id).where(DriverCategory.driver_id == Driver.id).exists()
+        )
+        query = query.where(~known if missing_categories else known)
     needle = q.strip().casefold()
     if "\x00" in needle:
         return query.where(false())

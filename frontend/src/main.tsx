@@ -18,6 +18,7 @@ import "./app/vehicle-details.css";
 import "./app/map-preview.css";
 import "./app/trips.css";
 import "./app/alerts.css";
+import "./app/drivers.css";
 import "./shared/components/list-pagination.css";
 import "./app/build-version.css";
 
