@@ -4,6 +4,38 @@ Jira: [SCRUM-3](https://fleet-flow.atlassian.net/browse/SCRUM-3).
 Każdy oddaje osobno. Polecenia wykonujemy w repozytorium po ostatnim scaleniu
 i udanym wdrożeniu; nie zastępujemy wyników planem ani przykładem.
 
+## Zebranie wyników jednym poleceniem
+
+W repozytorium uruchom skrypt z Pythonem 3.10+, Git, curl i zalogowanym `gh`:
+
+```bash
+python3 tools/collect_sprint_evidence.py
+```
+
+Powstanie nowy, ignorowany przez Git katalog `.local/sprint-evidence/` z plikiem
+`ODDANIE.md`, surowymi wynikami, stderr i `manifest.json`. Skrypt odczytuje
+GitHub oraz publiczną stronę wersji i health; `git fetch` aktualizuje lokalne
+referencje. Nie scala PR, nie uruchamia Sprintu 2 ani żywego WEBFLEET/SMTP.
+Nie nadpisuje wcześniejszych wyników. Opcja `--output` pozwala wskazać inny
+**nowy** katalog; nie dodawaj wyników do publicznego repozytorium.
+
+Bez potwierdzonej daty ochrony zbierze pozostałe wyniki i zakończy się kodem
+`2` z oznaczeniem **NIEKOMPLETNE**. Po uzyskaniu daty od Dawida:
+
+```bash
+# Wstaw rzeczywiście potwierdzoną datę, nie przykładowy dzień.
+python3 tools/collect_sprint_evidence.py --protection-since "RRRR-MM-DD"
+```
+
+Kod `1` oznacza błąd polecenia albo niezgodne tematy commitów; kod `0` oznacza
+zebranie wyników technicznych, **nie zaliczenie wszystkich kryteriów**.
+Odczytaj raport, uzupełnij wymagane dowody zespołu i odśwież go po ostatnim merge
+i wdrożeniu. Każdy uruchamia narzędzie i oddaje odpowiedź osobno.
+
+[Pulpit przyrostów w Jirze](https://fleet-flow.atlassian.net/jira/dashboards/10001)
+pokazuje właścicieli i kolejkę odbiorów. [Rejestr w SCRUM-3](https://fleet-flow.atlassian.net/browse/SCRUM-3?focusedCommentId=10084)
+opisuje stan implementacji i blokady; sam status w Jirze nie zastępuje QA.
+
 ## 1. Serwer i ostatni main
 
 - Aplikacja: https://vps-9171bf52.vps.ovh.net/
@@ -24,12 +56,12 @@ Pokaz przeprowadzamy według [historyjek](SPRINT_1_REVIEW.md).
 
 ## 2. Autorzy, review, gałęzie i klucze Jiry
 
-W treści zadania nie ma filtra z „kroku 6 tutorialu”. Poniższy jawny filtr
-pokazuje wymagane dane; jeżeli prowadzący dostarczy swój filtr, użyć jego wersji.
+Dokładny filtr z kroku 6 tutorialu został dostarczony 29.10.2026. Używamy jego
+wersji, która usuwa powtórzenia recenzentów i odrzuca autora danego PR:
 
 ```bash
 gh pr list --state merged --limit 100 --json number,headRefName,author,reviews,body \
-  --jq '.[] | {number, branch: .headRefName, author: .author.login, jira: ([.body | scan("SCRUM-[0-9]+")]|unique), reviews: [.reviews[] | {reviewer: .author.login, state: .state}]}'
+  --jq '.[] | .author.login as $a | "#\(.number) \(.headRefName) author=\($a) reviewers=\([.reviews[].author.login] | unique | map(select(. != $a)) | join(",")) key_in_body=\(.body | test("[A-Z]+-[0-9]+"))"'
 ```
 
 Sprawdzić, czy każdy z `jczaja51`, `DawidHnat`, `jnazarewiczs`, `mglowacki0`
@@ -38,7 +70,8 @@ może być własnym komentarzem autora. Samo przypisanie jako reviewer nie jest
 wykonanym przeglądem. Do dowodów używamy rzeczywistych review, a do przyjęcia
 zmiany wymaganego aktualnego approval.
 
-Stan po scaleniu PR #28 dnia 26.10.2026:
+Stan sprawdzony 29.10.2026: 26 scalonych PR, wszystkie `key_in_body=true`.
+Filtr nie sprawdza stanu Approved ani aktualności approval — to osobny warunek DoD.
 
 | Członek | Własny scalony PR | Wykonane review cudzego PR | Pozostała praca |
 | --- | --- | --- | --- |
@@ -52,6 +85,9 @@ historyczną niezgodnością. W opisach #1/#2/#4 uzupełniono powiązanie SCRUM-
 podczas audytu. Nie zmieniamy historycznego autorstwa ani nie tworzymy
 pustych commitów dla statystyki. Nie przedstawiamy starszych nazw jako zgodnych.
 Każdy przyszły PR ma klucz Jiry w opisie i nazwie gałęzi oraz review innej osoby.
+Formalnego Approved innej osoby nie ma w 22 starszych scalonych PR (#1–21 i #23).
+Nie przedstawiamy ich jako przejrzanych; zakres historycznej zgodności trzeba
+odnieść do potwierdzonej daty ochrony, a zakres odbieranej Story do całego DoD.
 
 ## 3. Conventional Commits od włączenia ochrony
 
@@ -68,7 +104,7 @@ git log --no-merges --since="<data włączenia ochrony>" --format=%s origin/main
 ```
 
 Kontrola szerszego, konserwatywnego zakresu od `2026-10-20T00:00:00+02:00`
-zwróciła 0 podczas przygotowania 26.10.2026. To nie jest potwierdzenie dokładnej
+zwróciła 0 również podczas kontroli 29.10.2026. To nie jest potwierdzenie dokładnej
 godziny włączenia ochrony. Przy `grep -vcE` wynik 0 jest oczekiwany; samo `grep`
 może wtedy zakończyć się kodem 1, bo nie znalazło niedopasowanych linii.
 
@@ -111,10 +147,12 @@ do odpowiedzi dopiero po rzeczywistym rozwiązaniu.
   terminy sprawdzenia i feedback. Obecnie jest to materiał roboczy.
 - [SCRUM-65](https://fleet-flow.atlassian.net/browse/SCRUM-65) jest działaniem
   usprawniającym przypisanym Jakubowi Czai i dodanym do planowanego Sprintu 2.
-- Na Planningu potwierdzić daty, pojemność i cel **FF Sprint 2 - historia**,
+- Na Planningu potwierdzić daty, pojemność i cel **FF Sprint 2 - historia i auta**,
   uporządkować prace niedokończone, zakończyć Sprint 1 i uruchomić Sprint 2.
   Potem wkleić rzeczywistą nazwę i cel z Jiry. Stan planowany nie spełnia
   wymagania „w Jirze trwa Sprint 2”.
+  Odczyt 29.10: 15 pozycji, 74 SP, przy opisie celu mówiącym o roboczych 38 SP.
+  Uzgodnić rzeczywistą pojemność i usunąć tę rozbieżność przed rozpoczęciem.
 
 Gotowa odpowiedź musi zawierać bieżący wynik SHA, zestawienie PR z filtrem,
 wynik 0 dla komunikatów, numer rzeczywistego PR z konfliktem, link do
