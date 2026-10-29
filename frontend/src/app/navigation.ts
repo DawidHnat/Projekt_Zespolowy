@@ -56,12 +56,7 @@ export const sections = [
     id: "drivers",
     title: "Kierowcy",
     icon: Users,
-    description: "Osoby prowadzące pojazdy i ich przypisania.",
-    placeholder: {
-      title: "Zespół za kierownicą",
-      description:
-        "Tu znajdzie się lista kierowców, ich dane i przypisania do pojazdów, gotowa do rozbudowy wraz z zespołem.",
-    },
+    description: "Ręczna kartoteka kierowców, kontakt i historia przypisań.",
   },
   {
     id: "fuel-cards",

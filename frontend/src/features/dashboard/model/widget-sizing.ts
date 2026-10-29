@@ -20,6 +20,10 @@ export const minimumWidth: Record<WidgetId, number> = {
   vehicles: 360,
   utilization: 260,
   trips: 280,
+  "driver-active": 220,
+  "driver-unassigned": 220,
+  "driver-missing": 220,
+  "driver-checks": 220,
 };
 export function minimumHeight(id: WidgetId, width: number): number {
   switch (id) {
@@ -36,5 +40,7 @@ export function minimumHeight(id: WidgetId, width: number): number {
       return width < 280 ? 310 : 250;
     case "trips":
       return width < 600 ? 360 : 300;
+    default:
+      return 220;
   }
 }

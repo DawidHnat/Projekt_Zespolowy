@@ -212,3 +212,13 @@ Ustawienia są osobną stroną z podziałem konfiguracji. Wygląd i tło zapisuj
 od razu. Widoczność modułów podczas edycji Pulpitu pozostaje szkicem do zatwierdzenia
 na Pulpicie. Reset ustawień przywraca wygląd oraz układy Pulpitu i Mapy;
 rozmiary Pojazdów resetuje się osobno podczas edycji tej sekcji.
+
+
+Sekcja Kierowcy (SCRUM-53) pobiera rzeczywiste profile i historię przypisań
+z API SCRUM-52. Lista/kafelki mają kontakt, ręczne kategorie, wyszukiwanie,
+filtry, strony oraz admin/editor Dodaj/Edytuj/Przypisz/Zakończ. Viewer czyta.
+Pierwszy pojazd +N pokazuje pozostałe pojazdy, z pełną paginowaną historią.
+Układ modułów, rozmiary i własna kolejność zapisują się lokalnie dla konta;
+nie ma synchronizacji pomiędzy urządzeniami ani zapisu kontaktów w localStorage.
+Ocena kategorii ma jawny brak oceny do SCRUM-70.
+[Scenariusze i ograniczenia odbioru](../docs/qa/SCRUM-53.md).
