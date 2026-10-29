@@ -14,6 +14,7 @@ import { MetricsWidget } from "../../analytics/components/MetricsWidget";
 import { ActivityWidget } from "../../analytics/components/ActivityWidget";
 import { UtilizationWidget } from "../../analytics/components/UtilizationWidget";
 import { TripsWidget } from "../../trips/components/TripsWidget";
+import { DriverActiveWidget, DriverUnassignedWidget, DriverMissingWidget, DriverChecksWidget } from "../../drivers/components/DriverWidgets";
 import type { SectionId, WidgetId } from "./widget-types";
 
 import { SECTION_IDS, SECTION_WIDGETS } from "./widget-layout";
@@ -30,6 +31,10 @@ type WidgetDefinition = {
   presentations?: Partial<Record<SectionId, ComponentType>>;
 };
 export const widgetRegistry: Record<WidgetId, WidgetDefinition> = {
+  "driver-active": { title: "Aktywni kierowcy", description: "Aktywne osoby po filtrach", icon: Truck, sections: sectionsFor("driver-active"), component: DriverActiveWidget },
+  "driver-unassigned": { title: "Bez pojazdu", description: "Aktywni bez przypisania", icon: Truck, sections: sectionsFor("driver-unassigned"), component: DriverUnassignedWidget },
+  "driver-missing": { title: "Brak wpisanych kategorii", description: "Dane do uzupełnienia", icon: Truck, sections: sectionsFor("driver-missing"), component: DriverMissingWidget },
+  "driver-checks": { title: "Przypisania do sprawdzenia", description: "Dostępność oceny kategorii", icon: Truck, sections: sectionsFor("driver-checks"), component: DriverChecksWidget },
   metrics: {
     title: "Przegląd floty",
     description: "Cztery najważniejsze wskaźniki",
