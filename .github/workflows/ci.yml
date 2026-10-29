@@ -92,6 +92,9 @@ jobs:
       - run: ruff check .
       - run: ruff format --check .
       - run: pytest
+      - name: Test sprint evidence collector without network
+        working-directory: .
+        run: python -m unittest discover -s tools -p 'test_*.py' -v
 
   container:
     name: Backend image
