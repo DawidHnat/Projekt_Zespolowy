@@ -1,3 +1,4 @@
+
 name: CI
 
 on:
@@ -105,10 +106,30 @@ jobs:
       - name: Verify non-root backend can load application code
         run: docker run --rm --entrypoint python fleet-flow-api:ci -c 'import app.main'
 
+  docs-links:
+    name: Markdown links
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Test Markdown link checker
+        run: python -m unittest discover -s tests -p "test_markdown_links.py" -v
+
+      - name: Check Markdown links
+        run: python scripts/check_markdown_links.py
+
   required:
     name: Required CI
     if: always()
-    needs: [frontend, backend, container]
+    needs: [frontend, backend, container, docs-links]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
@@ -117,7 +138,12 @@ jobs:
           FRONTEND_RESULT: ${{ needs.frontend.result }}
           BACKEND_RESULT: ${{ needs.backend.result }}
           CONTAINER_RESULT: ${{ needs.container.result }}
-        run: test "$FRONTEND_RESULT" = success && test "$BACKEND_RESULT" = success && test "$CONTAINER_RESULT" = success
+          DOCS_LINKS_RESULT: ${{ needs.docs-links.result }}
+        run: |
+          test "$FRONTEND_RESULT" = success &&
+          test "$BACKEND_RESULT" = success &&
+          test "$CONTAINER_RESULT" = success &&
+          test "$DOCS_LINKS_RESULT" = success
 
   deploy:
     name: Deploy development server
