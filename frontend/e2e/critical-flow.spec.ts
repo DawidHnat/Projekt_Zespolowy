@@ -212,3 +212,82 @@ test("expired session removes the private draft when a save is rejected", async 
   await expect(page.getByRole("form", { name: "Cel i opis przejazdu", exact: true })).toHaveCount(0);
   await expect(page.getByLabel(/Cel przejazdu/)).toHaveCount(0);
 });
+
+test("polling pauses in a hidden/offline page and keeps an annotation draft on refresh", async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(new Date());
+  let lists = 0;
+  let details = 0;
+  page.on("request", request => {
+    const path = new URL(request.url()).pathname;
+    if (path === "/api/v1/fleet/vehicles") lists++;
+    if (/\/api\/v1\/fleet\/vehicles\/[^/]+$/.test(path)) details++;
+  });
+  await login(page);
+  const form = await annotation(page);
+  await form.getByLabel(/Cel przejazdu/).fill("Szkic przy odświeżaniu");
+  const beforeHidden = lists;
+  await page.evaluate(() => {
+    Object.defineProperty(document, "visibilityState", { configurable: true, value: "hidden" });
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+  await page.clock.fastForward(180_000);
+  expect(lists).toBe(beforeHidden);
+  await page.evaluate(() => {
+    Object.defineProperty(document, "visibilityState", { configurable: true, value: "visible" });
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+  await expect.poll(() => lists).toBe(beforeHidden + 1);
+  await expect.poll(() => details).toBe(2);
+  await expect(form.getByLabel(/Cel przejazdu/)).toHaveValue("Szkic przy odświeżaniu");
+  const beforeOffline = lists;
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: false });
+    window.dispatchEvent(new Event("offline"));
+  });
+  await page.clock.fastForward(180_000);
+  expect(lists).toBe(beforeOffline);
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: true });
+    window.dispatchEvent(new Event("online"));
+  });
+  await expect.poll(() => lists).toBe(beforeOffline + 1);
+  await expect(form.getByLabel(/Cel przejazdu/)).toHaveValue("Szkic przy odświeżaniu");
+  await page.screenshot({ path: test.info().outputPath("polling-preserves-draft.png") });
+});
+
+test("list page size changes do not fetch an unrelated selected detail again", async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(new Date());
+  let details = 0;
+  page.on("request", request => {
+    if (/\/api\/v1\/fleet\/vehicles\/[^/]+$/.test(new URL(request.url()).pathname)) details++;
+  });
+  await login(page);
+  await page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ }).click();
+  await expect(page.getByRole("dialog").getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Zamknij szczegóły pojazdu" }).click();
+  expect(details).toBe(1);
+  const listUpdate = page.waitForResponse(response => response.url().includes("/api/v1/fleet/vehicles?") && response.url().includes("page_size=10"));
+  await page.getByRole("combobox", { name: "Elementów na stronę: pojazdy", exact: true }).selectOption("10");
+  await listUpdate;
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+  expect(details).toBe(1);
+});
+
+test("switching accounts resets selected details, filters and the per-user page size", async ({ page }) => {
+  await login(page);
+  await page.getByRole("combobox", { name: "Elementów na stronę: pojazdy", exact: true }).selectOption("10");
+  await page.getByRole("searchbox", { name: "Szukaj pojazdu" }).fill("TEST E2E");
+  await page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.getByRole("button", { name: "Zamknij szczegóły pojazdu" }).click();
+  const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
+  if (await menu.isVisible()) await menu.click();
+  await page.getByRole("button", { name: "Wyloguj się", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Zaloguj się", exact: true })).toBeVisible();
+  await login(page, "viewer");
+  await expect(page.getByRole("combobox", { name: "Elementów na stronę: pojazdy", exact: true })).toHaveValue("25");
+  await expect(page.getByRole("searchbox", { name: "Szukaj pojazdu" })).toHaveValue("");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+});
