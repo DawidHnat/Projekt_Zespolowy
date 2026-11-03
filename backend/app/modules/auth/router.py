@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_session
 from app.core.errors import ApiError
 from app.modules.auth.models import LoginAttempt, LoginSession, User
+from app.modules.auth.policies import can_authenticate
 from app.modules.auth.service import (
     COOKIE_NAME,
     aware,
@@ -76,7 +77,7 @@ def login(
     valid = password_hasher.verify(
         body.password.get_secret_value(), user.password_hash if user else dummy_hash
     )
-    if not valid or not user or not user.active or user.role not in ("admin", "editor", "viewer"):
+    if not valid or not user or not user.active or not can_authenticate(user.role):
         raise ApiError(401, "INVALID_CREDENTIALS", "Niepoprawny login lub hasło")
     now = now_utc()
     session.execute(delete(LoginAttempt).where(LoginAttempt.window_start < now - timedelta(days=1)))
