@@ -177,7 +177,10 @@ Ma też API reguł dziennego dystansu i trwałych alertów z ochroną przed dupl
 widok Alerty umożliwia tworzenie, zmianę i wyłączanie reguł dla floty lub pojazdu,
 a także listowanie i trwały odczyt per konto (SCRUM-32). Terminy, wspólny stan
 obsługi i e-mail są kolejnymi przyrostami SCRUM-69/73.
-Kierowcy są wpisywani ręcznie i nigdy nie są importowani z WEBFLEET. Pozostałe
+Sekcja Kierowcy ma listę/kafelki, ręczne formularze i historię wielu przypisań
+(SCRUM-53). Kontakt i kategorie pochodzą z API, a układ jest lokalny dla konta;
+ocena zgodności kategorii należy do SCRUM-70. Kierowcy nigdy nie są importowani
+z WEBFLEET. Pozostałe
 moduły historii, zestawień analitycznych, serwisu i kart paliwowych są kolejnymi przyrostami.
 Podstawa aplikacji jest scalona do `main`. Kolejne zadania rozpoczynamy
 z aktualnego `main`; pozostały zakres i odbiór QA śledzimy w Jirze.

@@ -5,6 +5,54 @@ from sqlalchemy import case, false, func, or_, select
 from app.core.errors import ApiError
 from app.core.models import Driver, Measurement, SyncState, Vehicle
 from app.modules.auth.service import aware
+from app.modules.drivers.models import DriverAssignment
+
+
+def fleet_driver_summaries(session, vehicle_ids, source):
+    if not vehicle_ids:
+        return {}
+    ranked = (
+        select(
+            DriverAssignment.vehicle_id,
+            Driver.id,
+            Driver.display_name,
+            func.count().over(partition_by=DriverAssignment.vehicle_id).label("total"),
+            func.row_number()
+            .over(
+                partition_by=DriverAssignment.vehicle_id, order_by=(Driver.display_name, Driver.id)
+            )
+            .label("rank"),
+        )
+        .join(Driver, Driver.id == DriverAssignment.driver_id)
+        .where(
+            DriverAssignment.vehicle_id.in_(vehicle_ids),
+            DriverAssignment.active.is_(True),
+            Driver.active.is_(True),
+            or_(Driver.source_account == source, Driver.source_account.is_(None)),
+        )
+        .subquery()
+    )
+    result = {}
+    for row in session.execute(
+        select(ranked).where(ranked.c.rank <= 3).order_by(ranked.c.vehicle_id, ranked.c.rank)
+    ).mappings():
+        summary = result.setdefault(row["vehicle_id"], {"total": row["total"], "preview": []})
+        summary["preview"].append({"id": str(row["id"]), "display_name": row["display_name"]})
+    return result
+
+
+def with_driver_summary(payload, summary):
+    if summary is None:
+        summary = {
+            "total": int(payload["driver"] is not None),
+            "preview": [payload["driver"]] if payload["driver"] else [],
+        }
+    return {
+        **payload,
+        "driver_count": summary["total"],
+        "driver_preview": summary["preview"],
+        "driver": summary["preview"][0] if summary["total"] == 1 else None,
+    }
 
 
 def timestamp(value):
@@ -125,7 +173,11 @@ def fleet_page(session, source, stale_seconds, q, status, page, page_size):
         .offset((page - 1) * page_size)
         .limit(page_size)
     ).all()
-    return [serialize_vehicle(*row, now, stale_seconds) for row in rows], total
+    drivers = fleet_driver_summaries(session, [row[0].id for row in rows], source)
+    return [
+        with_driver_summary(serialize_vehicle(*row, now, stale_seconds), drivers.get(row[0].id))
+        for row in rows
+    ], total
 
 
 def fleet_markers(session, source, stale_seconds, q, status):

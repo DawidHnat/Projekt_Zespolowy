@@ -123,3 +123,14 @@ w mocy; procedurę aktualizacji/migracji opisuje `docs/qa/SCRUM-108.md`.
 SCRUM-32 dodaje opcjonalne nazwy/rejestracje pojazdów do stron list alertów
 i reguł (JOIN bez N+1). Nie zmienia to źródłowego dystansu, dnia ani progu
 zachowanego alertu. Odczyt pozostaje relacją AlertReceipt per użytkownik.
+
+## Ręczni kierowcy — SCRUM-52
+
+Driver ma osobne imię/nazwisko, identyfikator, opcjonalny kontakt, aktywność
+oraz wersję. DriverCategory przechowuje ID wersjonowanego słownika (bez oceny
+uprawnień). DriverAssignment jest historią wiele:wiele z aktywnością, czasami
+początku/końca i recorded_at; nieznana stara data pozostaje null. Nowa relacja
+zaczyna się w czasie zapisu, zamknięcie zachowuje wiersz. Profile i relacje
+nie są danymi WEBFLEET. Vehicle.driver_id jest projekcją zgodności dla
+jednego przypisania; przy wielu API zwraca driver=null, liczbę i podgląd osób.
+[API, migracja starych rekordów, ograniczenia i rollback](qa/SCRUM-52.md).

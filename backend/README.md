@@ -257,3 +257,19 @@ lokalnie. Testy kontraktu nadal używają schematu wewnętrznie.
 Role `admin`, `editor`, `viewer` mają constraint bazy. Migracja nie poprawia
 nieznanych ról za operatora i nie zmienia istniejących uprawnień.
 [Sprawdzenie danych, rollout i rollback](../docs/security/SCRUM-103.md).
+
+## Ręczna kartoteka kierowców (SCRUM-52)
+
+Chronione `/api/v1/drivers` udostępnia profile, katalog kategorii i historię
+przypisań wiele do wielu. POST `/api/v1/drivers/search` przenosi wyszukiwanie
+kontaktu do treści żądania. Zapis wymaga admin/editor i bieżącego version;
+viewer ma odczyt. Ocena kategorii pozostaje not_evaluated do SCRUM-70.
+[Migracja 0008, stare rekordy i instrukcja odbioru](../docs/qa/SCRUM-52.md).
+
+
+Integracja SCRUM-53 rozszerza odczyt kierowców o `missing_categories` i sort
+`custom` z `custom_order` (unikalne UUID, maks. 2000). Sort jest stosowany w SQL
+przed paginacją, a pozostałe osoby mają stabilną kolejność A–Z. Obce UUID
+nie rozszerzają źródła. POST search zwraca te same filtry w agregatach, niezależnie
+od strony; kontakt nadal pozostaje w body. Telefon dopuszcza jeden opcjonalny
+plus na początku i 7–20 cyfr, ze spacjami/nawiasami/kropkami/myślnikami.

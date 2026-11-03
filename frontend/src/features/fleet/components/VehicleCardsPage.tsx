@@ -1,3 +1,4 @@
+import { driverLabel, driverNames } from "../model/driver-label";
 import { useState, memo, type KeyboardEvent } from "react";
 import {
   Camera,
@@ -80,8 +81,8 @@ const VehicleCard = memo(function VehicleCard({
           </div>
           <div>
             <dt>Kierowca</dt>
-            <dd title={v.driver?.display_name}>
-              {v.driver?.display_name || "Nieprzypisany"}
+            <dd title={driverNames(v)}>
+              {driverLabel(v)}
             </dd>
           </div>
         </dl>

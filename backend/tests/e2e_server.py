@@ -11,16 +11,17 @@ from zoneinfo import ZoneInfo
 import uvicorn
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import create_engine, delete, select
+from sqlalchemy import create_engine, delete, select, update
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
-from app.core.models import Measurement, SyncState, Vehicle
+from app.core.models import Driver, Measurement, SyncState, Vehicle
 from app.core.settings import Settings
 from app.main import create_app
 from app.modules.analytics.models import Alert, AlertReceipt, DailyDistance, Rule
 from app.modules.auth.models import LoginAttempt, LoginSession, User
 from app.modules.auth.service import password_hasher
+from app.modules.drivers.models import DriverAssignment, DriverCategory
 from app.modules.fleet.sync import account_key
 from app.modules.trips.models import Trip
 
@@ -124,6 +125,11 @@ def main():
         with Session(engine) as session:
             session.execute(delete(LoginAttempt))
             session.execute(delete(LoginSession))
+            session.execute(update(Vehicle).values(driver_id=None))
+            session.flush()
+            for model in (DriverAssignment, DriverCategory, Driver):
+                session.execute(delete(model))
+            session.execute(delete(Vehicle).where(Vehicle.external_uid.like("e2e-driver-car-%")))
             for model in (AlertReceipt, Alert, Rule, DailyDistance):
                 session.execute(delete(model))
             measurement = session.get(Measurement, VEHICLE)
@@ -131,6 +137,64 @@ def main():
             measurement.standing_still = True
             session.commit()
         source_state(engine, "ok")
+        engine.dispose()
+        return
+    if sys.argv[1:] == ["drivers-case"]:
+        with Session(engine) as session:
+            source, now = account_key(ACCOUNT), datetime.now(UTC)
+            cars = [session.get(Vehicle, VEHICLE)]
+            for index in range(1, 20):
+                car = Vehicle(
+                    source_account=source,
+                    external_uid=f"e2e-driver-car-{index}",
+                    name=f"Auto kierowcy {index:02d}",
+                    license_plate=f"SYN DIR {index:02d}",
+                )
+                session.add(car)
+                cars.append(car)
+            session.flush()
+            for index in range(26):
+                first = "Anna" if index == 0 else "Bartosz" if index == 1 else "Syntetyczny"
+                last = f"Test{index:02d}" if index != 24 else "Ż" * 100
+                person = Driver(
+                    source_account=source,
+                    first_name=first,
+                    last_name=last,
+                    display_name=f"{first} {last}",
+                    identifier=f"SYN-DIR-{index:02d}",
+                    phone=f"+48 600 000 {index:03d}",
+                    email=f"synthetic-dir-{index:02d}@example.com",
+                    active=index != 25,
+                )
+                session.add(person)
+                session.flush()
+                if index < 2:
+                    session.add(DriverCategory(driver_id=person.id, category="B"))
+                    for car in cars if index == 0 else cars[:1]:
+                        session.add(
+                            DriverAssignment(driver_id=person.id, vehicle_id=car.id, started_at=now)
+                        )
+            session.commit()
+        engine.dispose()
+        return
+    if sys.argv[1:] == ["multiple-drivers"]:
+        with Session(engine) as session:
+            for suffix in ("A", "B"):
+                person = Driver(
+                    source_account=account_key(ACCOUNT),
+                    first_name="Kierowca",
+                    last_name=f"E2E {suffix}",
+                    display_name=f"Kierowca E2E {suffix}",
+                    identifier=f"SYN-E2E-{suffix}",
+                )
+                session.add(person)
+                session.flush()
+                session.add(
+                    DriverAssignment(
+                        driver_id=person.id, vehicle_id=VEHICLE, started_at=datetime.now(UTC)
+                    )
+                )
+            session.commit()
         engine.dispose()
         return
     if len(sys.argv) == 3 and sys.argv[1] == "alerts-case":

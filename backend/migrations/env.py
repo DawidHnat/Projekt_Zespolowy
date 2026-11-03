@@ -5,6 +5,7 @@ from app.core.models import Base
 from app.core.settings import Settings
 from app.modules.analytics import models as analytics_models  # noqa: F401
 from app.modules.auth import models as auth_models  # noqa: F401
+from app.modules.drivers import models as driver_models  # noqa: F401
 from app.modules.trips import models as trip_models  # noqa: F401
 
 url = Settings.from_environment().database_url

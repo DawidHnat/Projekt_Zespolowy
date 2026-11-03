@@ -1,45 +1,11 @@
-import { useEffect, useState } from "react";
-import { api } from "../../../shared/api/client";
-import type { VehicleList } from "../../../shared/api/generated/contracts";
-import { ListPagination } from "../../../shared/components/ListPagination";
-
-type Selection = { id: string; name: string };
-export function RuleVehiclePicker({ selected, onSelect, disabled }: {
-  selected: Selection | null; onSelect: (value: Selection) => void; disabled: boolean;
-}) {
-  const [q, setQ] = useState("");
-  const [page, setPage] = useState(1);
-  const [pageSize, setSize] = useState(10);
-  const [revision, setRevision] = useState(0);
-  const [data, setData] = useState<VehicleList | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  useEffect(() => {
-    const controller = new AbortController();
-    setLoading(true); setError(false);
-    const timer = setTimeout(() => {
-      const query = new URLSearchParams({ q, page: String(page), page_size: String(pageSize) });
-      api<VehicleList>(`/fleet/vehicles?${query}`, { signal: controller.signal })
-        .then(result => { if (!controller.signal.aborted) setData(result); })
-        .catch(() => { if (!controller.signal.aborted) { setData(null); setError(true); } })
-        .finally(() => { if (!controller.signal.aborted) setLoading(false); });
-    }, 250);
-    return () => { clearTimeout(timer); controller.abort(); };
-  }, [q, page, pageSize, revision]);
-  return <fieldset className="rule-vehicle-picker" disabled={disabled}>
-    <legend>Pojazd reguły</legend>
-    <p>Wybrany: {selected?.name || "Wybierz pojazd z listy"}</p>
-    <label>Szukaj pojazdu<input type="search" value={q} onChange={e => { setQ(e.target.value); setPage(1); }} /></label>
-    {loading ? <p role="status">Pobieranie pojazdów…</p> : error ?
-      <div role="alert"><p>Nie można pobrać pojazdów.</p><button type="button" className="button button-secondary" onClick={() => setRevision(v => v + 1)}>Ponów listę pojazdów</button></div> :
-      <>{!data?.items.length && <p>Brak pasujących pojazdów.</p>}
-        <ul>{data?.items.map(vehicle => <li key={vehicle.id}><label>
-          <input type="radio" name="rule-vehicle" checked={selected?.id === vehicle.id}
-            onChange={() => onSelect({ id: vehicle.id, name: vehicle.name })} />
-          <span>{vehicle.name}{vehicle.license_plate ? ` · ${vehicle.license_plate}` : ""}</span>
-        </label></li>)}</ul>
-      </>}
-    {data && <ListPagination page={page} pageSize={pageSize} total={data.total} label="Wybór pojazdu reguły" loading={loading || disabled}
-      onPage={setPage} onPageSize={size => { setSize(size); setPage(1); }} />}
-  </fieldset>;
+import { VehiclePicker } from "../../fleet/components/VehiclePicker";
+import type { ComponentProps } from "react";
+export function RuleVehiclePicker(props: ComponentProps<typeof VehiclePicker>) {
+  return (
+    <VehiclePicker
+      {...props}
+      legend="Pojazd reguły"
+      paginationLabel="Wybór pojazdu reguły"
+    />
+  );
 }

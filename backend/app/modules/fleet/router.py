@@ -10,11 +10,13 @@ from app.core.errors import ApiError
 from app.core.models import Driver, Measurement, Vehicle
 from app.modules.auth.service import current_user
 from app.modules.fleet.service import (
+    fleet_driver_summaries,
     fleet_markers,
     fleet_page,
     fleet_summary,
     serialize_vehicle,
     source_payload,
+    with_driver_summary,
 )
 from app.modules.fleet.sync import account_key
 
@@ -82,4 +84,7 @@ def vehicle_detail(vehicle_id: UUID, request: Request, session: SessionDep):
     ).first()
     if not row:
         raise ApiError(404, "NOT_FOUND", "Pojazd nie istnieje")
-    return serialize_vehicle(*row, datetime.now(UTC), settings.stale_seconds)
+    drivers = fleet_driver_summaries(session, [vehicle_id], source)
+    return with_driver_summary(
+        serialize_vehicle(*row, datetime.now(UTC), settings.stale_seconds), drivers.get(vehicle_id)
+    )
