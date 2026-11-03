@@ -24,7 +24,7 @@ services:
     environment:
       COOKIE_SECURE: 'true'
       CORS_ORIGINS: https://${APP_DOMAIN:?Set APP_DOMAIN}
-      SYNC_ENABLED: 'false'
+      # SYNC_ENABLED comes from env_file; default false in runtime.env.example.
       FORWARDED_ALLOW_IPS: ${FLEET_FLOW_PROXY_IP:-172.30.96.3}
     depends_on:
       database:

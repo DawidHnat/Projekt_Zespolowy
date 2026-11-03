@@ -112,6 +112,10 @@ def test_postgres_shared_limiter_failure_cache_and_lock():
         async def fetch_vehicles(self):
             raise WebfleetError("timeout")
 
+    class UnexpectedFailureClient(FakeClient):
+        async def fetch_vehicles(self):
+            raise RuntimeError("synthetic-provider-secret")
+
     assert sync_once(engine, settings, client_factory=FakeClient, now=now) == "ok"
     assert (
         sync_once(engine, settings, client_factory=FakeClient, now=now + timedelta(seconds=30))
@@ -132,6 +136,17 @@ def test_postgres_shared_limiter_failure_cache_and_lock():
         assert (
             len(list(session.scalars(select(Vehicle).where(Vehicle.source_account == source)))) == 1
         )
+    with pytest.raises(RuntimeError):
+        sync_once(
+            engine,
+            settings,
+            client_factory=UnexpectedFailureClient,
+            now=now + timedelta(seconds=120),
+        )
+    with Session(engine) as session:
+        state = session.get(SyncState, source)
+        assert state.error_code == "SYNC_INTERNAL_ERROR"
+        assert state.last_success_at == now
     key = int.from_bytes(bytes.fromhex(source)[:8], signed=True)
     with engine.connect() as connection:
         connection.execute(text("SELECT pg_advisory_lock(:key)"), {"key": key})
