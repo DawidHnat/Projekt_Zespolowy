@@ -140,18 +140,24 @@ export function App() {
         <nav aria-label="Sekcje aplikacji">
           {sections
             .filter((value) => value.id !== "settings")
-            .map(({ id, title, icon: Icon }) => (
-              <a
-                key={id}
-                href={`#${id}`}
-                className={`nav-item ${section === id ? "active" : ""}`}
-                aria-current={section === id ? "page" : undefined}
-              >
-                <Icon size={19} aria-hidden="true" />
-                <span>{title}</span>
-                {section === id && <span className="nav-indicator" />}
-              </a>
-            ))}
+            .map((item) => {
+              const { id, title, icon: Icon } = item;
+              return (
+                <a
+                  key={id}
+                  href={`#${id}`}
+                  className={`nav-item ${section === id ? "active" : ""}`}
+                  aria-current={section === id ? "page" : undefined}
+                >
+                  <Icon size={19} aria-hidden="true" />
+                  <span className="nav-item-label">
+                    <span>{title}</span>
+                    {"placeholder" in item && <small>Planowane</small>}
+                  </span>
+                  {section === id && <span className="nav-indicator" />}
+                </a>
+              );
+            })}
         </nav>
         <div className="sidebar-bottom">
           <a

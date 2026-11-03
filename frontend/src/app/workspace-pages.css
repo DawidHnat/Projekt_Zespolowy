@@ -27,6 +27,11 @@
   height: auto;
   min-height: 360px;
 }
+.planned-page .widget-badge {
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 12px;
+}
 .planned-page .widget-content-inner {
   display: grid;
   align-content: center;

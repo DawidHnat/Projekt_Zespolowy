@@ -98,7 +98,10 @@ export function AppSettingsPage({
       <div className="settings-card widget">
         <header className="settings-header">
           <h2>{categories.find((value) => value.id === category)!.title}</h2>
-          <p>Dopasuj przestrzeń pracy do siebie.</p>
+          <p>
+            Tylko na tym urządzeniu i w tej przeglądarce. Wygląd i układ nie
+            synchronizują się między urządzeniami.
+          </p>
         </header>
         <div className="panel-content settings-content">
           {category === "appearance" && (
@@ -270,7 +273,7 @@ export function AppSettingsPage({
             {editing
               ? "Zapisz lub anuluj edycję układu na Pulpicie"
               : persistent
-                ? "Zmiany zapisują się automatycznie na tym urządzeniu"
+                ? "Zmiany zapisują się automatycznie w tej przeglądarce"
                 : "Ustawienia działają w tej sesji"}
           </p>
           <button

@@ -17,6 +17,18 @@ class Settings:
     sync_interval_seconds: int = 60
     stale_seconds: int = 900
     webfleet_account: str = field(default="", repr=False)
+    api_docs_enabled: bool = True
+
+    @property
+    def local_api_docs(self) -> bool:
+        return (
+            self.api_docs_enabled
+            and bool(self.origins)
+            and all(
+                urlsplit(origin).hostname in ("localhost", "127.0.0.1", "::1")
+                for origin in self.origins
+            )
+        )
 
     @classmethod
     def from_environment(cls) -> "Settings":
@@ -43,10 +55,19 @@ class Settings:
                 raise ConfigurationError("HTTPS wymaga COOKIE_SECURE=true")
         if not origins:
             raise ConfigurationError("CORS_ORIGINS nie może być puste")
+        local = all(
+            urlsplit(origin).hostname in ("localhost", "127.0.0.1", "::1") for origin in origins
+        )
+        docs = values.get("API_DOCS_ENABLED", "true" if local else "false").lower()
+        if docs not in ("true", "false"):
+            raise ConfigurationError("API_DOCS_ENABLED: wymagane true albo false")
+        if docs == "true" and not local:
+            raise ConfigurationError("Dokumentacja API jest dostępna wyłącznie lokalnie")
         return cls(
             database_url=database_url,
             origins=origins,
             cookie_secure=secure,
             sync_enabled=values.get("SYNC_ENABLED", "false").lower() == "true",
             webfleet_account=values.get("WEBFLEET_ACCOUNT", ""),
+            api_docs_enabled=docs == "true",
         )

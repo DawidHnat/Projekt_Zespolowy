@@ -239,3 +239,14 @@ Reguły i alerty są ograniczone do bieżącego konta źródła. Formularze i li
 frontendzie pozostają SCRUM-32; odbiór zespołowy alertów jest w SCRUM-33.
 
 Przypadki testowe i instrukcja sprawdzenia: [QA SCRUM-31](../docs/qa/SCRUM-31.md).
+
+## Dokumentacja API i role (SCRUM-103)
+
+Swagger `/docs`, ReDoc `/redoc` i `/openapi.json` są domyślnie dostępne przy
+lokalnych CORS_ORIGINS. Zdalny origin wyłącza je; jawne włączenie docs dla
+zdalnego originu jest odrzucane. `API_DOCS_ENABLED=false` wyłącza docs także
+lokalnie. Testy kontraktu nadal używają schematu wewnętrznie.
+
+Role `admin`, `editor`, `viewer` mają constraint bazy. Migracja nie poprawia
+nieznanych ról za operatora i nie zmienia istniejących uprawnień.
+[Sprawdzenie danych, rollout i rollback](../docs/security/SCRUM-103.md).

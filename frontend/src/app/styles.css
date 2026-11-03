@@ -142,6 +142,17 @@ svg {
   background: var(--surface-hover);
   color: var(--text);
 }
+.nav-item > svg {
+  flex-shrink: 0;
+}
+.nav-item-label {
+  display: grid;
+  min-width: 0;
+}
+.nav-item-label small {
+  font-size: 0.75rem;
+  font-weight: 400;
+}
 .nav-item.active {
   background: var(--accent);
   color: var(--accent-on);

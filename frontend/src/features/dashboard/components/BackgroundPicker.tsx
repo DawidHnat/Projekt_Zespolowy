@@ -86,7 +86,7 @@ export function BackgroundPicker({ value, onChange, media }: Props) {
               : media.loading ? "Wczytuję zapisane zdjęcie…"
               : hasCustom && !media.persistent ? "Zdjęcie działa w tej sesji. Przeglądarka nie pozwoliła go zapisać."
               : value.customId && !hasCustom ? "Poprzednie zdjęcie nie jest dostępne. Dodaj je ponownie."
-              : "Zdjęcie pozostaje w tej przeglądarce. Nie wysyłamy go na serwer."}
+              : "Tylko na tym urządzeniu i w tej przeglądarce. Nie wysyłamy zdjęcia na serwer. Wyczyszczenie danych przeglądarki usuwa lokalne zdjęcie."}
           </p>
           {media.error && <p className="background-error" role="alert">{media.error}</p>}
         </div>
