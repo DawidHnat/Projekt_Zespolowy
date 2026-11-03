@@ -1,0 +1,64 @@
+rules:
+  - id: python-dynamic-code
+    languages: [python]
+    severity: ERROR
+    message: Dynamic code execution needs a safe parser or an explicit reviewed design.
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: exec(...)
+  - id: python-shell-execution
+    languages: [python]
+    severity: ERROR
+    message: Pass a fixed executable and argument list without a shell.
+    pattern-either:
+      - pattern: subprocess.$FUNC(..., shell=True, ...)
+      - pattern: os.system(...)
+      - pattern: os.popen(...)
+  - id: python-dynamic-sql
+    languages: [python]
+    severity: ERROR
+    message: Bind SQL parameters instead of interpolating values into SQL.
+    pattern-either:
+      - pattern: text(f"...")
+      - pattern: $CONN.execute(f"...", ...)
+      - pattern: $CONN.execute("..." % $VALUE, ...)
+      - pattern: $CONN.execute("..." + $VALUE, ...)
+  - id: python-unsafe-deserialization
+    languages: [python]
+    severity: ERROR
+    message: Avoid executable object deserialization; use a validated data format.
+    pattern-either:
+      - pattern: pickle.loads(...)
+      - pattern: pickle.load(...)
+      - pattern: yaml.unsafe_load(...)
+      - pattern: yaml.load(..., Loader=yaml.Loader, ...)
+  - id: python-disabled-tls-validation
+    languages: [python]
+    severity: ERROR
+    message: Certificate validation must remain enabled.
+    pattern-either:
+      - pattern: $CLIENT.$METHOD(..., verify=False, ...)
+      - pattern: ssl._create_unverified_context(...)
+  - id: typescript-dynamic-code
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Avoid executing strings as JavaScript.
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: new Function(...)
+  - id: typescript-html-sinks
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Render text through React; do not inject raw HTML.
+    pattern-either:
+      - pattern: $NODE.innerHTML = $VALUE
+      - pattern: $NODE.outerHTML = $VALUE
+      - pattern: document.write(...)
+      - pattern: $NODE.insertAdjacentHTML(...)
+  - id: react-raw-html
+    languages: [generic]
+    paths:
+      include: ['*.tsx', '*.jsx']
+    severity: ERROR
+    message: Render text through React; raw HTML requires an explicit reviewed design.
+    pattern-regex: 'dangerouslySetInnerHTML\s*='
