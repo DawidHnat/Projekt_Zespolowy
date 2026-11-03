@@ -123,8 +123,25 @@ def main():
         with Session(engine) as session:
             session.execute(delete(LoginAttempt))
             session.execute(delete(LoginSession))
+            measurement = session.get(Measurement, VEHICLE)
+            measurement.position_at = measurement.received_at = datetime.now(UTC)
+            measurement.standing_still = True
             session.commit()
         source_state(engine, "ok")
+        engine.dispose()
+        return
+    if len(sys.argv) == 3 and sys.argv[1] == "measurement-state":
+        if sys.argv[2] not in ("moving", "stopped", "offline", "unknown"):
+            raise RuntimeError("Invalid synthetic measurement state")
+        with Session(engine) as session:
+            measurement = session.get(Measurement, VEHICLE)
+            now = datetime.now(UTC)
+            measurement.position_at = now - timedelta(hours=1) if sys.argv[2] == "offline" else now
+            measurement.received_at = now
+            measurement.standing_still = (
+                None if sys.argv[2] == "unknown" else sys.argv[2] != "moving"
+            )
+            session.commit()
         engine.dispose()
         return
     if len(sys.argv) == 3 and sys.argv[1] == "source-state":
