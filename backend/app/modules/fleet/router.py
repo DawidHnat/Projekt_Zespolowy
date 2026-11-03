@@ -9,7 +9,13 @@ from app.core.database import get_session
 from app.core.errors import ApiError
 from app.core.models import Driver, Measurement, Vehicle
 from app.modules.auth.service import current_user
-from app.modules.fleet.service import fleet_rows, serialize_vehicle, source_payload
+from app.modules.fleet.service import (
+    fleet_markers,
+    fleet_page,
+    fleet_summary,
+    serialize_vehicle,
+    source_payload,
+)
 from app.modules.fleet.sync import account_key
 
 router = APIRouter(prefix="/api/v1/fleet", tags=["fleet"], dependencies=[Depends(current_user)])
@@ -34,11 +40,10 @@ def vehicles(
     page_size: Annotated[int, Query(ge=1, le=100)] = 25,
 ):
     settings, source, metadata = context(request, session)
-    items = fleet_rows(session, source, settings.stale_seconds, q, status)
-    start = (page - 1) * page_size
+    items, total = fleet_page(session, source, settings.stale_seconds, q, status, page, page_size)
     return {
-        "items": items[start : start + page_size],
-        "total": len(items),
+        "items": items,
+        "total": total,
         "page": page,
         "page_size": page_size,
         "source": metadata,
@@ -48,39 +53,20 @@ def vehicles(
 @router.get("/map")
 def fleet_map(request: Request, session: SessionDep, q: Search = "", status: Status = None):
     settings, source, metadata = context(request, session)
-    items = fleet_rows(session, source, settings.stale_seconds, q, status)
-    features = [
-        {
-            "type": "Feature",
-            "geometry": {"type": "Point", "coordinates": [item["longitude"], item["latitude"]]},
-            "properties": {
-                key: item[key] for key in ("id", "name", "status", "is_stale", "position_at")
-            },
-        }
-        for item in items
-        if item["longitude"] is not None and item["latitude"] is not None
-    ]
+    features, total = fleet_markers(session, source, settings.stale_seconds, q, status)
     return {
         "type": "FeatureCollection",
         "features": features,
         "source": metadata,
         "located": len(features),
-        "total": len(items),
+        "total": total,
     }
 
 
 @router.get("/summary")
 def summary(request: Request, session: SessionDep):
     settings, source, metadata = context(request, session)
-    items = fleet_rows(session, source, settings.stale_seconds)
-    return {
-        "total": len(items),
-        **{
-            key: sum(item["status"] == key for item in items)
-            for key in ("moving", "stopped", "offline", "unknown")
-        },
-        "source": metadata,
-    }
+    return {**fleet_summary(session, source, settings.stale_seconds), "source": metadata}
 
 
 @router.get("/vehicles/{vehicle_id}")
