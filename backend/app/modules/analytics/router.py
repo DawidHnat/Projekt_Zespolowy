@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_session
 from app.core.errors import ApiError
+from app.core.models import Vehicle
 from app.modules.analytics.models import Alert, AlertReceipt, Rule
 from app.modules.analytics.schemas import ReceiptBody, RuleCreate, RuleUpdate
 from app.modules.analytics.service import (
@@ -45,11 +46,21 @@ def find_rule(session, source, rule_id, *, lock=False):
 def rules(
     request: Request, session: SessionDep, _: UserDep, page: Page = 1, page_size: PageSize = 25
 ):
-    query = select(Rule).where(Rule.source_account == source_key(request))
+    query = (
+        select(Rule, Vehicle.name, Vehicle.license_plate)
+        .outerjoin(
+            Vehicle,
+            and_(Vehicle.id == Rule.vehicle_id, Vehicle.source_account == Rule.source_account),
+        )
+        .where(Rule.source_account == source_key(request))
+    )
     total = session.scalar(select(func.count()).select_from(query.subquery()))
-    rows = session.scalars(query.order_by(Rule.id).offset((page - 1) * page_size).limit(page_size))
+    rows = session.execute(query.order_by(Rule.id).offset((page - 1) * page_size).limit(page_size))
     return {
-        "items": [rule_payload(r) for r in rows],
+        "items": [
+            {**rule_payload(rule), "vehicle_name": name, "license_plate": plate}
+            for rule, name, plate in rows
+        ],
         "total": total,
         "page": page,
         "page_size": page_size,
@@ -99,8 +110,12 @@ def alerts(
     page_size: PageSize = 25,
 ):
     query = (
-        select(Alert, AlertReceipt.read_at)
+        select(Alert, AlertReceipt.read_at, Vehicle.name, Vehicle.license_plate)
         .join(Rule, Rule.id == Alert.rule_id)
+        .join(
+            Vehicle,
+            and_(Vehicle.id == Alert.vehicle_id, Vehicle.source_account == Rule.source_account),
+        )
         .outerjoin(
             AlertReceipt, and_(AlertReceipt.alert_id == Alert.id, AlertReceipt.user_id == user.id)
         )
@@ -121,6 +136,8 @@ def alerts(
             {
                 "id": str(alert.id),
                 "vehicle_id": str(alert.vehicle_id),
+                "vehicle_name": vehicle_name,
+                "license_plate": license_plate,
                 "rule_id": str(alert.rule_id),
                 "event_day": alert.event_day.isoformat(),
                 "occurred_at": aware(alert.occurred_at).isoformat(),
@@ -129,7 +146,7 @@ def alerts(
                 "coverage": "partial",
                 "read_at": aware(read_at).isoformat() if read_at else None,
             }
-            for alert, read_at in rows
+            for alert, read_at, vehicle_name, license_plate in rows
         ],
         "total": total,
         "page": page,

@@ -105,9 +105,10 @@ def test_invalid_threshold_cannot_be_saved(logged_in, threshold):
 def test_invalid_patch_does_not_change_rule(logged_in, patch):
     _, client = logged_in
     rule = create_rule(client).json()
+    before = client.get(RULES).json()
     response = client.patch(f"{RULES}/{rule['id']}", headers=ORIGIN, json=patch)
     assert response.status_code == 422
-    assert client.get(RULES).json()["items"] == [rule]
+    assert client.get(RULES).json() == before
 
 
 def test_authorization_origin_and_account_boundaries(application):
@@ -522,3 +523,22 @@ def test_postgres_parallel_evaluation_and_sync_share_deduplication():
             ) == Decimal("100.1")
     finally:
         engine.dispose()
+
+
+def test_alert_and_rule_list_include_vehicle_identity_without_hiding_old_alerts(logged_in):
+    app, client = logged_in
+    source = account_key(app.state.settings.webfleet_account)
+    with app.state.sessions() as session:
+        vehicle, _ = vehicle_with_reading(session, source, datetime.now(UTC))
+        vehicle.license_plate = "SYNTHETIC 32"
+        identity = vehicle.id
+        session.commit()
+    create_rule(client, vehicle_id=str(identity))
+    for path in (ALERTS, RULES):
+        item = client.get(path).json()["items"][0]
+        assert item["vehicle_name"] == "Syntetyczny pojazd"
+        assert item["license_plate"] == "SYNTHETIC 32"
+    with app.state.sessions() as session:
+        session.get(Vehicle, identity).active = False
+        session.commit()
+    assert client.get(ALERTS).json()["total"] == 1

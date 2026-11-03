@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from app.core.models import Measurement, SyncState, Vehicle
 from app.core.settings import Settings
 from app.main import create_app
+from app.modules.analytics.models import Alert, AlertReceipt, DailyDistance, Rule
 from app.modules.auth.models import LoginAttempt, LoginSession, User
 from app.modules.auth.service import password_hasher
 from app.modules.fleet.sync import account_key
@@ -123,11 +124,46 @@ def main():
         with Session(engine) as session:
             session.execute(delete(LoginAttempt))
             session.execute(delete(LoginSession))
+            for model in (AlertReceipt, Alert, Rule, DailyDistance):
+                session.execute(delete(model))
             measurement = session.get(Measurement, VEHICLE)
             measurement.position_at = measurement.received_at = datetime.now(UTC)
             measurement.standing_still = True
             session.commit()
         source_state(engine, "ok")
+        engine.dispose()
+        return
+    if len(sys.argv) == 3 and sys.argv[1] == "alerts-case":
+        if sys.argv[2] not in ("single", "pages"):
+            raise RuntimeError("Invalid synthetic alerts case")
+        with Session(engine) as session:
+            now = datetime.now(UTC)
+            day = now.astimezone(ZoneInfo("Europe/Warsaw")).date()
+            session.add(
+                DailyDistance(
+                    vehicle_id=VEHICLE,
+                    event_day=day,
+                    distance_km=Decimal("125.5"),
+                    first_observed_at=now - timedelta(minutes=10),
+                    last_observed_at=now,
+                )
+            )
+            for _ in range(1 if sys.argv[2] == "single" else 26):
+                rule = Rule(source_account=account_key(ACCOUNT), threshold_km=Decimal("100"))
+                session.add(rule)
+                session.flush()
+                session.add(
+                    Alert(
+                        rule_id=rule.id,
+                        vehicle_id=VEHICLE,
+                        event_day=day,
+                        occurred_at=now,
+                        created_at=now,
+                        threshold_km=Decimal("100"),
+                        distance_km=Decimal("125.5"),
+                    )
+                )
+            session.commit()
         engine.dispose()
         return
     if len(sys.argv) == 3 and sys.argv[1] == "measurement-state":
