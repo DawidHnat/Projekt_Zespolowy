@@ -44,6 +44,7 @@ export function ListPagination({
       </label>
       <div className="list-page-navigation">
         <button
+          type="button"
           className="icon-button"
           aria-label={`Poprzednia strona: ${label}`}
           disabled={loading || range.page <= 1}
@@ -55,6 +56,7 @@ export function ListPagination({
           {range.page} / {range.pages}
         </span>
         <button
+          type="button"
           className="icon-button"
           aria-label={`Następna strona: ${label}`}
           disabled={loading || range.page >= range.pages}

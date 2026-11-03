@@ -31,6 +31,7 @@ import { useAuth } from "../features/auth/AuthProvider";
 import { VehicleCardsPage } from "../features/fleet/components/VehicleCardsPage";
 import { VehicleLayoutEditorControls } from "../features/fleet/components/VehicleLayoutEditorControls";
 import { VehicleDetailsDialog } from "../features/fleet/components/VehicleDetailsDialog";
+import { AlertsPage } from "../features/analytics/components/AlertsPage";
 
 const readSection = () => sectionFromHash(window.location.hash);
 
@@ -312,6 +313,8 @@ export function App() {
             />
           ) : section === "vehicles" ? (
             <VehicleCardsPage />
+          ) : section === "alerts" ? (
+            <AlertsPage />
           ) : section === "settings" ? (
             <AppSettingsPage
               category={settingsCategory}

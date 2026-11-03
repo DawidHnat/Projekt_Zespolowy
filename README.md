@@ -174,7 +174,9 @@ treść zakładek oraz synchronizacja historii są kolejnym przyrostem.
 Backend ma FastAPI, PostgreSQL, migracje, sesje i synchronizację pojazdów WEBFLEET.
 Ma też API reguł dziennego dystansu i trwałych alertów z ochroną przed duplikatami
 (SCRUM-31). Dystans obejmuje odebrane pomiary, z jawnym niepełnym pokryciem dnia;
-formularz reguł i lista alertów we frontendzie są kolejnym zadaniem (SCRUM-32).
+widok Alerty umożliwia tworzenie, zmianę i wyłączanie reguł dla floty lub pojazdu,
+a także listowanie i trwały odczyt per konto (SCRUM-32). Terminy, wspólny stan
+obsługi i e-mail są kolejnymi przyrostami SCRUM-69/73.
 Kierowcy są wpisywani ręcznie i nigdy nie są importowani z WEBFLEET. Pozostałe
 moduły historii, zestawień analitycznych, serwisu i kart paliwowych są kolejnymi przyrostami.
 Podstawa aplikacji jest scalona do `main`. Kolejne zadania rozpoczynamy
