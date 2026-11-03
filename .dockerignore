@@ -15,3 +15,5 @@ backend/**/*.pem
 backend/**/*.key
 backend/**/*.dump
 backend/**/*.log
+!contracts/
+!contracts/**
