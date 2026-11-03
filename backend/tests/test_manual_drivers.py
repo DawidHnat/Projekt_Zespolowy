@@ -82,6 +82,8 @@ def test_profiles_validation_unicode_identity_and_optimistic_edit(logged_in):
         {"identifier": ""},
         {"phone": "abc"},
         {"phone": "123"},
+        {"phone": "++48 123 456 789"},
+        {"phone": "123+456789"},
         {"email": "invalid"},
         {"categories": ["B", "B"]},
         {"categories": ["invented"]},
@@ -222,3 +224,43 @@ def test_roles_origin_and_expiry(logged_in):
     assert assign(client, driver, str(uuid4())).status_code == 403
     client.cookies.clear()
     assert client.get(ROOT).status_code == 401
+
+
+def test_custom_order_is_global_bounded_and_source_scoped_with_missing_category_filter(logged_in):
+    app, client = logged_in
+    people = [
+        create(client, last_name=name, categories=cats).json()
+        for name, cats in (("Alpha", ["B"]), ("Bravo", []), ("Charlie", []), ("Delta", ["C"]))
+    ]
+    foreign = UUID("53000000-0000-4000-8000-000000000099")
+    with app.state.sessions() as session:
+        session.add(Driver(id=foreign, source_account="another-source", display_name="Foreign"))
+        session.commit()
+    order = [str(foreign), people[2]["id"], people[0]["id"]]
+    body = {"sort": "custom", "custom_order": order, "page_size": 2}
+    first = client.post(f"{ROOT}/search", headers=ORIGIN, json=body).json()
+    second = client.post(f"{ROOT}/search", headers=ORIGIN, json={**body, "page": 2}).json()
+    assert [p["id"] for p in first["items"] + second["items"]] == [
+        people[i]["id"] for i in (2, 0, 1, 3)
+    ]
+    assert first["summary"]["total"] == 4 and first["summary"]["active_missing_categories"] == 2
+    filtered = client.post(
+        f"{ROOT}/search", headers=ORIGIN, json={**body, "missing_categories": True}
+    ).json()
+    assert [p["id"] for p in filtered["items"]] == [people[i]["id"] for i in (2, 1)]
+    assert filtered["total"] == 2 and filtered["summary"]["total"] == 2
+    assert client.get(ROOT, params={"missing_categories": False}).json()["total"] == 2
+    assert (
+        client.post(
+            f"{ROOT}/search", headers=ORIGIN, json={"custom_order": [people[0]["id"]] * 2}
+        ).status_code
+        == 422
+    )
+    assert (
+        client.post(
+            f"{ROOT}/search",
+            headers=ORIGIN,
+            json={"custom_order": [str(UUID(int=i + 1)) for i in range(2001)]},
+        ).status_code
+        == 422
+    )

@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 import uvicorn
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import create_engine, delete, select
+from sqlalchemy import create_engine, delete, select, update
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
@@ -125,10 +125,11 @@ def main():
         with Session(engine) as session:
             session.execute(delete(LoginAttempt))
             session.execute(delete(LoginSession))
-            session.get(Vehicle, VEHICLE).driver_id = None
+            session.execute(update(Vehicle).values(driver_id=None))
             session.flush()
             for model in (DriverAssignment, DriverCategory, Driver):
                 session.execute(delete(model))
+            session.execute(delete(Vehicle).where(Vehicle.external_uid.like("e2e-driver-car-%")))
             for model in (AlertReceipt, Alert, Rule, DailyDistance):
                 session.execute(delete(model))
             measurement = session.get(Measurement, VEHICLE)
@@ -136,6 +137,44 @@ def main():
             measurement.standing_still = True
             session.commit()
         source_state(engine, "ok")
+        engine.dispose()
+        return
+    if sys.argv[1:] == ["drivers-case"]:
+        with Session(engine) as session:
+            source, now = account_key(ACCOUNT), datetime.now(UTC)
+            cars = [session.get(Vehicle, VEHICLE)]
+            for index in range(1, 20):
+                car = Vehicle(
+                    source_account=source,
+                    external_uid=f"e2e-driver-car-{index}",
+                    name=f"Auto kierowcy {index:02d}",
+                    license_plate=f"SYN DIR {index:02d}",
+                )
+                session.add(car)
+                cars.append(car)
+            session.flush()
+            for index in range(26):
+                first = "Anna" if index == 0 else "Bartosz" if index == 1 else "Syntetyczny"
+                last = f"Test{index:02d}" if index != 24 else "Ż" * 100
+                person = Driver(
+                    source_account=source,
+                    first_name=first,
+                    last_name=last,
+                    display_name=f"{first} {last}",
+                    identifier=f"SYN-DIR-{index:02d}",
+                    phone=f"+48 600 000 {index:03d}",
+                    email=f"synthetic-dir-{index:02d}@example.com",
+                    active=index != 25,
+                )
+                session.add(person)
+                session.flush()
+                if index < 2:
+                    session.add(DriverCategory(driver_id=person.id, category="B"))
+                    for car in cars if index == 0 else cars[:1]:
+                        session.add(
+                            DriverAssignment(driver_id=person.id, vehicle_id=car.id, started_at=now)
+                        )
+            session.commit()
         engine.dispose()
         return
     if sys.argv[1:] == ["multiple-drivers"]:

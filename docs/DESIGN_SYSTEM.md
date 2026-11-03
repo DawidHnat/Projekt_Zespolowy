@@ -356,4 +356,30 @@ trzy najnowsze alerty. Rejestr i ID układu pozostają zgodne ze starszym zapise
 
 SCRUM-52 dodaje liczbę i podgląd wielu kierowców do istniejących kafelków oraz
 tabeli floty. Etykieta „N kierowców” nie wybiera arbitralnej osoby. Pełna
-kartoteka jest w SCRUM-53; jej oznaczenie Planowane pozostaje do podłączenia.
+kartoteka jest podłączona w SCRUM-53; nawigacja nie oznacza już jej jako Planowane.
+
+
+### Ręczna kartoteka kierowców — SCRUM-53
+
+`DriversPage` używa API SCRUM-52 przez wspólny klient i POST search z kontaktem w body.
+Cztery moduły mają trwałe ID `driver-active`, `driver-unassigned`, `driver-missing`,
+`driver-checks` w rejestrze oraz osobną grupę `drivers`. Nie są automatycznie
+dodawane do Pulpitu. Agregaty opisują cały wynik wspólnych filtrów; niewdrożona
+ocena kategorii pokazuje kreskę i opis, bez udawanego zera.
+
+Lista i kafelki otwierają ten sam natywny dialog boczny z formularzem oraz
+paginowaną historią. Pierwszy pojazd i +N oznaczają rzeczywistą liczbę
+pozostałych aut; +19 prowadzi do pełnej listy 20. Wspólny `VehiclePicker`
+służy przypisaniom i regułom alertów. Kontakt ma linki tel/mailto, bez wysyłki.
+Błędy pól nie zmieniają ich nazw dostępności; 409 zachowuje szkic.
+
+Klucz `fleet-flow.drivers.v1.<user-id>` przechowuje tylko prezentację, geometrię,
+rozmiary i porządek UUID (do 2000, pozostałe stabilnie A–Z). Nie zapisuje kontaktów,
+wyszukiwanych fraz ani formularzy. Zapisz/Anuluj/Reset dotyczą osobnego szkicu,
+także ukrytych modułów. Własny porządek jest oddzielny od sortowania A–Z;
+paginacja porządkuje wynik na serwerze. Geometria innych stron pozostaje.
+Rozmiary korzystają ze wspólnego `shared/model/card-layout` i hooka
+`shared/hooks/useCardResize`; stare ścieżki floty re-eksportują te same funkcje.
+Suwak i strzałki są alternatywą dla przeciągania; różne rozmiary są opisane.
+Dialog chroni niezapisany formularz/wybór auta przy zamknięciu, a Escape
+i powrót fokusu są objęte E2E. Odbiór Safari i niezależny QA należą do SCRUM-54.
