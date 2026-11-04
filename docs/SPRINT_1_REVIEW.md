@@ -43,8 +43,11 @@ Po Review zespół uzupełnia [retrospektywę](retro/sprint-1.md) o rzeczywiste
 ustalenia i porządkuje niedokończone prace. Podział pracy i decyzje na Planning
 są zapisane w części „Działania z właścicielami”.
 
-W Jirze istnieje planowany **FF Sprint 2 - historia i auta**. Jego obecny cel
-obejmuje historię tras, podstawową ewidencję, kartotekę kierowców i pełne dane
-pojazdu. Przed startem zespół potwierdza osiągalny zakres, cel i daty oraz
-zachowuje w sprincie działanie [SCRUM-65](https://fleet-flow.atlassian.net/browse/SCRUM-65).
-Po uruchomieniu Jakub zapisuje rzeczywisty cel i daty w SCRUM-3.
+W Jirze jest aktywny **FF Sprint 2 - historia i auta** (4–18.11.2026).
+Jego cel obejmuje historię tras, podstawową ewidencję, ręczną kartotekę
+kierowców i pełne dane pojazdu. Działanie z retrospektywy należy do sprintu.
+[SCRUM-65](https://fleet-flow.atlassian.net/browse/SCRUM-65)
+
+Zakończenie Sprintu 1 w Jirze jest zablokowane przez otwarte podzadania
+SCRUM-1 i SCRUM-66. Oba sprinty są aktywne.
+[Backlog Jira](https://fleet-flow.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog)

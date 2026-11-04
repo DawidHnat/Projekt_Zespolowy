@@ -2,9 +2,9 @@
 
 Jira: [SCRUM-3](https://fleet-flow.atlassian.net/browse/SCRUM-3).
 
-**Materiał do potwierdzenia przez zespół.** Obserwacje z 4.11.2026.
-Po spotkaniu dopisz datę, uczestników, ich uwagi oraz uzgodnione decyzje
-w odpowiednich częściach poniżej.
+**Retrospektywa na podstawie obserwacji i zapisów z 4.11.2026.**
+Uwagi uczestników i decyzje wymagające uzgodnienia z zespołem
+można dopisać po spotkaniu.
 
 ## Co poszło dobrze
 
@@ -38,10 +38,10 @@ w odpowiednich częściach poniżej.
 
 ## Działania z właścicielami
 
-**Do potwierdzenia na retrospektywie.** Jakub Czaja jest właścicielem SCRUM-65,
-które już należy do `FF Sprint 2 - historia i auta`. Propozycja działania:
-codziennie przeglądać kolejkę PR-ów, udzielać pierwszej odpowiedzi do 24 godzin
-w dniach dostępności i zbierać dowody DoD dla rozpoczętych historyjek.
+Jakub Czaja jest właścicielem działania SCRUM-65 w aktywnym sprincie
+`FF Sprint 2 - historia i auta` (4–18.11.2026). Jakub codziennie
+przegląda kolejkę PR-ów, udziela pierwszej odpowiedzi do 24 godzin
+w dniach dostępności i zbiera dowody DoD dla rozpoczętych historyjek.
 W połowie sprintu Jakub sprawdzi liczbę PR-ów bez odpowiedzi po 24 godzinach
 i liczbę w pełni odebranych historyjek. Zespół oceni wynik na retro Sprintu 2.
 [SCRUM-65](https://fleet-flow.atlassian.net/browse/SCRUM-65)
@@ -51,15 +51,13 @@ i liczbę w pełni odebranych historyjek. Zespół oceni wynik na retro Sprintu 
 | Dawid Hnat | Podać stan wdrożenia i blokady synchronizacji. Na Planningu określić dostępność i zależności backendu. Przejrzeć zapis retro po dopisaniu ustaleń. | SCRUM-64 i review PR #32 |
 | Jakub Nazarewicz | Podać, które zachowania listy i mapy są sprawdzone i czego brakuje. Na Planningu uzgodnić z zespołem zakres frontendu historii pojazdu i kierowców. | SCRUM-5 i decyzja w SCRUM-3 |
 | Marcel Głowacki | Uzupełnić odbiór logowania. W raporcie zapisać testowane SHA, wyniki PASS/FAIL/BLOCKED i pozostałe scenariusze sesji oraz ochrony API. Na Planningu wskazać czas potrzebny na odbiór Sprintu 2. | SCRUM-56 i plan QA w SCRUM-63 |
-| Jakub Czaja | Poprowadzić retro i Planning, uzupełnić protokół i potwierdzić SCRUM-65. Po review scalić zapis retro, zamknąć Sprint 1 i uruchomić Sprint 2 z uzgodnionym zakresem, celem i datami. | SCRUM-3, SCRUM-65 i backlog Jira |
+| Jakub Czaja | Zebrać feedback zespołu, pilnować realizacji SCRUM-65 i rozliczyć otwarte prace Sprintu 1. | SCRUM-3, SCRUM-65 i backlog Jira |
 
-Na Planningu rozliczcie niedokończone prace Sprintu 1 i wybierzcie zakres
-Sprintu 2 według dostępności zespołu. Proponowany pierwszy priorytet to
-historia przejazdów wybranego pojazdu oraz zapis celu i opisu przejazdu.
-Zakres kartoteki kierowców i dokumentów pojazdów potwierdźcie po sprawdzeniu
-zależności i pojemności. Przed startem sprawdźcie, że SCRUM-65 nadal jest
-w Sprincie 2. [Backlog Jira](https://fleet-flow.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog)
+Sprint 2 ruszył z celem udostępnienia historii tras, podstawowej ewidencji,
+ręcznej kartoteki kierowców i pełnych danych pojazdu (leasing, zdjęcie,
+OC, badanie i dokumenty). Sprint 1 wciąż jest aktywny. Jira wskazuje
+otwarte podzadania SCRUM-1 i SCRUM-66 jako blokadę jego zakończenia.
+[Backlog Jira](https://fleet-flow.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog)
 
-Do uzupełnienia po spotkaniach: data i uczestnicy, wnioski zespołu,
-zaakceptowane działania, decyzja o przeniesieniu prac oraz końcowy cel i daty
-Sprintu 2. [Scenariusz Review](../SPRINT_1_REVIEW.md)
+Do uzupełnienia po spotkaniach pozostają data, uczestnicy, uwagi zespołu
+i decyzje dotyczące dalszego zakresu. [Scenariusz Review](../SPRINT_1_REVIEW.md)
