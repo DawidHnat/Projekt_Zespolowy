@@ -193,7 +193,7 @@ z aktualnego `main`; pozostały zakres i odbiór QA śledzimy w Jirze.
 
 Aplikację rozwijamy lokalnie i na wspólnym VPS OVHcloud z Ubuntu:
 `57.129.179.53` (`vps-9171bf52.vps.ovh.net`). Serwer udostępnia
-[aplikację HTTPS](https://vps-9171bf52.vps.ovh.net/) oraz
+[aplikację HTTPS](https://fleet-flow.pl/) oraz
 [stronę wersji HTTP](http://57.129.179.53/) z siedmioznakowym SHA. Automatyczne
 wdrażanie opisuje [PR #23](https://github.com/DawidHnat/Projekt_Zespolowy/pull/23).
 Przy odbiorze potwierdzamy zgodność wersji serwera z aktualnym `origin/main`
@@ -204,13 +204,16 @@ są utworzone i mają własne klucze publiczne. Po dodaniu trzech kluczy
 pozostałe trzy osoby muszą jeszcze wykonać testy ze swoich komputerów.
 
 Automatyczne wdrożenie `main` działa pod
-[adresem HTTPS serwera](https://vps-9171bf52.vps.ovh.net/).
+[adresem HTTPS serwera](https://fleet-flow.pl/).
 21.10.2026 potwierdzono wersję `23dd927` zgodną z ówczesnym `origin/main`.
 Po każdym kolejnym scaleniu zgodność należy sprawdzić ponownie.
 Na VPS działają FastAPI, PostgreSQL i Caddy. Synchronizacja WEBFLEET jest
 wyłączona; nie ma domyślnych kont ani haseł aplikacji. Publiczny
 [adres HTTP](http://57.129.179.53/) pokazuje wersję i link do HTTPS.
-Domena `fleet-flow.pl` wymaga jeszcze skierowania DNS na VPS.
+3.11.2026 przełączono główną domenę `fleet-flow.pl` na VPS i potwierdzono
+HTTPS, gotowość API oraz widok logowania na wersji `4ce144e`.
+Przekierowania `www` i starego hostname oraz pełny odbiór konta/mapy
+pozostają w [SCRUM-67](docs/qa/SCRUM-67.md).
 
 - [Stan serwera i wymagane testy SSH](DEV_SERVER.md)
 - [Przygotowanie dostępu czterech osób](infra/vps/README.md)
