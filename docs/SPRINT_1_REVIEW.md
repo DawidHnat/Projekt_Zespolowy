@@ -2,7 +2,7 @@
 
 Jira: [SCRUM-3](https://fleet-flow.atlassian.net/browse/SCRUM-3).
 To plan demonstracji i karta odbioru; nie potwierdza, że Review już się odbyło.
-Odczyt Jiry 26.10.2026: aktywny **FF Sprint 1 - flota i mapa**, 24.10–7.11,
+Odczyt Jiry 4.11.2026: aktywny **FF Sprint 1 - flota i mapa**, 24.10–7.11,
 trzy Story produktu: SCRUM-16, SCRUM-15 i SCRUM-5. Żadna nie ma jeszcze Done.
 
 Cel: zalogowany kierownik floty widzi na wspólnym VPS listę i mapę pojazdów
@@ -12,7 +12,7 @@ z synchronizacją WEBFLEET oraz jawną aktualnością danych.
 
 1. Poczekać na udane wdrożenie ostatniego `main`; wykonać dokładne porównanie
    SHA z [instrukcji oddania](SPRINT_REVIEW_SUBMISSION.md).
-2. Otworzyć [aplikację HTTPS](https://vps-9171bf52.vps.ovh.net/).
+2. Otworzyć [aplikację HTTPS](https://fleet-flow.pl/).
    Health `200` potwierdza usługę i bazę, nie spełnienie kryteriów Story.
 3. Marcel zapisuje odbiór kryteriów w Jirze wraz z SHA i dowodami. Każda
    prezentowana jako ukończona Story musi spełniać całe
@@ -39,13 +39,12 @@ PO dopisuje do SCRUM-3: datę, uczestników, pokazane Story i ich SHA, powiązan
 raport QA, feedback oraz decyzje o priorytetach. Obecnie brak potwierdzonego
 terminu i feedbacku — nie zostały wpisane jako wykonane.
 
-Po Review zespół uzupełnia [retrospektywę](retro/sprint-1.md), porządkuje
-nieukończone Story bez częściowych punktów i planuje Sprint 2. Aktualna propozycja:
+Po Review zespół uzupełnia [retrospektywę](retro/sprint-1.md) o rzeczywiste
+ustalenia i porządkuje niedokończone prace. Podział pracy i decyzje na Planning
+są zapisane w części „Działania z właścicielami”.
 
-- **Nazwa:** FF Sprint 2 - historia.
-- **Cel:** historia pojazdu, trwały cel/opis i suma okresu oraz ręczna kartoteka
-  kierowców; SCRUM-6, SCRUM-62, SCRUM-42 i przekrojowy odbiór SCRUM-63.
-- **Usprawnienie:** SCRUM-65 — codzienne review i kompletne odbiory DoD.
-- **Stan:** planowany. Daty, pojemność, przeniesienie niedokończonych prac
-  i uruchomienie wymagają rzeczywistego Planningu. Nie uruchamiamy równoległego
-  sprintu tylko po to, by uzyskać zrzut.
+W Jirze istnieje planowany **FF Sprint 2 - historia i auta**. Jego obecny cel
+obejmuje historię tras, podstawową ewidencję, kartotekę kierowców i pełne dane
+pojazdu. Przed startem zespół potwierdza osiągalny zakres, cel i daty oraz
+zachowuje w sprincie działanie [SCRUM-65](https://fleet-flow.atlassian.net/browse/SCRUM-65).
+Po uruchomieniu Jakub zapisuje rzeczywisty cel i daty w SCRUM-3.

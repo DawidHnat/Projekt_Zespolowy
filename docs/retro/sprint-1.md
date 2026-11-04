@@ -1,46 +1,65 @@
 # Retrospektywa Sprintu 1
 
 Jira: [SCRUM-3](https://fleet-flow.atlassian.net/browse/SCRUM-3).
-Stan obserwacji: 26.10.2026. **Materiał roboczy do rozmowy zespołu**, nie protokół
-odbytego spotkania. Sprint 1 nadal trwa; feedback uczestników, decyzję o zakończeniu
-i końcowe wyniki należy dopisać po rzeczywistym Review i retrospektywie.
-Nie uznajemy częściowego kodu ani zielonego CI za ukończoną Story.
+
+**Materiał do potwierdzenia przez zespół.** Obserwacje z 4.11.2026.
+Po spotkaniu dopisz datę, uczestników, ich uwagi oraz uzgodnione decyzje
+w odpowiednich częściach poniżej.
 
 ## Co poszło dobrze
 
-- Działa wspólny VPS, HTTPS, PostgreSQL i health check. Wersja aplikacji ma
-  widoczne siedem znaków SHA, które można porównać z aktualnym `origin/main`.
-- `main` jest chroniony, wymagany jest `Required CI`, a kolejne PR-y przechodzą
-  budowę frontendu, testy backendu na Pythonie 3.12/3.13 i budowę obrazu API.
+- Aplikacja działa przez HTTPS na docelowej domenie. Kontrola gotowości
+  zwróciła HTTP 200, a wersja `4ce144e` na stronie serwera zgadzała się
+  z `origin/main` po pobraniu zmian. [Fleet-Flow](https://fleet-flow.pl/)
+  · [Wynik CI i wdrożenia](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/40400220960)
 - Powstał klikalny prototyp trzech przepływów Sprintu 1 oraz jawne kryteria
   akceptacji i Definition of Done.
-- Marcel przygotował 57 scenariuszy i syntetyczne dane w
-  [PR #28](https://github.com/DawidHnat/Projekt_Zespolowy/pull/28).
-  Dokumentacja przeszła przegląd Jakuba Czai i została scalona 26.10.2026.
-  Wszystkie scenariusze pozostają NOT RUN do czasu ich wykonania.
+- Marcel przygotował plan QA z 57 scenariuszami. W odbiorze logowania
+  potwierdził m.in. poprawne logowanie, odrzucenie błędnego hasła i utrzymanie
+  sesji po odświeżeniu strony. [PR #28](https://github.com/DawidHnat/Projekt_Zespolowy/pull/28)
+  · [Raport SCRUM-56](https://fleet-flow.atlassian.net/browse/SCRUM-56)
 
 ## Co poszło źle
 
-- Review i odbiory są wąskim gardłem: przed tym przeglądem kilka zielonych PR-ów
-  czekało na zatwierdzenie. Jira nie miała żadnej ukończonej Story Sprintu 1.
-- Autorstwo scalonych PR-ów było skupione na jednej osobie. Po scaleniu #28
-  własne PR-y mają Jakub Czaja i Marcel; Dawid i Jakub Nazarewicz nadal muszą
-  dostarczyć własne zmiany. Marcel i Nazarewicz potrzebują też review cudzych PR-ów.
-- Gotowość infrastruktury nie oznacza gotowości floty. Pierwszy odczyt źródła
-  i odbiór synchronizacji są osobną pracą w SCRUM-64/23; bez tych dowodów
-  nie można odebrać całego celu sprintu ani udawać danych w aplikacji.
-- Wiele elementów rozpoczęto przed pełnym domknięciem wcześniejszych.
-  Testy autora, plan QA i właściwy odbiór nie zawsze miały osobne dowody.
+- Review i odbiory spowalniają domknięcie pracy. Logowanie nadal czeka na pełny
+  odbiór sesji i ochrony API oraz dowód niezależnego przeglądu implementacji.
+  Lista i mapa są w toku, a synchronizacja jest w weryfikacji.
+  [SCRUM-16](https://fleet-flow.atlassian.net/browse/SCRUM-16)
+  · [SCRUM-5](https://fleet-flow.atlassian.net/browse/SCRUM-5)
+  · [SCRUM-15](https://fleet-flow.atlassian.net/browse/SCRUM-15)
+- Autorstwo scalonych PR-ów było skupione na jednej osobie. W odczycie
+  z 4.11 własne scalone PR-y mieli Jakub Czaja i Marcel. Dawid i Jakub
+  Nazarewicz nie mieli jeszcze własnych scalonych PR-ów. W zapisanych
+  recenzjach cudzych scalonych PR-ów brakowało Marcela i Nazarewicza.
+- Odbiór danych floty wymaga udokumentowanego pierwszego odczytu źródła
+  i niezależnej weryfikacji listy, mapy oraz aktualności danych.
+  [SCRUM-64](https://fleet-flow.atlassian.net/browse/SCRUM-64)
+  · [SCRUM-23](https://fleet-flow.atlassian.net/browse/SCRUM-23)
 
 ## Działania z właścicielami
 
-Poniższe propozycje są już powiązane z pracą w Jirze. Zespół potwierdzi je na
-spotkaniu; nie są deklaracją wykonania.
+**Do potwierdzenia na retrospektywie.** Jakub Czaja jest właścicielem SCRUM-65,
+które już należy do `FF Sprint 2 - historia i auta`. Propozycja działania:
+codziennie przeglądać kolejkę PR-ów, udzielać pierwszej odpowiedzi do 24 godzin
+w dniach dostępności i zbierać dowody DoD dla rozpoczętych historyjek.
+W połowie sprintu Jakub sprawdzi liczbę PR-ów bez odpowiedzi po 24 godzinach
+i liczbę w pełni odebranych historyjek. Zespół oceni wynik na retro Sprintu 2.
+[SCRUM-65](https://fleet-flow.atlassian.net/browse/SCRUM-65)
 
-| Działanie | Właściciel | Zgłoszenie | Kiedy i jak sprawdzimy |
-| --- | --- | --- | --- |
-| Codziennie przeglądać kolejkę PR, uzgodnić pierwszą odpowiedź do 24 h w dniach dostępności i doprowadzać rozpoczętą Story do pełnego DoD przed otwieraniem kolejnej. Prowadzić tabelę rzeczywistych autorów i recenzentów. | Jakub Czaja (PO), wykonanie: cały zespół | [SCRUM-65](https://fleet-flow.atlassian.net/browse/SCRUM-65), 1 SP roboczo, zaplanowane w Sprincie 2 | Uzgodnienie na Planningu S2; w połowie S2 liczba PR bez pierwszego review ponad 24 h i liczba w pełni odebranych Story; ocena na retro S2. |
-| Doprowadzić źródło danych na VPS do pierwszego poprawnego odczytu, potem przeprowadzić niezależny odbiór synchronizacji, listy i mapy. | Dawid Hnat — konfiguracja, Marcel Głowacki — QA | [SCRUM-64](https://fleet-flow.atlassian.net/browse/SCRUM-64) i [SCRUM-23](https://fleet-flow.atlassian.net/browse/SCRUM-23) | Przed końcowym odbiorem celu Sprintu 1: odpowiedź floty 200, prawdziwe czasy aktualności, raport QA z SHA i bez danych klienta w publicznych dowodach. Żywe API wymaga osobnego uzgodnienia. |
+| Osoba | Co przygotować i zrobić | Gdzie zapisać wynik |
+| --- | --- | --- |
+| Dawid Hnat | Podać stan wdrożenia i blokady synchronizacji. Na Planningu określić dostępność i zależności backendu. Przejrzeć zapis retro po dopisaniu ustaleń. | SCRUM-64 i review PR #32 |
+| Jakub Nazarewicz | Podać, które zachowania listy i mapy są sprawdzone i czego brakuje. Na Planningu uzgodnić z zespołem zakres frontendu historii pojazdu i kierowców. | SCRUM-5 i decyzja w SCRUM-3 |
+| Marcel Głowacki | Uzupełnić odbiór logowania. W raporcie zapisać testowane SHA, wyniki PASS/FAIL/BLOCKED i pozostałe scenariusze sesji oraz ochrony API. Na Planningu wskazać czas potrzebny na odbiór Sprintu 2. | SCRUM-56 i plan QA w SCRUM-63 |
+| Jakub Czaja | Poprowadzić retro i Planning, uzupełnić protokół i potwierdzić SCRUM-65. Po review scalić zapis retro, zamknąć Sprint 1 i uruchomić Sprint 2 z uzgodnionym zakresem, celem i datami. | SCRUM-3, SCRUM-65 i backlog Jira |
 
-Uruchomienie Sprintu 2, termin spotkania i feedback pozostają do odnotowania
-po ich faktycznym wykonaniu. [Scenariusz Review](../SPRINT_1_REVIEW.md).
+Na Planningu rozliczcie niedokończone prace Sprintu 1 i wybierzcie zakres
+Sprintu 2 według dostępności zespołu. Proponowany pierwszy priorytet to
+historia przejazdów wybranego pojazdu oraz zapis celu i opisu przejazdu.
+Zakres kartoteki kierowców i dokumentów pojazdów potwierdźcie po sprawdzeniu
+zależności i pojemności. Przed startem sprawdźcie, że SCRUM-65 nadal jest
+w Sprincie 2. [Backlog Jira](https://fleet-flow.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog)
+
+Do uzupełnienia po spotkaniach: data i uczestnicy, wnioski zespołu,
+zaakceptowane działania, decyzja o przeniesieniu prac oraz końcowy cel i daty
+Sprintu 2. [Scenariusz Review](../SPRINT_1_REVIEW.md)
