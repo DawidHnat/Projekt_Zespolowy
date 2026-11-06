@@ -37,6 +37,7 @@ export function startPolling(
   let failures = 0;
   let controller: AbortController | null = null;
   let timer: ReturnType<typeof setTimeout> | undefined;
+  const maximumPollingDelay = Math.max(maximumDelay, interval);
   const cancelTimer = () => {
     if (timer !== undefined) environment.cancel(timer);
     timer = undefined;
@@ -61,7 +62,10 @@ export function startPolling(
       controller = null;
       if (!disposed && environment.available()) {
         if (requested) void run();
-        else timer = environment.schedule(refresh, Math.min(maximumDelay, interval * 2 ** failures));
+        else timer = environment.schedule(
+          refresh,
+          Math.min(maximumPollingDelay, interval * 2 ** failures),
+        );
       }
     }
   };

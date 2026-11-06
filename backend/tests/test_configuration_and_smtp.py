@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from app.core.config import ConfigurationError, SmtpSettings, WebfleetSettings, load_environment
+from app.core.settings import Settings
 from app.integrations.mail.client import SmtpError, check_smtp
 
 
@@ -30,6 +31,39 @@ def test_settings_repr_and_missing_errors_hide_values():
 def test_explicit_missing_env_file_is_not_silently_replaced_with_process_settings(tmp_path):
     with pytest.raises(ConfigurationError, match="--env-file"):
         load_environment(tmp_path / "missing.env")
+
+
+def test_sync_and_stale_thresholds_are_configurable():
+    values = {
+        "DATABASE_URL": "postgresql+psycopg://user:password@localhost/fleet_flow",
+        "CORS_ORIGINS": "http://127.0.0.1:5173",
+        "SYNC_INTERVAL_SECONDS": "30",
+        "STALE_SECONDS": "600",
+    }
+    settings = Settings.from_environment(values)
+    assert settings.sync_interval_seconds == 30
+    assert settings.stale_seconds == 600
+
+
+@pytest.mark.parametrize(
+    ("name", "value"),
+    [
+        ("SYNC_INTERVAL_SECONDS", "9"),
+        ("SYNC_INTERVAL_SECONDS", "86401"),
+        ("SYNC_INTERVAL_SECONDS", "not-a-number"),
+        ("STALE_SECONDS", "0"),
+        ("STALE_SECONDS", "604801"),
+        ("STALE_SECONDS", "NaN"),
+    ],
+)
+def test_invalid_sync_and_stale_thresholds_are_rejected(name, value):
+    values = {
+        "DATABASE_URL": "postgresql+psycopg://user:password@localhost/fleet_flow",
+        "CORS_ORIGINS": "http://127.0.0.1:5173",
+        name: value,
+    }
+    with pytest.raises(ConfigurationError, match=name):
+        Settings.from_environment(values)
 
 
 @pytest.mark.parametrize("timeout", ["NaN", "Infinity", "0", "121", "password-not-a-number"])
