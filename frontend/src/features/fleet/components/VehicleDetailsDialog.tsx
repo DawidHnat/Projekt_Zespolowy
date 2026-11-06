@@ -5,7 +5,7 @@ import { useVehiclePreferences } from "../model/VehiclePreferences";
 import { statusLabels, type Vehicle } from "../model/types";
 import { VehiclePhoto } from "./VehiclePhoto";
 import { EmptyState } from "../../../shared/components/EmptyState";
-import { TripDayPicker } from "../../trips/components/TripDayPicker";
+import { VehicleTrips } from "../../trips/components/VehicleTrips";
 import { useTripDay } from "../../trips/model/useTripDay";
 
 const tabs = [
@@ -39,7 +39,9 @@ const tabs = [
   },
 ] as const;
 
-function VehicleDetailsContent({ vehicle }: { vehicle: Vehicle }) {
+function VehicleDetailsContent({ vehicle, unsaved, onUnsaved, mayLeave }: {
+  vehicle: Vehicle; unsaved: boolean; onUnsaved: (value: boolean) => void; mayLeave: () => boolean;
+}) {
   const [active, setActive] = useState(0);
   const id = useId();
   const day = useTripDay();
@@ -52,6 +54,7 @@ function VehicleDetailsContent({ vehicle }: { vehicle: Vehicle }) {
     else if (event.key === "End") next = tabs.length - 1;
     else return;
     event.preventDefault();
+    if (unsaved && !mayLeave()) return;
     setActive(next);
     document.getElementById(`${id}-tab-${tabs[next].id}`)?.focus();
   };
@@ -70,7 +73,7 @@ function VehicleDetailsContent({ vehicle }: { vehicle: Vehicle }) {
             aria-selected={index === active}
             aria-controls={`${id}-panel-${tabId}`}
             tabIndex={index === active ? 0 : -1}
-            onClick={() => setActive(index)}
+            onClick={() => { if (index === active || !unsaved || mayLeave()) setActive(index); }}
             onKeyDown={(event) => onKeyDown(event, index)}
           >
             <Icon size={16} aria-hidden="true" />
@@ -90,20 +93,22 @@ function VehicleDetailsContent({ vehicle }: { vehicle: Vehicle }) {
         >
           {index === active && (
             <>
-              {current.id === "trips" && (
-                <TripDayPicker
-                  value={day.value}
+              {current.id === "trips" ? (
+                <VehicleTrips
+                  vehicleId={vehicle.id}
+                  day={day.value}
                   today={day.today}
-                  onChange={day.select}
-                  label="Dzień podróży pojazdu"
+                  onDay={day.select}
+                  onUnsaved={onUnsaved}
                 />
-              )}
+              ) : <>
               <EmptyState
                 icon={current.icon}
                 title={current.heading}
                 description={current.description}
               />
               <span className="vehicle-details-pending">W przygotowaniu</span>
+              </>}
             </>
           )}
         </section>
@@ -117,6 +122,8 @@ export function VehicleDetailsDialog() {
   const preferences = useVehiclePreferences();
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
+  const [unsaved, setUnsaved] = useState(false);
+  const mayLeave = () => !unsaved || window.confirm("Masz niezapisany cel lub opis przejazdu. Odrzucić zmiany?");
   const vehicle = fleet.selected?.id === fleet.selectedId ? fleet.selected : null;
   useEffect(() => {
     const dialog = ref.current;
@@ -130,6 +137,7 @@ export function VehicleDetailsDialog() {
       className="widget-settings-dialog vehicle-details-dialog"
       aria-labelledby={titleId}
       onClose={fleet.closeDetails}
+      onCancel={event => { if (!mayLeave()) event.preventDefault(); }}
     >
       {fleet.detailsOpen && (
         <>
@@ -158,17 +166,17 @@ export function VehicleDetailsDialog() {
               className="icon-button"
               aria-label="Zamknij szczegóły pojazdu"
               title="Zamknij"
-              onClick={fleet.closeDetails}
+              onClick={() => { if (mayLeave()) fleet.closeDetails(); }}
               autoFocus
             >
               <X size={20} aria-hidden="true" />
             </button>
           </header>
           {vehicle ? (
-            <VehicleDetailsContent key={vehicle.id} vehicle={vehicle} />
+            <VehicleDetailsContent key={vehicle.id} vehicle={vehicle} unsaved={unsaved} onUnsaved={setUnsaved} mayLeave={mayLeave} />
           ) : (
             <div className="vehicle-details-loading" role="status">
-              Pobieranie danych pojazdu…
+              {fleet.error ? <><p>{fleet.error}</p><button className="button button-secondary" onClick={fleet.refresh}>Spróbuj ponownie</button></> : "Pobieranie danych pojazdu…"}
             </div>
           )}
         </>

@@ -24,7 +24,6 @@ services:
     environment:
       COOKIE_SECURE: 'true'
       CORS_ORIGINS: https://${APP_DOMAIN:?Set APP_DOMAIN}
-      SYNC_ENABLED: 'false'
     depends_on:
       database:
         condition: service_healthy

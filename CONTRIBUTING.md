@@ -1,3 +1,4 @@
+
 # Współpraca
 
 `main` ma uruchamialny frontend, backend i konfigurację lokalnej bazy.
@@ -55,11 +56,16 @@ Aby sprawdzić lokalne linki w dokumentacji, uruchom z głównego katalogu repoz
 
     python scripts/check_markdown_links.py
 
-Aby uruchomić testy skryptu:
+Aby uruchomić testy skryptu, w tym dodatkowe testy regresyjne:
 
-    python -m unittest discover -s tests -p "test_markdown_links.py" -v
+    python -m unittest discover -s tests -p "test_markdown_links*.py" -v
 
 Skrypt pomija linki zewnętrzne, odnośniki do nagłówków i przykłady
 w blokach kodu. Brakujący plik powoduje zakończenie z kodem błędu 1.
 
 Kontrola uruchamia się automatycznie w GitHub Actions.
+
+Statusy **W trakcie weryfikacji** i **Testowanie** rozdzielają niezależne review
+od odbioru QA; oba należą do kategorii W toku. Kryteria przejść, sposób
+zapisu błędów i proponowany rytm spotkań opisują
+[zasady pracy Scrum](docs/SCRUM_WORKFLOW.md).
