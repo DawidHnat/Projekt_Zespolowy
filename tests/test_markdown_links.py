@@ -165,6 +165,26 @@ class MarkdownLinksTests(unittest.TestCase):
             [],
         )
 
+    def test_nested_list_link_is_checked(self):
+        content = (
+            "- Element nadrzędny\n"
+            "  - Element podrzędny\n"
+            "    [dokument](brak.md)"
+        )
+
+        errors = self.check(content)
+
+        self.assertEqual(len(errors), 1)
+        self.assertIn("brak.md", errors[0])
+        self.assertIn("README.md:3:", errors[0])
+
+    def test_parenthesis_inside_link_title(self):
+        content = '[dokument](brak.md "Zobacz (szczegóły")'
+
+        errors = self.check(content)
+
+        self.assertEqual(len(errors), 1)
+        self.assertIn("brak.md", errors[0])
 
 if __name__ == "__main__":
     unittest.main()

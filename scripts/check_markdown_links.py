@@ -11,6 +11,7 @@ LINK_START = re.compile(r"!?\[[^\]\n]*\]\(")
 FENCE_PATTERN = re.compile(r"^ {0,3}(`{3,}|~{3,})")
 REFERENCE_PATTERN = re.compile(r"^ {0,3}\[[^\]]+\]:\s*(<[^>]+>|\S+)")
 BACKTICKS = re.compile(r"`+")
+LIST_MARKER = re.compile(r"^( *)(?:[-+*]|\d+[.)]) +")
 
 
 def remove_inline_code(line):
@@ -41,13 +42,48 @@ def remove_inline_code(line):
 
 
 def remove_code_blocks(content):
-    """Pomija bloki kodu Markdown oraz kod inline."""
+    """Pomija kod Markdown, ale zachowuje linki w listach."""
     lines = []
     fence_char = None
     fence_length = 0
+    list_content_indent = None
 
     for line in content.splitlines():
-        marker_match = FENCE_PATTERN.match(line)
+        if not line.strip():
+            lines.append("")
+            if fence_char is None:
+                list_content_indent = None
+            continue
+
+        list_match = LIST_MARKER.match(line)
+        indentation = len(line) - len(line.lstrip(" "))
+
+        if fence_char is None:
+            if list_match:
+                list_content_indent = list_match.end()
+            elif (
+                list_content_indent is not None
+                and indentation < list_content_indent
+            ):
+                list_content_indent = None
+
+        is_list_continuation = (
+            list_content_indent is not None
+            and not list_match
+            and indentation >= list_content_indent
+        )
+
+        if is_list_continuation:
+            effective_line = line[list_content_indent:]
+            effective_indent = indentation - list_content_indent
+        elif list_match:
+            effective_line = line
+            effective_indent = 0
+        else:
+            effective_line = line
+            effective_indent = indentation
+
+        marker_match = FENCE_PATTERN.match(effective_line)
 
         if fence_char is not None:
             if marker_match:
@@ -56,7 +92,7 @@ def remove_code_blocks(content):
                 if (
                     marker[0] == fence_char
                     and len(marker) >= fence_length
-                    and not line[marker_match.end():].strip()
+                    and not effective_line[marker_match.end():].strip()
                 ):
                     fence_char = None
                     fence_length = 0
@@ -64,14 +100,24 @@ def remove_code_blocks(content):
             lines.append("")
             continue
 
-        if marker_match:
+        if (
+            marker_match
+            and not list_match
+            and effective_indent < 4
+        ):
             marker = marker_match.group(1)
             fence_char = marker[0]
             fence_length = len(marker)
             lines.append("")
             continue
 
-        if line.startswith("    ") or line.startswith("\t"):
+        if (
+            not list_match
+            and (
+                effective_line.startswith("\t")
+                or effective_indent >= 4
+            )
+        ):
             lines.append("")
             continue
 
@@ -81,9 +127,10 @@ def remove_code_blocks(content):
 
 
 def parse_destination(line, start):
-    """Odczytuje cel linku, obsługując nawiasy w nazwie pliku."""
+    """Odczytuje cel linku, ignorując nawiasy w cytowanym tytule."""
     depth = 1
     in_angle = False
+    title_quote = None
     position = start
 
     while position < len(line):
@@ -93,12 +140,33 @@ def parse_destination(line, start):
             position += 2
             continue
 
+        if title_quote is not None:
+            if char == title_quote:
+                title_quote = None
+            position += 1
+            continue
+
+        if (
+            not in_angle
+            and depth == 1
+            and char in ('"', "'")
+            and position > start
+            and line[position - 1].isspace()
+            and line[start:position].strip()
+        ):
+            title_quote = char
+            position += 1
+            continue
+
         if char == "<":
             in_angle = True
+
         elif char == ">" and in_angle:
             in_angle = False
+
         elif not in_angle and char == "(":
             depth += 1
+
         elif not in_angle and char == ")":
             depth -= 1
 
@@ -125,7 +193,11 @@ def clean_destination(raw):
     else:
         raw = re.split(r'\s+(?=["\'])', raw, maxsplit=1)[0]
 
-    return re.sub(r"\\([\\`*_{}\[\]()#+.!<>])", r"\1", raw)
+    return re.sub(
+        r"\\([\\`*_{}\[\]()#+.!<>])",
+        r"\1",
+        raw,
+    )
 
 
 def extract_links(line):
@@ -158,7 +230,11 @@ def check_file(markdown_file, repo_root):
 
             parsed = urlsplit(target)
 
-            if parsed.scheme or parsed.netloc or target.startswith("//"):
+            if (
+                parsed.scheme
+                or parsed.netloc
+                or target.startswith("//")
+            ):
                 continue
 
             path = unquote(parsed.path)
@@ -173,6 +249,7 @@ def check_file(markdown_file, repo_root):
 
             if not destination.exists():
                 relative_file = markdown_file.relative_to(repo_root)
+
                 errors.append(
                     f"{relative_file}:{line_number}: "
                     f"nie istnieje: {target}"
