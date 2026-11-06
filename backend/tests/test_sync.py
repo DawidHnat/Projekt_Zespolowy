@@ -112,14 +112,56 @@ def test_postgres_shared_limiter_failure_cache_and_lock():
         async def fetch_vehicles(self):
             raise WebfleetError("timeout")
 
-    assert sync_once(engine, settings, client_factory=FakeClient, now=now) == "ok"
     assert (
-        sync_once(engine, settings, client_factory=FakeClient, now=now + timedelta(seconds=30))
+        sync_once(
+            engine,
+            settings,
+            client_factory=FakeClient,
+            now=now,
+            sync_interval_seconds=30,
+        )
+        == "ok"
+    )
+    assert (
+        sync_once(
+            engine,
+            settings,
+            client_factory=FakeClient,
+            now=now + timedelta(seconds=10),
+            sync_interval_seconds=30,
+        )
         == "rate_limited"
     )
     assert calls == ["vehicles", "objects"]
     assert (
-        sync_once(engine, settings, client_factory=FailedClient, now=now + timedelta(seconds=60))
+        sync_once(
+            engine,
+            settings,
+            client_factory=FakeClient,
+            now=now + timedelta(seconds=30),
+            sync_interval_seconds=30,
+        )
+        == "ok"
+    )
+    assert calls == ["vehicles", "objects", "vehicles", "objects"]
+    assert (
+        sync_once(
+            engine,
+            settings,
+            client_factory=FailedClient,
+            now=now + timedelta(seconds=39),
+            sync_interval_seconds=1,
+        )
+        == "rate_limited"
+    )
+    assert (
+        sync_once(
+            engine,
+            settings,
+            client_factory=FailedClient,
+            now=now + timedelta(seconds=40),
+            sync_interval_seconds=1,
+        )
         == "degraded"
     )
     from sqlalchemy.orm import Session
@@ -128,7 +170,7 @@ def test_postgres_shared_limiter_failure_cache_and_lock():
         source = account_key(settings.account)
         state = session.get(SyncState, source)
         assert state.error_code == "timeout"
-        assert state.last_success_at == now
+        assert state.last_success_at == now + timedelta(seconds=30)
         assert (
             len(list(session.scalars(select(Vehicle).where(Vehicle.source_account == source)))) == 1
         )
