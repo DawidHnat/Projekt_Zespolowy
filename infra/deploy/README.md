@@ -11,9 +11,12 @@ zmigrowanej bazy i próba jej odtworzenia. Trzy sekrety Actions są zapisane,
 a dedykowany klucz odrzuca polecenia inne niż `deploy <SHA>`. Zwykłe konta SSH
 zespołu zachowują dotychczasowy dostęp.
 
-Nie jest to jeszcze dowód wdrożenia aktualnego `main`. PR wymaga review,
-a właściciel musi włączyć ochronę gałęzi. Domena `fleet-flow.pl` nadal wskazuje
-parking OVH; tymczasowo `DEV_PUBLIC_URL` i `APP_DOMAIN` wskazują hostname VPS.
+Historyczny test z 20 października nie jest dowodem aktualnego wydania.
+3 listopada 2026 główna domena `fleet-flow.pl` została skierowana na VPS;
+potwierdzono HTTPS i gotowość API na wersji `4ce144e`. `DEV_PUBLIC_URL`,
+`APP_DOMAIN`, CORS i istniejący sekret Actions mają już nową domenę.
+Przekierowania aliasów z tego PR wymagają review i wdrożenia. Pełny stan,
+odbiór oraz rollback opisuje [SCRUM-67](../../docs/qa/SCRUM-67.md).
 Nie ma domyślnych kont aplikacji. WEBFLEET pozostaje wyłączony.
 
 ## CI i publikacja
@@ -41,8 +44,10 @@ Zmiany niezgodne ze starym schematem wymagają osobnego planu migracji.
 
 1. Skieruj rekord A `fleet-flow.pl` na `57.129.179.53`. Rekord AAAA dodaj tylko
    z poprawnym IPv6 VPS. Zachowaj rekordy poczty, TXT i weryfikacji domeny.
-   Do tego czasu można używać istniejącego hostname `vps-9171bf52.vps.ovh.net`;
-   ustaw go zgodnie w `DEV_PUBLIC_URL` i `APP_DOMAIN`.
+   Domena kanoniczna to `fleet-flow.pl`; po wdrożeniu konfiguracji SCRUM-67
+   `www.fleet-flow.pl` i `vps-9171bf52.vps.ovh.net` przekierowują do niej.
+   Alias `www` musi mieć rekord A tego samego VPS. Powrót do hostname VPS
+   jako domeny kanonicznej wymaga poprzedniego wydania Caddyfile.
 2. Na VPS zainstaluj Docker z `docker compose`, Python 3.12+ i curl ze
    wspieranych pakietów. Budowa obrazu wymaga też wtyczki Buildx.
    Zachowaj działające konta SSH zespołu.
@@ -72,6 +77,24 @@ Nie ma domyślnych kont aplikacji ani haseł. Administrator tworzy konta przez
 istniejące interaktywne `python -m app.manage create-user` w kontenerze API,
 według instrukcji backendu. Nie publikuje haseł w PR ani w logu Actions.
 
+### Konfiguracja integracji na kolejnych wdrożeniach
+
+Zapisz publiczny token Mapbox jako zmienną repozytorium
+`MAPBOX_PUBLIC_TOKEN`. Frontend odczytuje ją podczas budowy.
+
+W środowisku Actions `development` zapisz prywatny sekret
+`DEV_WEBFLEET_ENV` w formacie dotenv. Zawiera wyłącznie
+`WEBFLEET_ACCOUNT`, `WEBFLEET_USERNAME`, `WEBFLEET_PASSWORD` i
+`WEBFLEET_API_KEY`. Workflow dodaje je do pliku środowiska API przy każdym
+wdrożeniu. Ustawienia domeny i bazy nadal pochodzą z `DEV_RUNTIME_ENV`.
+Jeśli osobny sekret jest pusty, workflow korzysta z ustawień integracji
+zapisanych w dotychczasowym `DEV_RUNTIME_ENV`.
+
+Zmienna środowiska Actions `DEV_WEBFLEET_SYNC_ENABLED` ma domyślnie wartość
+`false` dla osobnego sekretu. Po odbiorze SCRUM-64 operator może ustawić
+`true` i wdrożyć zatwierdzoną wersję. Powrót do `false` zatrzymuje kolejne
+cykle po wdrożeniu bez czyszczenia zapisanych danych.
+
 ## Ochrona main — wykonuje właściciel repozytorium
 
 Repozytorium jest prywatne i należy do osobistego konta `DawidHnat`.
@@ -96,10 +119,11 @@ ochrona ma wymagać dokładnie `Required CI`, a nie starych nazw osobnych workfl
 
 ## HTTP z zadania i HTTPS aplikacji
 
-Polecenie kursowe używa `curl -s http://…` bez `-L`; zwykłe przekierowanie do
-HTTPS nie udostępniłoby treści zawierającej SHA. Dlatego HTTP `/` zwraca
-publiczną stronę wersji z linkiem do aplikacji HTTPS. Nie udostępnia formularza
-logowania, API ani danych floty. Zarówno ona, jak i strona aplikacji HTTPS
+Polecenie kursowe używa `curl -s http://<IP>/` bez `-L`; dlatego HTTP po IP
+nadal zwraca publiczną stronę wersji z linkiem do aplikacji HTTPS. Nie
+udostępnia formularza logowania, API ani danych floty. HTTP po nazwach domeny,
+`www` i starego hostname przekierowuje 308 na domenę kanoniczną, zachowując
+ścieżkę i parametry. HTTPS aliasów robi to samo. Strona wersji i aplikacja
 otrzymują to samo siedmioznakowe SHA podczas budowy.
 
 ## Pełny odbiór wydania MVP — SCRUM-18

@@ -5,7 +5,14 @@ Backend ma adapter WEBFLEET i polecenia diagnostyczne integracji. Python 3.12 lu
 FastAPI, PostgreSQL, migracje i health: SCRUM-39. Logowanie i sesje: SCRUM-16.
 Synchronizacja pojazdów: SCRUM-15. Zabezpieczone API listy/mapy: SCRUM-19.
 Reguły i alerty dziennego dystansu: SCRUM-31.
+Cel i opis zapisanych przejazdów, audyt i konflikt wersji: SCRUM-26.
 Przeglądarka nie odpytuje WEBFLEET bezpośrednio.
+
+SCRUM-26 wymaga migracji `0005_trip_annotations` (`alembic upgrade head`).
+GET `/api/v1/trips` i `/api/v1/trips/{id}` czytają zapisane przejazdy;
+PATCH `/api/v1/trips/{id}/annotation` zapisuje wyłącznie ręczne pola.
+Import historii ze źródła pozostaje w SCRUM-24. Szczegóły kontraktu i scenariusze
+odbioru: [model danych](../docs/DATA_MODEL.md) i [QA SCRUM-26](../docs/qa/SCRUM-26.md).
 
 ## Uruchomienie z czystego checkoutu
 
