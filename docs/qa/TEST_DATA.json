@@ -1,0 +1,525 @@
+{
+  "metadata": {
+    "dataset": "fleet-flow-SCRUM-37-fixtures-v1",
+    "synthetic_only": true,
+    "status": "NOT_RUN",
+    "reference_time_utc": "2026-10-26T12:00:00Z",
+    "timezone": "Europe/Warsaw",
+    "stale_seconds": 900,
+    "purpose": "Human-readable scenarios and expected results; not a drop-in API payload or production seed.",
+    "disclaimer": "All vehicles, registrations, identities, coordinates are fabricated; credentials intentionally omitted."
+  },
+  "vehicles": [
+    {
+      "id": "V01",
+      "external_uid": "qa-vehicle-01",
+      "name": "QA Dostawczy 01",
+      "registration": "ZZ 1001A",
+      "latitude": 10.25,
+      "longitude": 20.5,
+      "gps_quality": "A",
+      "position_at": "2026-10-26T11:55:00Z",
+      "received_at": "2026-10-26T11:56:00Z",
+      "standing_still": false,
+      "speed_kmh": null,
+      "odometer_km": 12000.5,
+      "expected_status": "moving",
+      "expected_is_stale": false,
+      "expected_current_marker": true
+    },
+    {
+      "id": "V02",
+      "external_uid": "qa-vehicle-02",
+      "name": "QA Osobowy 02",
+      "registration": "ZZ 1002B",
+      "latitude": 11.25,
+      "longitude": 21.5,
+      "gps_quality": "A",
+      "position_at": "2026-10-26T11:54:00Z",
+      "received_at": "2026-10-26T11:56:00Z",
+      "standing_still": true,
+      "speed_kmh": null,
+      "odometer_km": null,
+      "expected_status": "stopped",
+      "expected_is_stale": false,
+      "expected_current_marker": true
+    },
+    {
+      "id": "V03",
+      "external_uid": "qa-vehicle-03",
+      "name": "QA Ciezarowy 03",
+      "registration": "ZZ 1003C",
+      "latitude": 12.25,
+      "longitude": 22.5,
+      "gps_quality": "A",
+      "position_at": "2026-10-26T11:10:00Z",
+      "received_at": "2026-10-26T11:59:00Z",
+      "standing_still": false,
+      "speed_kmh": null,
+      "odometer_km": 45000.0,
+      "expected_status": "offline",
+      "expected_is_stale": true,
+      "expected_current_marker": false
+    },
+    {
+      "id": "V04",
+      "external_uid": "qa-vehicle-04",
+      "name": "QA Bez GPS 04",
+      "registration": "ZZ 1004D",
+      "latitude": null,
+      "longitude": null,
+      "gps_quality": null,
+      "position_at": null,
+      "received_at": null,
+      "standing_still": null,
+      "speed_kmh": null,
+      "odometer_km": null,
+      "expected_status": "unknown",
+      "expected_is_stale": true,
+      "expected_current_marker": false
+    },
+    {
+      "id": "V05",
+      "external_uid": "qa-vehicle-05",
+      "name": "QA Dostawczy 05",
+      "registration": "ZZ 1005E",
+      "latitude": 10.25,
+      "longitude": 20.5,
+      "gps_quality": "A",
+      "position_at": "2026-10-26T11:58:00Z",
+      "received_at": "2026-10-26T11:59:00Z",
+      "standing_still": false,
+      "speed_kmh": null,
+      "odometer_km": 7300.2,
+      "expected_status": "moving",
+      "expected_is_stale": false,
+      "expected_current_marker": true
+    },
+    {
+      "id": "V06",
+      "external_uid": "qa-vehicle-06",
+      "name": "QA Rownik 06",
+      "registration": "ZZ 1006F",
+      "latitude": 0.0,
+      "longitude": 0.0,
+      "gps_quality": "A",
+      "position_at": "2026-10-26T11:50:00Z",
+      "received_at": "2026-10-26T11:51:00Z",
+      "standing_still": true,
+      "speed_kmh": null,
+      "odometer_km": 0.0,
+      "expected_status": "stopped",
+      "expected_is_stale": false,
+      "expected_current_marker": true
+    }
+  ],
+  "expected_fleet": {
+    "count": 6,
+    "by_status": {
+      "moving": 2,
+      "stopped": 2,
+      "offline": 1,
+      "unknown": 1
+    },
+    "fresh_valid_position_count": 4,
+    "fresh_valid_position_vehicle_ids": [
+      "V01",
+      "V02",
+      "V05",
+      "V06"
+    ],
+    "same_location_vehicles": [
+      "V01",
+      "V05"
+    ],
+    "search_expectations": [
+      {
+        "q": "QA Dostawczy",
+        "ids": [
+          "V01",
+          "V05"
+        ]
+      },
+      {
+        "q": "ZZ 1001A",
+        "ids": [
+          "V01"
+        ]
+      },
+      {
+        "q": "nie-istnieje",
+        "ids": []
+      }
+    ],
+    "status_expectations": [
+      {
+        "status": "moving",
+        "ids": [
+          "V01",
+          "V05"
+        ]
+      },
+      {
+        "status": "stopped",
+        "ids": [
+          "V02",
+          "V06"
+        ]
+      },
+      {
+        "status": "offline",
+        "ids": [
+          "V03"
+        ]
+      },
+      {
+        "status": "unknown",
+        "ids": [
+          "V04"
+        ]
+      }
+    ],
+    "map_note": "Expected fresh valid GPS positions, not necessarily the exact implementation count of displayed last-known stale markers. Stale V03 must be distinctly marked if shown."
+  },
+  "invalid_gps_quality_inputs": [
+    {
+      "id": "BadFix-01",
+      "latitude": 10.0,
+      "longitude": 20.0,
+      "gps_quality": "V",
+      "reason": "Not quality A"
+    },
+    {
+      "id": "BadFix-02",
+      "latitude": 10.0,
+      "longitude": 20.0,
+      "gps_quality": "L",
+      "reason": "Last good fix not current"
+    },
+    {
+      "id": "BadFix-03",
+      "latitude": 10.0,
+      "longitude": null,
+      "gps_quality": "A",
+      "reason": "Incomplete coordinate pair"
+    },
+    {
+      "id": "BadFix-04",
+      "latitude": 91.0,
+      "longitude": 20.0,
+      "gps_quality": "A",
+      "reason": "Latitude outside WGS84 range"
+    }
+  ],
+  "trips": [
+    {
+      "id": "T01",
+      "vehicle_id": "V01",
+      "start_at": "2026-10-24T07:00:00Z",
+      "end_at": "2026-10-24T07:30:00Z",
+      "distance_km": 12.0,
+      "purpose": "Przejazd testowy A",
+      "description": "Fikcyjny przejazd",
+      "geometry": null
+    },
+    {
+      "id": "T02",
+      "vehicle_id": "V01",
+      "start_at": "2026-10-24T08:00:00Z",
+      "end_at": "2026-10-24T08:20:00Z",
+      "distance_km": 8.0,
+      "purpose": null,
+      "description": null,
+      "geometry": null
+    },
+    {
+      "id": "T03",
+      "vehicle_id": "V02",
+      "start_at": "2026-10-24T09:00:00Z",
+      "end_at": "2026-10-24T09:30:00Z",
+      "distance_km": 15.0,
+      "purpose": "Przejazd testowy B",
+      "description": "Dane demonstracyjne",
+      "geometry": null
+    },
+    {
+      "id": "T04",
+      "vehicle_id": "V01",
+      "start_at": "2026-10-25T00:30:00Z",
+      "end_at": "2026-10-25T01:30:00Z",
+      "distance_km": 4.0,
+      "purpose": null,
+      "description": null,
+      "geometry": null
+    }
+  ],
+  "expected_trip_aggregates": {
+    "local_interval": "[2026-10-24T00:00:00+02:00, 2026-10-25T00:00:00+02:00)",
+    "per_vehicle": [
+      {
+        "vehicle_id": "V01",
+        "trips": 2,
+        "distance_km": 20.0,
+        "active_days": 1,
+        "missing_purpose": 1
+      },
+      {
+        "vehicle_id": "V02",
+        "trips": 1,
+        "distance_km": 15.0,
+        "active_days": 1,
+        "missing_purpose": 0
+      }
+    ],
+    "fleet_trip_count": 3,
+    "fleet_distance_km": 35.0,
+    "unique_fleet_active_days": 1,
+    "sum_vehicle_active_days": 2,
+    "excluded_trip_ids": [
+      "T04"
+    ],
+    "note": "T04 on 2026-10-25 excluded from the 24 Oct half-open interval."
+  },
+  "dst_cases": [
+    {
+      "id": "DST-SPRING-2026",
+      "utc_1": "2026-03-29T00:30:00Z",
+      "local_1": "2026-03-29T01:30:00+01:00",
+      "utc_2": "2026-03-29T01:30:00Z",
+      "local_2": "2026-03-29T03:30:00+02:00",
+      "expected": "02:30 local does not occur"
+    },
+    {
+      "id": "DST-AUTUMN-2026",
+      "utc_1": "2026-10-25T00:30:00Z",
+      "local_1": "2026-10-25T02:30:00+02:00",
+      "utc_2": "2026-10-25T01:30:00Z",
+      "local_2": "2026-10-25T02:30:00+01:00",
+      "expected": "Two different instants share local 02:30 but have different offsets"
+    }
+  ],
+  "daily_distance_readings": [
+    {
+      "id": "D01",
+      "vehicle_id": "V01",
+      "position_at": "2026-10-24T07:00:00Z",
+      "odometer_km": 10.0
+    },
+    {
+      "id": "D02",
+      "vehicle_id": "V01",
+      "position_at": "2026-10-24T07:10:00Z",
+      "odometer_km": 22.0
+    },
+    {
+      "id": "D03",
+      "vehicle_id": "V01",
+      "position_at": "2026-10-24T07:20:00Z",
+      "odometer_km": 30.0
+    },
+    {
+      "id": "D04",
+      "vehicle_id": "V02",
+      "position_at": "2026-10-24T07:30:00Z",
+      "odometer_km": 5.0
+    },
+    {
+      "id": "D05",
+      "vehicle_id": "V02",
+      "position_at": "2026-10-24T07:40:00Z",
+      "odometer_km": 20.0
+    }
+  ],
+  "expected_distance": {
+    "event_day": "2026-10-24",
+    "max_interval_seconds": 900,
+    "vehicle_results": [
+      {
+        "vehicle_id": "V01",
+        "deltas_km": [
+          12.0,
+          8.0
+        ],
+        "observed_daily_distance_km": 20.0,
+        "fresh_evaluation_time_utc": "2026-10-24T07:21:00Z"
+      },
+      {
+        "vehicle_id": "V02",
+        "deltas_km": [
+          15.0
+        ],
+        "observed_daily_distance_km": 15.0,
+        "fresh_evaluation_time_utc": "2026-10-24T07:41:00Z"
+      }
+    ],
+    "coverage": "partial",
+    "note": "D01–D05 are historical demonstration inputs; evaluate rule at stated synthetic time, not current clock. Never treat absolute odometer as distance."
+  },
+  "distance_invalid_intervals": [
+    {
+      "id": "X01",
+      "before": "2026-10-24T07:00:00Z",
+      "after": "2026-10-24T07:15:01Z",
+      "odometer_before": 10,
+      "odometer_after": 20,
+      "reason": "Gap 901s"
+    },
+    {
+      "id": "X02",
+      "before": "2026-10-24T07:00:00Z",
+      "after": "2026-10-24T07:00:00Z",
+      "odometer_before": 10,
+      "odometer_after": 20,
+      "reason": "Same timestamp"
+    },
+    {
+      "id": "X03",
+      "before": "2026-10-24T07:00:00Z",
+      "after": "2026-10-24T07:10:00Z",
+      "odometer_before": 20,
+      "odometer_after": 10,
+      "reason": "Counter reset"
+    },
+    {
+      "id": "X04",
+      "before": "2026-10-24T21:55:00Z",
+      "after": "2026-10-24T22:05:00Z",
+      "odometer_before": 10,
+      "odometer_after": 20,
+      "reason": "Crosses Warsaw midnight"
+    },
+    {
+      "id": "X05",
+      "before": null,
+      "after": "2026-10-24T07:10:00Z",
+      "odometer_before": 10,
+      "odometer_after": 20,
+      "reason": "Missing timestamp"
+    },
+    {
+      "id": "X06",
+      "before": "2026-10-24T07:00:00Z",
+      "after": "2026-10-24T07:10:00Z",
+      "odometer_before": null,
+      "odometer_after": 20,
+      "reason": "Missing reading"
+    }
+  ],
+  "alert_scenarios": [
+    {
+      "id": "A01",
+      "vehicle_id": "V01",
+      "daily_distance_km": 20,
+      "threshold_km": 21,
+      "active": true,
+      "expected_created": 0
+    },
+    {
+      "id": "A02",
+      "vehicle_id": "V01",
+      "daily_distance_km": 20,
+      "threshold_km": 20,
+      "active": true,
+      "expected_created": 0
+    },
+    {
+      "id": "A03",
+      "vehicle_id": "V01",
+      "daily_distance_km": 20,
+      "threshold_km": 19,
+      "active": true,
+      "expected_created": 1
+    },
+    {
+      "id": "A04",
+      "vehicle_id": "V01",
+      "daily_distance_km": 20,
+      "threshold_km": 19,
+      "active": false,
+      "expected_created": 0
+    },
+    {
+      "id": "A05",
+      "vehicle_id": "V04",
+      "daily_distance_km": null,
+      "threshold_km": 10,
+      "active": true,
+      "expected_created": 0
+    }
+  ],
+  "alert_deduplication": {
+    "rule_id": "synthetic-rule-A03",
+    "vehicle_id": "V01",
+    "event_day_warsaw": "2026-10-24",
+    "after_first_evaluation": 1,
+    "after_second_evaluation": 1,
+    "read_receipts_per_user": true
+  },
+  "synthetic_users": [
+    {
+      "id": "U01",
+      "username": "qa-editor",
+      "role": "editor",
+      "active": true
+    },
+    {
+      "id": "U02",
+      "username": "qa-viewer",
+      "role": "viewer",
+      "active": true
+    },
+    {
+      "id": "U03",
+      "username": "qa-inactive",
+      "role": "viewer",
+      "active": false
+    },
+    {
+      "id": "U04",
+      "username": "qa-nonexistent",
+      "exists": false
+    }
+  ],
+  "manual_drivers": [
+    {
+      "id": "DR01",
+      "name": "Kierowca Testowy A",
+      "created_locally": true
+    },
+    {
+      "id": "DR02",
+      "name": "Kierowca Testowy B",
+      "created_locally": true
+    }
+  ],
+  "source_states": [
+    {
+      "id": "E01",
+      "scenario": "Valid empty fleet",
+      "has_cache": true,
+      "source_status": "ok",
+      "expected_http": 200,
+      "expected_items": 0
+    },
+    {
+      "id": "E02",
+      "scenario": "Source unavailable and no cache",
+      "has_cache": false,
+      "source_status": "unavailable",
+      "expected_http": 503,
+      "expected_error_code": "SOURCE_UNAVAILABLE"
+    },
+    {
+      "id": "E03",
+      "scenario": "Prior success followed by failure",
+      "has_cache": true,
+      "source_status": "degraded",
+      "expected": "Last successful data available with clear degraded/stale indication"
+    },
+    {
+      "id": "E04",
+      "scenario": "Timeout",
+      "expected": "Controlled failure, no secret disclosure or fake current data"
+    }
+  ]
+}

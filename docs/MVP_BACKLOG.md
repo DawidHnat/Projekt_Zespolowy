@@ -1,4 +1,4 @@
-# Plan backlogu MVP — 20.10.2026
+# Plan backlogu MVP — aktualizacja 23.10.2026
 
 Źródłem bieżącego statusu pozostaje [backlog SCRUM](https://fleet-flow.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog).
 Poniższą kolejność ustawiono w Jirze i sprawdzono po odświeżeniu tablicy.
@@ -48,8 +48,11 @@ Zapisany cel: zalogowany kierownik floty widzi na wspólnym VPS listę i mapę
 pojazdów z synchronizacją WEBFLEET oraz jawną aktualnością danych; zakres
 obejmuje trzy Story i wspierające zadania szkieletu, infrastruktury i QA.
 
-Zapisany termin sprintu, 19.10.2026, minął. PO powinien uzgodnić dalszy
-termin; nie resetowano sprintu ani jego historii.
+Na polecenie PO 23.10.2026 zapisano nowy zakres sprintu:
+**26.10.2026, godz. 18:33 – 9.11.2026, godz. 18:33** (Europe/Warsaw).
+Początek przypada w najbliższy poniedziałek, a koniec dwa tygodnie później.
+Zaktualizowano daty istniejącego sprintu; Jira zachowała aktywny status,
+cel, trzy Story oraz historię. Zmiana dat nie oznacza odbioru historyjek.
 
 Poza tym zakresem pozostają m.in. serwis, karty paliwowe, eksporty,
 rozbudowana administracja kontami i dokumenty pojazdów. Ich istniejące

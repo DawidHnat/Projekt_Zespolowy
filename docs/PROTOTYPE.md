@@ -2,23 +2,30 @@
 
 Źródło: [Fleet-Flow — Sprint 1 / klikalny prototyp MVP](https://www.figma.com/design/4EFjRAUbCoTjemZpQRVDu9).
 Strona: **Sprint 1 — klikalny prototyp**. Prototyp powstał 20 października 2026.
+21 października dopasowano go do wybranego przez PO szklanego widoku aplikacji
+z tapetą miasta. Aktywna strona ma 25 ekranów; wcześniejsze 18 zachowano
+wraz z przepływami na stronie **Archiwum - prototyp przed dopasowaniem 21.10.2026**.
 
 W trybie prezentacji wybierz przepływ z lewego panelu. Przyciski i znaczniki
 przełączają połączone ekrany. Dane logowania, pojazdy, pomiary, godziny
 i mapa są przykładowe; prototyp nie łączy się z API ani bazą danych.
 Pola pokazują przygotowane stany, bez wpisywania prawdziwego hasła.
 
-20.10.2026 sprawdzono rzeczywiste kliknięcia w trybie prezentacji: logowanie
-i wylogowanie, lista → wyszukiwanie → mapa z zachowanym filtrem → pełna flota,
+21.10.2026 po zmianie wyglądu sprawdzono rzeczywiste kliknięcia w prezentacji:
+logowanie i wylogowanie, kafelki → wyszukiwanie → mapa → pełna flota,
 wybór FF002 oraz nieaktualność → awaria → ponowienie → synchronizacja
-→ odczyt 09:41. Sprawdzono też wygląd ekranów w pełnym rozmiarze.
+→ odczyt 09:41. Wyszukiwanie i filtr „W ruchu” pozostają zachowane również
+przy przełączaniu Pojazdy/Mapa boczną nawigacją. Sprawdzono wejście do Ustawień,
+wejście i anulowanie edycji układu oraz przewijanie Pulpitu do dolnych modułów.
+Kontrola struktury wykazała osiem początków przepływów, 318 elementów
+z interakcjami i brak odnośników do nieistniejących ekranów.
 
 ## Powiązanie z historyjkami
 
 | Story | Nazwany przepływ | Początek w prezentacji | Ekran w edytorze |
 | --- | --- | --- | --- |
 | [SCRUM-16](https://fleet-flow.atlassian.net/browse/SCRUM-16) | S1 / Logowanie → Pulpit → Wylogowanie | [Logowanie](https://www.figma.com/proto/4EFjRAUbCoTjemZpQRVDu9?node-id=2-46&starting-point-node-id=2%3A46&scaling=scale-down) | [01 Logowanie](https://www.figma.com/design/4EFjRAUbCoTjemZpQRVDu9?node-id=2-46) |
-| [SCRUM-5](https://fleet-flow.atlassian.net/browse/SCRUM-5) | S1 / Lista i mapa floty | [Lista i mapa](https://www.figma.com/proto/4EFjRAUbCoTjemZpQRVDu9?node-id=2-49&starting-point-node-id=2%3A49&scaling=scale-down) | [04 Lista pojazdów](https://www.figma.com/design/4EFjRAUbCoTjemZpQRVDu9?node-id=2-49) |
+| [SCRUM-5](https://fleet-flow.atlassian.net/browse/SCRUM-5) | S1 / Lista i mapa floty | [Lista i mapa](https://www.figma.com/proto/4EFjRAUbCoTjemZpQRVDu9?node-id=2-49&starting-point-node-id=2%3A49&scaling=scale-down) | [04 Pojazdy / kafelki](https://www.figma.com/design/4EFjRAUbCoTjemZpQRVDu9?node-id=2-49) |
 | [SCRUM-15](https://fleet-flow.atlassian.net/browse/SCRUM-15) | S1 / Aktualność danych → Awaria źródła → Odzyskane połączenie | [Aktualność danych](https://www.figma.com/proto/4EFjRAUbCoTjemZpQRVDu9?node-id=2-53&starting-point-node-id=2%3A53&scaling=scale-down) | [08 Nieaktualne dane](https://www.figma.com/design/4EFjRAUbCoTjemZpQRVDu9?node-id=2-53) |
 
 W opisach Story należy zachować te same nazwy przepływów i odnośniki.
@@ -43,6 +50,12 @@ API, uprawnień, sesji czy synchronizacji.
    do odzyskanego połączenia.
 4. Z listy przepływów uruchom warianty „Pusta flota”, „Awaria bez danych”
    oraz „Brak GPS”.
+5. **Spójność ze szkieletem:** na Pulpicie przewiń do modułów Pojazdy,
+   Wykorzystanie floty i Ostatnie przejazdy. Otwórz „Edytuj układ” i wróć
+   przez „Anuluj” albo „Zapisz układ”. To podgląd trybu edycji, bez symulacji
+   przeciągania i trwałego zapisu preferencji. „Ustawienia” pokazują wybrany
+   wygląd; zmiana motywów i wgrywanie zdjęć pozostają funkcją aplikacji.
+   Pozostałe pozycje nawigacji prowadzą do jawnych ekranów „w przygotowaniu”.
 
 ## Ekrany
 
@@ -51,8 +64,8 @@ API, uprawnień, sesji czy synchronizacji.
 | 01 | Logowanie | `2:46` |
 | 02 | Błąd logowania | `2:47` |
 | 03 | Pulpit / dane aktualne | `2:48` |
-| 04 | Lista pojazdów | `2:49` |
-| 05 | Wynik wyszukiwania | `2:50` |
+| 04 | Pojazdy / kafelki | `2:49` |
+| 05 | Kafelki / wynik wyszukiwania | `2:50` |
 | 06 | Mapa floty | `2:51` |
 | 07 | Wybrany pojazd / FF001 | `2:52` |
 | 08 | Nieaktualne dane | `2:53` |
@@ -62,17 +75,33 @@ API, uprawnień, sesji czy synchronizacji.
 | 12 | Awaria bez danych | `2:57` |
 | 13 | Pojazd bez GPS | `2:58` |
 | 14 | Wybrany pojazd / FF002 | `4:206` |
-| 15 | Filtr statusu / W ruchu | `9:227` |
+| 15 | Kafelki / filtr W ruchu | `9:227` |
 | 16 | Mapa / wynik wyszukiwania | `9:284` |
 | 17 | Mapa / filtr W ruchu | `9:357` |
 | 18 | Awaria / ostatni poprawny odczyt | `9:433` |
+| 19 | Ustawienia / Wygląd | `22:316` |
+| 20 | Pulpit / Edycja układu | `22:339` |
+| 21 | Serwis / W przygotowaniu | `22:403` |
+| 22 | Ewidencja przebiegu / W przygotowaniu | `22:426` |
+| 23 | Kierowcy / W przygotowaniu | `22:449` |
+| 24 | Karty paliwowe / W przygotowaniu | `22:472` |
+| 25 | Alerty / W przygotowaniu | `22:495` |
 
 ## Wygląd i dostęp
 
-Plik zawiera edytowalne warstwy, Inter, wspólne zmienne kolorów,
-komponenty przycisków, pól, statusów i znak z repozytorium.
-Wygląd odpowiada jasnemu motywowi opisanemu w [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md).
-Mapa jest ilustracją wektorową, a nie obrazem z danymi klienta.
+Plik zawiera edytowalne warstwy, Inter, wspólne zmienne kolorów oraz
+komponenty przycisków, pól, statusów, nawigacji, metryk i pustych stanów.
+Wygląd opiera się na [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md), `tokens.css`,
+`glass.css`, rejestrze modułów i nawigacji aplikacji: jasny motyw, szklane
+powierzchnie, zaokrąglenie kart 18 px oraz tapeta `backgrounds/city.jpg`.
+Znak i wektorowe ikony pochodzą z projektu. Jedyną bitmapą ekranów jest
+tapeta; interfejs pozostaje edytowalny. Mapa jest ilustracją wektorową,
+a nie obrazem z danymi klienta.
+
+Zakres prototypu obejmuje trzy Story Sprintu 1. Obecność przyszłych modułów
+w nawigacji nie oznacza, że prototyp implementuje całe MVP. Analityka, alerty
+i historia mają jawne puste stany zamiast zmyślonych wyników. Podgląd ustawień
+i układu nie symuluje wszystkich preferencji dostępnych w lokalnej aplikacji.
 
 Właścicielem pliku jest konto `j.czaja.568` użyte do połączenia Figmy.
 Udostępnienie prowadzącemu zostało odłożone do otrzymania jego adresu
