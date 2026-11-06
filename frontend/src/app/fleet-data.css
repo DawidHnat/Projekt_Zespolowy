@@ -273,16 +273,39 @@ table.vehicle-table {
   z-index: 3;
   background: var(--surface);
 }
-.map-zero {
+.map-status {
   position: absolute;
-  top: 70px;
+  bottom: 34px;
   left: 14px;
-  right: 50px;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: min(320px, calc(100% - 28px));
+  max-height: calc(100% - 90px);
+  overflow: auto;
   background: var(--surface);
-  padding: 12px;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 14px;
   border-radius: 12px;
   font-size: 12px;
   box-shadow: var(--shadow-card);
+}
+.map-status > svg {
+  flex: none;
+  color: var(--muted);
+}
+.map-status p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.map-status .button {
+  margin-top: 10px;
+  min-height: 32px;
+  padding: 6px 10px;
+  font-size: 11px;
 }
 .is-editing .mapbox-container {
   pointer-events: none;
