@@ -8,7 +8,7 @@ from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from app.core.models import Measurement, SyncState, Vehicle
-from app.integrations.webfleet.client import WebfleetClient, WebfleetError
+from app.integrations.webfleet.client import REQUEST_INTERVALS, WebfleetClient, WebfleetError
 from app.integrations.webfleet.models import ObjectSnapshot
 from app.modules.analytics.service import evaluate_distance_rules, record_distance_interval
 from app.modules.auth.service import aware
@@ -89,8 +89,20 @@ def apply_records(session, source, masters, readings, now):
             vehicle.active = False
 
 
-def sync_once(engine, settings, *, client_factory=WebfleetClient, now=None):
+def sync_once(
+    engine,
+    settings,
+    *,
+    client_factory=WebfleetClient,
+    now=None,
+    sync_interval_seconds=60,
+):
     now = now or datetime.now(UTC)
+    minimum_interval = max(
+        sync_interval_seconds,
+        REQUEST_INTERVALS["showVehicleReportExtern"],
+        REQUEST_INTERVALS["showObjectReportExtern"],
+    )
     source = account_key(settings.account)
     lock_id = int.from_bytes(bytes.fromhex(source)[:8], signed=True)
     with engine.connect() as connection:
@@ -106,7 +118,7 @@ def sync_once(engine, settings, *, client_factory=WebfleetClient, now=None):
                 if (
                     state
                     and state.last_attempt_at
-                    and now - aware(state.last_attempt_at) < timedelta(seconds=60)
+                    and now - aware(state.last_attempt_at) < timedelta(seconds=minimum_interval)
                 ):
                     return "rate_limited"
                 if not state:
@@ -138,7 +150,12 @@ def sync_once(engine, settings, *, client_factory=WebfleetClient, now=None):
 async def sync_worker(engine, settings, interval):
     while True:
         try:
-            await asyncio.to_thread(sync_once, engine, settings)
+            await asyncio.to_thread(
+                sync_once,
+                engine,
+                settings,
+                sync_interval_seconds=interval,
+            )
         except Exception:
             # No provider/SQL exceptions in logs: may contain credentials or telemetry.
             # Readiness and last-success timestamps expose availability to the UI.
