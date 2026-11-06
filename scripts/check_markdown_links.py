@@ -1,3 +1,4 @@
+
 """Sprawdzanie lokalnych linków w dokumentacji Markdown."""
 
 import re
@@ -42,49 +43,48 @@ def remove_inline_code(line):
 
 
 def remove_code_blocks(content):
-    """Pomija kod Markdown, ale zachowuje linki w listach."""
+    """Pomija kod Markdown i uwzględnia kontekst list."""
     lines = []
     fence_char = None
     fence_length = 0
-    list_content_indent = None
+
+    # Wcięcia treści aktywnych elementów listy.
+    list_indents = []
 
     for line in content.splitlines():
+        # Pusta linia nie kończy automatycznie elementu listy.
+        # Nie zamyka też bloku kodu otoczonego znacznikami.
         if not line.strip():
             lines.append("")
-            if fence_char is None:
-                list_content_indent = None
             continue
 
-        list_match = LIST_MARKER.match(line)
         indentation = len(line) - len(line.lstrip(" "))
+        list_match = LIST_MARKER.match(line)
 
         if fence_char is None:
+            # Wyjście z elementów listy następuje dopiero
+            # po zmniejszeniu wcięcia.
+            while list_indents and indentation < list_indents[-1]:
+                list_indents.pop()
+
             if list_match:
-                list_content_indent = list_match.end()
-            elif (
-                list_content_indent is not None
-                and indentation < list_content_indent
-            ):
-                list_content_indent = None
+                # Wcięcie treści po znaczniku listy.
+                list_indents.append(list_match.end())
 
-        is_list_continuation = (
-            list_content_indent is not None
-            and not list_match
-            and indentation >= list_content_indent
-        )
+        # Dla "- ```md" analizujemy treść po "- ".
+        if list_match and fence_char is None:
+            effective_line = line[list_match.end():]
 
-        if is_list_continuation:
-            effective_line = line[list_content_indent:]
-            effective_indent = indentation - list_content_indent
-        elif list_match:
-            effective_line = line
-            effective_indent = 0
+        # Dla kontynuacji listy usuwamy jej wcięcie.
+        elif list_indents and indentation >= list_indents[-1]:
+            effective_line = line[list_indents[-1]:]
+
         else:
             effective_line = line
-            effective_indent = indentation
 
         marker_match = FENCE_PATTERN.match(effective_line)
 
+        # Jesteśmy wewnątrz ogrodzonego bloku kodu.
         if fence_char is not None:
             if marker_match:
                 marker = marker_match.group(1)
@@ -100,27 +100,25 @@ def remove_code_blocks(content):
             lines.append("")
             continue
 
-        if (
-            marker_match
-            and not list_match
-            and effective_indent < 4
-        ):
+        # Początek bloku kodu, również wewnątrz listy.
+        if marker_match:
             marker = marker_match.group(1)
             fence_char = marker[0]
             fence_length = len(marker)
+
             lines.append("")
             continue
 
+        # Cztery dodatkowe spacje względem kontekstu
+        # oznaczają kod z wcięciem.
         if (
-            not list_match
-            and (
-                effective_line.startswith("\t")
-                or effective_indent >= 4
-            )
+            effective_line.startswith("    ")
+            or effective_line.startswith("\t")
         ):
             lines.append("")
             continue
 
+        # Zachowujemy aktywne linki, również w listach.
         lines.append(remove_inline_code(line))
 
     return lines
@@ -143,6 +141,7 @@ def parse_destination(line, start):
         if title_quote is not None:
             if char == title_quote:
                 title_quote = None
+
             position += 1
             continue
 
@@ -191,7 +190,11 @@ def clean_destination(raw):
         if ending != -1:
             raw = raw[1:ending]
     else:
-        raw = re.split(r'\s+(?=["\'])', raw, maxsplit=1)[0]
+        raw = re.split(
+            r'\s+(?=["\'])',
+            raw,
+            maxsplit=1,
+        )[0]
 
     return re.sub(
         r"\\([\\`*_{}\[\]()#+.!<>])",

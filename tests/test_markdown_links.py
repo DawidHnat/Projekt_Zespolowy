@@ -186,5 +186,35 @@ class MarkdownLinksTests(unittest.TestCase):
         self.assertEqual(len(errors), 1)
         self.assertIn("brak.md", errors[0])
 
+    def test_nested_list_link_after_blank_line(self):
+        content = (
+            "- Element nadrzędny\n"
+            "  - Element podrzędny\n"
+            "\n"
+            "    [dokument](brak.md)"
+        )
+
+        errors = self.check(content)
+
+        self.assertEqual(len(errors), 1)
+        self.assertIn("README.md:4:", errors[0])
+        self.assertIn("brak.md", errors[0])
+
+    def test_fenced_code_inside_list(self):
+        content = (
+            "- ```md\n"
+            "  [przykład](brak.md)\n"
+            "  ```\n"
+            "\n"
+            "[rzeczywisty](drugi-brak.md)"
+        )
+
+        errors = self.check(content)
+
+        self.assertEqual(
+            errors,
+            ["README.md:5: nie istnieje: drugi-brak.md"],
+        )
+
 if __name__ == "__main__":
     unittest.main()
