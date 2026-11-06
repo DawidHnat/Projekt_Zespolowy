@@ -2,8 +2,18 @@
     auto_https disable_redirects
 }
 
-# Publiczny HTTP udostępnia wyłącznie wersję i odnośnik do HTTPS.
-# Nie ma tutaj formularza logowania, API ani danych floty.
+# Nazwane hosty przechodzą na kanoniczną domenę; zachowujemy ścieżkę i query.
+# APP_DOMAIN jest docelowym fleet-flow.pl, aliasy nie hostują aplikacji.
+http://{$APP_DOMAIN}, http://www.fleet-flow.pl, http://vps-9171bf52.vps.ovh.net {
+    redir https://{$APP_DOMAIN}{uri} 308
+}
+
+https://www.fleet-flow.pl, https://vps-9171bf52.vps.ovh.net {
+    redir https://{$APP_DOMAIN}{uri} 308
+}
+
+# HTTP po IP nadal udostępnia stronę wersji wymaganą w zadaniu kursowym.
+# Nie udostępniamy tutaj formularza logowania, API ani danych floty.
 http:// {
     header Cache-Control "no-store"
     @home path /
