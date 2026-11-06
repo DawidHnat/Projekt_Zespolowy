@@ -185,7 +185,7 @@ def test_postgres_shared_limiter_failure_cache_and_lock():
                 )
                 == "busy"
             )
-            assert calls == ["vehicles", "objects"]
+            assert calls == ["vehicles", "objects", "vehicles", "objects"]
         finally:
             connection.execute(text("SELECT pg_advisory_unlock(:key)"), {"key": key})
             connection.commit()
