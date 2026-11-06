@@ -126,7 +126,21 @@ udostępnia formularza logowania, API ani danych floty. HTTP po nazwach domeny,
 ścieżkę i parametry. HTTPS aliasów robi to samo. Strona wersji i aplikacja
 otrzymują to samo siedmioznakowe SHA podczas budowy.
 
+## Pełny odbiór wydania MVP — SCRUM-18
+
+Pojedyncze health checki i strona z SHA są tylko częściowymi dowodami wdrożenia.
+Odbiór wymaga wypełnienia jednego śladu dla dokładnego wydania i środowiska,
+niezależnego review, wymaganych QA oraz dowodów dla każdej bramy P0.
+Stosuj [protokół odbioru MVP](MVP_RELEASE_PROTOCOL.md): brak dowodu oznacza
+`BLOCKED`, błędny wynik `FAIL`, a brak digestu nie może być ukrywany deklaracją
+zgodności. Protokół określa wymagania, nie potwierdza wykonania kontroli ani
+gotowości bieżącego wydania.
+
 ## Dowody do oddania — tylko rzeczywiste wyniki
+
+Poniższe polecenia potwierdzają tylko wybrane elementy: publiczny SHA i gotowość
+API. Nie stanowią samodzielnego odbioru. Zbieraj też pozostałe dowody zgodnie z
+[pełnym protokołem SCRUM-18](MVP_RELEASE_PROTOCOL.md).
 
 Po scaleniu i zakończeniu jobu wdrożenia:
 
