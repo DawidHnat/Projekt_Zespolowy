@@ -16,7 +16,7 @@ export function FleetNotice() {
   if (f.list?.source.status === "degraded")
     return (
       <p className="fleet-notice" role="status">
-        WEBFLEET jest chwilowo niedostępny. Ostatni poprawny odczyt: {lastSuccess}.
+        WEBFLEET jest chwilowo niedostępny. Wyświetlamy ostatnie pomiary. Ostatni poprawny odczyt: {lastSuccess}.
       </p>
     );
   if (f.loading && f.list)

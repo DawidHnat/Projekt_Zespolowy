@@ -8,9 +8,7 @@ from urllib.parse import urlsplit
 from app.core.config import ConfigurationError, load_environment
 
 
-def _seconds(
-    values: Mapping[str, str], name: str, default: int, minimum: int, maximum: int
-) -> int:
+def _seconds(values: Mapping[str, str], name: str, default: int, minimum: int, maximum: int) -> int:
     try:
         value = int(values.get(name, str(default)))
     except (TypeError, ValueError):
