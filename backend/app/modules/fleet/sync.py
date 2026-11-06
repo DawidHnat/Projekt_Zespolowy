@@ -13,15 +13,50 @@ from app.integrations.webfleet.models import ObjectSnapshot
 from app.modules.analytics.service import evaluate_distance_rules, record_distance_interval
 from app.modules.auth.service import aware
 
+MAX_READ_ATTEMPTS = 3
+MAX_AUTOMATIC_RETRY_WAIT_SECONDS = 60
+RETRYABLE_ERROR_CODES = {
+    "timeout",
+    "connection_failed",
+    "provider_rate_limit",
+    "local_rate_limit",
+}
+
 
 def account_key(account: str) -> str:
     return hashlib.sha256(account.strip().lower().encode()).hexdigest()
 
 
-async def read_vehicle_data(settings, client_factory):
+async def _read_with_retries(action, fetch, sleep):
+    for attempt in range(MAX_READ_ATTEMPTS):
+        try:
+            return await fetch()
+        except WebfleetError as error:
+            retryable = error.retryable or error.code in RETRYABLE_ERROR_CODES
+            if not retryable or attempt == MAX_READ_ATTEMPTS - 1:
+                raise
+            delay = max(
+                REQUEST_INTERVALS[action],
+                2**attempt,
+                error.retry_after_seconds or 0,
+            )
+            if delay > MAX_AUTOMATIC_RETRY_WAIT_SECONDS:
+                raise
+            await sleep(delay)
+
+
+async def read_vehicle_data(settings, client_factory, *, sleep=asyncio.sleep):
     async with client_factory(settings) as client:
-        masters = await client.fetch_vehicles()
-        snapshots = await client.fetch_objects()
+        masters = await _read_with_retries(
+            "showVehicleReportExtern",
+            client.fetch_vehicles,
+            sleep,
+        )
+        snapshots = await _read_with_retries(
+            "showObjectReportExtern",
+            client.fetch_objects,
+            sleep,
+        )
         return masters, snapshots
 
 
@@ -97,6 +132,7 @@ def sync_once(
     now=None,
     sync_interval_seconds=60,
 ):
+    supplied_now = now is not None
     now = now or datetime.now(UTC)
     minimum_interval = max(
         sync_interval_seconds,
@@ -129,10 +165,11 @@ def sync_once(
                 try:
                     masters, snapshots = asyncio.run(read_vehicle_data(settings, client_factory))
                     indexed, readings = validate_records(masters, snapshots)
-                    apply_records(session, source, indexed, readings, now)
+                    completed_at = datetime.now(UTC) if not supplied_now else now
+                    apply_records(session, source, indexed, readings, completed_at)
                     session.flush()
-                    evaluate_distance_rules(session, source, now=now)
-                    state.last_success_at = now
+                    evaluate_distance_rules(session, source, now=completed_at)
+                    state.last_success_at = completed_at
                     state.error_code = None
                     session.commit()
                     return "ok"
