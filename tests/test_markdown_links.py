@@ -1,9 +1,14 @@
+
 """Izolowane testy lokalnych linków w dokumentacji Markdown."""
 
+import shutil
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
+import scripts.check_markdown_links as checker
 from scripts.check_markdown_links import check_file
 
 
@@ -18,6 +23,8 @@ class MarkdownLinksTests(unittest.TestCase):
     def check(self, content):
         self.doc.write_text(content, encoding="utf-8")
         return check_file(self.doc, self.root)
+
+    # Dotychczasowe 21 testów
 
     def test_existing_file(self):
         (self.root / "example.txt").write_text(
@@ -215,6 +222,133 @@ class MarkdownLinksTests(unittest.TestCase):
             errors,
             ["README.md:5: nie istnieje: drugi-brak.md"],
         )
+
+    # Dziewięć regresji z najnowszego review Jakuba Czai
+
+    def test_indented_list_is_code(self):
+        self.assertEqual(
+            self.check(
+                "Przykład:\n\n"
+                "    - [plik](missing.md)\n"
+            ),
+            [],
+        )
+
+    def test_quoted_fence_is_code(self):
+        self.assertEqual(
+            self.check(
+                "> ```md\n"
+                "> [przykład](missing.md)\n"
+                "> ```\n"
+            ),
+            [],
+        )
+
+    def test_fence_ends_when_list_container_ends(self):
+        self.assertEqual(
+            self.check(
+                "- ```md\n"
+                "  przykład\n"
+                "\n"
+                "[real](missing.md)\n"
+            ),
+            ["README.md:4: nie istnieje: missing.md"],
+        )
+
+    def test_multiline_code_span_is_ignored(self):
+        self.assertEqual(
+            self.check(
+                "Kod: `przykład\n"
+                "[plik](missing.md)\n"
+                "koniec`\n"
+            ),
+            [],
+        )
+
+    def test_parenthesized_title_is_not_part_of_destination(self):
+        self.assertEqual(
+            self.check(
+                "[plik](README.md (Opis pliku))\n"
+            ),
+            [],
+        )
+
+    def test_nested_brackets_in_label(self):
+        self.assertEqual(
+            self.check(
+                "[dokument [v1]](missing.md)\n"
+            ),
+            ["README.md:1: nie istnieje: missing.md"],
+        )
+
+    def test_reference_definition_in_nested_list(self):
+        errors = self.check(
+            "- Element\n"
+            "  - Podpunkt\n"
+            "\n"
+            "    [ref]: missing.md\n"
+            "\n"
+            "    [dokument][ref]\n"
+        )
+
+        self.assertEqual(len(errors), 1)
+        self.assertIn("README.md:", errors[0])
+        self.assertIn("missing.md", errors[0])
+
+    def test_escaped_opening_bracket_is_not_a_link(self):
+        self.assertEqual(
+            self.check(
+                r"\[example](missing.md)" + "\n"
+            ),
+            [],
+        )
+
+    def test_cli_checks_unicode_filename_with_default_git_quoting(self):
+        subprocess.run(
+            ["git", "init", "-q", str(self.root)],
+            check=True,
+        )
+
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(self.root),
+                "config",
+                "core.quotePath",
+                "true",
+            ],
+            check=True,
+        )
+
+        scripts = self.root / "scripts"
+        scripts.mkdir()
+
+        shutil.copy(
+            Path(checker.__file__),
+            scripts / "check_markdown_links.py",
+        )
+
+        (self.root / "zażółć.md").write_text(
+            "[brak](missing.md)\n",
+            encoding="utf-8",
+        )
+
+        result = subprocess.run(
+            [sys.executable, "scripts/check_markdown_links.py"],
+            cwd=self.root,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(
+            result.returncode,
+            1,
+            result.stdout + result.stderr,
+        )
+        self.assertIn("zażółć.md:1:", result.stdout)
+        self.assertIn("missing.md", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

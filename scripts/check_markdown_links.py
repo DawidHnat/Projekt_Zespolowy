@@ -1,224 +1,68 @@
 
 """Sprawdzanie lokalnych linków w dokumentacji Markdown."""
 
+import os
 import re
 import subprocess
 import sys
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
-
-LINK_START = re.compile(r"!?\[[^\]\n]*\]\(")
-FENCE_PATTERN = re.compile(r"^ {0,3}(`{3,}|~{3,})")
-REFERENCE_PATTERN = re.compile(r"^ {0,3}\[[^\]]+\]:\s*(<[^>]+>|\S+)")
-BACKTICKS = re.compile(r"`+")
-LIST_MARKER = re.compile(r"^( *)(?:[-+*]|\d+[.)]) +")
+from markdown_it import MarkdownIt
 
 
-def remove_inline_code(line):
-    """Pomija kod inline, zachowując resztę linii."""
-    markers = list(BACKTICKS.finditer(line))
-    chars = list(line)
-    index = 0
+def extract_links(content):
+    """Zwraca numery linii i adresy aktywnych linków."""
+    environment = {}
+    tokens = MarkdownIt("commonmark").parse(content, environment)
+    reference_targets = set()
 
-    while index < len(markers):
-        opening = markers[index]
-        closing_index = index + 1
+    # Sprawdź definicje referencyjne, także te bez użycia.
+    for reference in environment.get("references", {}).values():
+        target = reference["href"]
+        reference_targets.add(target)
+        yield reference["map"][0] + 1, target
 
-        while closing_index < len(markers):
-            closing = markers[closing_index]
-
-            if len(closing.group()) == len(opening.group()):
-                chars[opening.start():closing.end()] = [" "] * (
-                    closing.end() - opening.start()
-                )
-                index = closing_index + 1
-                break
-
-            closing_index += 1
-        else:
-            index += 1
-
-    return "".join(chars)
-
-
-def remove_code_blocks(content):
-    """Pomija kod Markdown i uwzględnia kontekst list."""
-    lines = []
-    fence_char = None
-    fence_length = 0
-
-    # Wcięcia treści aktywnych elementów listy.
-    list_indents = []
-
-    for line in content.splitlines():
-        # Pusta linia nie kończy automatycznie elementu listy.
-        # Nie zamyka też bloku kodu otoczonego znacznikami.
-        if not line.strip():
-            lines.append("")
+    for token in tokens:
+        if token.type != "inline" or token.map is None:
             continue
 
-        indentation = len(line) - len(line.lstrip(" "))
-        list_match = LIST_MARKER.match(line)
+        first_line = token.map[0] + 1
 
-        if fence_char is None:
-            # Wyjście z elementów listy następuje dopiero
-            # po zmniejszeniu wcięcia.
-            while list_indents and indentation < list_indents[-1]:
-                list_indents.pop()
+        for child in token.children or []:
+            if child.type == "link_open":
+                target = child.attrGet("href")
+            elif child.type == "image":
+                target = child.attrGet("src")
+            else:
+                continue
 
-            if list_match:
-                # Wcięcie treści po znaczniku listy.
-                list_indents.append(list_match.end())
+            # Cel definicji referencyjnej sprawdzono już powyżej.
+            if not target or target in reference_targets:
+                continue
 
-        # Dla "- ```md" analizujemy treść po "- ".
-        if list_match and fence_char is None:
-            effective_line = line[list_match.end():]
+            line_number = first_line
 
-        # Dla kontynuacji listy usuwamy jej wcięcie.
-        elif list_indents and indentation >= list_indents[-1]:
-            effective_line = line[list_indents[-1]:]
-
-        else:
-            effective_line = line
-
-        marker_match = FENCE_PATTERN.match(effective_line)
-
-        # Jesteśmy wewnątrz ogrodzonego bloku kodu.
-        if fence_char is not None:
-            if marker_match:
-                marker = marker_match.group(1)
-
-                if (
-                    marker[0] == fence_char
-                    and len(marker) >= fence_length
-                    and not effective_line[marker_match.end():].strip()
+            # Token inline może obejmować kilka linii,
+            # np. przy zagnieżdżonych listach Markdown.
+            if "\n" in token.content:
+                for offset, text in enumerate(
+                    token.content.splitlines()
                 ):
-                    fence_char = None
-                    fence_length = 0
+                    plain = re.sub(
+                        r"\\([\\()\[\]])",
+                        r"\1",
+                        text,
+                    )
 
-            lines.append("")
-            continue
+                    if (
+                        target in plain
+                        or unquote(target) in plain
+                    ):
+                        line_number += offset
+                        break
 
-        # Początek bloku kodu, również wewnątrz listy.
-        if marker_match:
-            marker = marker_match.group(1)
-            fence_char = marker[0]
-            fence_length = len(marker)
-
-            lines.append("")
-            continue
-
-        # Cztery dodatkowe spacje względem kontekstu
-        # oznaczają kod z wcięciem.
-        if (
-            effective_line.startswith("    ")
-            or effective_line.startswith("\t")
-        ):
-            lines.append("")
-            continue
-
-        # Zachowujemy aktywne linki, również w listach.
-        lines.append(remove_inline_code(line))
-
-    return lines
-
-
-def parse_destination(line, start):
-    """Odczytuje cel linku, ignorując nawiasy w cytowanym tytule."""
-    depth = 1
-    in_angle = False
-    title_quote = None
-    position = start
-
-    while position < len(line):
-        char = line[position]
-
-        if char == "\\" and position + 1 < len(line):
-            position += 2
-            continue
-
-        if title_quote is not None:
-            if char == title_quote:
-                title_quote = None
-
-            position += 1
-            continue
-
-        if (
-            not in_angle
-            and depth == 1
-            and char in ('"', "'")
-            and position > start
-            and line[position - 1].isspace()
-            and line[start:position].strip()
-        ):
-            title_quote = char
-            position += 1
-            continue
-
-        if char == "<":
-            in_angle = True
-
-        elif char == ">" and in_angle:
-            in_angle = False
-
-        elif not in_angle and char == "(":
-            depth += 1
-
-        elif not in_angle and char == ")":
-            depth -= 1
-
-            if depth == 0:
-                return line[start:position]
-
-        position += 1
-
-    return None
-
-
-def clean_destination(raw):
-    """Usuwa opcjonalny tytuł linku i znaki escape Markdown."""
-    raw = raw.strip()
-
-    if not raw:
-        return ""
-
-    if raw.startswith("<"):
-        ending = raw.find(">")
-
-        if ending != -1:
-            raw = raw[1:ending]
-    else:
-        raw = re.split(
-            r'\s+(?=["\'])',
-            raw,
-            maxsplit=1,
-        )[0]
-
-    return re.sub(
-        r"\\([\\`*_{}\[\]()#+.!<>])",
-        r"\1",
-        raw,
-    )
-
-
-def extract_links(line):
-    """Zwraca adresy linków i definicji referencyjnych."""
-    links = []
-
-    for match in LINK_START.finditer(line):
-        raw = parse_destination(line, match.end())
-
-        if raw is not None:
-            links.append(clean_destination(raw))
-
-    reference = REFERENCE_PATTERN.match(line)
-
-    if reference:
-        links.append(clean_destination(reference.group(1)))
-
-    return links
+            yield line_number, target
 
 
 def check_file(markdown_file, repo_root):
@@ -226,37 +70,36 @@ def check_file(markdown_file, repo_root):
     errors = []
     content = markdown_file.read_text(encoding="utf-8")
 
-    for line_number, line in enumerate(remove_code_blocks(content), 1):
-        for target in extract_links(line):
-            if not target or target.startswith("#"):
-                continue
+    for line_number, target in extract_links(content):
+        if not target or target.startswith("#"):
+            continue
 
-            parsed = urlsplit(target)
+        parsed = urlsplit(target)
 
-            if (
-                parsed.scheme
-                or parsed.netloc
-                or target.startswith("//")
-            ):
-                continue
+        if (
+            parsed.scheme
+            or parsed.netloc
+            or target.startswith("//")
+        ):
+            continue
 
-            path = unquote(parsed.path)
+        path = unquote(parsed.path)
 
-            if not path:
-                continue
+        if not path:
+            continue
 
-            if path.startswith("/"):
-                destination = repo_root / path.lstrip("/")
-            else:
-                destination = markdown_file.parent / path
+        if path.startswith("/"):
+            destination = repo_root / path.lstrip("/")
+        else:
+            destination = markdown_file.parent / path
 
-            if not destination.exists():
-                relative_file = markdown_file.relative_to(repo_root)
+        if not destination.exists():
+            relative_file = markdown_file.relative_to(repo_root)
 
-                errors.append(
-                    f"{relative_file}:{line_number}: "
-                    f"nie istnieje: {target}"
-                )
+            errors.append(
+                f"{relative_file}:{line_number}: "
+                f"nie istnieje: {target}"
+            )
 
     return errors
 
@@ -268,6 +111,7 @@ def main():
         [
             "git",
             "ls-files",
+            "-z",
             "--cached",
             "--others",
             "--exclude-standard",
@@ -275,17 +119,27 @@ def main():
         ],
         cwd=repo_root,
         capture_output=True,
-        text=True,
         check=True,
     )
 
-    markdown_files = sorted(set(result.stdout.splitlines()))
+    # Git zwraca nazwy oddzielone bajtem NUL.
+    # Nie korzystamy z cytowanych nazw core.quotePath.
+    markdown_files = sorted(
+        {
+            os.fsdecode(filename)
+            for filename in result.stdout.split(b"\0")
+            if filename
+        }
+    )
+
     errors = []
+    checked = 0
 
     for filename in markdown_files:
         markdown_file = repo_root / filename
 
         if markdown_file.is_file():
+            checked += 1
             errors.extend(check_file(markdown_file, repo_root))
 
     if errors:
@@ -296,7 +150,7 @@ def main():
 
         return 1
 
-    print(f"OK — sprawdzono {len(markdown_files)} plików Markdown.")
+    print(f"OK — sprawdzono {checked} plików Markdown.")
     return 0
 
 
