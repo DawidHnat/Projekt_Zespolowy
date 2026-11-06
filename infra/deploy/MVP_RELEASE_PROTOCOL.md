@@ -47,20 +47,25 @@ zakładamy, że jest ukończona.
 | P0-06 | Uruchomiona aplikacja i stan danych | Potwierdzono zatwierdzoną wersję React/FastAPI/PostgreSQL, wynik migracji, liveness i readiness, połączenie z DB oraz bezpieczne logi. Poprzednia wersja i wykonalna procedura rollbacku są dostępne. |
 | P0-07 | Edge i HTTPS: 67/96 | Na docelowym adresie sprawdzono właściwą domenę i certyfikat, `Secure`/`HttpOnly` cookies, dozwolony Origin, nagłówki i zachowanie klienta przez zaufany reverse proxy. HSTS włącza się dopiero po potwierdzonym docelowym HTTPS. |
 | P0-08 | Post-deploy smoke na zatwierdzonym koncie i środowisku | Sprawdzono kolejno login → lista/mapa albo jawny fallback → szczegóły → logout, odpowiedzi API, stan DB, wiek pomiarów, `last_success_at` źródła i brak regresji 5xx. Dowód używa wyłącznie zatwierdzonego konta/środowiska i nie ujawnia danych klientów. Każda awaria blokuje odbiór oraz wymaga zapisania reakcji i decyzji o rollbacku. |
-| P0-09 | Warunki dla realnej floty | Przed użyciem realnej floty istnieją zatwierdzone decyzje 94, egzekwowanie właściwego zakresu dostępu 48 oraz odrębnie autoryzowany operacyjny odbiór synchronizacji 64. Demo na danych syntetycznych opisuje ograniczenia i nie jest odbiorem realnej floty. Nie uruchamiamy żywego WEBFLEET ani wysyłki SMTP bez osobnego, wyraźnego polecenia. |
+| P0-09 | Zakres użycia: syntetyczny albo realna flota | Przed oceną wydania jawnie zapisano, czy jest ono wyłącznie syntetycznym demo, czy dopuszcza realną flotę. Dla wydania wyłącznie syntetycznego P0-09 ma `PASS` tylko wtedy, gdy ślad potwierdza użycie wyłącznie danych syntetycznych, brak żywego WEBFLEET i brak wysyłki SMTP; warunki 94/48/64 są oznaczone jako poza zakresem tego wydania i pozostają osobną bramą przed użyciem realnej floty. Dla wydania obejmującego realną flotę wymagane są zatwierdzone decyzje 94, egzekwowanie właściwego zakresu dostępu 48 i odrębnie autoryzowany operacyjny odbiór sync 64; brak któregokolwiek dowodu to `BLOCKED` i blokuje takie wdrożenie. Demo syntetyczne jawnie opisuje ograniczenia i nie jest odbiorem realnej floty. Żywego WEBFLEET ani wysyłki SMTP nie uruchamiamy bez osobnego, wyraźnego polecenia. |
 | P0-10 | Operacyjne zamknięcie: 99/87 | Operator potwierdził monitoring i alarmowanie (99), stan recovery i kontrolę po wdrożeniu. Dokumentacja wskazuje adres, wersję i instrukcję odtworzenia; ślad wydania został zapisany zgodnie z 87. |
 | P0-11 | Regresja i odbiór całego przyrostu: 17 | Końcowa regresja/demo obejmuje cały zatwierdzony przyrost, a QA i review są udokumentowane. Częściowy PR nie zamyka nadrzędnej Story. |
 
 P0 oznacza bramę obowiązkową dla odbioru wydania. Odbiór jest możliwy dopiero,
 gdy wszystkie wymagane P0 mają `PASS`; wyjątek nie może ukryć `FAIL` ani
-`BLOCKED`. Wymagania dla realnej floty pozostają osobną bramą operacyjną:
-nie blokują syntetycznego demo, ale bez ich spełnienia nie wolno uznać ani
-uruchomić integracji produkcyjnej z realną flotą.
+`BLOCKED`. Zakres syntetyczny nie jest wyjątkiem od tej reguły: dla P0-09
+stanowi jawnie zdefiniowaną ścieżkę `PASS`, jeśli ograniczenie wyłącznie do
+danych syntetycznych i wyłączenie integracji live mają dowody. Warunki 94/48/64
+nie są wtedy wymaganymi kontrolami tego wydania, ale pozostają nierozstrzygnięte
+przed jakimkolwiek użyciem realnej floty. Jeżeli zakres wydania obejmuje realną
+flotę, brak dowodu któregokolwiek warunku P0-09 oznacza `BLOCKED` i blokuje
+odbiór tego wdrożenia.
 
 ## Przebieg dla konkretnego wydania
 
-1. Z Jiry ustal zakres, zależności, wykonawców i odbiorców; nie wyprowadzaj
-   statusu sprintu z historycznej dokumentacji.
+1. Z Jiry ustal zakres, zależności, wykonawców i odbiorców; jawnie określ
+   przeznaczenie wydania jako wyłącznie syntetyczne albo obejmujące realną flotę.
+   Nie wyprowadzaj statusu sprintu z historycznej dokumentacji.
 2. Wybierz dokładny SHA `main` i PR-y, które składają się na wydanie. Zapisz
    SHA, docelowe środowisko, identyfikator runu `Required CI` i digest artefaktu
    (albo jawny `BLOCKED`, jeśli digest nie jest weryfikowalny).
