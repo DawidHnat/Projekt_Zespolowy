@@ -1,3 +1,4 @@
+import asyncio
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -5,7 +6,7 @@ from sqlalchemy import select
 
 from app.core.models import Driver, Measurement, Vehicle
 from app.integrations.webfleet.client import WebfleetError
-from app.modules.fleet.sync import apply_records, validate_records
+from app.modules.fleet.sync import apply_records, read_vehicle_data, validate_records
 
 
 def sample(now):
@@ -67,6 +68,100 @@ def test_incomplete_or_duplicate_reports_cannot_deactivate_cached_vehicles():
         validate_records(master + master, snapshots)
     with pytest.raises(WebfleetError):
         validate_records(master, snapshots + snapshots)
+
+
+def test_source_reads_retry_transient_failures_with_bounded_delays():
+    now = datetime.now(UTC)
+    expected = sample(now)
+    attempts = {"vehicles": 0, "objects": 0}
+    delays = []
+
+    class RetryingClient:
+        def __init__(self, _):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            pass
+
+        async def fetch_vehicles(self):
+            attempts["vehicles"] += 1
+            if attempts["vehicles"] == 1:
+                raise WebfleetError("timeout")
+            return expected[0]
+
+        async def fetch_objects(self):
+            attempts["objects"] += 1
+            if attempts["objects"] < 3:
+                raise WebfleetError("provider_rate_limit", retry_after_seconds=20)
+            return expected[1]
+
+    async def no_wait(delay):
+        delays.append(delay)
+
+    result = asyncio.run(read_vehicle_data(None, RetryingClient, sleep=no_wait))
+
+    assert result == expected
+    assert attempts == {"vehicles": 2, "objects": 3}
+    assert delays == [10, 20, 20]
+
+
+def test_source_reads_stop_after_three_transient_failures():
+    calls = []
+    delays = []
+
+    class UnavailableClient:
+        def __init__(self, _):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            pass
+
+        async def fetch_vehicles(self):
+            calls.append("vehicles")
+            raise WebfleetError("connection_failed")
+
+    async def no_wait(delay):
+        delays.append(delay)
+
+    with pytest.raises(WebfleetError, match="connection_failed"):
+        asyncio.run(read_vehicle_data(None, UnavailableClient, sleep=no_wait))
+
+    assert calls == ["vehicles"] * 3
+    assert delays == [10, 10]
+
+
+def test_source_does_not_retry_beyond_retry_after_cap():
+    calls = []
+    delays = []
+
+    class RateLimitedClient:
+        def __init__(self, _):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            pass
+
+        async def fetch_vehicles(self):
+            calls.append("vehicles")
+            raise WebfleetError("provider_rate_limit", retry_after_seconds=61)
+
+    async def no_wait(delay):
+        delays.append(delay)
+
+    with pytest.raises(WebfleetError, match="provider_rate_limit"):
+        asyncio.run(read_vehicle_data(None, RateLimitedClient, sleep=no_wait))
+
+    assert calls == ["vehicles"]
+    assert delays == []
 
 
 def test_postgres_shared_limiter_failure_cache_and_lock():
