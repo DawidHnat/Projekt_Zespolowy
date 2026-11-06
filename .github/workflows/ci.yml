@@ -186,6 +186,8 @@ jobs:
       DEPLOY_KEY: ${{ secrets.DEV_SSH_PRIVATE_KEY }}
       DEPLOY_KNOWN_HOSTS: ${{ secrets.DEV_SSH_KNOWN_HOSTS }}
       RUNTIME_ENV: ${{ secrets.DEV_RUNTIME_ENV }}
+      WEBFLEET_ENV: ${{ secrets.DEV_WEBFLEET_ENV }}
+      WEBFLEET_SYNC_ENABLED: ${{ vars.DEV_WEBFLEET_SYNC_ENABLED || 'false' }}
     steps:
       - uses: actions/download-artifact@v8.0.2
         with:
@@ -207,6 +209,16 @@ jobs:
           printf '%s\n' "$DEPLOY_KEY" > "$staging/key"
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$staging/known_hosts"
           printf '%s\n' "$RUNTIME_ENV" > "$staging/release/runtime.env"
+          case "$WEBFLEET_SYNC_ENABLED" in
+            true|false) ;;
+            *) echo '::error::DEV_WEBFLEET_SYNC_ENABLED must be true or false.'; exit 1 ;;
+          esac
+          if [[ -n "$WEBFLEET_ENV" ]]; then
+            printf '\n%s\nSYNC_ENABLED=%s\n' "$WEBFLEET_ENV" "$WEBFLEET_SYNC_ENABLED" >> "$staging/release/runtime.env"
+          elif [[ "$WEBFLEET_SYNC_ENABLED" == true ]]; then
+            echo '::error::Configure DEV_WEBFLEET_ENV before enabling WEBFLEET synchronization.'
+            exit 1
+          fi
           tar -czf "$staging/upload.tgz" -C "$staging/release" .
           ssh -T -F /dev/null -i "$staging/key" -o BatchMode=yes \
             -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \

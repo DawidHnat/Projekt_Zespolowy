@@ -77,6 +77,24 @@ Nie ma domyślnych kont aplikacji ani haseł. Administrator tworzy konta przez
 istniejące interaktywne `python -m app.manage create-user` w kontenerze API,
 według instrukcji backendu. Nie publikuje haseł w PR ani w logu Actions.
 
+### Konfiguracja integracji na kolejnych wdrożeniach
+
+Zapisz publiczny token Mapbox jako zmienną repozytorium
+`MAPBOX_PUBLIC_TOKEN`. Frontend odczytuje ją podczas budowy.
+
+W środowisku Actions `development` zapisz prywatny sekret
+`DEV_WEBFLEET_ENV` w formacie dotenv. Zawiera wyłącznie
+`WEBFLEET_ACCOUNT`, `WEBFLEET_USERNAME`, `WEBFLEET_PASSWORD` i
+`WEBFLEET_API_KEY`. Workflow dodaje je do pliku środowiska API przy każdym
+wdrożeniu. Ustawienia domeny i bazy nadal pochodzą z `DEV_RUNTIME_ENV`.
+Jeśli osobny sekret jest pusty, workflow korzysta z ustawień integracji
+zapisanych w dotychczasowym `DEV_RUNTIME_ENV`.
+
+Zmienna środowiska Actions `DEV_WEBFLEET_SYNC_ENABLED` ma domyślnie wartość
+`false` dla osobnego sekretu. Po odbiorze SCRUM-64 operator może ustawić
+`true` i wdrożyć zatwierdzoną wersję. Powrót do `false` zatrzymuje kolejne
+cykle po wdrożeniu bez czyszczenia zapisanych danych.
+
 ## Ochrona main — wykonuje właściciel repozytorium
 
 Repozytorium jest prywatne i należy do osobistego konta `DawidHnat`.
