@@ -151,7 +151,11 @@ Administrator może także ustawić hasło lokalnym poleceniem powyżej.
 
 ## Synchronizacja pojazdów — SCRUM-15
 
-`SYNC_ENABLED=true` w lokalnym `.env` włącza jeden wspólny odczyt co 60 s.
+`SYNC_ENABLED=true` w lokalnym `.env` włącza jeden wspólny odczyt. `SYNC_INTERVAL_SECONDS`
+ustawia częstotliwość (domyślnie 60 s, minimum 10 s zgodnie z limitem źródła),
+a `STALE_SECONDS` próg nieaktualności pomiaru (domyślnie 900 s). Obie wartości
+są walidowane przy starcie; nie ustawiaj częstotliwości przed sprawdzeniem limitów
+WEBFLEET dla używanego konta.
 PostgreSQL advisory lock i zapis czasu próby chronią limit także przy kilku
 procesach. Nie uruchamiaj równolegle diagnostyki w pętli. Awaria zachowuje dane
 ostatniego sukcesu; brak kompletnego raportu nie dezaktywuje pojazdów. Import

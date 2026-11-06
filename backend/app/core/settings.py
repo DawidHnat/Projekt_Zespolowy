@@ -1,10 +1,25 @@
 """Application settings; credentials never appear in repr or error messages."""
 
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from urllib.parse import urlsplit
 
 from app.core.config import ConfigurationError, load_environment
+
+
+def _seconds(
+    values: Mapping[str, str], name: str, default: int, minimum: int, maximum: int
+) -> int:
+    try:
+        value = int(values.get(name, str(default)))
+    except (TypeError, ValueError):
+        raise ConfigurationError(
+            f"{name}: wymagany czas od {minimum} do {maximum} sekund"
+        ) from None
+    if not minimum <= value <= maximum:
+        raise ConfigurationError(f"{name}: wymagany czas od {minimum} do {maximum} sekund")
+    return value
 
 
 @dataclass(frozen=True)
@@ -19,8 +34,8 @@ class Settings:
     webfleet_account: str = field(default="", repr=False)
 
     @classmethod
-    def from_environment(cls) -> "Settings":
-        values = load_environment()
+    def from_environment(cls, values: Mapping[str, str] | None = None) -> "Settings":
+        values = values if values is not None else load_environment()
         database_url = values.get("DATABASE_URL", "")
         if not database_url.startswith("postgresql+psycopg://"):
             raise ConfigurationError("Uzupełnij DATABASE_URL (postgresql+psycopg)")
@@ -48,5 +63,7 @@ class Settings:
             origins=origins,
             cookie_secure=secure,
             sync_enabled=values.get("SYNC_ENABLED", "false").lower() == "true",
+            sync_interval_seconds=_seconds(values, "SYNC_INTERVAL_SECONDS", 60, 10, 86400),
+            stale_seconds=_seconds(values, "STALE_SECONDS", 900, 1, 604800),
             webfleet_account=values.get("WEBFLEET_ACCOUNT", ""),
         )
