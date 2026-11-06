@@ -1,7 +1,11 @@
 # ADR SCRUM-94 — granica organizacji w obecnej aplikacji
 
 Data: 06.11.2026. Status: **propozycja ograniczenia technicznego do review**.
-Koordynator: Jakub Czaja. Powiązany [inwentarz danych](../privacy/SCRUM-94-data-inventory.md).
+Koordynator: Jakub Czaja. Powiązany
+[inwentarz SCRUM-112](https://github.com/DawidHnat/Projekt_Zespolowy/blob/cffaaebce81cf3955fe7d98879fe521da8a61031/docs/privacy/SCRUM-112-inventory.md)
+z [PR #52](https://github.com/DawidHnat/Projekt_Zespolowy/pull/52).
+ADR stanowi materiał do decyzji P07 tego inwentarza. Wskazanie administratora
+oraz zatwierdzenia P01/P07 pozostają w SCRUM-113.
 
 ## Kontekst
 
