@@ -75,9 +75,7 @@ def fleet_rows(session, source, stale_seconds, q="", status=None, *, source_degr
     records = session.execute(statement).all()
     if len(records) > 10000:
         raise ApiError(503, "FLEET_TOO_LARGE", "Flota wymaga dodatkowej konfiguracji stronicowania")
-    items = [
-        serialize_vehicle(*row, now, stale_seconds, source_degraded) for row in records
-    ]
+    items = [serialize_vehicle(*row, now, stale_seconds, source_degraded) for row in records]
     needle = q.strip().casefold()
     return [
         item
