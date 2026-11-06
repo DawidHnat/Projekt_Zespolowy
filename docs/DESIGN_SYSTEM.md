@@ -66,6 +66,51 @@ i arkusza stylów z osobą pracującą w tych samych plikach.
 
 ## Preferencje i dostępność
 
+### Wspólny wybór dat — SCRUM-66
+
+Pojedyncze daty wybieramy przez `shared/components/DatePicker.tsx`, oparty
+na jednej zależności `flatpickr` z polską lokalizacją. Nie importuj kolejnych
+motywów ani nie inicjalizuj osobnych instancji w modułach. `TripDayPicker`
+komponuje ten komponent z przyciskami Dzisiaj/Wczoraj na Pulpicie i w oknie
+pojazdu; przyszłe formularze terminów korzystają z tego samego komponentu.
+
+Kontrakt: `value` i `onChange` przekazują datę kalendarzową `YYYY-MM-DD`
+(pusty string oznacza brak), natomiast pole pokazuje `DD.MM.RRRR`.
+`label` jest wymagany; opcjonalne są `id`, `minDate`, `maxDate`, `disabled`,
+`required` i `allowClear`. Granice są włączające, w formacie `YYYY-MM-DD`.
+Wymaganej daty nie można wyczyścić przyciskiem. Datę zmienia się wyłącznie
+przez wybór z kalendarza lub istniejące skróty Dzisiaj/Wczoraj. Widoczne pole
+jest przyciskiem z datą: nie przyjmuje wpisywania, wklejania ani zaznaczania
+tekstu. Techniczne pole Flatpickr jest ukryte i tylko do odczytu; również
+rok w nagłówku kalendarza nie przyjmuje ręcznego wpisu.
+Formularz zapisuje kontrolowaną wartość stanu i sprawdza jej wymagalność,
+nie parsuje tekstu widocznego przycisku. Nie konwertujemy tych dat
+przez `toISOString()` ani UTC. Zakres dat, sam miesiąc i godzina wymagają
+osobnego rozszerzenia kontraktu.
+
+`date-picker.css` nadpisuje bazową geometrię Flatpickr tokenami `--surface`,
+`--text`, `--muted`, `--border`, `--accent` i `--accent-soft`. Motyw i kolor
+zmieniają się przez istniejące zmienne CSS, również bez ponownej inicjalizacji
+kalendarza. Szkło korzysta z tych samych tokenów co reszta aplikacji;
+preferencje ograniczenia przezroczystości wyłączają rozmycie.
+Na komputerze kalendarz ma 280 px szerokości, a na urządzeniach z głównym
+wskaźnikiem dotykowym 320 px, zawsze w granicach ekranu. Nagłówek ma parę
+strzałek po prawej. Wybrany dzień ma delikatne tło i obramowanie akcentu;
+fokus pola pokazuje wspólna otoczka, bez drugiej ramki na tekście.
+Pozycja kalendarza jest liczona od całego pola, razem z ikoną i obramowaniem.
+
+Tydzień zaczyna się od poniedziałku. Kliknięcie, Enter lub Spacja otwierają
+kalendarz; tekst daty pozostaje nieedytowalny. Strzałka w dół przenosi fokus
+na dni kalendarza; Escape zamyka kalendarz
+i wraca do pola, bez zamykania nadrzędnego dialogu. Na telefonie używamy tego
+samego widoku. Kalendarz jest potomkiem komponentu i korzysta z Popover API,
+aby pojawiać się nad zawartością bez obcięcia w natywnym dialogu. W starszych
+przeglądarkach bez tego API otwiera się w przepływie pod polem.
+
+Instancja, zdarzenia i element kalendarza są usuwane przy odmontowaniu.
+Zmiany wartości React, limitów i przycisków skrótów synchronizują się z tą
+samą instancją; stan daty nie jest zapisywany w preferencjach wyglądu.
+
 `app/preference-model.ts` waliduje `theme`, `accent`, `material`, `background`,
 `visibleWidgets` i `layouts`. Hook `app/preferences.ts` zapisuje je w
 `fleet-flow.dashboard.v2` w localStorage; odczyt starszego klucza v1 zachowuje
