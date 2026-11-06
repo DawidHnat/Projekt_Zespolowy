@@ -219,6 +219,13 @@
   display: flex;
   justify-content: space-between;
 }
+.vehicle-card-measurements {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.vehicle-card-position {
+  font-variant-numeric: tabular-nums;
+}
 .vehicle-card:hover {
   background: var(--surface-hover);
 }
@@ -227,7 +234,7 @@
   border-color: var(--accent);
 }
 table.vehicle-table {
-  min-width: 690px;
+  min-width: 920px;
 }
 @media (max-width: 500px) {
   .login-card {
