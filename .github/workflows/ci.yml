@@ -105,10 +105,57 @@ jobs:
       - name: Verify non-root backend can load application code
         run: docker run --rm --entrypoint python fleet-flow-api:ci -c 'import app.main'
 
+  e2e:
+    name: Critical browser flows
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: fleet_flow_test_e2e
+          POSTGRES_USER: e2e
+          POSTGRES_PASSWORD: synthetic-e2e-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U e2e -d fleet_flow_test_e2e"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      E2E_DATABASE_URL: postgresql+psycopg://e2e:synthetic-e2e-only@127.0.0.1:5432/fleet_flow_test_e2e
+      SYNC_ENABLED: 'false'
+      VITE_MAPBOX_TOKEN: ''
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+      - run: python -m pip install -r backend/requirements-dev.txt
+      - run: npm ci
+        working-directory: frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - run: npm run test:e2e
+        working-directory: frontend
+      - uses: actions/upload-artifact@v7.0.2
+        if: failure()
+        with:
+          name: e2e-results-${{ github.sha }}
+          path: frontend/test-results/
+          retention-days: 7
+
   required:
     name: Required CI
     if: always()
-    needs: [frontend, backend, container]
+    needs: [frontend, backend, container, e2e]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
@@ -117,7 +164,8 @@ jobs:
           FRONTEND_RESULT: ${{ needs.frontend.result }}
           BACKEND_RESULT: ${{ needs.backend.result }}
           CONTAINER_RESULT: ${{ needs.container.result }}
-        run: test "$FRONTEND_RESULT" = success && test "$BACKEND_RESULT" = success && test "$CONTAINER_RESULT" = success
+          E2E_RESULT: ${{ needs.e2e.result }}
+        run: test "$FRONTEND_RESULT" = success && test "$BACKEND_RESULT" = success && test "$CONTAINER_RESULT" = success && test "$E2E_RESULT" = success
 
   deploy:
     name: Deploy development server

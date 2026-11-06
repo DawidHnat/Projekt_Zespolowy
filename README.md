@@ -153,6 +153,12 @@ Udostępnienie pliku prowadzącemu oczekuje na podanie jego adresu e-mail.
 
 ## Uruchomienie lokalne
 
+SCRUM-26 dodaje edycję celu i opisu zapisanych przejazdów: **Pojazdy → Szczegóły
+(ikona informacji) → Podróże → dzień → przejazd**. Zapis ma autora, datę i
+ochronę przed równoczesnym nadpisaniem; viewer ma tylko odczyt. Import historii
+WEBFLEET jest osobnym zadaniem SCRUM-24, więc bez zapisanych przejazdów widok
+pokazuje pustą listę. [Scenariusze QA i zależność importera](docs/qa/SCRUM-26.md).
+
 Frontend ma Pulpit, motywy, edytor układu, logowanie, listę i kafelki pojazdów
 oraz Mapbox bez grupowania znaczników. Osobna strona Ustawień obejmuje wygląd,
 tło i moduły. Zdjęcia pojazdów oraz indywidualne rozmiary kafelków są lokalnymi
@@ -186,6 +192,7 @@ z aktualnego `main`; pozostały zakres i odbiór QA śledzimy w Jirze.
 - [Podział katalogów](docs/STRUCTURE.md)
 - [Rozpoczęcie pracy i zakres pierwszego PR](docs/GETTING_STARTED.md)
 - [Zasady współpracy i PR](CONTRIBUTING.md)
+- [Przepływ Scrum, role i zasady odbioru](docs/SCRUM_WORKFLOW.md)
 - [Warunki ukończenia przyrostu](DEFINITION_OF_DONE.md)
 - [Instrukcje dla agentów AI](AGENTS.md)
 

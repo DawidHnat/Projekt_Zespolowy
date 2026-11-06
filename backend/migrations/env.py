@@ -5,6 +5,7 @@ from app.core.models import Base
 from app.core.settings import Settings
 from app.modules.analytics import models as analytics_models  # noqa: F401
 from app.modules.auth import models as auth_models  # noqa: F401
+from app.modules.trips import models as trip_models  # noqa: F401
 
 url = Settings.from_environment().database_url
 if context.is_offline_mode():
