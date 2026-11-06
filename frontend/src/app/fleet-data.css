@@ -226,7 +226,7 @@
   background: var(--accent-soft);
   border-color: var(--accent);
 }
-.vehicle-table {
+table.vehicle-table {
   min-width: 690px;
 }
 @media (max-width: 500px) {
