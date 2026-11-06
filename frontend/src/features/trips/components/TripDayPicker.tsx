@@ -23,6 +23,7 @@ export function TripDayPicker({
             key={name}
             className="button button-secondary"
             aria-pressed={value === day}
+            type="button"
             onClick={() => onChange(day)}
           >
             {name}
