@@ -68,11 +68,20 @@ export function App() {
   }, []);
   useEffect(() => {
     if (!sidebarOpen) return;
+    const viewport = window.matchMedia("(max-width: 760px)");
+    const handleViewport = () => {
+      if (!viewport.matches) setSidebarOpen(false);
+    };
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setSidebarOpen(false);
     };
+    handleViewport();
+    viewport.addEventListener("change", handleViewport);
     window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
+    return () => {
+      viewport.removeEventListener("change", handleViewport);
+      window.removeEventListener("keydown", handleEscape);
+    };
   }, [sidebarOpen]);
   const current = sections.find((value) => value.id === section)!;
   const SectionIcon = current.icon;

@@ -64,6 +64,13 @@ uwzględnia jego szerokość i treść, w tym zawijanie tekstu. Nagłówki,
 informacje statyczne i pierwszy wiersz tabeli mieszczą się w całości;
 przy większej liczbie wierszy zawartość jest przewijalna.
 
+Zmiana szerokości okna dopasowuje układ bez zapisywania nowych preferencji.
+Jeżeli minimum jednego kafelka rośnie, sąsiad oddaje dostępną szerokość,
+o ile oba mieszczą się w tym samym wierszu. Pozwala to uniknąć pustych
+obszarów przy pośredniej szerokości. Po powiększeniu okna wracają zapisane
+rozmiary. Otwarte menu telefonu zamyka się po przejściu na duży ekran.
+[Zakres sprawdzenia i scenariusze odbioru SCRUM-38](../docs/qa/SCRUM-38.md).
+
 Motyw, akcent, tło i styl powierzchni zmieniają się od razu. Podczas edycji zmiany
 widoczności widgetów Pulpitu czekają na zapis jego układu. Przejście do innej
 sekcji zachowuje niezapisany szkic w pamięci; wróć do edytowanego widoku,
