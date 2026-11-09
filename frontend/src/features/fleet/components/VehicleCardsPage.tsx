@@ -194,7 +194,8 @@ export function VehicleCardsPage() {
                 : "Brak pasujących pojazdów"
           }
           description={f.loading ? "Pobieramy dane dla wybranych filtrów."
-            : f.error || "Zmień filtry lub poczekaj na dane floty."}
+            : f.error ? "Twoje filtry zostały zachowane. Możesz ponowić pobieranie."
+              : "Zmień filtry lub poczekaj na dane floty."}
         />
       ) : (
         <div className="vehicle-gallery-grid">

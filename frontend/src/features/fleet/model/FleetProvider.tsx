@@ -148,16 +148,25 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
           );
       }
     };
-    const poll = startPolling(
-      load,
-      browserPollingEnvironment(),
-      () => setRequest(current => ({
+    const environment = browserPollingEnvironment();
+    const pause = () => {
+      setRequest(current => ({
         key: activeKey,
         loading: false,
-        error: current?.key === activeKey ? current.error : null,
-      })),
+        error: !navigator.onLine
+          ? "Brak połączenia z siecią. Pobieranie wznowi się po odzyskaniu połączenia."
+          : current?.key === activeKey ? current.error : null,
+      }));
+    };
+    const poll = startPolling(
+      load,
+      environment,
+      pause,
       fleetPollIntervalMs,
     );
+    // A provider can mount (or change criteria) after the offline event fired.
+    // No request starts then, so there is no pending request to finish loading.
+    if (!environment.available()) pause();
     listPoll.current = poll;
     return () => {
       poll.dispose();

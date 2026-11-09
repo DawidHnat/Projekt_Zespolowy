@@ -370,6 +370,7 @@ test("SCRUM-20: search, status, selection and reset are shared with the map list
   await list.getByRole("button", { name: "Wyczyść filtry", exact: true }).focus();
   await page.keyboard.press("Enter");
   await expect(list.getByRole("searchbox", { name: "Szukaj pojazdu" })).toHaveValue("");
+  await expect(list.getByRole("searchbox", { name: "Szukaj pojazdu" })).toBeFocused();
   await expect(list.getByRole("combobox", { name: "Status pojazdu", exact: true })).toHaveValue("");
   await expect(vehicle).toHaveAttribute("aria-pressed", "false");
   await list.getByRole("combobox", { name: "Status pojazdu", exact: true }).selectOption("moving");
@@ -390,5 +391,57 @@ test("SCRUM-20: a background failure keeps matching cached results with an expli
   }));
   await page.clock.fastForward(60_000);
   await expect(page.getByRole("alert")).toContainText("Wyświetlamy ostatni poprawny odczyt:");
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+});
+
+test("SCRUM-20: changing filters offline shows an error and resumes automatically online", async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(new Date());
+  let requests = 0;
+  page.on("request", request => {
+    if (new URL(request.url()).pathname === "/api/v1/fleet/vehicles") requests++;
+  });
+  await login(page);
+  const vehicle = page.getByRole("heading", { name: "Pojazd E2E", exact: true });
+  await expect(vehicle).toBeVisible();
+  const beforeOffline = requests;
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: false });
+    window.dispatchEvent(new Event("offline"));
+  });
+  await expect(page.getByRole("alert")).toContainText("Wyświetlamy ostatni poprawny odczyt:");
+  await expect(vehicle).toBeVisible();
+  await page.screenshot({ path: test.info().outputPath("scrum20-offline-cache.png"), fullPage: true });
+  await page.getByRole("searchbox", { name: "Szukaj pojazdu" }).fill("no-such-synthetic-vehicle");
+  await page.clock.fastForward(1000);
+  await expect(page.getByRole("alert")).toContainText("Brak połączenia z siecią");
+  await expect(page.getByRole("heading", { name: "Pobieranie pojazdów…", exact: true })).toHaveCount(0);
+  await expect(vehicle).toHaveCount(0);
+  expect(requests).toBe(beforeOffline);
+  await page.screenshot({ path: test.info().outputPath("scrum20-offline-filter.png"), fullPage: true });
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: true });
+    window.dispatchEvent(new Event("online"));
+  });
+  await expect(page.getByRole("heading", { name: "Brak pasujących pojazdów", exact: true })).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await page.getByRole("button", { name: "Wyczyść filtry", exact: true }).click();
+  await expect(vehicle).toBeVisible();
+  await expect(page.getByRole("searchbox", { name: "Szukaj pojazdu" })).toBeFocused();
+});
+
+test("SCRUM-20: mounting the fleet while offline reports the pause instead of loading forever", async ({ page }) => {
+  await login(page);
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: false });
+  });
+  await page.reload();
+  await expect(page.getByRole("alert")).toContainText("Brak połączenia z siecią");
+  await expect(page.getByRole("heading", { name: "Pobieranie pojazdów…", exact: true })).toHaveCount(0);
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: true });
+    window.dispatchEvent(new Event("online"));
+  });
   await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
 });

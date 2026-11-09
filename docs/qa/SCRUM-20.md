@@ -15,15 +15,23 @@ Lista, galeria i mapa nadal korzystają z jednego `FleetProvider` oraz API.
   wybór pojazdu. Działa również z klawiatury. Kontrolki zawijają się bez
   zwężania opisu statusu do kilku liter.
 - Ładowanie i błąd mają osobne komunikaty; nie udają pustej floty.
+- Brak sieci przy wejściu do widoku lub zmianie filtrów kończy stan ładowania
+  czytelnym komunikatem. Pasujący cache pozostaje dostępny z ostrzeżeniem;
+  nowe filtry nie pokazują starych wyników. Powrót sieci wznawia pobieranie.
+- Po wyczyszczeniu filtrów fokus wraca do wyszukiwarki, również po Enter.
 
 ## Walidacja autora
 
 - `npm test`: 50/50 PASS; `npm run build`: PASS.
-- Pełna regresja Playwright: 32/32 PASS przed dodaniem ostatniego przypadku
-  odświeżania cache; końcowy zestaw SCRUM-20: 8/8 PASS (4 przypadki × 2 ekrany).
+- Pełna regresja Playwright: 38/38 PASS na komputerze i małym ekranie.
+- Powtórna weryfikacja wieczorna: przed poprawką trzy scenariusze na komputerze
+  wykazały zgubiony fokus i niekończące się ładowanie przy braku sieci.
+  Te same scenariusze po poprawce przechodzą; sprawdzono też ostrzeżenie
+  z zachowanym cache, brak żądań offline i automatyczny powrót połączenia.
 - Przypadki SCRUM-20 w `frontend/e2e/critical-flow.spec.ts`: opóźniony/błędny
   filtr i ponowienie, błąd strony i powrót, wspólne filtry/wybór/reset,
-  zachowanie cache przy błędzie odświeżania bez zmiany kryteriów.
+  zachowanie cache przy błędzie odświeżania bez zmiany kryteriów, zmianę
+  filtrów offline oraz montowanie widoku, gdy przeglądarka już zgłasza brak sieci.
 - Chromium: 1440 × 1000 i 390 × 844. Jasny i ciemny motyw, reset klawiszem
   Enter, nazwa/rejestracja, brak prędkości, przebieg w km oraz czas polski.
   Zrzuty generują testy w `frontend/test-results/`.
@@ -46,6 +54,9 @@ Wynik autora nie zastępuje tych odbiorów. Przed zamknięciem SCRUM-20:
    widoczny z jawnym ostrzeżeniem i czasem odczytu.
 5. Wyczyść filtry klawiaturą, także w małym widoku i ciemnym motywie.
    Sprawdź pomiary 0, brak pomiaru, jednostki i czas Europe/Warsaw.
+6. Wyłącz sieć i zmień filtr, a następnie otwórz widok ponownie offline.
+   Zamiast ciągłego ładowania ma być komunikat; po przywróceniu sieci
+   dane mają pobrać się automatycznie.
 
 Powiązanie gałęzi i PR jest zapisane w Jira. Automatyczne tworzenie gałęzi
 w Jira pozostaje osobną, wyłączoną konfiguracją oczekującą na autoryzację
