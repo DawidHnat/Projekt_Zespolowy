@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { ListPagination } from "../../../shared/components/ListPagination";
 import { useFleet } from "../model/FleetProvider";
 import { statusLabels, type VehicleStatus } from "../model/types";
@@ -30,6 +30,11 @@ export function FleetFilters() {
           </option>
         ))}
       </select>
+      {(f.q || f.status) && (
+        <button className="button button-secondary fleet-clear-filters" onClick={f.clearFilters}>
+          <X size={14} aria-hidden="true" /> Wyczyść filtry
+        </button>
+      )}
     </div>
   );
 }
@@ -39,7 +44,7 @@ export function FleetPagination() {
     <ListPagination
       page={f.page}
       pageSize={f.pageSize}
-      total={f.list?.total ?? 0}
+      total={f.total}
       loading={f.loading}
       label="pojazdy"
       onPage={f.setPage}

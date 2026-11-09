@@ -291,3 +291,104 @@ test("switching accounts resets selected details, filters and the per-user page 
   await expect(page.getByRole("searchbox", { name: "Szukaj pojazdu" })).toHaveValue("");
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
+
+test("SCRUM-20: pending and failed filters never display vehicles from the previous query", async ({ page }) => {
+  await login(page);
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+  let release!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  await page.route("**/api/v1/fleet/vehicles?**", async route => {
+    if (new URL(route.request().url()).searchParams.get("q") !== "no-such-synthetic-vehicle")
+      return route.continue();
+    await held;
+    await route.fulfill({ status: 503, contentType: "application/json",
+      body: JSON.stringify({ error: { code: "TEMPORARY_FAILURE", message: "Nie udało się pobrać wyników testowych." } }) });
+  });
+  try {
+    const pending = page.waitForRequest(request => new URL(request.url()).searchParams.get("q") === "no-such-synthetic-vehicle");
+    await page.getByRole("searchbox", { name: "Szukaj pojazdu" }).fill("no-such-synthetic-vehicle");
+    await pending;
+    await expect(page.getByRole("heading", { name: "Pobieranie pojazdów…", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toHaveCount(0);
+  } finally {
+    release();
+  }
+  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toHaveCount(0);
+  await page.unroute("**/api/v1/fleet/vehicles?**");
+  await page.getByRole("button", { name: "Ponów", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Brak pasujących pojazdów", exact: true })).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await page.getByRole("button", { name: "Wyczyść filtry", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+});
+
+test("SCRUM-20: failed pagination hides the previous page and lets the user return", async ({ page }) => {
+  await login(page);
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+  const data = await (await page.request.get("/api/v1/fleet/vehicles")).json();
+  await page.route("**/api/v1/fleet/vehicles?**", async route => {
+    if (new URL(route.request().url()).searchParams.get("page") === "2")
+      return route.fulfill({ status: 503, contentType: "application/json",
+        body: JSON.stringify({ error: { code: "TEMPORARY_FAILURE", message: "Strona testowa niedostępna." } }) });
+    // A synthetic multi-page response, confined to this browser test.
+    await route.fulfill({ json: { ...data, total: 26, page_size: 10 } });
+  });
+  await page.getByRole("combobox", { name: "Elementów na stronę: pojazdy", exact: true }).selectOption("10");
+  await page.getByRole("button", { name: "Następna strona: pojazdy", exact: true }).click();
+  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toHaveCount(0);
+  await expect(page.getByLabel("Strona 2 z 3", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Poprzednia strona: pojazdy", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+});
+
+test("SCRUM-20: search, status, selection and reset are shared with the map list", async ({ page }) => {
+  await login(page);
+  await page.getByRole("searchbox", { name: "Szukaj pojazdu" }).fill("TEST E2E");
+  await page.getByRole("combobox", { name: "Status pojazdu", exact: true }).selectOption("stopped");
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Na mapie", exact: true }).click();
+  const list = page.locator(".vehicle-sidebar");
+  await expect(list.getByRole("searchbox", { name: "Szukaj pojazdu" })).toHaveValue("TEST E2E");
+  await expect(list.getByRole("combobox", { name: "Status pojazdu", exact: true })).toHaveValue("stopped");
+  const vehicle = list.getByRole("button", { name: /Pojazd E2E/ });
+  await expect(vehicle).toHaveAttribute("aria-pressed", "true");
+  await expect(vehicle).toContainText("Prędkość · Brak danych");
+  await expect(vehicle).toContainText("Przebieg · 1234,5 km");
+  await expect(page.getByText("Mapa czeka na konfigurację", { exact: true })).toBeVisible();
+  await page.screenshot({ path: test.info().outputPath("scrum20-active-filters.png"), fullPage: true });
+  await page.goto("/#settings");
+  await page.getByRole("button", { name: "Ciemny", exact: true }).click();
+  await page.goto("/#map");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(vehicle).toHaveAttribute("aria-pressed", "true");
+  await expect.poll(() => list.locator(".vehicle-cards").evaluate(element =>
+    element.clientHeight >= (element.firstElementChild?.getBoundingClientRect().height ?? 0),
+  )).toBe(true);
+  await page.screenshot({ path: test.info().outputPath("scrum20-active-filters-dark.png"), fullPage: true });
+  await list.getByRole("button", { name: "Wyczyść filtry", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(list.getByRole("searchbox", { name: "Szukaj pojazdu" })).toHaveValue("");
+  await expect(list.getByRole("combobox", { name: "Status pojazdu", exact: true })).toHaveValue("");
+  await expect(vehicle).toHaveAttribute("aria-pressed", "false");
+  await list.getByRole("combobox", { name: "Status pojazdu", exact: true }).selectOption("moving");
+  await expect(list.getByRole("heading", { name: "Brak wyników", exact: true })).toBeVisible();
+  await list.getByRole("button", { name: "Wyczyść filtry", exact: true }).click();
+  await expect(vehicle).toBeVisible();
+  await page.screenshot({ path: test.info().outputPath("scrum20-shared-filters.png") });
+});
+
+test("SCRUM-20: a background failure keeps matching cached results with an explicit warning", async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(new Date());
+  await login(page);
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+  await page.route("**/api/v1/fleet/vehicles?**", route => route.fulfill({
+    status: 503, contentType: "application/json",
+    body: JSON.stringify({ error: { code: "TEMPORARY_FAILURE", message: "Niedostępność testowa." } }),
+  }));
+  await page.clock.fastForward(60_000);
+  await expect(page.getByRole("alert")).toContainText("Wyświetlamy ostatni poprawny odczyt:");
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+});
