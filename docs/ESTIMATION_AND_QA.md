@@ -70,6 +70,7 @@ Przekazanie do tej kolumny nie jest wynikiem PASS ani dowodem ukończenia.
 | --- | --- | --- |
 | SCRUM-13 — szkielet | Testowanie | Marcel w SCRUM-40 |
 | SCRUM-16 — logowanie | Testowanie, nadal 5 SP | Marcel w SCRUM-56 |
+| SCRUM-19 — API floty | Testowanie, 3 SP | Marcel w SCRUM-23 |
 | SCRUM-23 — lista/mapa | W toku, 3 SP | Marcel; najpierw scalone przyrosty, następnie retest SCRUM-51 |
 | SCRUM-40 — szablon i układ | Testowanie, 3 SP | Marcel |
 | SCRUM-56 — sesje/reset | Testowanie, 3 SP | Marcel; rzeczywista dostawa SMTP pozostaje osobnym nieuzgodnionym testem |
