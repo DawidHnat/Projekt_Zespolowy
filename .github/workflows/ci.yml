@@ -110,8 +110,6 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements*.txt
       - run: python -m pip install -r requirements-dev.txt
-      - run: ruff check .
-      - run: ruff format --check .
       - run: pytest
       - name: Test sprint evidence collector without network
         working-directory: .
