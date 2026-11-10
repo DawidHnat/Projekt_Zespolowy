@@ -2,7 +2,12 @@ import { Truck } from "lucide-react";
 import { WidgetFrame } from "../../../shared/components/WidgetFrame";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { useFleet } from "../model/FleetProvider";
-import { positionTime, statusLabels } from "../model/types";
+import {
+  measurementLabel,
+  positionCoordinates,
+  positionTime,
+  statusLabels,
+} from "../model/types";
 import { FleetNotice } from "./FleetNotice";
 import { FleetFilters, FleetPagination } from "./FleetControls";
 export function VehicleListWidget({
@@ -12,6 +17,17 @@ export function VehicleListWidget({
 }) {
   const f = useFleet();
   const items = f.list?.items || [];
+  const isFiltered = Boolean(f.q.trim() || f.status);
+  const emptyTitle = f.loading
+    ? "Pobieranie pojazdów…"
+    : f.error
+      ? "Lista chwilowo niedostępna"
+      : isFiltered
+        ? "Brak wyników"
+        : "Flota jest pusta";
+  const emptyDescription = f.error || (isFiltered
+    ? "Nie znaleziono pojazdów dla wybranych filtrów."
+    : "Nie ma jeszcze pojazdów do wyświetlenia.");
   return (
     <WidgetFrame
       title="Pojazdy"
@@ -25,16 +41,8 @@ export function VehicleListWidget({
         {!items.length ? (
           <EmptyState
             icon={Truck}
-            title={
-              f.loading
-                ? "Pobieranie pojazdów…"
-                : f.error
-                  ? "Lista chwilowo niedostępna"
-                  : "Brak pasujących pojazdów"
-            }
-            description={
-              f.error || "Zmień filtry lub poczekaj na aktualizację floty."
-            }
+            title={emptyTitle}
+            description={emptyDescription}
           />
         ) : variant === "sidebar" ? (
           <div className="vehicle-cards">
@@ -54,10 +62,14 @@ export function VehicleListWidget({
                 <span className={`vehicle-status status-${v.status}`}>
                   {statusLabels[v.status]}
                 </span>
-                <small>
-                  {positionTime(v.position_at)}
-                  {v.latitude === null && <span>Brak GPS</span>}
+                <small className="vehicle-card-position">
+                  {positionCoordinates(v.latitude, v.longitude)}
                 </small>
+                <small className="vehicle-card-measurements">
+                  <span>Prędkość · {measurementLabel(v.speed_kmh, "km/h", 0)}</span>
+                  <span>Przebieg · {measurementLabel(v.odometer_km, "km")}</span>
+                </small>
+                <small className="vehicle-card-time">{positionTime(v.position_at)}</small>
               </button>
             ))}
           </div>
@@ -67,8 +79,10 @@ export function VehicleListWidget({
               <thead>
                 <tr>
                   <th>Pojazd</th>
+                  <th>GPS</th>
                   <th>Status</th>
                   <th>Kierowca</th>
+                  <th>Prędkość</th>
                   <th>Przebieg</th>
                   <th>Pomiar · czas polski</th>
                 </tr>
@@ -91,20 +105,15 @@ export function VehicleListWidget({
                         </small>
                       </button>
                     </td>
+                    <td>{positionCoordinates(v.latitude, v.longitude)}</td>
                     <td>
                       <span className={`vehicle-status status-${v.status}`}>
                         {statusLabels[v.status]}
                       </span>
-                      {v.latitude === null && (
-                        <small className="no-gps">Brak GPS</small>
-                      )}
                     </td>
                     <td>{v.driver?.display_name || "Nieprzypisany"}</td>
-                    <td>
-                      {v.odometer_km === null
-                        ? "—"
-                        : `${v.odometer_km.toLocaleString("pl-PL", { maximumFractionDigits: 1 })} km`}
-                    </td>
+                    <td>{measurementLabel(v.speed_kmh, "km/h", 0)}</td>
+                    <td>{measurementLabel(v.odometer_km, "km")}</td>
                     <td>{positionTime(v.position_at)}</td>
                   </tr>
                 ))}

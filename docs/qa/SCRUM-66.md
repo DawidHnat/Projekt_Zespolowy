@@ -47,3 +47,40 @@ Nie dodano rekordów demonstracyjnych ani nie zmieniono danych klienta.
 - [Opcje Flatpickr](https://flatpickr.js.org/options/)
 - [Lokalizacja](https://flatpickr.js.org/localization/)
 - [Stylowanie](https://flatpickr.js.org/themes/)
+
+## Poprawka skrótów i konflikt z już scalonym main — 06.11.2026
+
+PR #62: https://github.com/DawidHnat/Projekt_Zespolowy/pull/62
+
+Skróty Dzisiaj/Wczoraj otrzymały `type="button"`. W izolowanym formularzu
+wcześniejszy komponent wywoływał submit po wyborze dnia; poprawiony zmienia
+dzień bez wysłania formularza. Przycisk zapisu formularza nadal działa.
+
+Ćwiczenie integracji jest jawnie kontrolowane: gałąź rozpoczęto z historycznej
+wersji kalendarza `a70badd`, już po scaleniu PR #30 do main
+(06.11.2026, 17:37:10 UTC, merge `b01db12`). Nie zmieniano historii #33.
+Commit poprawki `78bf8a7` dodał typ przycisku przy `aria-pressed`; main
+`e8bab17` zawierał w tym samym miejscu `disabled` wniesione przez #30.
+
+GitHub dla draftu #62 zapisał `mergeable=CONFLICTING`,
+`mergeStateStatus=DIRTY`. Rzeczywiste `git merge --no-commit origin/main`
+zakończyło się `CONFLICT (content)` w
+`frontend/src/features/trips/components/TripDayPicker.tsx`.
+Ręczne rozwiązanie zachowało **oba atrybuty**, `type="button"` oraz
+`disabled={disabled}`, wspólny DatePicker i jego blokadę.
+
+Walidacja autora w izolowanym środowisku, bez backendu i żywych integracji:
+
+- `npm test`: 49/49 PASS, bez pominięć; `npm run build`: PASS.
+- Przeglądarka Chromium, 1440 × 1000 i viewport 390 × 844:
+  przed poprawką Dzisiaj wywołuje jeden submit; po poprawce Dzisiaj/Wczoraj
+  zmieniają dzień i pozostawiają licznik submit równy 0.
+- Enter i Spacja na skrótach zmieniają dzień bez submit.
+- Jawny przycisk zapisu nadal wywołuje submit — kontrola działania formularza.
+- Po `disabled=true` oba skróty są nieaktywne; zachowano intencję #30.
+- Na małym ekranie Enter otwiera DatePicker, Escape zamyka go bez submit.
+
+Formularz porównawczy jest wyłącznie lokalnym fixture QA, poza Git.
+Nie dodano go do produktu ani nie użyto rekordów floty. Wynik autora
+nie zastępuje niezależnego review i QA. CI ostatniego commita i jego SHA
+są dostępne w sekcji Checks PR #62; odbiór na produkcji następuje po merge.
