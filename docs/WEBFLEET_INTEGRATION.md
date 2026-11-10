@@ -42,7 +42,7 @@ sekcje „Making HTTP requests”, „General parameters” i „Objects”.
 | `status` | Jakość GPS: A = aktualny fix, V = możliwa niedokładność, L = ostatni dobry fix, 0 = brak. To nie status jazdy. |
 | `pos_time` | Czas ostatniej pozycji; przy `useISO8601=true` normalizujemy do UTC. Bez strefy czasu wartość pozostaje nieznana. |
 | `msgtime` | Czas ostatniej wiadomości; nie zastępuje automatycznie czasu pozycji. |
-| `speed` | Nie zawsze obecne. Diagnostyka liczy pokrycie; parser jednostek i kontrakt prędkości wymagają osobnego potwierdzenia w SCRUM-36. |
+| `speed` | Wg WEBFLEET 1.74.0: prędkość w km/h (wartość całkowita, obecna tylko przy ruchu `standstill=0`). Zgodnie z decyzją PO aplikacja waliduje i zwraca `speed_kmh` w km/h, a przy postoju, braku lub niepewności pomiaru jawne `null`. |
 
 `showObjectReportExtern` zwraca obiekty różnych typów, nie tylko pojazdy. Dlatego
 diagnostyka mówi o obiektach. Zanim API listy nazwie je pojazdami, należy połączyć
@@ -66,10 +66,35 @@ aktualnej pozycji. Interfejs powinien wyświetlać czas ostatniego pomiaru.
 | Backend aplikacji | Adapter nie uruchamia serwera FastAPI ani bazy | SCRUM-39: lokalny serwer, PostgreSQL, migracje, health i CI |
 | Dostęp użytkowników | Obecny frontend działa bez logowania i bez prawdziwych danych | SCRUM-16 przed udostępnieniem danych klientów w aplikacji |
 
-Warunki ukończenia SCRUM-14 wymagają jeszcze zatwierdzenia mapowania jednostki
-prędkości snapshotu oraz niezależnego review. Przy braku potwierdzenia aplikacja
-zwróci `speed_kmh: null`. Fikcyjne dane
-w testach służą weryfikacji adaptera; nie dodajemy demonstracyjnych pojazdów do UI.
+## Wnioski, decyzje PO i zakończenie Spike'a SCRUM-14
+
+Rozpoznanie techniczne WEBFLEET.connect i diagnostyki SMTP w ramach SCRUM-14
+zostało ukończone i potwierdza pełną wykonalność integracji.
+
+Podsumowanie warunków ukończenia:
+1. **Autoryzacja i transport:** Zweryfikowano działanie HTTPS, formatu JSON, nagłówka
+   HTTP Basic Auth i `apikey` oraz odrzucanie żądań modyfikujących pojazdy.
+   Adapter i diagnostyka zostały wdrożone w PR #7.
+2. **Jednostka prędkości:** Zgodnie z dokumentacją WEBFLEET 1.74.0 prędkość jest liczbą
+   całkowitą w km/h przy ruchu (`standstill=0`). Zgodnie z decyzją PO API waliduje i
+   zwraca `speed_kmh` w km/h, a przy postoju, braku lub niepewności pomiaru jawne `null`.
+3. **Niedostępne metadane pojazdów (marka, model, rok, VIN, adres):** WEBFLEET nie
+   zwraca tych pól w standardowym raporcie. Zgodnie z decyzją PO pola te stanowią
+   ręczną kartotekę pojazdu w Fleet-Flow (SCRUM-51 / SCRUM-25).
+4. **Kierowcy (RODO):** Potwierdzono ostatecznie, że kierowcy nie są pobierani z API;
+   pozostają wyłącznie ręcznymi wpisami w aplikacji (SCRUM-42).
+5. **Historia, postoje i geometria (SCRUM-24):** Potwierdzono operacje `showTripReportExtern`
+   (metry/sekundy, limit 1/min), `showStandStills` (sekundy/mikrostopnie, limit 6/min) oraz
+   `showTracks` (km/h, mikrostopnie, max 2 dni, limit 10/min).
+6. **Limity i koordynacja (SCRUM-22 / SCRUM-15):** Potwierdzono limit 6 żądań/min dla
+   snapshotu oraz minimum 10 s odstępu między akcjami. Obsłużono nagłówek `Retry-After: 60`
+   i współdzielenie stanu za pomocą PostgreSQL advisory locks (`pg_try_advisory_lock`).
+7. **Dane syntetyczne:** W testach (`test_sync.py`, `test_fleet_api.py`) oraz kontrakcie
+   `contracts/api-design.json` przygotowano zestaw danych syntetycznych bez sekretów i
+   prawdziwych pozycji GPS.
+
+Spike SCRUM-14 spełnia wszystkie kryteria akceptacji i zostaje przekazany do formalnego
+odbioru i przeglądu.
 
 ## Poczta
 
