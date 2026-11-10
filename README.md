@@ -148,6 +148,8 @@ wyłącznie prototypowi. Poprzednią wersję zachowano na stronie archiwalnej Fi
 - [Przepływy, ekrany i instrukcja przeglądu](docs/PROTOTYPE.md)
 - [Historyjki MVP i podział dużych Story](docs/MVP_BACKLOG.md)
 - [Odbiór zadania kursowego, linki i polecenia do oddania](docs/COURSE_SUBMISSION.md)
+- [Przegląd Sprintu i PR-y — dowody kolejnego zadania](docs/SPRINT_REVIEW_SUBMISSION.md)
+- [Scenariusz Review Sprintu 1](docs/SPRINT_1_REVIEW.md) i [retrospektywa do potwierdzenia przez zespół](docs/retro/sprint-1.md)
 
 Udostępnienie pliku prowadzącemu oczekuje na podanie jego adresu e-mail.
 
@@ -157,6 +159,12 @@ Pierwszy przyrost SCRUM-49 dodaje **Profil** dostępny po kliknięciu własnej n
 w menu (`#profile`). Pokazuje dane konta, pozwala zmienić własne hasło oraz
 wylogować wszystkie sesje. Potwierdzanie zmiany e-maila pozostaje kolejnym
 przyrostem tej Story. [Zakres i scenariusze odbioru](docs/qa/SCRUM-49.md).
+
+SCRUM-26 dodaje edycję celu i opisu zapisanych przejazdów: **Pojazdy → Szczegóły
+(ikona informacji) → Podróże → dzień → przejazd**. Zapis ma autora, datę i
+ochronę przed równoczesnym nadpisaniem; viewer ma tylko odczyt. Import historii
+WEBFLEET jest osobnym zadaniem SCRUM-24, więc bez zapisanych przejazdów widok
+pokazuje pustą listę. [Scenariusze QA i zależność importera](docs/qa/SCRUM-26.md).
 
 Frontend ma Pulpit, motywy, edytor układu, logowanie, listę i kafelki pojazdów
 oraz Mapbox bez grupowania znaczników. Osobna strona Ustawień obejmuje wygląd,
@@ -182,7 +190,9 @@ z aktualnego `main`; pozostały zakres i odbiór QA śledzimy w Jirze.
 1. Skopiuj `.env.example` do lokalnego `.env` i uzupełnij wartości.
 2. Uruchom bazę, migracje, utwórz konto i uruchom API według [backend/README.md](backend/README.md).
 3. Uruchom frontend według [frontend/README.md](frontend/README.md).
-4. `SYNC_ENABLED=true` włącza wspólny odczyt co 60 s. Mapbox używa publicznego
+4. `SYNC_ENABLED=true` włącza wspólny odczyt (domyślnie co 60 s; ustawienia
+   `SYNC_INTERVAL_SECONDS`, `STALE_SECONDS` i `VITE_FLEET_POLL_INTERVAL_MS`
+   opisano w plikach README backendu i frontendu). Mapbox używa publicznego
    `VITE_MAPBOX_TOKEN`; hasła źródła nigdy nie trafiają do przeglądarki.
 
 - [Model i własność danych](docs/DATA_MODEL.md)
@@ -191,6 +201,7 @@ z aktualnego `main`; pozostały zakres i odbiór QA śledzimy w Jirze.
 - [Podział katalogów](docs/STRUCTURE.md)
 - [Rozpoczęcie pracy i zakres pierwszego PR](docs/GETTING_STARTED.md)
 - [Zasady współpracy i PR](CONTRIBUTING.md)
+- [Przepływ Scrum, role i zasady odbioru](docs/SCRUM_WORKFLOW.md)
 - [Warunki ukończenia przyrostu](DEFINITION_OF_DONE.md)
 - [Instrukcje dla agentów AI](AGENTS.md)
 
@@ -198,7 +209,7 @@ z aktualnego `main`; pozostały zakres i odbiór QA śledzimy w Jirze.
 
 Aplikację rozwijamy lokalnie i na wspólnym VPS OVHcloud z Ubuntu:
 `57.129.179.53` (`vps-9171bf52.vps.ovh.net`). Serwer udostępnia
-[aplikację HTTPS](https://vps-9171bf52.vps.ovh.net/) oraz
+[aplikację HTTPS](https://fleet-flow.pl/) oraz
 [stronę wersji HTTP](http://57.129.179.53/) z siedmioznakowym SHA. Automatyczne
 wdrażanie opisuje [PR #23](https://github.com/DawidHnat/Projekt_Zespolowy/pull/23).
 Przy odbiorze potwierdzamy zgodność wersji serwera z aktualnym `origin/main`
@@ -209,13 +220,16 @@ są utworzone i mają własne klucze publiczne. Po dodaniu trzech kluczy
 pozostałe trzy osoby muszą jeszcze wykonać testy ze swoich komputerów.
 
 Automatyczne wdrożenie `main` działa pod
-[adresem HTTPS serwera](https://vps-9171bf52.vps.ovh.net/).
+[adresem HTTPS serwera](https://fleet-flow.pl/).
 21.10.2026 potwierdzono wersję `23dd927` zgodną z ówczesnym `origin/main`.
 Po każdym kolejnym scaleniu zgodność należy sprawdzić ponownie.
 Na VPS działają FastAPI, PostgreSQL i Caddy. Synchronizacja WEBFLEET jest
 wyłączona; nie ma domyślnych kont ani haseł aplikacji. Publiczny
 [adres HTTP](http://57.129.179.53/) pokazuje wersję i link do HTTPS.
-Domena `fleet-flow.pl` wymaga jeszcze skierowania DNS na VPS.
+3.11.2026 przełączono główną domenę `fleet-flow.pl` na VPS i potwierdzono
+HTTPS, gotowość API oraz widok logowania na wersji `4ce144e`.
+Przekierowania `www` i starego hostname oraz pełny odbiór konta/mapy
+pozostają w [SCRUM-67](docs/qa/SCRUM-67.md).
 
 - [Stan serwera i wymagane testy SSH](DEV_SERVER.md)
 - [Przygotowanie dostępu czterech osób](infra/vps/README.md)

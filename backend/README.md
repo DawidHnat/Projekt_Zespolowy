@@ -5,7 +5,14 @@ Backend ma adapter WEBFLEET i polecenia diagnostyczne integracji. Python 3.12 lu
 FastAPI, PostgreSQL, migracje i health: SCRUM-39. Logowanie i sesje: SCRUM-16.
 Synchronizacja pojazdów: SCRUM-15. Zabezpieczone API listy/mapy: SCRUM-19.
 Reguły i alerty dziennego dystansu: SCRUM-31.
+Cel i opis zapisanych przejazdów, audyt i konflikt wersji: SCRUM-26.
 Przeglądarka nie odpytuje WEBFLEET bezpośrednio.
+
+SCRUM-26 wymaga migracji `0005_trip_annotations` (`alembic upgrade head`).
+GET `/api/v1/trips` i `/api/v1/trips/{id}` czytają zapisane przejazdy;
+PATCH `/api/v1/trips/{id}/annotation` zapisuje wyłącznie ręczne pola.
+Import historii ze źródła pozostaje w SCRUM-24. Szczegóły kontraktu i scenariusze
+odbioru: [model danych](../docs/DATA_MODEL.md) i [QA SCRUM-26](../docs/qa/SCRUM-26.md).
 
 ## Uruchomienie z czystego checkoutu
 
@@ -167,7 +174,11 @@ atrap SMTP, a rzeczywista wysyłka wymaga osobnego uzgodnienia.
 
 ## Synchronizacja pojazdów — SCRUM-15
 
-`SYNC_ENABLED=true` w lokalnym `.env` włącza jeden wspólny odczyt co 60 s.
+`SYNC_ENABLED=true` w lokalnym `.env` włącza jeden wspólny odczyt. `SYNC_INTERVAL_SECONDS`
+ustawia częstotliwość (domyślnie 60 s, minimum 10 s zgodnie z limitem źródła),
+a `STALE_SECONDS` próg nieaktualności pomiaru (domyślnie 900 s). Obie wartości
+są walidowane przy starcie; nie ustawiaj częstotliwości przed sprawdzeniem limitów
+WEBFLEET dla używanego konta.
 PostgreSQL advisory lock i zapis czasu próby chronią limit także przy kilku
 procesach. Nie uruchamiaj równolegle diagnostyki w pętli. Awaria zachowuje dane
 ostatniego sukcesu; brak kompletnego raportu nie dezaktywuje pojazdów. Import
