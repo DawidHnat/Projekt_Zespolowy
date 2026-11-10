@@ -208,3 +208,91 @@ def test_smtp_delivery_uses_tls_and_only_the_account_recipient(monkeypatch):
         "https://app.example/#reset-password?token=synthetic",
     )
     assert len(sent) == 1 and "20 minut" in sent[0].get_content()
+
+
+def test_postgres_login_with_old_password_cannot_outlive_reset(monkeypatch):
+    import os
+    import secrets
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+    from time import monotonic, sleep
+    from uuid import uuid4
+
+    import pytest
+    from fastapi.testclient import TestClient
+    from sqlalchemy import text
+    from sqlalchemy.engine import make_url
+
+    from app.core.models import Base
+    from app.core.settings import Settings
+    from app.main import create_app
+    from app.modules.auth.service import digest, password_hasher
+
+    url = os.environ.get("TEST_DATABASE_URL")
+    if not url:
+        pytest.skip("Requires an isolated PostgreSQL database")
+    assert make_url(url).database.startswith("fleet_flow_test")
+    app = create_app(Settings(url))
+    Base.metadata.create_all(app.state.engine)
+    token = secrets.token_urlsafe(32)
+    username = "synthetic-overlap-" + str(uuid4())
+    old = "synthetic-previous-password"
+    new = "synthetic-replacement-password"
+    with app.state.sessions() as session:
+        user = User(
+            username=username,
+            display_name="Test",
+            role="viewer",
+            password_hash=password_hasher.hash(old),
+        )
+        session.add(user)
+        session.flush()
+        session.add(
+            PasswordReset(
+                token_hash=digest(token),
+                user_id=user.id,
+                expires_at=now_utc() + timedelta(minutes=20),
+            )
+        )
+        session.commit()
+
+    reset_locked, finish_reset = Event(), Event()
+    original_hash = password_hasher.hash
+
+    def hash_during_reset(value):
+        reset_locked.set()
+        assert finish_reset.wait(10)
+        return original_hash(value)
+
+    monkeypatch.setattr(password_hasher, "hash", hash_during_reset)
+    with TestClient(app) as client, ThreadPoolExecutor(max_workers=2) as pool:
+        reset_request = pool.submit(
+            client.post,
+            "/api/v1/auth/password/confirm",
+            headers=ORIGIN,
+            json={"token": token, "password": new},
+        )
+        try:
+            assert reset_locked.wait(10)
+            login = pool.submit(
+                client.post,
+                "/api/v1/auth/login",
+                headers=ORIGIN,
+                json={"username": username, "password": old},
+            )
+            # Release reset only once the concurrent login is waiting on its transaction.
+            with app.state.engine.connect() as connection:
+                deadline = monotonic() + 5
+                while not connection.scalar(
+                    text(
+                        "SELECT EXISTS (SELECT FROM pg_stat_activity "
+                        "WHERE datname = current_database() "
+                        "AND cardinality(pg_blocking_pids(pid)) > 0)"
+                    )
+                ):
+                    assert monotonic() < deadline
+                    sleep(0.02)
+        finally:
+            finish_reset.set()
+        assert reset_request.result().status_code == 200
+        assert (login.result().status_code, client.get("/api/v1/auth/me").status_code) == (401, 401)
