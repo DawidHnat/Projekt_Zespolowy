@@ -43,12 +43,21 @@ nie informacja o osobnym spotkaniu retrospektywy ani odbiór wszystkich warunkó
 ## Działania z właścicielami
 
 Jakub Czaja jest właścicielem działania SCRUM-65 w aktywnym sprincie
-`FF Sprint 2 - historia i auta` (4–18.11.2026). Jakub codziennie
+`FF Sprint 2 - podstawa i QA` (4–18.11.2026; nazwa po przeplanowaniu 09.11).
+10.11 PO potwierdził uzgodnienie przez zespół codziennego przeglądu
+otwartych PR-ów i pierwszej odpowiedzi do 24 h w dniach dostępności. Jakub codziennie
 przegląda kolejkę PR-ów, udziela pierwszej odpowiedzi do 24 godzin
 w dniach dostępności i zbiera dowody DoD dla rozpoczętych historyjek.
 W połowie sprintu Jakub sprawdzi liczbę PR-ów bez odpowiedzi po 24 godzinach
 i liczbę w pełni odebranych historyjek. Zespół oceni wynik na retro Sprintu 2.
 [SCRUM-65](https://fleet-flow.atlassian.net/browse/SCRUM-65)
+
+[Tabela rzeczywistych autorów/review, kolejka i pomiar DoD z 10.11](../REVIEW_QUEUE.md).
+Każda z czterech osób ma własny scalony PR i review cudzego PR. Pomiar bazowy:
+2 zwykłe PR-y bez formalnego review ponad 24 h; 0/3 historyjek produktu
+Sprintu 1 z potwierdzonym kompletem dowodów DoD. Administracyjny status Gotowe
+nie uzupełnia braków niezależnego odbioru. Pomiar w połowie sprintu i ocena
+na retro Sprintu 2 pozostają do wykonania.
 
 | Osoba | Co przygotować i zrobić | Gdzie zapisać wynik |
 | --- | --- | --- |
@@ -57,10 +66,12 @@ i liczbę w pełni odebranych historyjek. Zespół oceni wynik na retro Sprintu 
 | Marcel Głowacki | Uzupełnić odbiór logowania. W raporcie zapisać testowane SHA, wyniki PASS/FAIL/BLOCKED i pozostałe scenariusze sesji oraz ochrony API. Na Planningu wskazać czas potrzebny na odbiór Sprintu 2. | SCRUM-56 i plan QA w SCRUM-63 |
 | Jakub Czaja | Zebrać feedback zespołu, pilnować realizacji SCRUM-65 i rozliczyć otwarte prace Sprintu 1. | SCRUM-3, SCRUM-65 i backlog Jira |
 
-Sprint 2 ruszył z celem udostępnienia historii tras, podstawowej ewidencji,
-ręcznej kartoteki kierowców i pełnych danych pojazdu (leasing, zdjęcie,
-OC, badanie i dokumenty). Sprint 1 wciąż jest aktywny. Jira wskazuje
-otwarte podzadania SCRUM-1 i SCRUM-66 jako blokadę jego zakończenia.
+Sprint 2 pierwotnie ruszył z celem historii tras i kartoteki. Po przeplanowaniu
+09.11 celem jest domknięcie floty/UI, danych WEBFLEET, kartoteki,
+backup/odtworzenie i synchronizacja oraz preferencje konta i decyzje prywatności.
+Priorytetem są review/QA i blokady przed nowymi funkcjami. Sprint 1 został
+zamknięty w Jirze; niezakończony zakres jest w kolejnych sprintach.
+Zamknięcie sprintu nie potwierdza pełnego DoD jego historyjek.
 [Backlog Jira](https://fleet-flow.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog)
 
 Data i uczestnicy Review są potwierdzeni w uzupełnieniu z 06.11.
