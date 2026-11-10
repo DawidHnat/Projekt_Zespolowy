@@ -1,3 +1,4 @@
+﻿
 name: CI
 
 on:
@@ -155,10 +156,35 @@ jobs:
           path: frontend/test-results/
           retention-days: 7
 
+
+  docs-links:
+    name: Markdown links
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Install Markdown checker dependencies
+        run: python -m pip install -r scripts/requirements-markdown-links.txt
+
+      - name: Test Markdown link checker
+        run: python -m unittest discover -s tests -p "test_markdown_links*.py" -v
+
+      - name: Check Markdown links
+        run: python scripts/check_markdown_links.py
+
+
   required:
     name: Required CI
     if: always()
-    needs: [frontend, backend, container, e2e]
+    needs: [frontend, backend, container, e2e, docs-links]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
@@ -168,7 +194,13 @@ jobs:
           BACKEND_RESULT: ${{ needs.backend.result }}
           CONTAINER_RESULT: ${{ needs.container.result }}
           E2E_RESULT: ${{ needs.e2e.result }}
-        run: test "$FRONTEND_RESULT" = success && test "$BACKEND_RESULT" = success && test "$CONTAINER_RESULT" = success && test "$E2E_RESULT" = success
+          DOCS_LINKS_RESULT: ${{ needs.docs-links.result }}
+        run: |
+          test "$FRONTEND_RESULT" = success &&
+          test "$BACKEND_RESULT" = success &&
+          test "$CONTAINER_RESULT" = success &&
+          test "$E2E_RESULT" = success &&
+          test "$DOCS_LINKS_RESULT" = success
 
   deploy:
     name: Deploy development server
@@ -206,6 +238,9 @@ jobs:
           trap 'rm -rf -- "$staging"' EXIT
           mkdir "$staging/release"
           tar -xzf release.tgz -C "$staging/release"
+          for file in frontend/dist/index.html frontend/dist/status.html backend/app/main.py infra/deploy/compose.yml; do
+            test -s "$staging/release/$file" || { echo "::error::Release artifact missing $file"; exit 1; }
+          done
           printf '%s\n' "$DEPLOY_KEY" > "$staging/key"
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$staging/known_hosts"
           printf '%s\n' "$RUNTIME_ENV" > "$staging/release/runtime.env"
