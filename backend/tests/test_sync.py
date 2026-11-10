@@ -374,11 +374,12 @@ def test_two_cycles_rate_limit_blocks_second_cycle_after_retry_exhaustion():
     assert request_times == [0, 60, 120]
 
     # At 180s, cooldown expires and next cycle runs
+    clock.current = t0 + timedelta(seconds=180)
     result3 = sync_once(
         engine,
         settings,
         client_factory=RateLimitedClient,
-        now=t0 + timedelta(seconds=180),
+        now=clock.current,
         sync_interval_seconds=60,
         sleep=clock.sleep,
     )
