@@ -1,9 +1,32 @@
 # Review Sprintu 1 — pokaz na podstawie historyjek
 
 Jira: [SCRUM-3](https://fleet-flow.atlassian.net/browse/SCRUM-3).
-To plan demonstracji i karta odbioru; nie potwierdza, że Review już się odbyło.
-Odczyt Jiry 4.11.2026: aktywny **FF Sprint 1 - flota i mapa**, 24.10–7.11,
-trzy Story produktu: SCRUM-16, SCRUM-15 i SCRUM-5. Żadna nie ma jeszcze Done.
+Dokument zawiera potwierdzenie Review oraz przygotowany wcześniej scenariusz
+pokazu. Protokół spotkania i techniczny odbiór Story mają osobne dowody.
+
+## Przegląd — 06.11.2026
+
+Jakub Czaja (PO) potwierdził 06.11, że przegląd odbył się tego dnia,
+uczestniczył cały zespół i przejrzano pokazane funkcje Fleet-Flow.
+Uczestnicy: Jakub Czaja, Dawid Hnat, Jakub Nazarewicz i Marcel Głowacki.
+Ogólny feedback przekazany przez PO: pokazane funkcje oceniono pozytywnie.
+Nie przekazano szczegółowych uwag ani listy wyników poszczególnych scenariuszy.
+
+Funkcje przyrostu wiążemy z historyjkami Sprintu 1: logowanie i ograniczenie
+dostępu (SCRUM-16), lista i mapa floty (SCRUM-5), synchronizacja i aktualność
+danych (SCRUM-15). Nie jest to osobne potwierdzenie testu żywego WEBFLEET,
+dostawy SMTP ani pełnego Definition of Done dla każdej z tych historyjek.
+
+PO nie podał SHA pokazywanej wersji. Osobne sprawdzenie wdrożenia 06.11
+wykazało `cec4555` zgodne z `origin/main` i gotowość API `ok`; nie przypisujemy
+automatycznie tego SHA do wcześniejszego pokazu. Pełne wyniki QA i wymagane
+przeglądy implementacji pozostają w zgłoszeniach odpowiednich Story.
+
+## Kontekst scenariusza przygotowanego 4.11.2026
+
+Odczyt Jiry 4.11: aktywny **FF Sprint 1 - flota i mapa**, 24.10–7.11,
+trzy Story produktu: SCRUM-16, SCRUM-15 i SCRUM-5. Żadna nie miała wtedy Done.
+Statusy w poniższej tabeli opisują ten odczyt, nie aktualny stan oddania.
 
 Cel: zalogowany kierownik floty widzi na wspólnym VPS listę i mapę pojazdów
 z synchronizacją WEBFLEET oraz jawną aktualnością danych.
@@ -33,11 +56,12 @@ Nie prezentujemy kodu, liczby plików czy zielonych testów jako wartości
 zastępującej zachowanie użytkownika. Nieukończony fragment można omówić
 jako postęp lub blokadę, ale nie nazywać ukończoną Story.
 
-## Zapis po rzeczywistym spotkaniu
+## Dowody odbioru po spotkaniu
 
-PO dopisuje do SCRUM-3: datę, uczestników, pokazane Story i ich SHA, powiązany
-raport QA, feedback oraz decyzje o priorytetach. Obecnie brak potwierdzonego
-terminu i feedbacku — nie zostały wpisane jako wykonane.
+Data, uczestnicy i ogólny feedback są potwierdzeni powyżej. Do pełnego odbioru
+pozostaje powiązanie wybranej Story z jej raportem QA, wymaganym niezależnym
+review, testowanym SHA i pozostałymi warunkami DoD. Nie dopisujemy szczegółowych
+wyników ani decyzji o priorytetach, których uczestnicy nie przekazali.
 
 Po Review zespół uzupełnia [retrospektywę](retro/sprint-1.md) o rzeczywiste
 ustalenia i porządkuje niedokończone prace. Podział pracy i decyzje na Planning
