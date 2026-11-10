@@ -215,17 +215,27 @@ test("expired session removes the private draft when a save is rejected", async 
 
 test("polling pauses in a hidden/offline page and keeps an annotation draft on refresh", async ({ page }) => {
   await page.clock.install();
-  await page.clock.pauseAt(new Date());
+  // Always cross Polish midnight: the old CI failure depended on the run hour.
+  const beforeMidnight = await page.evaluate(() => {
+    const time = new Date();
+    time.setHours(23, 55, 0, 0);
+    return time.toISOString();
+  });
+  await page.clock.pauseAt(new Date(beforeMidnight));
   let lists = 0;
   let details = 0;
+  let tripLists = 0;
   page.on("request", request => {
     const path = new URL(request.url()).pathname;
     if (path === "/api/v1/fleet/vehicles") lists++;
+    if (path === "/api/v1/trips") tripLists++;
     if (/\/api\/v1\/fleet\/vehicles\/[^/]+$/.test(path)) details++;
   });
   await login(page);
   const form = await annotation(page);
   await form.getByLabel(/Cel przejazdu/).fill("Szkic przy odświeżaniu");
+  await expect(page.getByText("Przed zmianą dnia lub przejazdu zapisz albo anuluj edycję.")).toBeVisible();
+  const beforeEditing = tripLists;
   const beforeHidden = lists;
   await page.evaluate(() => {
     Object.defineProperty(document, "visibilityState", { configurable: true, value: "hidden" });
@@ -253,7 +263,13 @@ test("polling pauses in a hidden/offline page and keeps an annotation draft on r
   });
   await expect.poll(() => lists).toBe(beforeOffline + 1);
   await expect(form.getByLabel(/Cel przejazdu/)).toHaveValue("Szkic przy odświeżaniu");
+  expect(tripLists).toBe(beforeEditing);
   await page.screenshot({ path: test.info().outputPath("polling-preserves-draft.png") });
+  // Once the user finishes the draft, relative Today catches up to the new day.
+  await form.getByRole("button", { name: "Anuluj zmiany", exact: true }).click();
+  await expect.poll(() => tripLists).toBe(beforeEditing + 1);
+  await expect(page.getByRole("heading", { name: "Brak zapisanych przejazdów", exact: true })).toBeVisible();
+  await expect(form).toHaveCount(0);
 });
 
 test("list page size changes do not fetch an unrelated selected detail again", async ({ page }) => {

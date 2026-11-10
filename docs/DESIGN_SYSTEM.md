@@ -370,6 +370,9 @@ bez poziomego przewijania. Zachowuj wspólne kolory motywu, materiał i fokus.
 `TripDayPicker` jest wspólny dla kafelka przejazdów i zakładki Podróże.
 Model `trip-day.ts` obsługuje dni kalendarzowe w Europe/Warsaw, a `useTripDay`
 odświeża wybory Dzisiaj/Wczoraj po polskiej północy i powrocie do karty.
+Podczas niezapisanej edycji celu/opisu dzień pozostaje zatrzymany, również
+po północy i wznowieniu sieci. Po zapisaniu lub anulowaniu szkicu wybór
+względny ponownie podąża za aktualną datą; nie odmontowuje formularza w trakcie pracy.
 Natywne pole daty ma opis i ograniczenie do dzisiaj. Puste stany pozostają
 jednoznaczne do czasu podłączenia rzeczywistej historii; nie pokazuj
 przykładowych tras jako danych floty.
