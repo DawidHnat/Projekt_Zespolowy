@@ -57,9 +57,7 @@ async def _read_with_retries(action, fetch, tracker):
             await tracker.sleep(delay)
 
 
-async def read_vehicle_data(
-    settings, client_factory, *, sleep=asyncio.sleep, tracker=None
-):
+async def read_vehicle_data(settings, client_factory, *, sleep=asyncio.sleep, tracker=None):
     if tracker is None:
         tracker = RetryTracker(sleep)
     async with client_factory(settings) as client:
@@ -182,9 +180,7 @@ def sync_once(
                 tracker = RetryTracker(sleep)
                 try:
                     masters, snapshots = asyncio.run(
-                        read_vehicle_data(
-                            settings, client_factory, sleep=sleep, tracker=tracker
-                        )
+                        read_vehicle_data(settings, client_factory, sleep=sleep, tracker=tracker)
                     )
                     indexed, readings = validate_records(masters, snapshots)
                     completed_at = (

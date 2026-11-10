@@ -385,4 +385,3 @@ def test_two_cycles_rate_limit_blocks_second_cycle_after_retry_exhaustion():
     assert result3 == "degraded"
     assert request_times == [0, 60, 120, 180, 240, 300]
     engine.dispose()
-
