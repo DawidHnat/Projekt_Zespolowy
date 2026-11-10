@@ -19,10 +19,15 @@ określa [kontrakt zespołu](../TEAM_CONTRACT.md).
 3. Przed otwieraniem kolejnej Story domykamy rozpoczętą. QA zapisuje scenariusze,
    wyniki PASS/FAIL/BLOCKED, wykonawcę, datę, środowisko i SHA. PO sprawdza
    komplet [DoD](../DEFINITION_OF_DONE.md), nie tylko status rodzica.
-4. Merge kieruje przyrost do Testowania. Gotowe wymaga rzeczywistego odbioru
+4. Po merge ręcznie przekazujemy przyrost do Testowania. Gotowe wymaga rzeczywistego odbioru
    i zgodnego wdrożenia. Wyjątek PO jest jawnym wyjątkiem, nie pełnym DoD.
 5. Każdy zapisuje rzeczywisty czas analizy, implementacji, review i QA pod
    własnym kontem w Jirze: start, czas i wynik. Status W toku nie jest stoperem.
+
+Reguły automatyczne PR → Weryfikacja i merge → Testowanie pozostają wyłączone
+do instalacji/autoryzacji repozytorium przez Dawida i testu rzeczywistego PR.
+Ręczna reguła zakończenia po QA i sprawdzeniu SHA/health była przetestowana
+09.11; nie wykonuje za ludzi review ani QA. Ten audyt nie zmienia reguł.
 
 ## Rzeczywiste autorstwo i review
 
