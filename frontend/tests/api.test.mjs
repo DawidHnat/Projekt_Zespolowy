@@ -66,6 +66,6 @@ test("API rejects external paths and timestamps use Warsaw DST", async () => {
   assert.equal(measurementLabel(null, "km"), "Brak danych");
   assert.equal(measurementLabel(0, "km/h", 0), "0 km/h");
   assert.equal(fleetPollInterval("30000"), 30000);
-  assert.equal(fleetPollInterval("9000"), 60000);
-  assert.equal(fleetPollInterval(undefined), 60000);
+  assert.equal(fleetPollInterval("9000"), 10000);
+  assert.equal(fleetPollInterval(undefined), 10000);
 });
