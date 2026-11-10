@@ -38,13 +38,13 @@ async function confirmUnsaved(page: Page, action: () => Promise<unknown>, accept
   await pending;
 }
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ context }) => {
   execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", "reset-case"], {
     cwd: "../backend", env: { ...process.env, PYTHONPATH: ".", FLEET_FLOW_E2E: "true" },
     stdio: "pipe",
   });
   // Enforce an offline fixture: any accidentally introduced external call is blocked.
-  await page.route("**/*", (route) => {
+  await context.route("**/*", (route) => {
     const url = new URL(route.request().url());
     return url.hostname === "127.0.0.1" ? route.continue() : route.abort();
   });
@@ -291,3 +291,30 @@ test("switching accounts resets selected details, filters and the per-user page 
   await expect(page.getByRole("searchbox", { name: "Szukaj pojazdu" })).toHaveValue("");
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
+
+for (const transport of ["BroadcastChannel", "storage"]) {
+  test(`other tabs discard private drafts on logout and load the shared account on login (${transport})`, async ({ page, context }) => {
+    if (transport === "storage") {
+      await context.addInitScript(() => {
+        Object.defineProperty(window, "BroadcastChannel", { value: undefined });
+      });
+    }
+    await login(page);
+    const other = await context.newPage();
+    await other.goto("/#vehicles");
+    const form = await annotation(other);
+    await form.getByLabel(/Cel przejazdu/).fill("Prywatny szkic edytora");
+
+    const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
+    if (await menu.isVisible()) await menu.click();
+    await page.getByRole("button", { name: "Wyloguj się", exact: true }).click();
+    await expect(other.getByRole("button", { name: "Zaloguj się", exact: true })).toBeVisible();
+    await expect(form).toHaveCount(0);
+
+    await login(page, "viewer");
+    const reopened = await annotation(other);
+    await expect(reopened.getByLabel(/Cel przejazdu/)).toHaveAttribute("readonly", "");
+    await expect(reopened.getByLabel(/Cel przejazdu/)).not.toHaveValue("Prywatny szkic edytora");
+    await expect(other.getByRole("button", { name: "Zapisz cel i opis", exact: true })).toHaveCount(0);
+  });
+}
