@@ -8,6 +8,8 @@ export type Vehicle = {
   // Optional display fields for the next API increment; absent values stay unknown.
   make?: string | null;
   model?: string | null;
+  year?: number | null;
+  vin?: string | null;
   position_address?: string | null;
   status: VehicleStatus;
   driver: { id: string; display_name: string } | null;

@@ -24,6 +24,7 @@ OBJECT_COLUMNS = (
     "standstill",
     "pos_time",
     "msgtime",
+    "postext",
 )
 VEHICLE_COLUMNS = ("objectuid", "objectno", "objectname", "licenseplatenumber", "vehicletype")
 HISTORY_COLUMNS = {

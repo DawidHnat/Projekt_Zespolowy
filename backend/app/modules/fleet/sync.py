@@ -56,12 +56,13 @@ def apply_records(session, source, masters, readings, now):
             session.add(vehicle)
             session.flush()
         # Explicit allowlist. driver_id and all future annotations are local ownership.
-        vehicle.name = str(row.get("objectname") or row.get("objectno") or "Bez nazwy")[:200]
-        vehicle.number = str(row["objectno"])[:200] if row.get("objectno") else None
-        vehicle.license_plate = (
-            str(row["licenseplatenumber"])[:100] if row.get("licenseplatenumber") else None
-        )
-        vehicle.vehicle_type = str(row["vehicletype"])[:100] if row.get("vehicletype") else None
+        if not vehicle.locally_edited:
+            vehicle.name = str(row.get("objectname") or row.get("objectno") or "Bez nazwy")[:200]
+            vehicle.number = str(row["objectno"])[:200] if row.get("objectno") else None
+            vehicle.license_plate = (
+                str(row["licenseplatenumber"])[:100] if row.get("licenseplatenumber") else None
+            )
+            vehicle.vehicle_type = str(row["vehicletype"])[:100] if row.get("vehicletype") else None
         vehicle.active = True
         reading = readings.get(uid)
         if reading:
@@ -81,6 +82,8 @@ def apply_records(session, source, masters, readings, now):
                 "standing_still",
                 "gps_quality",
                 "position_at",
+                "speed_kmh",
+                "position_address",
             ):
                 setattr(measurement, field, getattr(reading, field))
             measurement.received_at = now

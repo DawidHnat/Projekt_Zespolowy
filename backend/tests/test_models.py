@@ -66,3 +66,29 @@ def test_naive_time_does_not_assume_the_servers_timezone():
 def test_missing_stable_id_is_not_replaced_with_mutable_object_number():
     with pytest.raises(ValueError, match="objectuid"):
         ObjectSnapshot.from_record({"objectno": "test"})
+
+
+def test_speed_and_position_address_are_parsed_and_validated():
+    record = {
+        "objectuid": "fictional-unit-test",
+        "speed": "55.0",
+        "postext": "  Gdańsk, ul. Długa 1  ",
+    }
+    snapshot = ObjectSnapshot.from_record(record)
+    assert snapshot.speed_kmh == Decimal("55.0")
+    assert snapshot.position_address == "Gdańsk, ul. Długa 1"
+
+
+@pytest.mark.parametrize("value", ["NaN", "Infinity", "broken", -1, 301, True, ""])
+def test_invalid_speed_stays_unknown_and_is_not_filled_with_zeros(value):
+    assert ObjectSnapshot.from_record({"objectuid": "test", "speed": value}).speed_kmh is None
+
+
+def test_missing_speed_stays_none():
+    assert ObjectSnapshot.from_record({"objectuid": "test"}).speed_kmh is None
+
+
+@pytest.mark.parametrize("value", [None, "", "   ", 123])
+def test_empty_or_invalid_address_is_none(value):
+    snapshot = ObjectSnapshot.from_record({"objectuid": "test", "postext": value})
+    assert snapshot.position_address is None

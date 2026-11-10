@@ -2,6 +2,7 @@ from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Request
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -16,6 +17,17 @@ router = APIRouter(prefix="/api/v1/fleet", tags=["fleet"], dependencies=[Depends
 SessionDep = Annotated[Session, Depends(get_session)]
 Search = Annotated[str, Query(max_length=100)]
 Status = Literal["moving", "stopped", "offline", "unknown"] | None
+
+
+class VehicleCardUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: Annotated[str | None, Field(default=None, max_length=200)] = None
+    make: Annotated[str | None, Field(default=None, max_length=100)] = None
+    model: Annotated[str | None, Field(default=None, max_length=100)] = None
+    year: Annotated[int | None, Field(default=None, ge=1900, le=2100)] = None
+    vin: Annotated[str | None, Field(default=None, max_length=100)] = None
+    license_plate: Annotated[str | None, Field(default=None, max_length=100)] = None
+    vehicle_type: Annotated[str | None, Field(default=None, max_length=100)] = None
 
 
 def context(request, session):
@@ -97,3 +109,33 @@ def vehicle_detail(vehicle_id: UUID, request: Request, session: SessionDep):
     if not row:
         raise ApiError(404, "NOT_FOUND", "Pojazd nie istnieje")
     return serialize_vehicle(*row, datetime.now(UTC), settings.stale_seconds)
+
+
+@router.patch("/vehicles/{vehicle_id}")
+def update_vehicle_card(
+    vehicle_id: UUID,
+    payload: VehicleCardUpdate,
+    request: Request,
+    session: SessionDep,
+):
+    from datetime import UTC, datetime
+
+    settings, source, _ = context(request, session)
+    row = session.execute(
+        select(Vehicle, Measurement, Driver)
+        .outerjoin(Measurement, Measurement.vehicle_id == Vehicle.id)
+        .outerjoin(Driver, Driver.id == Vehicle.driver_id)
+        .where(Vehicle.id == vehicle_id, Vehicle.source_account == source, Vehicle.active.is_(True))
+    ).first()
+    if not row:
+        raise ApiError(404, "NOT_FOUND", "Pojazd nie istnieje")
+    vehicle, measurement, driver = row
+    for field in ("name", "make", "model", "year", "vin", "license_plate", "vehicle_type"):
+        if field in payload.model_fields_set:
+            val = getattr(payload, field)
+            setattr(vehicle, field, val.strip() if isinstance(val, str) else val)
+            vehicle.locally_edited = True
+    session.commit()
+    return serialize_vehicle(
+        vehicle, measurement, driver, datetime.now(UTC), settings.stale_seconds
+    )

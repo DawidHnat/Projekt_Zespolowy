@@ -46,6 +46,10 @@ def serialize_vehicle(vehicle, measurement, driver, now, stale_seconds):
         "number": vehicle.number,
         "license_plate": vehicle.license_plate,
         "vehicle_type": vehicle.vehicle_type,
+        "make": vehicle.make,
+        "model": vehicle.model,
+        "year": vehicle.year,
+        "vin": vehicle.vin,
         "status": status,
         "driver": {"id": str(driver.id), "display_name": driver.display_name} if driver else None,
         "latitude": measurement.latitude if located else None,
@@ -53,10 +57,13 @@ def serialize_vehicle(vehicle, measurement, driver, now, stale_seconds):
         "position_at": timestamp(time),
         "received_at": timestamp(measurement.received_at) if measurement else None,
         "is_stale": stale,
+        "position_address": measurement.position_address if measurement else None,
         "odometer_km": float(measurement.odometer_km)
         if measurement and measurement.odometer_km is not None
         else None,
-        "speed_kmh": None,  # Snapshot units remain unconfirmed in SCRUM-14.
+        "speed_kmh": float(measurement.speed_kmh)
+        if measurement and measurement.speed_kmh is not None
+        else None,
         "ignition_on": measurement.ignition_on if measurement else None,
         "standing_still": measurement.standing_still if measurement else None,
     }
@@ -85,7 +92,7 @@ def fleet_rows(session, source, stale_seconds, q="", status=None):
             not needle
             or any(
                 needle in (item[field] or "").casefold()
-                for field in ("name", "number", "license_plate")
+                for field in ("name", "number", "license_plate", "make", "model", "vin")
             )
         )
     ]
