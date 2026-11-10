@@ -4,6 +4,9 @@ import json
 import logging
 import re
 from collections.abc import Callable
+from datetime import UTC, datetime
+from email.utils import parsedate_to_datetime
+from math import isfinite
 from time import monotonic
 from typing import Any
 
@@ -48,9 +51,18 @@ REQUEST_INTERVALS = {
 
 
 class WebfleetError(Exception):
-    def __init__(self, code: str, *, provider_code: int | None = None):
+    def __init__(
+        self,
+        code: str,
+        *,
+        provider_code: int | None = None,
+        retry_after_seconds: float | None = None,
+        retryable: bool = False,
+    ):
         self.code = code
         self.provider_code = provider_code
+        self.retry_after_seconds = retry_after_seconds
+        self.retryable = retryable
         # Never include a request URL, response body, account or credentials.
         super().__init__(
             f"WEBFLEET: {code}"
@@ -98,6 +110,23 @@ def _provider_code(response: httpx.Response) -> int | None:
     if candidate.isascii() and candidate.isdigit() and len(candidate) <= 9:
         return int(candidate)
     raise WebfleetError("invalid_response")
+
+
+def _retry_after_seconds(response: httpx.Response) -> float | None:
+    value = response.headers.get("Retry-After")
+    if not value:
+        return None
+    try:
+        delay = float(value)
+    except ValueError:
+        try:
+            retry_at = parsedate_to_datetime(value)
+        except (TypeError, ValueError, OverflowError):
+            return None
+        if retry_at.tzinfo is None:
+            retry_at = retry_at.replace(tzinfo=UTC)
+        delay = (retry_at - datetime.now(UTC)).total_seconds()
+    return delay if isfinite(delay) and delay > 0 else None
 
 
 class WebfleetClient:
@@ -186,9 +215,16 @@ class WebfleetClient:
         if response.status_code in (401, 403):
             raise WebfleetError("access_denied")
         if response.status_code == 429:
-            raise WebfleetError("provider_rate_limit")
+            raise WebfleetError(
+                "provider_rate_limit",
+                retry_after_seconds=_retry_after_seconds(response),
+            )
         if response.status_code != 200:
-            raise WebfleetError("http_error")
+            raise WebfleetError(
+                "http_error",
+                retry_after_seconds=_retry_after_seconds(response),
+                retryable=response.status_code in (408, 425) or response.status_code >= 500,
+            )
         code = _provider_code(response)
         if code is not None:
             raise WebfleetError("provider_error", provider_code=code)
