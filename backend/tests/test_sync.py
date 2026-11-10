@@ -285,3 +285,104 @@ def test_postgres_shared_limiter_failure_cache_and_lock():
             connection.execute(text("SELECT pg_advisory_unlock(:key)"), {"key": key})
             connection.commit()
     engine.dispose()
+
+
+def test_two_cycles_rate_limit_blocks_second_cycle_after_retry_exhaustion():
+    from sqlalchemy import create_engine, event
+    from sqlalchemy.pool import StaticPool
+
+    from app.core.config import WebfleetSettings
+    from app.core.models import Base
+    from app.modules.fleet.sync import sync_once
+
+    engine = create_engine(
+        "sqlite://", poolclass=StaticPool, connect_args={"check_same_thread": False}
+    )
+
+    @event.listens_for(engine, "connect")
+    def register_advisory_functions(dbapi_connection, _):
+        dbapi_connection.create_function("pg_try_advisory_lock", 1, lambda key: 1)
+        dbapi_connection.create_function("pg_advisory_unlock", 1, lambda key: 1)
+
+    Base.metadata.create_all(engine)
+
+    t0 = datetime(2026, 11, 10, 12, 0, 0, tzinfo=UTC)
+    settings = WebfleetSettings("regress-account", "u", "p", "k")
+
+    request_times = []
+    delays = []
+
+    class VirtualClock:
+        def __init__(self, current):
+            self.current = current
+
+        async def sleep(self, seconds):
+            delays.append(seconds)
+            self.current += timedelta(seconds=seconds)
+
+    clock = VirtualClock(t0)
+
+    class RateLimitedClient:
+        def __init__(self, _):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            pass
+
+        async def fetch_vehicles(self):
+            request_times.append((clock.current - t0).total_seconds())
+            raise WebfleetError("provider_rate_limit", retry_after_seconds=60)
+
+    result1 = sync_once(
+        engine,
+        settings,
+        client_factory=RateLimitedClient,
+        now=clock.current,
+        sync_interval_seconds=60,
+        sleep=clock.sleep,
+    )
+    assert result1 == "degraded"
+    assert request_times == [0, 60, 120]
+    assert delays == [60, 60]
+    assert clock.current == t0 + timedelta(seconds=120)
+
+    # Cycle 2 immediately at t0 + 120s must be blocked by rate limiting
+    result2 = sync_once(
+        engine,
+        settings,
+        client_factory=RateLimitedClient,
+        now=clock.current,
+        sync_interval_seconds=60,
+        sleep=clock.sleep,
+    )
+    assert result2 == "rate_limited"
+    assert request_times == [0, 60, 120]
+
+    # Still rate-limited at 179s
+    result_179 = sync_once(
+        engine,
+        settings,
+        client_factory=RateLimitedClient,
+        now=t0 + timedelta(seconds=179),
+        sync_interval_seconds=60,
+        sleep=clock.sleep,
+    )
+    assert result_179 == "rate_limited"
+    assert request_times == [0, 60, 120]
+
+    # At 180s, cooldown expires and next cycle runs
+    result3 = sync_once(
+        engine,
+        settings,
+        client_factory=RateLimitedClient,
+        now=t0 + timedelta(seconds=180),
+        sync_interval_seconds=60,
+        sleep=clock.sleep,
+    )
+    assert result3 == "degraded"
+    assert request_times == [0, 60, 120, 180, 240, 300]
+    engine.dispose()
+
