@@ -34,7 +34,14 @@ def vehicles(
     page_size: Annotated[int, Query(ge=1, le=100)] = 25,
 ):
     settings, source, metadata = context(request, session)
-    items = fleet_rows(session, source, settings.stale_seconds, q, status)
+    items = fleet_rows(
+        session,
+        source,
+        settings.stale_seconds,
+        q,
+        status,
+        source_degraded=metadata["status"] == "degraded",
+    )
     start = (page - 1) * page_size
     return {
         "items": items[start : start + page_size],
@@ -48,7 +55,14 @@ def vehicles(
 @router.get("/map")
 def fleet_map(request: Request, session: SessionDep, q: Search = "", status: Status = None):
     settings, source, metadata = context(request, session)
-    items = fleet_rows(session, source, settings.stale_seconds, q, status)
+    items = fleet_rows(
+        session,
+        source,
+        settings.stale_seconds,
+        q,
+        status,
+        source_degraded=metadata["status"] == "degraded",
+    )
     features = [
         {
             "type": "Feature",
@@ -72,7 +86,12 @@ def fleet_map(request: Request, session: SessionDep, q: Search = "", status: Sta
 @router.get("/summary")
 def summary(request: Request, session: SessionDep):
     settings, source, metadata = context(request, session)
-    items = fleet_rows(session, source, settings.stale_seconds)
+    items = fleet_rows(
+        session,
+        source,
+        settings.stale_seconds,
+        source_degraded=metadata["status"] == "degraded",
+    )
     return {
         "total": len(items),
         **{
@@ -87,7 +106,7 @@ def summary(request: Request, session: SessionDep):
 def vehicle_detail(vehicle_id: UUID, request: Request, session: SessionDep):
     from datetime import UTC, datetime
 
-    settings, source, _ = context(request, session)
+    settings, source, metadata = context(request, session)
     row = session.execute(
         select(Vehicle, Measurement, Driver)
         .outerjoin(Measurement, Measurement.vehicle_id == Vehicle.id)
@@ -96,4 +115,9 @@ def vehicle_detail(vehicle_id: UUID, request: Request, session: SessionDep):
     ).first()
     if not row:
         raise ApiError(404, "NOT_FOUND", "Pojazd nie istnieje")
-    return serialize_vehicle(*row, datetime.now(UTC), settings.stale_seconds)
+    return serialize_vehicle(
+        *row,
+        datetime.now(UTC),
+        settings.stale_seconds,
+        metadata["status"] == "degraded",
+    )
