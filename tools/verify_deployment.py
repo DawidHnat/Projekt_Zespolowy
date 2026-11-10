@@ -1,6 +1,7 @@
 """Check only public release markers and readiness, without application credentials."""
 
 import argparse
+import json
 import re
 from html.parser import HTMLParser
 from urllib.error import HTTPError, URLError
@@ -37,8 +38,8 @@ def origin(value, *, https=False):
 def fetch(url):
     request = Request(url, headers={"Cache-Control": "no-cache"})
     with urlopen(request, timeout=15) as response:
-        if response.status != 200:
-            raise ValueError("Public deployment endpoint did not return HTTP 200")
+        if response.status != 200 or response.geturl() != url:
+            raise ValueError("Expected HTTP 200 at the requested public endpoint")
         # Release pages are small; do not log their contents or download an unbounded body.
         return response.read(2_000_000).decode("utf-8")
 
@@ -54,7 +55,9 @@ def verify(sha, status_origin, app_origin):
         markers.feed(fetch(endpoint))
         if not markers.values or any(value != revision for value in markers.values):
             raise ValueError(f"Deployed release differs from expected SHA {revision}")
-    fetch(app_origin + "/api/health/ready")
+    readiness = json.loads(fetch(app_origin + "/api/health/ready"))
+    if not isinstance(readiness, dict) or readiness.get("status") != "ok":
+        raise ValueError("API readiness did not confirm database availability")
     print(
         f"PASS deployed SHA {revision}: HTTP status, HTTPS application, API readiness"
     )

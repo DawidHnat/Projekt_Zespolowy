@@ -27,7 +27,7 @@ class DeploymentTests(unittest.TestCase):
 
     def test_exact_release_and_readiness_pass_and_log_seven_characters(self):
         page = '<code data-build-sha="abcdef0">abcdef0</code>'
-        result, output, fetch = self.run_check([page, page, '{"status":"ready"}'])
+        result, output, fetch = self.run_check([page, page, '{"status":"ok"}'])
         self.assertEqual(result, 0)
         self.assertIn("PASS deployed SHA abcdef0", output)
         self.assertEqual(
@@ -68,6 +68,20 @@ class DeploymentTests(unittest.TestCase):
 
     def test_timeout_fails(self):
         self.assertEqual(self.run_check([TimeoutError()])[0], 1)
+
+    def test_readiness_requires_the_api_success_response(self):
+        page = '<code data-build-sha="abcdef0">'
+        for body in (page, '{"status":"unavailable"}', '["ok"]', "{}"):
+            with self.subTest(body=body):
+                self.assertEqual(self.run_check([page, page, body])[0], 1)
+
+    def test_redirect_to_another_endpoint_cannot_pass(self):
+        with patch.object(smoke, "urlopen") as opener:
+            response = opener.return_value.__enter__.return_value
+            response.status = 200
+            response.geturl.return_value = "https://app.example/"
+            with self.assertRaises(ValueError):
+                smoke.fetch("http://status.example/")
 
     def test_invalid_sha_does_not_request_network(self):
         result, _, fetch = self.run_check([], sha="not-a-sha")
