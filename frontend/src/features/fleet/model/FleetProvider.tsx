@@ -25,6 +25,7 @@ const fleetPollIntervalMs = fleetPollInterval(
 
 type FleetState = {
   list: VehicleList | null;
+  total: number;
   map: FleetMap | null;
   summary: Summary | null;
   loading: boolean;
@@ -38,6 +39,7 @@ type FleetState = {
   detailsOpen: boolean;
   setQ: (q: string) => void;
   setStatus: (status: VehicleStatus | "") => void;
+  clearFilters: () => void;
   setPage: (page: number) => void;
   setPageSize: (size: number) => void;
   select: (id: string | null) => void;
@@ -46,6 +48,14 @@ type FleetState = {
   refresh: () => void;
 };
 const Context = createContext<FleetState | null>(null);
+type FleetSnapshot = {
+  requestKey: string;
+  filterKey: string;
+  list: VehicleList;
+  map: FleetMap;
+  summary: Summary;
+};
+type RequestState = { key: string; loading: boolean; error: string | null };
 export function FleetProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   return user ? <AccountFleetProvider key={user.id}>{children}</AccountFleetProvider> : null;
@@ -54,11 +64,8 @@ export function FleetProvider({ children }: { children: ReactNode }) {
 function AccountFleetProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const storageKey = `fleet-flow.list-page-size.v1.${user?.id}`;
-  const [list, setList] = useState<VehicleList | null>(null);
-  const [map, setMap] = useState<FleetMap | null>(null);
-  const [summary, setSummary] = useState<Summary | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [snapshot, setSnapshot] = useState<FleetSnapshot | null>(null);
+  const [request, setRequest] = useState<RequestState | null>(null);
   const [q, setQuery] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
   const [status, setFilter] = useState<VehicleStatus | "">("");
@@ -85,13 +92,24 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const listPoll = useRef<ReturnType<typeof startPolling> | null>(null);
   const detailPoll = useRef<ReturnType<typeof startPolling> | null>(null);
+  const filterKey = JSON.stringify([q.trim(), status]);
+  const requestKey = JSON.stringify([filterKey, page, pageSize]);
+  // Cached results belong to the criteria that produced them, including while
+  // the next query is debouncing or fails. Map results do not depend on the page.
+  const list = snapshot?.requestKey === requestKey ? snapshot.list : null;
+  const map = snapshot?.filterKey === filterKey ? snapshot.map : null;
+  const total = snapshot?.filterKey === filterKey ? snapshot.list.total : 0;
+  const loading = request?.key !== requestKey || request.loading;
+  const error = request?.key === requestKey ? request.error : null;
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedQ(q), 250);
+    const timer = setTimeout(() => setDebouncedQ(q.trim()), 250);
     return () => clearTimeout(timer);
   }, [q]);
   useEffect(() => {
+    const activeFilterKey = JSON.stringify([debouncedQ, status]);
+    const activeKey = JSON.stringify([activeFilterKey, page, pageSize]);
     const load = async (signal: AbortSignal) => {
-      setLoading(true);
+      setRequest({ key: activeKey, loading: true, error: null });
       const filter = new URLSearchParams({
         q: debouncedQ,
         ...(status ? { status } : {}),
@@ -106,28 +124,49 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
           api<Summary>("/fleet/summary", { signal }),
         ]);
         if (signal.aborted) return;
-        setList(nextList);
-        setMap(nextMap);
-        setSummary(nextSummary);
-        setError(null);
+        setSnapshot({
+          requestKey: activeKey,
+          filterKey: activeFilterKey,
+          list: nextList,
+          map: nextMap,
+          summary: nextSummary,
+        });
         if (page > 1 && nextList.items.length === 0 && nextList.total > 0)
           setPage(1);
       } catch (err) {
         if (!signal.aborted)
-          setError(
-            err instanceof Error ? err.message : "Nie można pobrać floty.",
-          );
+          setRequest({
+            key: activeKey,
+            loading: false,
+            error: err instanceof Error ? err.message : "Nie można pobrać floty.",
+          });
         throw err;
       } finally {
-        if (!signal.aborted) setLoading(false);
+        if (!signal.aborted)
+          setRequest(current =>
+            current?.key === activeKey ? { ...current, loading: false } : current,
+          );
       }
     };
-  const poll = startPolling(
-    load,
-    browserPollingEnvironment(),
-    () => setLoading(false),
-    fleetPollIntervalMs,
-  );
+    const environment = browserPollingEnvironment();
+    const pause = () => {
+      setRequest(current => ({
+        key: activeKey,
+        loading: false,
+        error: !navigator.onLine
+          ? "Brak połączenia z siecią. Pobieranie wznowi się po odzyskaniu połączenia."
+          : current?.key === activeKey ? current.error : null,
+      }));
+    };
+    const poll = startPolling(
+      load,
+      environment,
+      pause,
+      fleetPollIntervalMs,
+    );
+    // A provider can mount (or change criteria) after the offline event fired.
+    // No request starts then, so there is no pending request to finish loading.
+    if (!environment.available()) pause();
     listPoll.current = poll;
     return () => {
       poll.dispose();
@@ -180,8 +219,9 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
     <Context
       value={{
         list,
+        total,
         map,
-        summary,
+        summary: snapshot?.summary ?? null,
         loading,
         error,
         q,
@@ -193,6 +233,11 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
         detailsOpen,
         setQ,
         setStatus,
+        clearFilters: () => {
+          setQ("");
+          setDebouncedQ("");
+          setFilter("");
+        },
         setPage,
         setPageSize,
         select: (id) => {

@@ -109,7 +109,12 @@ Główny `.env` jest czytany wyłącznie dla publicznych zmiennych `VITE_*`.
 Jeśli używasz portu 5174, dodaj `http://127.0.0.1:5174` do `CORS_ORIGINS`.
 
 Po zalogowaniu lista i wskaźniki korzystają z rzeczywistych danych cache.
-Filtry nazwy/rejestracji i statusu są współdzielone z mapą. Odświeżanie API co
+Filtry nazwy/rejestracji i statusu są współdzielone z mapą. „Wyczyść filtry”
+usuwa oba filtry, wraca na pierwszą stronę i usuwa wybór pojazdu. Po zmianie
+kryteriów poprzednie wyniki są ukryte do czasu odpowiedzi API; błąd nowych
+wyników nie pokazuje starej listy jako pasującej do nowych filtrów. Błąd
+odświeżania tych samych kryteriów zachowuje ostatni odczyt z ostrzeżeniem.
+Stronicowanie listy nie ogranicza wyników mapy. Odświeżanie API co
 60 s (konfigurowane przez `VITE_FLEET_POLL_INTERVAL_MS`, 10 s–24 h) nie wywołuje
 dodatkowych odczytów WEBFLEET. To ustawienie dotyczy tylko odpytywania aplikacji;
 częstotliwość synchronizacji źródła i próg nieaktualności ustawia backend przez
