@@ -42,7 +42,7 @@ sekcje „Making HTTP requests”, „General parameters” i „Objects”.
 | `status` | Jakość GPS: A = aktualny fix, V = możliwa niedokładność, L = ostatni dobry fix, 0 = brak. To nie status jazdy. |
 | `pos_time` | Czas ostatniej pozycji; przy `useISO8601=true` normalizujemy do UTC. Bez strefy czasu wartość pozostaje nieznana. |
 | `msgtime` | Czas ostatniej wiadomości; nie zastępuje automatycznie czasu pozycji. |
-| `speed` | Wg WEBFLEET 1.74.0: prędkość w km/h (wartość całkowita, obecna tylko przy ruchu `standstill=0`). Zgodnie z decyzją PO aplikacja waliduje i zwraca `speed_kmh` w km/h, a przy postoju, braku lub niepewności pomiaru jawne `null`. |
+| `speed` | W tabeli wyniku `showObjectReportExtern` pole `speed` jest zdefiniowane jako string i nie określa wprost jednostki w tej operacji. Do czasu weryfikacji na koncie testowym jednostka snapshotu pozostaje formalnie niepotwierdzona; zgodnie z decyzją PO API zwraca `speed_kmh: null`. |
 
 `showObjectReportExtern` zwraca obiekty różnych typów, nie tylko pojazdy. Dlatego
 diagnostyka mówi o obiektach. Zanim API listy nazwie je pojazdami, należy połączyć
@@ -75,12 +75,21 @@ Podsumowanie warunków ukończenia:
 1. **Autoryzacja i transport:** Zweryfikowano działanie HTTPS, formatu JSON, nagłówka
    HTTP Basic Auth i `apikey` oraz odrzucanie żądań modyfikujących pojazdy.
    Adapter i diagnostyka zostały wdrożone w PR #7.
-2. **Jednostka prędkości:** Zgodnie z dokumentacją WEBFLEET 1.74.0 prędkość jest liczbą
-   całkowitą w km/h przy ruchu (`standstill=0`). Zgodnie z decyzją PO API waliduje i
-   zwraca `speed_kmh` w km/h, a przy postoju, braku lub niepewności pomiaru jawne `null`.
-3. **Niedostępne metadane pojazdów (marka, model, rok, VIN, adres):** WEBFLEET nie
-   zwraca tych pól w standardowym raporcie. Zgodnie z decyzją PO pola te stanowią
-   ręczną kartotekę pojazdu w Fleet-Flow (SCRUM-51 / SCRUM-25).
+2. **Jednostka prędkości:** W oficjalnym przewodniku 1.74.0 pole `speed` w wyniku
+   `showObjectReportExtern` jest opisane jako string bez wskazania jednostki (w przeciwieństwie
+   do operacji `showTracks`, gdzie km/h jest podane wprost). Z tego względu jednostka prędkości
+   bieżącego snapshotu pozostaje formalnie niepotwierdzona na poziomie specyfikacji tego raportu.
+   Zgodnie z decyzją PO z Planningu do czasu weryfikacji na koncie testowym bez danych klientów
+   API zwraca dla prędkości snapshotu jawne `speed_kmh: null`.
+3. **Adres pozycji a ręczna kartoteka pojazdu:**
+   - **Adres pozycji:** Oficjalna tabela wyniku `showObjectReportExtern` udostępnia pola
+     `postext` oraz `postext_short` zawierające geokodowany adres ostatniej pozycji. Pole to jest
+     związane z bieżącym pomiarem (`Measurement.position_address` w SCRUM-51); w przypadku braku
+     tekstu adresu (np. poza obszarem geokodowania lub przy braku pozycji) API zwraca jawne `null`.
+   - **Ręczna kartoteka pojazdu (marka, model, rok, VIN):** Raporty WEBFLEET nie zwracają
+     tych danych technicznych. Zgodnie z decyzją PO pola `make`, `model`, `year`, `vin` stanowią
+     ręczną kartotekę pojazdu w Fleet-Flow (`Vehicle` w SCRUM-51 / UI w SCRUM-25), zarządzaną
+     lokalnie i nienadpisywaną przez synchronizację.
 4. **Kierowcy (RODO):** Potwierdzono ostatecznie, że kierowcy nie są pobierani z API;
    pozostają wyłącznie ręcznymi wpisami w aplikacji (SCRUM-42).
 5. **Historia, postoje i geometria (SCRUM-24):** Potwierdzono operacje `showTripReportExtern`

@@ -77,8 +77,9 @@ Przekazanie do tej kolumny nie jest wynikiem PASS ani dowodem ukończenia.
 
 SCRUM-5 pozostaje W toku: ręczne metadane i pomiary SCRUM-51 nie są jeszcze
 gotowe. Test części listy/mapy nie zamyka całej Story. SCRUM-15 pozostaje
-W trakcie weryfikacji; mapowanie pól, jednostek i limity w SCRUM-14 zostały
-potwierdzone w docs/WEBFLEET_INTEGRATION.md. Nie zmieniano istniejących statusów Done.
+W trakcie weryfikacji; raport spike'a SCRUM-14 precyzuje mapowanie pól,
+adres z postext, otwartą weryfikację jednostki speed (null) oraz ręczną kartotekę
+w docs/WEBFLEET_INTEGRATION.md. Nie zmieniano istniejących statusów Done.
 
 W widoku tablicy **Grupa → Subtask** widać punkty i statusy dzieci w osobnych
 kolumnach. Widok bez grupowania pokazuje głównie rodziców, a ich dzieci
