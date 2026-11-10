@@ -206,6 +206,8 @@ zakres wyników i strony. W galerii znajduje się pod ostatnim rzędem kafelków
 w widgetach jest poza przewijaną treścią. Limit jest wspólny dla galerii,
 tabeli i listy przy mapie, zapamiętany lokalnie dla konta. Zmiana limitu wraca
 na stronę 1 i nie ogranicza pojazdów z GPS wyświetlanych na mapie.
+[Scenariusze regresji i niezależnego odbioru SCRUM-46](../docs/qa/SCRUM-46.md)
+obejmują wybór między stronami, różne wysokości i migrację ze zdjęciami.
 
 Ikona aparatu dodaje, zastępuje lub usuwa zdjęcie, wspólne dla kafelka i mapy.
 JPG/PNG/WebP do 10 MB są lokalnie zmniejszane do 1024 px, ponownie kodowane bez
