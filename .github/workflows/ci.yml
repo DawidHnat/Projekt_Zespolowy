@@ -237,6 +237,10 @@ jobs:
           staging=$(mktemp -d "$RUNNER_TEMP/fleet-flow.XXXXXX")
           trap 'rm -rf -- "$staging"' EXIT
           mkdir "$staging/release"
+          tar -xzf release.tgz -C "$staging/release"
+          for file in frontend/dist/index.html frontend/dist/status.html backend/app/main.py infra/deploy/compose.yml; do
+            test -s "$staging/release/$file" || { echo "::error::Release artifact missing $file"; exit 1; }
+          done
           printf '%s\n' "$DEPLOY_KEY" > "$staging/key"
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$staging/known_hosts"
           printf '%s\n' "$RUNTIME_ENV" > "$staging/release/runtime.env"
