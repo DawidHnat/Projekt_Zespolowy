@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import sys
@@ -37,8 +38,8 @@ def login(client, password=OLD, username="test-user"):
 def change(client, **fields):
     return client.post(
         "/api/v1/auth/password/change",
-        headers=ORIGIN,
-        json={"current_password": OLD, "new_password": NEW, **fields},
+        headers={**ORIGIN, "Content-Type": "application/json"},
+        content=json.dumps({"current_password": OLD, "new_password": NEW, **fields}),
     )
 
 
@@ -133,6 +134,8 @@ def test_bad_current_password_and_origin_do_not_revoke_sessions(logged_in):
         {"new_password": "x" * 1025},
         {"current_password": ""},
         {"current_password": "x" * 1025},
+        {"current_password": "synthetic-\ud800-password"},
+        {"new_password": "synthetic-\ud800-password"},
         {"new_password": OLD},
         {"new_password": False},
         {"role": "admin"},
@@ -154,6 +157,14 @@ def test_rate_limit_keeps_existing_session_and_password(logged_in):
         assert change(client, current_password="wrong-password").status_code == 400
     assert change(client).status_code == 429
     assert client.get("/api/v1/auth/me").status_code == 200
+
+
+def test_password_change_preserves_valid_unicode_and_whitespace(logged_in):
+    app, client = logged_in
+    password = "  Zażółć 🚚 gęślą jaźń  "
+    assert change(client, new_password=password).status_code == 200
+    assert login(TestClient(app), password=password).status_code == 200
+    assert login(TestClient(app), password=password.strip()).status_code == 401
 
 
 def test_viewer_can_change_own_password_and_logout_every_device(logged_in):

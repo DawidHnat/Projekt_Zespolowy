@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response
-from pydantic import BaseModel, ConfigDict, Field, SecretStr
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
@@ -32,6 +32,15 @@ class ChangePassword(BaseModel):
     model_config = ConfigDict(extra="forbid")
     current_password: SecretStr = Field(min_length=1, max_length=1024)
     new_password: SecretStr = Field(min_length=12, max_length=1024)
+
+    @field_validator("current_password", "new_password")
+    @classmethod
+    def valid_password_text(cls, value: SecretStr):
+        try:
+            value.get_secret_value().encode("utf-8")
+        except UnicodeEncodeError as exc:
+            raise ValueError("Invalid password text") from exc
+        return value
 
 
 def locked_current_user(session, request, user):
