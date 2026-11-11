@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.models import Measurement, SyncState, Vehicle
 from app.integrations.webfleet.client import REQUEST_INTERVALS, WebfleetClient, WebfleetError
-from app.integrations.webfleet.models import ObjectSnapshot
+from app.integrations.webfleet.models import MAX_ODOMETER_KM, ObjectSnapshot
 from app.modules.analytics.service import evaluate_distance_rules, record_distance_interval
 from app.modules.auth.service import aware
 
@@ -121,6 +121,10 @@ def apply_records(session, source, masters, readings, now):
             if not measurement:
                 measurement = Measurement(vehicle_id=vehicle.id, received_at=now)
                 session.add(measurement)
+            if reading.odometer_km is not None and (
+                reading.odometer_km < 0 or reading.odometer_km > MAX_ODOMETER_KM
+            ):
+                raise WebfleetError("INVALID_RECORDS")
             record_distance_interval(session, vehicle.id, measurement, reading, now)
             for field in (
                 "latitude",
@@ -216,6 +220,23 @@ def sync_once(
                         seconds=retry_wait - minimum_interval
                     )
                     state.error_code = error.code
+                    session.commit()
+                    return "degraded"
+                except Exception as error:
+                    session.rollback()
+                    state = session.get(SyncState, source)
+                    if not state:
+                        state = SyncState(source_account=source)
+                        session.add(state)
+                    failed_at = (
+                        datetime.now(UTC)
+                        if not supplied_now
+                        else (now + timedelta(seconds=tracker.elapsed_seconds))
+                    )
+                    state.last_attempt_at = failed_at
+                    state.error_code = (
+                        error.code if isinstance(error, WebfleetError) else "INVALID_RECORDS"
+                    )
                     session.commit()
                     return "degraded"
         finally:
