@@ -106,7 +106,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         retry: checkSession,
-        clearSession: () => finishSession(null),
+        clearSession: () => {
+          finishSession(null);
+          changes.current?.notify();
+        },
       }}
     >
       {children}
