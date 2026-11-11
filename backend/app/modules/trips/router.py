@@ -70,15 +70,25 @@ def trips(
     vehicle_id: UUID,
     from_time: Annotated[datetime, Query(alias="from")],
     to_time: Annotated[datetime, Query(alias="to")],
-    page: Annotated[int, Query(ge=1)] = 1,
+    page: Annotated[int, Query(ge=1, le=100_000)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 25,
 ):
-    if (
-        from_time.tzinfo is None
-        or to_time.tzinfo is None
-        or not timedelta(0) < to_time - from_time <= timedelta(days=93)
-    ):
-        raise ApiError(422, "VALIDATION_ERROR", "Podaj poprawny zakres ze strefą czasu (do 93 dni)")
+    try:
+        if from_time.tzinfo is None or to_time.tzinfo is None:
+            raise ApiError(
+                422, "VALIDATION_ERROR", "Podaj poprawny zakres ze strefą czasu (do 93 dni)"
+            )
+        from_utc = aware(from_time)
+        to_utc = aware(to_time)
+        diff = to_utc - from_utc
+        if not timedelta(0) < diff <= timedelta(days=93):
+            raise ApiError(
+                422, "VALIDATION_ERROR", "Podaj poprawny zakres ze strefą czasu (do 93 dni)"
+            )
+    except (OverflowError, ValueError) as exc:
+        raise ApiError(
+            422, "VALIDATION_ERROR", "Podaj poprawny zakres ze strefą czasu (do 93 dni)"
+        ) from exc
     vehicle = session.get(Vehicle, vehicle_id)
     source = account_key(request.app.state.settings.webfleet_account)
     if vehicle is None or vehicle.source_account != source:
@@ -86,12 +96,12 @@ def trips(
     # Full known trips overlapping [from, to); an unknown end is treated as a point at start.
     filters = (
         Trip.vehicle_id == vehicle_id,
-        Trip.start_at < aware(to_time),
+        Trip.start_at < to_utc,
         or_(
-            Trip.end_at > aware(from_time),
+            Trip.end_at > from_utc,
             and_(
                 or_(Trip.end_at.is_(None), Trip.end_at == Trip.start_at),
-                Trip.start_at >= aware(from_time),
+                Trip.start_at >= from_utc,
             ),
         ),
     )

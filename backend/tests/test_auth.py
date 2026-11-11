@@ -101,3 +101,34 @@ def test_validation_does_not_reflect_password(application):
     )
     assert result.status_code == 422
     assert "do-not-reflect-me" not in result.text
+
+
+def test_login_rejects_surrogate_password_and_null_byte_username(application):
+    _, client = application
+    # Password with unpaired surrogate U+D800 must return 422, not 500
+    res_surrogate = client.post(
+        "/api/v1/auth/login",
+        headers=ORIGIN,
+        json={"username": "test-user", "password": "pass\ud800word"},
+    )
+    assert res_surrogate.status_code == 422
+    assert "pass" not in res_surrogate.text
+
+    # Username with null byte U+0000 must return 422, not 503
+    res_null = client.post(
+        "/api/v1/auth/login",
+        headers=ORIGIN,
+        json={"username": "test\x00user", "password": "valid-password-123"},
+    )
+    assert res_null.status_code == 422
+
+
+def test_login_accepts_unicode_passwords_and_usernames(application):
+    _, client = application
+    res = client.post(
+        "/api/v1/auth/login",
+        headers=ORIGIN,
+        json={"username": "zażółć-gęślą-jaźń", "password": "hasło-z-ogonkami-🚚-123"},
+    )
+    # Reaches credential verification (401 for unknown user), not 422 or 500
+    assert res.status_code == 401

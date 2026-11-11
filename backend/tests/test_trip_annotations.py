@@ -233,6 +233,19 @@ def test_trip_list_ranges_pagination_and_unknown_values(stored_trip):
         == 422
     )
     assert client.get("/api/v1/trips", params={**params, "page_size": 101}).status_code == 422
+    assert client.get("/api/v1/trips", params={**params, "page": 10**100}).status_code == 422
+    assert client.get("/api/v1/trips", params={**params, "page": 100_001}).status_code == 422
+    assert (
+        client.get(
+            "/api/v1/trips",
+            params={
+                **params,
+                "from": "0001-01-01T00:00:00+01:00",
+                "to": "0001-01-02T00:00:00+01:00",
+            },
+        ).status_code
+        == 422
+    )
     assert (
         client.get("/api/v1/trips", params={**params, "vehicle_id": str(uuid4())}).status_code
         == 404

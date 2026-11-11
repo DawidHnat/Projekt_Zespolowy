@@ -3,7 +3,7 @@ from datetime import timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request, Response
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import BaseModel, Field, SecretStr, field_validator
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
@@ -28,6 +28,22 @@ router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 class LoginBody(BaseModel):
     username: str = Field(min_length=1, max_length=100)
     password: SecretStr = Field(min_length=1, max_length=1024)
+
+    @field_validator("username")
+    @classmethod
+    def valid_username(cls, value: str) -> str:
+        if "\x00" in value:
+            raise ValueError("Invalid characters in username")
+        return value
+
+    @field_validator("password")
+    @classmethod
+    def valid_password_text(cls, value: SecretStr) -> SecretStr:
+        try:
+            value.get_secret_value().encode("utf-8")
+        except UnicodeEncodeError as exc:
+            raise ValueError("Invalid password text") from exc
+        return value
 
 
 def count_attempt(session: Session, key: str, *, limit=10, window_seconds=60):
