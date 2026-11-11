@@ -183,6 +183,12 @@ PostgreSQL advisory lock i zapis czasu próby chronią limit także przy kilku
 procesach. Nie uruchamiaj równolegle diagnostyki w pętli. Awaria zachowuje dane
 ostatniego sukcesu; brak kompletnego raportu nie dezaktywuje pojazdów. Import
 aktualizuje wyłącznie pola pojazdu/pomiaru — nigdy ręcznych kierowców/przypisań.
+Synchronizator ponawia timeout, błąd połączenia, limit źródła i błędy HTTP 408,
+425 oraz 5xx maksymalnie do trzech prób na każdy raport (dwie ponowne próby),
+z co najmniej 10 s przerwy wymaganej przez raport i z uwzględnieniem `Retry-After`
+do 60 s. Adapter i diagnostyka pozostają bez automatycznych ponowień. Po
+wyczerpaniu prób API nadal udostępnia ostatni zapisany cache ze statusem źródła
+`degraded` i czasem ostatniego sukcesu.
 Historia przejazdów nie jest jeszcze synchronizowana. Jej import, postoje
 i harmonogram należą do SCRUM-24; adnotacje są kolejnym przyrostem.
 

@@ -72,6 +72,7 @@ def login(
     username = body.username.strip().lower()
     count_attempt(session, digest("ip:" + (request.client.host if request.client else "unknown")))
     count_attempt(session, digest("account:" + username))
+    # Serialize login with password reset/change on the same User row.
     user = find_user(session, username, lock=True)
     valid = password_hasher.verify(
         body.password.get_secret_value(), user.password_hash if user else dummy_hash

@@ -29,6 +29,12 @@ uzgodnieniu z zespołem. Ten przyrost nie zmienia hasła `qa-team` na VPS.
 4. „Wyloguj wszystkie urządzenia” pokazuje potwierdzenie. „Anuluj” zachowuje
    sesje. Potwierdzenie wylogowuje także bieżące urządzenie. Sesje innych kont
    pozostają aktywne. Ponowne logowanie działa.
+   W dwóch kartach tego samego profilu przeglądarki potwierdzenie usuwa też
+   prywatny widok i niezapisany szkic z drugiej karty bez oczekiwania na polling.
+   Zmiana hasła zachowuje obróconą, wspólną sesję tego profilu, ale usuwa stare
+   szkice w innych kartach i ponownie wczytuje użytkownika z `/auth/me`.
+   Sprawdź BroadcastChannel i fallback storage; komunikat nie zawiera konta,
+   hasła ani cookie.
 5. Brak sieci/błąd API nie pokazuje fałszywego sukcesu. Można ponowić odczyt
    profilu lub operację; wygaśnięcie sesji usuwa prywatny widok. Sprawdź klawiaturę,
    Safari, 390 px, jasny/ciemny oraz szkło/klasyczny. Dane floty nie są wymagane

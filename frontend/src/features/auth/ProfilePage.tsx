@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { KeyRound, LogOut, UserRound } from "lucide-react";
 import { api } from "../../shared/api/client";
 import { useAuth } from "./AuthProvider";
@@ -7,6 +7,7 @@ import { passwordChangeValidation, profileError, profileRole, type Profile } fro
 export function ProfilePage() {
   const auth = useAuth();
   const id = useId();
+  const mounted = useRef(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -19,6 +20,10 @@ export function ProfilePage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true); setLoadError(false);
@@ -38,6 +43,8 @@ export function ProfilePage() {
       await api("/auth/password/change", {
         method: "POST", body: JSON.stringify({ current_password: current, new_password: next }),
       });
+      if (!mounted.current) return;
+      auth.passwordChanged();
       setNotice("Hasło zostało zmienione. Pozostałe sesje wylogowano; na tym urządzeniu możesz dalej pracować.");
     } catch (err) { setError(profileError(err)); }
     finally {
