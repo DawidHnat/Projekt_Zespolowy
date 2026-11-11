@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api, onSessionExpired } from "../../shared/api/client";
+import { advanceSessionVersion, api, onSessionExpired } from "../../shared/api/client";
 import { listenForSessionChanges } from "./session-changes";
 
 type User = {
@@ -35,15 +35,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pendingSession = useRef<AbortController | null>(null);
   const changes = useRef<ReturnType<typeof listenForSessionChanges> | null>(null);
   const finishSession = useCallback((next: User | null, message: string | null = null) => {
+    advanceSessionVersion();
     pendingSession.current?.abort();
     setUser(next);
     setLoading(false);
     setError(message);
   }, []);
   const checkSession = useCallback(() => {
+    advanceSessionVersion();
     pendingSession.current?.abort();
     const controller = new AbortController();
     pendingSession.current = controller;
+    setUser(null);
     setLoading(true);
     setError(null);
     api<{ user: User }>("/auth/me", { signal: controller.signal }, false)
@@ -61,11 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
   }, []);
   useEffect(() => {
-    const recheck = () => {
-      setUser(null);
-      checkSession();
-    };
-    changes.current = listenForSessionChanges(recheck);
+    changes.current = listenForSessionChanges(checkSession);
     const onRestore = (event: PageTransitionEvent) => {
       if (event.persisted) checkSession();
     };
@@ -119,7 +118,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logoutAll,
         passwordChanged,
         retry: checkSession,
-        clearSession: () => finishSession(null),
+        clearSession: () => {
+          finishSession(null);
+          changes.current?.notify();
+        },
       }}
     >
       {children}
