@@ -485,9 +485,7 @@ def test_corrupt_odometer_marks_sync_degraded_and_recovers_on_next_cycle():
 
     # Cycle 1: initial valid sync
     assert (
-        sync_once(
-            engine, settings, client_factory=GoodClient, now=t0, sync_interval_seconds=60
-        )
+        sync_once(engine, settings, client_factory=GoodClient, now=t0, sync_interval_seconds=60)
         == "ok"
     )
     with Session(engine) as session:
