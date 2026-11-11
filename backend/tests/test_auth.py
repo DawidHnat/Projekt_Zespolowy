@@ -1,3 +1,4 @@
+import json
 from datetime import timedelta
 
 from sqlalchemy import select
@@ -108,8 +109,8 @@ def test_login_rejects_surrogate_password_and_null_byte_username(application):
     # Password with unpaired surrogate U+D800 must return 422, not 500
     res_surrogate = client.post(
         "/api/v1/auth/login",
-        headers=ORIGIN,
-        json={"username": "test-user", "password": "pass\ud800word"},
+        headers={**ORIGIN, "Content-Type": "application/json"},
+        content=json.dumps({"username": "test-user", "password": "pass\ud800word"}),
     )
     assert res_surrogate.status_code == 422
     assert "pass" not in res_surrogate.text
@@ -117,8 +118,8 @@ def test_login_rejects_surrogate_password_and_null_byte_username(application):
     # Username with null byte U+0000 must return 422, not 503
     res_null = client.post(
         "/api/v1/auth/login",
-        headers=ORIGIN,
-        json={"username": "test\x00user", "password": "valid-password-123"},
+        headers={**ORIGIN, "Content-Type": "application/json"},
+        content=json.dumps({"username": "test\x00user", "password": "valid-password-123"}),
     )
     assert res_null.status_code == 422
 
