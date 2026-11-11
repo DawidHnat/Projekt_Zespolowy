@@ -5,7 +5,6 @@ from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-
 MAX_ODOMETER_KM = Decimal("9999999999999.9")
 MAX_ODOMETER_RAW = Decimal("99999999999999")
 
