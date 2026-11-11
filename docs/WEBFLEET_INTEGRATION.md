@@ -66,10 +66,12 @@ aktualnej pozycji. Interfejs powinien wyświetlać czas ostatniego pomiaru.
 | Backend aplikacji | Adapter nie uruchamia serwera FastAPI ani bazy | SCRUM-39: lokalny serwer, PostgreSQL, migracje, health i CI |
 | Dostęp użytkowników | Obecny frontend działa bez logowania i bez prawdziwych danych | SCRUM-16 przed udostępnieniem danych klientów w aplikacji |
 
-## Wnioski, decyzje PO i zakończenie Spike'a SCRUM-14
+## Wnioski, decyzje PO i status Spike'a SCRUM-14
 
 Rozpoznanie techniczne WEBFLEET.connect i diagnostyki SMTP w ramach SCRUM-14
-zostało ukończone i potwierdza pełną wykonalność integracji.
+potwierdza techniczną wykonalność integracji. Decyzje projektowe, granice RODO i mapowanie pól
+zostały uzgodnione, natomiast kryterium empirycznego potwierdzenia jednostki prędkości
+snapshotu pozostaje formalnie otwarte (z jawną obsługą `speed_kmh: null` w API zgodnie z decyzją PO).
 
 Podsumowanie warunków ukończenia:
 1. **Autoryzacja i transport:** Zweryfikowano działanie HTTPS, formatu JSON, nagłówka
@@ -102,8 +104,10 @@ Podsumowanie warunków ukończenia:
    `contracts/api-design.json` przygotowano zestaw danych syntetycznych bez sekretów i
    prawdziwych pozycji GPS.
 
-Spike SCRUM-14 spełnia wszystkie kryteria akceptacji i zostaje przekazany do formalnego
-odbioru i przeglądu.
+Wnioski ze Spike'a SCRUM-14 stanowią podstawę implementacji zadań SCRUM-15, SCRUM-24
+oraz SCRUM-51. Kryterium potwierdzenia jednostki pola `speed` snapshotu pozostaje formalnie
+otwarte do czasu testu na żywym koncie testowym (do tego czasu API zwraca `speed_kmh: null`
+zgodnie z decyzją PO). Dokumentacja podsumowująca spike zostaje przekazana do ponownego review.
 
 ## Poczta
 
