@@ -38,13 +38,13 @@ async function confirmUnsaved(page: Page, action: () => Promise<unknown>, accept
   await pending;
 }
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ context }) => {
   execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", "reset-case"], {
     cwd: "../backend", env: { ...process.env, PYTHONPATH: ".", FLEET_FLOW_E2E: "true" },
     stdio: "pipe",
   });
   // Enforce an offline fixture: any accidentally introduced external call is blocked.
-  await page.route("**/*", (route) => {
+  await context.route("**/*", (route) => {
     const url = new URL(route.request().url());
     return url.hostname === "127.0.0.1" ? route.continue() : route.abort();
   });
@@ -291,3 +291,66 @@ test("switching accounts resets selected details, filters and the per-user page 
   await expect(page.getByRole("searchbox", { name: "Szukaj pojazdu" })).toHaveValue("");
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
+
+for (const transport of ["BroadcastChannel", "storage"]) {
+  test(`password reset removes private drafts in other tabs without polling (${transport})`, async ({ page, context }) => {
+    if (transport === "storage") {
+      await context.addInitScript(() => {
+        Object.defineProperty(window, "BroadcastChannel", { value: undefined });
+      });
+    }
+    await login(page);
+    const other = await context.newPage();
+    await other.goto("/#vehicles");
+    const form = await annotation(other);
+    await form.getByLabel(/Cel przejazdu/).fill("Prywatny szkic przed resetem");
+    // A reset must clear the view even while this hidden tab's reads are paused.
+    await other.evaluate(() => {
+      Object.defineProperty(document, "visibilityState", { configurable: true, value: "hidden" });
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    // SMTP/token handling has separate backend tests. Reproduce the successful
+    // reset response and revoke the real fixture session without sending mail.
+    await page.route("**/api/v1/auth/password/confirm", async route => {
+      expect((await page.request.post("/api/v1/auth/logout", {
+        headers: { Origin: "http://127.0.0.1:54173" },
+      })).ok()).toBeTruthy();
+      await route.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' });
+    });
+    await page.goto("/#reset-password?token=synthetic-reset-token-without-smtp");
+    await page.getByLabel("Nowe hasło", { exact: true }).fill("synthetic-new-password");
+    await page.getByLabel("Powtórz hasło", { exact: true }).fill("synthetic-new-password");
+    await page.getByRole("button", { name: "Zapisz nowe hasło", exact: true }).click();
+    await expect(page.getByRole("status")).toContainText("Hasło zostało zmienione");
+    await expect(other.getByRole("button", { name: "Zaloguj się", exact: true })).toBeVisible();
+    await expect(form).toHaveCount(0);
+    await expect(other.getByLabel(/Cel przejazdu/)).toHaveCount(0);
+    expect((await other.request.get("/api/v1/auth/me")).status()).toBe(401);
+    await other.screenshot({ path: test.info().outputPath("reset-cleared-other-tab.png") });
+  });
+
+  test(`other tabs discard private drafts on logout and load the shared account on login (${transport})`, async ({ page, context }) => {
+    if (transport === "storage") {
+      await context.addInitScript(() => {
+        Object.defineProperty(window, "BroadcastChannel", { value: undefined });
+      });
+    }
+    await login(page);
+    const other = await context.newPage();
+    await other.goto("/#vehicles");
+    const form = await annotation(other);
+    await form.getByLabel(/Cel przejazdu/).fill("Prywatny szkic edytora");
+
+    const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
+    if (await menu.isVisible()) await menu.click();
+    await page.getByRole("button", { name: "Wyloguj się", exact: true }).click();
+    await expect(other.getByRole("button", { name: "Zaloguj się", exact: true })).toBeVisible();
+    await expect(form).toHaveCount(0);
+
+    await login(page, "viewer");
+    const reopened = await annotation(other);
+    await expect(reopened.getByLabel(/Cel przejazdu/)).toHaveAttribute("readonly", "");
+    await expect(reopened.getByLabel(/Cel przejazdu/)).not.toHaveValue("Prywatny szkic edytora");
+    await expect(other.getByRole("button", { name: "Zapisz cel i opis", exact: true })).toHaveCount(0);
+  });
+}

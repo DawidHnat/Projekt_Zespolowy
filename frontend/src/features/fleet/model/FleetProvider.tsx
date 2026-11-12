@@ -10,6 +10,7 @@ import { ApiError, api } from "../../../shared/api/client";
 import { browserPollingEnvironment, startPolling } from "../../../shared/api/polling";
 import { useAuth } from "../../auth/AuthProvider";
 import { normalizePageSize } from "../../../shared/components/pagination-model";
+import { fleetPollInterval } from "./types";
 import type {
   FleetMap,
   Summary,
@@ -17,6 +18,10 @@ import type {
   VehicleList,
   VehicleStatus,
 } from "./types";
+
+const fleetPollIntervalMs = fleetPollInterval(
+  import.meta.env.VITE_FLEET_POLL_INTERVAL_MS,
+);
 
 type FleetState = {
   list: VehicleList | null;
@@ -117,7 +122,12 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
         if (!signal.aborted) setLoading(false);
       }
     };
-    const poll = startPolling(load, browserPollingEnvironment(), () => setLoading(false));
+  const poll = startPolling(
+    load,
+    browserPollingEnvironment(),
+    () => setLoading(false),
+    fleetPollIntervalMs,
+  );
     listPoll.current = poll;
     return () => {
       poll.dispose();
@@ -129,20 +139,25 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
       setSelected(null);
       return;
     }
-    const poll = startPolling(async signal => {
-      try {
-        const vehicle = await api<Vehicle>(`/fleet/vehicles/${encodeURIComponent(selectedId)}`, { signal });
-        if (!signal.aborted) setSelected(vehicle);
-      } catch (err) {
-        if (!signal.aborted && err instanceof ApiError && err.status === 404) {
-          setSelectedId(null);
-          setSelected(null);
-          setDetailsOpen(false);
+    const poll = startPolling(
+      async signal => {
+        try {
+          const vehicle = await api<Vehicle>(`/fleet/vehicles/${encodeURIComponent(selectedId)}`, { signal });
+          if (!signal.aborted) setSelected(vehicle);
+        } catch (err) {
+          if (!signal.aborted && err instanceof ApiError && err.status === 404) {
+            setSelectedId(null);
+            setSelected(null);
+            setDetailsOpen(false);
+          }
+          // Keep the last detail and mounted editor on a transient failure.
+          throw err;
         }
-        // Keep the last detail and mounted editor on a transient failure.
-        throw err;
-      }
-    }, browserPollingEnvironment());
+      },
+      browserPollingEnvironment(),
+      undefined,
+      fleetPollIntervalMs,
+    );
     detailPoll.current = poll;
     return () => {
       poll.dispose();

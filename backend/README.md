@@ -151,11 +151,21 @@ Administrator może także ustawić hasło lokalnym poleceniem powyżej.
 
 ## Synchronizacja pojazdów — SCRUM-15
 
-`SYNC_ENABLED=true` w lokalnym `.env` włącza jeden wspólny odczyt co 60 s.
+`SYNC_ENABLED=true` w lokalnym `.env` włącza jeden wspólny odczyt. `SYNC_INTERVAL_SECONDS`
+ustawia częstotliwość (domyślnie 60 s, minimum 10 s zgodnie z limitem źródła),
+a `STALE_SECONDS` próg nieaktualności pomiaru (domyślnie 900 s). Obie wartości
+są walidowane przy starcie; nie ustawiaj częstotliwości przed sprawdzeniem limitów
+WEBFLEET dla używanego konta.
 PostgreSQL advisory lock i zapis czasu próby chronią limit także przy kilku
 procesach. Nie uruchamiaj równolegle diagnostyki w pętli. Awaria zachowuje dane
 ostatniego sukcesu; brak kompletnego raportu nie dezaktywuje pojazdów. Import
 aktualizuje wyłącznie pola pojazdu/pomiaru — nigdy ręcznych kierowców/przypisań.
+Synchronizator ponawia timeout, błąd połączenia, limit źródła i błędy HTTP 408,
+425 oraz 5xx maksymalnie do trzech prób na każdy raport (dwie ponowne próby),
+z co najmniej 10 s przerwy wymaganej przez raport i z uwzględnieniem `Retry-After`
+do 60 s. Adapter i diagnostyka pozostają bez automatycznych ponowień. Po
+wyczerpaniu prób API nadal udostępnia ostatni zapisany cache ze statusem źródła
+`degraded` i czasem ostatniego sukcesu.
 Historia przejazdów nie jest jeszcze synchronizowana. Jej import, postoje
 i harmonogram należą do SCRUM-24; adnotacje są kolejnym przyrostem.
 

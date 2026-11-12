@@ -55,7 +55,10 @@ def test_lists_filters_missing_gps_map_and_private_fields(logged_in):
     assert result["total"] == 3 and len(result["items"]) == 2
     first = result["items"][0]
     assert first["status"] == "moving" and first["speed_kmh"] is None
+    assert first["odometer_km"] == 1234.5
     assert first["driver"]["display_name"] == "Ręczny kierowca testowy"
+    without_gps = client.get("/api/v1/fleet/vehicles?q=TEST%202").json()["items"][0]
+    assert without_gps["latitude"] is None and without_gps["longitude"] is None
     assert "secret-source" not in str(result)
     assert client.get("/api/v1/fleet/vehicles?status=offline").json()["total"] == 1
     assert client.get("/api/v1/fleet/vehicles?q=TEST%202").json()["items"][0]["status"] == "unknown"
@@ -64,6 +67,11 @@ def test_lists_filters_missing_gps_map_and_private_fields(logged_in):
     assert geo["total"] == 3 and geo["located"] == 2
     assert geo["features"][0]["geometry"]["coordinates"] == [21.0, 52.0]
     assert client.get("/api/v1/fleet/map?status=unknown").json()["features"] == []
+    filtered_list = client.get("/api/v1/fleet/vehicles?q=TEST%200&status=moving").json()
+    filtered_map = client.get("/api/v1/fleet/map?q=TEST%200&status=moving").json()
+    assert [vehicle["id"] for vehicle in filtered_list["items"]] == [
+        feature["properties"]["id"] for feature in filtered_map["features"]
+    ]
     assert client.get("/api/v1/fleet/vehicles/" + identities[2]).status_code == 200
     summary = client.get("/api/v1/fleet/summary").json()
     assert summary["moving"] == summary["offline"] == summary["unknown"] == 1
@@ -79,3 +87,9 @@ def test_cold_source_and_degraded_cache_are_explicit(logged_in):
         session.commit()
     result = client.get("/api/v1/fleet/vehicles").json()
     assert result["source"]["status"] == "degraded" and result["total"] == 3
+    assert result["source"]["last_success_at"]
+    stale_vehicles = [item for item in result["items"] if item["position_at"]]
+    assert all(item["is_stale"] and item["status"] == "offline" for item in stale_vehicles)
+    geo = client.get("/api/v1/fleet/map").json()
+    assert geo["source"] == result["source"]
+    assert all(feature["properties"]["is_stale"] for feature in geo["features"])

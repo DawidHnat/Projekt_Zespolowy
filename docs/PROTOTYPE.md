@@ -22,6 +22,10 @@ z interakcjami i brak odnośników do nieistniejących ekranów.
 
 ## Powiązanie z historyjkami
 
+Uzupełniające szkice widoków i przepływy dla SCRUM-5/6/7, wraz z listą pytań
+do decyzji PO i konsultacji QA, opisuje [SCRUM-35](SCRUM-35-VIEW-SKETCHES.md).
+Szkice rozwijają istniejący UI; nie zastępują prototypu ani odbioru funkcji.
+
 | Story | Nazwany przepływ | Początek w prezentacji | Ekran w edytorze |
 | --- | --- | --- | --- |
 | [SCRUM-16](https://fleet-flow.atlassian.net/browse/SCRUM-16) | S1 / Logowanie → Pulpit → Wylogowanie | [Logowanie](https://www.figma.com/proto/4EFjRAUbCoTjemZpQRVDu9?node-id=2-46&starting-point-node-id=2%3A46&scaling=scale-down) | [01 Logowanie](https://www.figma.com/design/4EFjRAUbCoTjemZpQRVDu9?node-id=2-46) |

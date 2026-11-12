@@ -3,11 +3,15 @@
 Jira: [SCRUM-3](https://fleet-flow.atlassian.net/browse/SCRUM-3).
 
 **Retrospektywa na podstawie obserwacji i zapisów z 4.11.2026.**
-Uwagi uczestników i decyzje wymagające uzgodnienia z zespołem
-można dopisać po spotkaniu.
+Uzupełnienie 06.11.2026: PO potwierdził odbyty tego dnia Review z udziałem
+całego zespołu i pozytywną ocenę pokazanych funkcji. To potwierdzenie Przeglądu,
+nie informacja o osobnym spotkaniu retrospektywy ani odbiór wszystkich warunków DoD.
 
 ## Co poszło dobrze
 
+- Na Review 06.11 uczestniczył cały zespół: Jakub Czaja, Dawid Hnat,
+  Jakub Nazarewicz i Marcel Głowacki. Według potwierdzenia PO przejrzane
+  funkcje oceniono pozytywnie. Szczegółowego feedbacku nie przekazano.
 - Aplikacja działa przez HTTPS na docelowej domenie. Kontrola gotowości
   zwróciła HTTP 200, a wersja `4ce144e` na stronie serwera zgadzała się
   z `origin/main` po pobraniu zmian. [Fleet-Flow](https://fleet-flow.pl/)
@@ -59,5 +63,7 @@ OC, badanie i dokumenty). Sprint 1 wciąż jest aktywny. Jira wskazuje
 otwarte podzadania SCRUM-1 i SCRUM-66 jako blokadę jego zakończenia.
 [Backlog Jira](https://fleet-flow.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog)
 
-Do uzupełnienia po spotkaniach pozostają data, uczestnicy, uwagi zespołu
-i decyzje dotyczące dalszego zakresu. [Scenariusz Review](../SPRINT_1_REVIEW.md)
+Data i uczestnicy Review są potwierdzeni w uzupełnieniu z 06.11.
+Szczegółowe uwagi, decyzje dotyczące dalszego zakresu i termin osobnego spotkania
+retrospektywy nie zostały przekazane. Działanie SCRUM-65 i jego właściciel
+pozostają zapisanym usprawnieniem. [Protokół i scenariusz Review](../SPRINT_1_REVIEW.md)

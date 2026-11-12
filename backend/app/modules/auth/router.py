@@ -4,7 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request, Response
 from pydantic import BaseModel, Field, SecretStr
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.core.database import get_session
@@ -17,7 +17,6 @@ from app.modules.auth.service import (
     current_user,
     digest,
     dummy_hash,
-    find_user,
     now_utc,
     password_hasher,
     user_payload,
@@ -72,7 +71,9 @@ def login(
     username = body.username.strip().lower()
     count_attempt(session, digest("ip:" + (request.client.host if request.client else "unknown")))
     count_attempt(session, digest("account:" + username))
-    user = find_user(session, username)
+    # A password reset must revoke a login that wins this lock, or finish before
+    # we verify credentials and issue a session with the replacement password.
+    user = session.scalar(select(User).where(User.username == username).with_for_update())
     valid = password_hasher.verify(
         body.password.get_secret_value(), user.password_hash if user else dummy_hash
     )

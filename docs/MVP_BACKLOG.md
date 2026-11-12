@@ -70,7 +70,7 @@ cel, trzy Story oraz historię. Zmiana dat nie oznacza odbioru historyjek.
 | --- | --- |
 | Jakub Czaja | Logowanie SCRUM-16, PO i planowanie, kontrakt API SCRUM-36, kalendarz SCRUM-66 oraz własne przyrosty listy/układu |
 | Dawid Hnat | Synchronizacja SCRUM-15, mapowanie źródła SCRUM-14, API i infrastruktura, uruchomienie odczytu VPS SCRUM-64 |
-| Jakub Nazarewicz | Lista/mapa SCRUM-5, mapa SCRUM-21, aktualność SCRUM-22 i przepływy/prototyp SCRUM-35 |
+| Jakub Nazarewicz | Lista/mapa SCRUM-5, mapa SCRUM-21, aktualność SCRUM-22 i [szkice/przepływy SCRUM-35](SCRUM-35-VIEW-SKETCHES.md) |
 | Marcel Głowacki | Plan QA SCRUM-37, odbiory SCRUM-23/40/56 |
 
 Sprint ma 16 zgłoszeń głównych. Podstawowe trzy Story nie są ukończone przez

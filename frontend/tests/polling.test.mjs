@@ -77,6 +77,25 @@ test("errors back off to a cap, manual retry is immediate and success resets the
   poll.dispose();
 });
 
+test("polling intervals longer than the retry cap are preserved", async () => {
+  for (const interval of [600_000, 86_400_000]) {
+    const env = environment();
+    let fails = true;
+    const poll = startPolling(async () => {
+      if (fails) throw new Error("synthetic failure");
+    }, env, undefined, interval);
+    await settled();
+    assert.equal(env.tick(), interval);
+    await settled();
+    fails = false;
+    poll.refresh();
+    await settled();
+    assert.equal(env.tick(), interval);
+    await settled();
+    poll.dispose();
+  }
+});
+
 test("filter/account cleanup cannot reschedule or complete an old polling generation", async () => {
   const env = environment();
   let finish;

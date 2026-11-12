@@ -1,7 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { api, onSessionExpired } from "../src/shared/api/client.ts";
-import { positionTime } from "../src/features/fleet/model/types.ts";
+import { advanceSessionVersion, api, onSessionExpired } from "../src/shared/api/client.ts";
+import {
+  fleetPollInterval,
+  measurementLabel,
+  positionCoordinates,
+  positionTime,
+  updateTime,
+} from "../src/features/fleet/model/types.ts";
 
 test("API uses same-origin cookies and never reflects provider errors", async () => {
   const saved = globalThis.fetch;
@@ -53,4 +59,53 @@ test("API rejects external paths and timestamps use Warsaw DST", async () => {
   assert.match(positionTime("2026-01-10T12:00:00Z"), /13:00/);
   assert.match(positionTime("2026-07-10T12:00:00Z"), /14:00/);
   assert.equal(positionTime(null), "Brak pomiaru");
+  assert.match(updateTime("2026-07-10T12:00:00Z"), /2026/);
+  assert.equal(updateTime(null), "Brak udanej synchronizacji");
+  assert.equal(positionCoordinates(0, 0), "0.00000, 0.00000");
+  assert.equal(positionCoordinates(null, 20), "Brak GPS");
+  assert.equal(measurementLabel(null, "km"), "Brak danych");
+  assert.equal(measurementLabel(0, "km/h", 0), "0 km/h");
+  assert.equal(fleetPollInterval("30000"), 30000);
+  assert.equal(fleetPollInterval("9000"), 10000);
+  assert.equal(fleetPollInterval(undefined), 10000);
+});
+
+test("a late 401 cannot expire a newer session, while current 401 still notifies", async () => {
+  const saved = globalThis.fetch;
+  let calls = 0;
+  const remove = onSessionExpired(() => calls++);
+  try {
+    let respond;
+    globalThis.fetch = () => new Promise(resolve => { respond = resolve; });
+    const oldRequest = api("/fleet/map");
+    advanceSessionVersion();
+    const unauthorized = () => new Response('{"error":{"code":"UNAUTHENTICATED"}}', { status: 401 });
+    respond(unauthorized());
+    await assert.rejects(oldRequest, error => error.status === 401);
+    assert.equal(calls, 0);
+    globalThis.fetch = async () => unauthorized();
+    await assert.rejects(api("/fleet/map"), error => error.status === 401);
+    assert.equal(calls, 1);
+  } finally {
+    globalThis.fetch = saved;
+    remove();
+  }
+});
+
+test("a canceled request cannot broadcast a late session expiration", async () => {
+  const saved = globalThis.fetch;
+  let calls = 0;
+  const remove = onSessionExpired(() => calls++);
+  try {
+    const controller = new AbortController();
+    globalThis.fetch = async () => {
+      controller.abort();
+      return new Response('{"error":{"code":"UNAUTHENTICATED"}}', { status: 401 });
+    };
+    await assert.rejects(api("/fleet/map", { signal: controller.signal }));
+    assert.equal(calls, 0);
+  } finally {
+    globalThis.fetch = saved;
+    remove();
+  }
 });

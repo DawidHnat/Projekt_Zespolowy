@@ -82,6 +82,23 @@ def test_error_handling_does_not_expose_provider_body(response, code, provider_c
         run_with_response(lambda _: response)
     assert error.value.code == code
     assert error.value.provider_code == provider_code
+    assert error.value.retryable is (
+        response.status_code in (408, 425) or response.status_code >= 500
+    )
+    assert "secret provider message" not in str(error.value)
+
+
+def test_rate_limit_retry_after_is_parsed_without_exposing_provider_data():
+    with pytest.raises(WebfleetError) as error:
+        run_with_response(
+            lambda _: httpx.Response(
+                429,
+                headers={"Retry-After": "30"},
+                text="secret provider message",
+            )
+        )
+    assert error.value.code == "provider_rate_limit"
+    assert error.value.retry_after_seconds == 30
     assert "secret provider message" not in str(error.value)
 
 

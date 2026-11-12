@@ -185,7 +185,9 @@ z aktualnego `main`; pozostały zakres i odbiór QA śledzimy w Jirze.
 1. Skopiuj `.env.example` do lokalnego `.env` i uzupełnij wartości.
 2. Uruchom bazę, migracje, utwórz konto i uruchom API według [backend/README.md](backend/README.md).
 3. Uruchom frontend według [frontend/README.md](frontend/README.md).
-4. `SYNC_ENABLED=true` włącza wspólny odczyt co 60 s. Mapbox używa publicznego
+4. `SYNC_ENABLED=true` włącza wspólny odczyt (domyślnie co 60 s; ustawienia
+   `SYNC_INTERVAL_SECONDS`, `STALE_SECONDS` i `VITE_FLEET_POLL_INTERVAL_MS`
+   opisano w plikach README backendu i frontendu). Mapbox używa publicznego
    `VITE_MAPBOX_TOKEN`; hasła źródła nigdy nie trafiają do przeglądarki.
 
 - [Model i własność danych](docs/DATA_MODEL.md)
@@ -240,3 +242,9 @@ wymaga osobistego adresu przypisanego do konta oraz działającego SMTP. Zdalne 
 
 - [Uruchomienie i testy integracji](backend/README.md)
 - [Mapowanie WEBFLEET i dalsze sprawdzenia](docs/WEBFLEET_INTEGRATION.md)
+
+## Inwentarz danych
+
+[SCRUM-112: dane, przepływy i rejestr decyzji](docs/privacy/SCRUM-112-inventory.md)
+opisuje stan kodu main oraz osobno oczekujące PR. Rejestr wskazuje wejście do
+zatwierdzeń SCRUM-113 i implementacji retencji/eksportu/usuwania SCRUM-109–111.
