@@ -148,6 +148,7 @@ wyłącznie prototypowi. Poprzednią wersję zachowano na stronie archiwalnej Fi
 - [Przepływy, ekrany i instrukcja przeglądu](docs/PROTOTYPE.md)
 - [Historyjki MVP i podział dużych Story](docs/MVP_BACKLOG.md)
 - [Odbiór zadania kursowego, linki i polecenia do oddania](docs/COURSE_SUBMISSION.md)
+- [Gotowość zadań 4.1/4.2: dowody Sprintów 1/2 i prace do domknięcia](docs/COURSE_READINESS.md)
 - [Przegląd Sprintu i PR-y — dowody kolejnego zadania](docs/SPRINT_REVIEW_SUBMISSION.md)
 - [Scenariusz Review Sprintu 1](docs/SPRINT_1_REVIEW.md) i [retrospektywa do potwierdzenia przez zespół](docs/retro/sprint-1.md)
 

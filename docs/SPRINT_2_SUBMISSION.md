@@ -1,77 +1,142 @@
-# Oddanie 4.2 — Przegląd Sprintu 2 i bramy jakości
+# Przegląd Sprintu 2 i bramy jakości — oddanie 4.2
 
-**Materiał roboczy, nie gotowe oddanie.** Stan 10.11.2026: Review Sprintu 2
-jeszcze się nie odbyło; brak potwierdzonego pełnego DoD całej Story.
-Technika: [SCRUM-127](https://fleet-flow.atlassian.net/browse/SCRUM-127).
+Stan **12.11.2026**. Technika SCRUM-127 jest na main po
+[PR #76](https://github.com/DawidHnat/Projekt_Zespolowy/pull/76).
+**Kompletne oddanie nadal czeka na osobne wymagane checki, pełne DoD Story,
+Review/retro S2 i start S3.** [Macierz i zadania](COURSE_READINESS.md).
+PO potwierdził 12.11, że spotkania i pełny odbiór S2 jeszcze się nie odbyły.
 
-## Kolejność dokończenia
-
-1. Dawid lub Nazarewicz przegląda PR techniczny SCRUM-127; po approval zmiana
-   trafia przez PR do main. Nazw istniejących checków nie zmieniać.
-2. Dawid dodaje `Lint` i `Backend (3.13)` jako wymagane checki, zachowując
-   `Required CI` i wszystkie istniejące zabezpieczenia. Konta współpracownika
-   bez admin nie mogą tego wykonać. [Szczegóły](../infra/deploy/README.md#ochrona-main--wykonuje-właściciel-repozytorium).
-3. Zebrać dwa jawnie oznaczone PR-y **NIE SCALAĆ**: błąd Ruff oraz rzeczywiście
-   czerwony test jednostkowy. Zachować ID runów i końcowe wyniki jobów.
-   Dawny PR #24 to błąd składni/budowy; sam nie dowodzi czerwonego testu.
-4. Poczekać na udany push-run main z osobnym `Post-deploy smoke`. Test po
-   wdrożeniu musi dotyczyć SHA **tego runu**, nie przypadkowej późniejszej wersji.
-5. Marcel i niezależny reviewer odbierają wybraną całą Story. Jakub prowadzi
-   [Review](SPRINT_2_REVIEW.md), zapisuje feedback oraz rzeczywiste retro.
-6. PO rozlicza Sprint 2 i uruchamia istniejący `FF Sprint 3 - dane i konta`
-   z celem i zgłoszeniami SCRUM-128/129. Nie tworzy nowego sprintu ani nie
-   zaczyna równoległego tylko dla zrzutu.
-
-## Polecenia do zebrania po scaleniu i odbiorze
-
-Uruchamiać w klonie repozytorium zespołu. Kopiować rzeczywiste wyniki,
-bez wpisywania przyszłego `success`.
+## 1. Bieżący serwer
 
 ```bash
-git fetch origin
-curl -s http://57.129.179.53/ | grep -c "$(git rev-parse --short=7 origin/main)"
-gh api 'repos/{owner}/{repo}/branches/main' --jq '.protection.required_status_checks.contexts[]'
-# Alternatywnie tylko gdy stosowany jest ruleset:
-gh api 'repos/{owner}/{repo}/rules/branches/main' --jq '.[] | select(.type == "required_status_checks") | .parameters.required_status_checks[].context'
-# ID runów dwóch PR-ów dowodowych:
-gh run list --branch NAZWA_GALEZI --event pull_request --limit 1
-gh run view ID --json jobs --jq '.jobs[] | "\(.name) \(.conclusion)"'
-# Z wdrożonego main, nie z gałęzi PR:
-git show origin/main:.github/workflows/ci.yml
-# Wyciąć blok deploy z needs oraz osobny blok smoke.
-gh run list --branch main --event push --limit 1
-gh run view ID_MAIN --json jobs --jq '.jobs[] | "\(.name) \(.conclusion)"'
-gh run view ID_MAIN --log | grep 'PASS deployed SHA'
+git fetch && curl -s http://57.129.179.53/ | grep -c "$(git rev-parse --short=7 origin/main)"
 ```
 
-Oczekiwane dowody po dokończeniu: `Lint failure` dla PR lintu;
-`Frontend build failure` z błędem **npm test**, a `Deploy development server
-skipped` dla PR testu; na main success testów, lintu, deploymentu i smoke.
-`Required CI` może być failure w obu celowo czerwonych PR-ach — to prawidłowe
-odrzucenie zależności, nie usterka do obchodzenia.
+12.11: `origin/main=2b3f2ba`, wynik **1**. Aplikacja:
+<https://fleet-flow.pl/>; HTTPS readiness HTTP 200, `{"status":"ok"}`.
+Wynik odświeżyć po ostatnim merge i wdrożeniu.
 
-## Zweryfikowany punkt wyjścia — 10.11.2026
+## 2. Wymagane checki i czerwony lint
 
-- Serwer <http://57.129.179.53/>: grep SHA `5b5fceb` wypisał `1` po fetch.
-- Nowy weryfikator uruchomiony ręcznie na istniejącym wydaniu:
-  `PASS deployed SHA 5b5fceb: HTTP status, HTTPS application, API readiness`.
-- Obecna ochrona z API: tylko `Required CI`. Nie wpisywać tu docelowych checków
-  jako już aktywnych.
-- Ostatni push-run main: [42302297975](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/42302297975)
-  miał sukces starych jobów, bez osobnego `Lint` i `Post-deploy smoke`.
-  Nie jest dowodem nowych bram.
-- [DoD](https://github.com/DawidHnat/Projekt_Zespolowy/blob/main/DEFINITION_OF_DONE.md)
-  i [retro S2](https://github.com/DawidHnat/Projekt_Zespolowy/blob/main/docs/retro/sprint-2.md)
-  należy linkować do main dopiero po scaleniu tego PR.
-- Planowany Sprint 3: `FF Sprint 3 - dane i konta`, 19.11–02.12. Cel obejmuje
-  ręcznych kierowców, kartotekę i dokumenty pojazdu, historię i ewidencję MVP,
-  ręczne auta/archiwizację oraz konta, profil, reset i monitoring; najpierw
-  kontrakty/API, potem UI i QA. Pełny aktualny cel i status należy skopiować
-  z Jiry po prawdziwym starcie.
-- [SCRUM-128](https://fleet-flow.atlassian.net/browse/SCRUM-128): działanie retro;
-  [SCRUM-129](https://fleet-flow.atlassian.net/browse/SCRUM-129): duży bundle,
-  `frontend/vite.config.ts` i import Mapbox w
+```bash
+gh api 'repos/{owner}/{repo}/branches/main' --jq '.protection.required_status_checks.contexts[]'
+# Alternatywa dla repo z rulesetem:
+gh api 'repos/{owner}/{repo}/rules/branches/main' --jq '.[] | select(.type == "required_status_checks") | .parameters.required_status_checks[].context'
+```
+
+Rzeczywisty odczyt 12.11:
+
+```text
+Required CI
+```
+
+To **jeszcze nie spełnia** wymagania dwóch osobnych wymaganych checków.
+Dawid dodaje `Backend (3.13)` oraz `Lint` w
+[SCRUM-140](https://fleet-flow.atlassian.net/browse/SCRUM-140), zachowując
+`Required CI`, pozostałe zabezpieczenia i nazwy jobów.
+
+Dowód lintu: [PR #77 — NIE SCALAĆ](https://github.com/DawidHnat/Projekt_Zespolowy/pull/77),
+run [42815387118](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/42815387118).
+
+```bash
+gh run view 42815387118 --json jobs --jq '.jobs[] | "\(.name) \(.conclusion)"'
+```
+
+Końcowe wyniki: `Lint failure`, `Required CI failure`, pozostałe testy/buildy
+success, `Deploy development server skipped`, `Post-deploy smoke skipped`.
+Celowe F401 dotyczy nieużytego importu `math`.
+
+## 3. Testy przed wdrożeniem i smoke
+
+Wycinek `.github/workflows/ci.yml` z aktualnego main:
+
+```yaml
+deploy:
+  name: Deploy development server
+  if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  needs: [required, frontend, backend, e2e, lint]
+# dalsze kroki wdrażają artefakt tego samego SHA
+smoke:
+  name: Post-deploy smoke
+  needs: [deploy]
+# weryfikator wymaga SHA danego runu, HTTP/HTTPS i gotowości API
+```
+
+Do odpowiedzi wyciąć rzeczywisty blok z wyniku:
+
+```bash
+git show origin/main:.github/workflows/ci.yml
+gh run list --branch main --event push --limit 1
+gh run view 43105067278 --json jobs --jq '.jobs[] | "\(.name) \(.conclusion)"'
+gh run view 43105067278 --log | grep 'PASS deployed SHA'
+```
+
+Ostatni run odczytany 12.11: **43105067278**, SHA `2b3f2ba`:
+
+```text
+Lint success
+Backend image success
+Critical browser flows success
+Backend (3.13) success
+Backend (3.12) success
+Frontend build success
+Required CI success
+Deploy development server success
+Post-deploy smoke success
+```
+
+Linia logu:
+
+```text
+PASS deployed SHA 2b3f2ba: HTTP status, HTTPS application, API readiness
+```
+
+Po nowym pushu wybrać nowe ID z `gh run list`, a nie kopiować historycznego.
+Test smoke dotyczy SHA swojego runu; dodatkowy fetch/grep dotyczy najnowszego main.
+
+Dowód czerwonego testu: [PR #78 — NIE SCALAĆ](https://github.com/DawidHnat/Projekt_Zespolowy/pull/78),
+run [42815401269](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/42815401269).
+
+```bash
+gh run view 42815401269 --json jobs --jq '.jobs[] | "\(.name) \(.conclusion)"'
+```
+
+`Frontend build failure` nastąpił na **npm test**, celowe `1 !== 2`.
+`Lint`, oba backendy, obraz i browser flows mają success; `Required CI failure`,
+`Deploy development server skipped`, `Post-deploy smoke skipped`.
+PR #24 to dawny błąd składni/budowy, a nie zastępstwo dowodu czerwonego testu.
+
+## 4. DoD i przyrost
+
+[DEFINITION_OF_DONE.md](../DEFINITION_OF_DONE.md) oznacza wykonawcę przy każdym
+warunku. Pipeline wykonuje testy, lint i smoke; człowiek odbiera kryteria,
+scenariusze UI, dokumentację i zakres. Macierz nie jest wynikiem QA.
+
+[SCRUM-141](https://fleet-flow.atlassian.net/browse/SCRUM-141) zbiera pełne
+DoD rzeczywistej Story z S2. Aktualni kandydaci to SCRUM-84 i SCRUM-91;
+wybór PO musi odpowiadać rzeczywiście wykonanej i odebranej funkcji.
+Zielone bramy SCRUM-127 ani sam dashboard SCRUM-38 nie są całą Story S2.
+
+## 5. Retro i Sprint 3
+
+[Retro S2](retro/sprint-2.md) jest materiałem do spotkania. Po rzeczywistej
+retrospektywie dopisać datę, uczestników, ocenę działań S1 i uzgodnione nowe
+działanie z właścicielem. [SCRUM-142](https://fleet-flow.atlassian.net/browse/SCRUM-142)
+prowadzi Review/retro, rozliczenie S2 i start istniejącego S3.
+
+Odczyt Jiry 12.11: **FF Sprint 3 - dane i konta**, id 4, **future**, plan
+19.11–02.12. W zadaniu wymagany jest sprint aktywny — tego kroku jeszcze nie wykonano.
+Cel zapisany w Jirze:
+
+> Dostarczyć ręcznych kierowców, kartotekę i dokumenty pojazdu, historię oraz cele/ewidencję MVP, ręczne auta i archiwizację. Równolegle konta/profil/reset i wspólny dziennik zmian oraz monitoring. Najpierw wspólne kontrakty i API, potem UI i odbiór integracji. Historia wymaga działającej synchronizacji; pliki uzgodnionego magazynu i kopii. Rzeczywista wysyłka SMTP tylko po osobnym poleceniu. Po tym sprincie sprawdzić pozostałe godziny względem pojemności do końca roku. Założenie PO: 10–15 h/osobę/tydzień, z review i QA; dostępność i pozostały wysiłek potwierdzają wykonawcy. SP są istniejącą wyceną pełnego zakresu, nie pozostałymi godzinami. Nie sumować punktów rodzica i podzadań.
+
+Zgłoszenia już w planowanym S3:
+
+- [SCRUM-128](https://fleet-flow.atlassian.net/browse/SCRUM-128): działanie retro,
+  Jakub Czaja — wybór jednej Story i pomiar kolejki review. Propozycję zatwierdza zespół.
+- [SCRUM-129](https://fleet-flow.atlassian.net/browse/SCRUM-129): wybite okno,
+  Jakub Nazarewicz — duży bundle, `frontend/vite.config.ts` i
   `frontend/src/features/fleet/components/VehicleMap.tsx`.
 
-Każdy członek zespołu oddaje własną odpowiedź. Ten plik nie potwierdza
-uczestnictwa, QA ani wykonania przeglądu przez inną osobę.
+Do odpowiedzi linkować pliki **na main**, po ich review/merge i uzupełnieniu
+rzeczywistych ustaleń. Każdy członek oddaje osobno; szkic nie zastępuje protokołu.
