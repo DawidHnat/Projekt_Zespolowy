@@ -75,6 +75,18 @@ SCRUM-83 ma lokalne QA Marcela, ale należy do zamkniętego Sprintu 1.
 
 ## Materiały do użycia
 
+### Kolejność dwóch oddań
+
+1. **Podczas aktywnego Sprintu 2** domknąć DoD Story S1 i rozliczenie historii
+   Git, zebrać komplet 4.1 z datowanym odczytem aktywnego S2 i jego celem.
+   Zachować tę migawkę przed zamknięciem S2; nie zastępować jej późniejszym
+   twierdzeniem, że zamknięty sprint nadal trwa.
+2. Domknąć DoD Story S2, wymagane checki oraz prawdziwe Review/retro S2.
+   Przed rozliczeniem sprintu sprawdzić, czy komplet 4.1 jest już zapisany.
+3. Rozliczyć S2 i uruchomić istniejący S3. Zebrać komplet 4.2 z nowym odczytem
+   aktywnego S3 oraz świeżym main/runem/wersją serwera. Pierwsze i drugie
+   oddanie opisują kolejne etapy, nie dwa równolegle aktywne sprinty.
+
 - [Polecenia i dowody 4.1](SPRINT_REVIEW_SUBMISSION.md).
 - [Polecenia i dowody 4.2](SPRINT_2_SUBMISSION.md).
 - [Review S1](SPRINT_1_REVIEW.md), [scenariusz i protokół S2](SPRINT_2_REVIEW.md).
