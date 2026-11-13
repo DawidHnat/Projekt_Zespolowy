@@ -155,6 +155,11 @@ Udostępnienie pliku prowadzącemu oczekuje na podanie jego adresu e-mail.
 
 ## Uruchomienie lokalne
 
+Pierwszy przyrost SCRUM-49 dodaje **Profil** dostępny po kliknięciu własnej nazwy
+w menu (`#profile`). Pokazuje dane konta, pozwala zmienić własne hasło oraz
+wylogować wszystkie sesje. Potwierdzanie zmiany e-maila pozostaje kolejnym
+przyrostem tej Story. [Zakres i scenariusze odbioru](docs/qa/SCRUM-49.md).
+
 SCRUM-26 dodaje edycję celu i opisu zapisanych przejazdów: **Pojazdy → Szczegóły
 (ikona informacji) → Podróże → dzień → przejazd**. Zapis ma autora, datę i
 ochronę przed równoczesnym nadpisaniem; viewer ma tylko odczyt. Import historii
