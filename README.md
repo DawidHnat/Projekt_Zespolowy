@@ -204,6 +204,7 @@ z aktualnego `main`; pozostały zakres i odbiór QA śledzimy w Jirze.
 - [Zasady współpracy i PR](CONTRIBUTING.md)
 - [Przepływ Scrum, role i zasady odbioru](docs/SCRUM_WORKFLOW.md)
 - [Warunki ukończenia przyrostu](DEFINITION_OF_DONE.md)
+- [Przegląd prywatności, korekta inwentarza i otwarte decyzje SCRUM-94](docs/privacy/SCRUM-94-acceptance.md)
 - [Instrukcje dla agentów AI](AGENTS.md)
 
 ## Serwer deweloperski
