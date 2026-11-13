@@ -22,6 +22,8 @@ type AuthState = {
   error: string | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  logoutAll: () => Promise<void>;
+  passwordChanged: () => void;
   retry: () => void;
   clearSession: () => void;
 };
@@ -96,6 +98,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     finishSession(null);
     changes.current?.notify();
   };
+  const logoutAll = async () => {
+    await api("/auth/sessions/logout-all", { method: "POST" });
+    finishSession(null);
+    changes.current?.notify();
+  };
+  const passwordChanged = () => {
+    finishSession(user);
+    changes.current?.notify();
+  };
   return (
     <AuthContext
       value={{
@@ -104,6 +115,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         error,
         login,
         logout,
+        logoutAll,
+        passwordChanged,
         retry: checkSession,
         clearSession: () => {
           finishSession(null);
