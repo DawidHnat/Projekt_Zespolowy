@@ -221,3 +221,25 @@ test("metrics and trip minima follow wrapping at their width breakpoints", () =>
   assert.equal(minimumHeight("metrics", 650.4), minimumHeight("metrics", 649));
   assert.ok(minimumHeight("trips", 599) > minimumHeight("trips", 601));
 });
+test("narrow desktop rows share available width without moving a neighbour below", () => {
+  const original = defaultLayout("dashboard", "desktop");
+  const snapshot = structuredClone(original);
+  for (const width of [720, 729, 745, 820, 971, 1360]) {
+    const fitted = fitLayout(original, "desktop", width);
+    assertSafe(fitted, "desktop");
+    for (const [left, right] of [["map", "activity"], ["vehicles", "utilization"]]) {
+      const first = fitted.find(item => item.i === left);
+      const second = fitted.find(item => item.i === right);
+      assert.equal(first.y, second.y, `${left}/${right} at ${width}px`);
+      assert.ok(first.x + first.w <= second.x);
+      for (const item of [first, second])
+        assert.ok(widthPixels(item.w, width) >= minimumWidth[item.i]);
+    }
+  }
+  assert.deepEqual(original, snapshot);
+  const wide = fitLayout(original, "desktop", 1360);
+  for (const item of wide) {
+    assert.equal(item.w, snapshot.find(value => value.i === item.i).w);
+    assert.equal(item.x, snapshot.find(value => value.i === item.i).x);
+  }
+});
