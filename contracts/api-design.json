@@ -91,6 +91,10 @@
             "number": "TEST-1",
             "license_plate": "TEST 001",
             "vehicle_type": "van",
+            "make": "Renault",
+            "model": "Master",
+            "year": 2022,
+            "vin": "VF1MA000000000000",
             "status": "stopped",
             "driver": null,
             "latitude": 52.0,
@@ -98,6 +102,7 @@
             "position_at": "2026-01-10T12:00:00Z",
             "received_at": "2026-01-10T12:01:00Z",
             "is_stale": false,
+            "position_address": "Gdańsk, ul. Morska 1",
             "odometer_km": 1234.5,
             "speed_kmh": null,
             "ignition_on": false,
@@ -214,6 +219,10 @@
         "number": "TEST-1",
         "license_plate": "TEST 001",
         "vehicle_type": "van",
+        "make": "Renault",
+        "model": "Master",
+        "year": 2022,
+        "vin": "VF1MA000000000000",
         "status": "stopped",
         "driver": null,
         "latitude": 52.0,
@@ -221,6 +230,55 @@
         "position_at": "2026-01-10T12:00:00Z",
         "received_at": "2026-01-10T12:01:00Z",
         "is_stale": false,
+        "position_address": "Gdańsk, ul. Morska 1",
+        "odometer_km": 1234.5,
+        "speed_kmh": null,
+        "ignition_on": false,
+        "standing_still": true
+      },
+      "error_example": {
+        "status": 404,
+        "body": {
+          "error": {
+            "code": "NOT_FOUND",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/fleet/vehicles/{id}",
+      "delivery": "first",
+      "request_example": {
+        "path": {
+          "id": "11111111-1111-4111-8111-111111111111"
+        },
+        "body": {
+          "make": "Renault",
+          "model": "Master",
+          "year": 2022,
+          "vin": "VF1MA000000000000"
+        }
+      },
+      "response_example": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "name": "Pojazd testowy",
+        "number": "TEST-1",
+        "license_plate": "TEST 001",
+        "vehicle_type": "van",
+        "make": "Renault",
+        "model": "Master",
+        "year": 2022,
+        "vin": "VF1MA000000000000",
+        "status": "stopped",
+        "driver": null,
+        "latitude": 52.0,
+        "longitude": 21.0,
+        "position_at": "2026-01-10T12:00:00Z",
+        "received_at": "2026-01-10T12:01:00Z",
+        "is_stale": false,
+        "position_address": "Gdańsk, ul. Morska 1",
         "odometer_km": 1234.5,
         "speed_kmh": null,
         "ignition_on": false,
@@ -302,6 +360,10 @@
         "number": "TEST-1",
         "license_plate": "TEST 001",
         "vehicle_type": "van",
+        "make": "Renault",
+        "model": "Master",
+        "year": 2022,
+        "vin": "VF1MA000000000000",
         "status": "stopped",
         "driver": null,
         "latitude": 52.0,
@@ -309,6 +371,7 @@
         "position_at": "2026-01-10T12:00:00Z",
         "received_at": "2026-01-10T12:01:00Z",
         "is_stale": false,
+        "position_address": "Gdańsk, ul. Morska 1",
         "odometer_km": 1234.5,
         "speed_kmh": null,
         "ignition_on": false,

@@ -38,6 +38,22 @@ def _utc_time(value: Any) -> datetime | None:
     return timestamp.astimezone(UTC) if timestamp.tzinfo else None
 
 
+def _speed(value: Any) -> Decimal | None:
+    number = _number(value)
+    if number is None:
+        return None
+    if 0 <= number <= 300:
+        return number
+    return None
+
+
+def _address(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    cleaned = value.strip()
+    return cleaned[:500] if cleaned else None
+
+
 @dataclass(frozen=True)
 class ObjectSnapshot:
     """Sensitive data stays in memory; repr hides identity and telemetry."""
@@ -51,6 +67,8 @@ class ObjectSnapshot:
     standing_still: bool | None = field(repr=False)
     gps_quality: str | None = field(repr=False)
     position_at: datetime | None = field(repr=False)
+    speed_kmh: Decimal | None = field(default=None, repr=False)
+    position_address: str | None = field(default=None, repr=False)
 
     @classmethod
     def from_record(cls, record: dict[str, Any]) -> "ObjectSnapshot":
@@ -71,4 +89,6 @@ class ObjectSnapshot:
             if record.get("status") in ("A", "V", "L", "0")
             else None,
             position_at=_utc_time(record.get("pos_time")),
+            speed_kmh=_speed(record.get("speed")),
+            position_address=_address(record.get("postext") or record.get("pos_addr")),
         )

@@ -28,6 +28,8 @@ def sample(now):
             "standstill": "1",
             "status": "A",
             "odometer": "12345",
+            "speed": "65",
+            "postext": "Warszawa, Marszałkowska 10",
         }
     ]
     return master, snapshot
@@ -58,6 +60,14 @@ def test_repeated_import_preserves_id_manual_driver_and_newer_measurement(applic
         measurement = session.get(Measurement, identity)
         assert measurement.position_at.replace(tzinfo=UTC) == now
         assert float(measurement.odometer_km) == 1234.5
+        assert float(measurement.speed_kmh) == 65.0
+        assert measurement.position_address == "Warszawa, Marszałkowska 10"
+        vehicle.name = "Lokalna nazwa"
+        vehicle.locally_edited = True
+        session.commit()
+        apply_records(session, "test-source", masters, readings, now)
+        session.commit()
+        assert vehicle.name == "Lokalna nazwa"
 
 
 def test_incomplete_or_duplicate_reports_cannot_deactivate_cached_vehicles():
