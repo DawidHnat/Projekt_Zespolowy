@@ -1,8 +1,13 @@
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
+from sqlalchemy import select
+
 from app.core.models import Driver, Measurement, SyncState, Vehicle
+from app.modules.auth.models import User
 from app.modules.fleet.sync import account_key
+
+ORIGIN = {"Origin": "http://127.0.0.1:5173"}
 
 
 def add_fleet(app):
@@ -50,6 +55,7 @@ def test_every_fleet_endpoint_requires_session(application):
     assert (
         client.patch(
             "/api/v1/fleet/vehicles/11111111-1111-4111-8111-111111111111",
+            headers=ORIGIN,
             json={"make": "Test"},
         ).status_code
         == 401
@@ -131,7 +137,7 @@ def test_vehicle_card_patch_telemetry_and_stale_address(logged_in):
         session.commit()
 
     detail = client.get(f"/api/v1/fleet/vehicles/{vehicle_id}").json()
-    assert detail["speed_kmh"] == 60.0
+    assert detail["speed_kmh"] is None
     assert detail["position_address"] == "Gdańsk, Targ Węglowy"
     assert detail["is_stale"] is False
 
@@ -146,11 +152,44 @@ def test_vehicle_card_patch_telemetry_and_stale_address(logged_in):
     assert detail_stale["is_stale"] is True
     assert detail_stale["status"] == "offline"
 
-    # Patch card metadata
+    path = f"/api/v1/fleet/vehicles/{vehicle_id}"
+
+    # Missing Origin header -> 403
+    assert client.patch(path, json={"make": "Renault"}).status_code == 403
+
+    # Foreign Origin header -> 403
+    assert (
+        client.patch(
+            path, headers={"Origin": "https://other.example"}, json={"make": "Renault"}
+        ).status_code
+        == 403
+    )
+
+    # Viewer role cannot edit card -> 403
+    with app.state.sessions() as session:
+        user = session.scalar(select(User))
+        user.role = "viewer"
+        session.commit()
+    assert client.patch(path, headers=ORIGIN, json={"make": "Renault"}).status_code == 403
+
+    # Editor and Admin roles can edit card -> 200
+    with app.state.sessions() as session:
+        user = session.scalar(select(User))
+        user.role = "editor"
+        session.commit()
+
+    # Invalid names: null, empty string, whitespace-only -> 422
+    assert client.patch(path, headers=ORIGIN, json={"name": None}).status_code == 422
+    assert client.patch(path, headers=ORIGIN, json={"name": ""}).status_code == 422
+    assert client.patch(path, headers=ORIGIN, json={"name": "   "}).status_code == 422
+
+    # Patch card metadata with valid fields and trimmed name
     patch_res = client.patch(
-        f"/api/v1/fleet/vehicles/{vehicle_id}",
+        path,
+        headers=ORIGIN,
         json={
-            "make": "Renault",
+            "name": "  Nowa Nazwa Pojazdu  ",
+            "make": "  Renault  ",
             "model": "Master",
             "year": 2023,
             "vin": "VF1MA000000000001",
@@ -158,6 +197,7 @@ def test_vehicle_card_patch_telemetry_and_stale_address(logged_in):
     )
     assert patch_res.status_code == 200
     patched = patch_res.json()
+    assert patched["name"] == "Nowa Nazwa Pojazdu"
     assert patched["make"] == "Renault"
     assert patched["model"] == "Master"
     assert patched["year"] == 2023
@@ -170,12 +210,13 @@ def test_vehicle_card_patch_telemetry_and_stale_address(logged_in):
         assert res["items"][0]["id"] == vehicle_id
 
     # Validation errors
-    bad_year = client.patch(f"/api/v1/fleet/vehicles/{vehicle_id}", json={"year": 1850})
+    bad_year = client.patch(path, headers=ORIGIN, json={"year": 1850})
     assert bad_year.status_code == 422
-    extra_field = client.patch(f"/api/v1/fleet/vehicles/{vehicle_id}", json={"extra": "val"})
+    extra_field = client.patch(path, headers=ORIGIN, json={"extra": "val"})
     assert extra_field.status_code == 422
     not_found = client.patch(
         "/api/v1/fleet/vehicles/11111111-1111-4111-8111-111111111111",
+        headers=ORIGIN,
         json={"make": "Test"},
     )
     assert not_found.status_code == 404
