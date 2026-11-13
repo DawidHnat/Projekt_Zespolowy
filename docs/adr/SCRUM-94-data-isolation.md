@@ -1,11 +1,20 @@
 # ADR SCRUM-94 — granica organizacji w obecnej aplikacji
 
-Data: 06.11.2026. Status: **propozycja ograniczenia technicznego do review**.
+Data: 06.11.2026; aktualizacja 10.11.2026.
+Status: **zakres jednej firmy potwierdzony przez PO; odbiór polityki firmy otwarty**.
 Koordynator: Jakub Czaja. Powiązany
 [inwentarz SCRUM-112](https://github.com/DawidHnat/Projekt_Zespolowy/blob/cffaaebce81cf3955fe7d98879fe521da8a61031/docs/privacy/SCRUM-112-inventory.md)
 z [PR #52](https://github.com/DawidHnat/Projekt_Zespolowy/pull/52).
 ADR stanowi materiał do decyzji P07 tego inwentarza. Wskazanie administratora
 oraz zatwierdzenia P01/P07 pozostają w SCRUM-113.
+
+Przegląd techniczny 10.11.2026: opis granicy nadal odpowiada `main` 5b5fceb.
+PO potwierdził obecny projekt bez rzeczywistych danych floty i docelową
+obsługę jednej firmy. To decyzja zakresu produktu, bez wskazania przyszłego
+administratora, okresów retencji i dopuszczenia jego rzeczywistych danych.
+[Korekta wersji inwentarza, ryzyka i pakiet do zatwierdzeń](../privacy/SCRUM-94-acceptance.md)
+rozróżnia to ustalenie od akceptacji polityki. Decyzje administratora P01/P07
+pozostają otwarte.
 
 ## Kontekst
 
@@ -16,9 +25,10 @@ nie ma identyfikatora organizacji ani powiązania z jej zakresem danych.
 do tenantów. `Driver` również nie ma granicy organizacji. To nie jest
 zweryfikowana implementacja izolacji kilku klientów.
 
-## Proponowane ograniczenie
+## Zakres jednej organizacji
 
-Obecny model rozpatrywać wyłącznie jako instancję jednej organizacji.
+Zgodnie z ustaleniem PO z 10.11 obecny model rozpatrujemy wyłącznie jako
+instancję jednej organizacji.
 Nie przyjmować drugiej firmy przez samo dodanie kont użytkowników lub zmianę
 `source_account`. Do czasu wskazania administratora zakres rzeczywistych danych
 pozostaje niezatwierdzony; demonstracja na danych syntetycznych jest osobnym
@@ -41,4 +51,5 @@ ADR nie zmienia kodu, dostępu ani konfiguracji produkcji. Nie poświadcza
 legalnego zakresu przetwarzania i nie jest decyzją niewskazanego administratora.
 Właściciel decyzji o organizacji i danych: **niewskazany / BLOCKED**;
 koordynator ustalenia: Jakub Czaja; termin kalendarzowy: nieustalony.
-Akceptacja administratora i review techniczne pozostają otwarte.
+Zakres produktu zaakceptował Jakub Czaja / PO 10.11.2026 w rozmowie.
+Akceptacja administratora i review techniczne aktualizacji pozostają otwarte.
