@@ -28,6 +28,7 @@ import { widgetRegistry } from "../features/dashboard/model/widget-registry";
 import { WIDGET_IDS } from "../features/dashboard/model/widget-types";
 
 import { useAuth } from "../features/auth/AuthProvider";
+import { ProfilePage } from "../features/auth/ProfilePage";
 import { VehicleCardsPage } from "../features/fleet/components/VehicleCardsPage";
 import { VehicleLayoutEditorControls } from "../features/fleet/components/VehicleLayoutEditorControls";
 import { VehicleDetailsDialog } from "../features/fleet/components/VehicleDetailsDialog";
@@ -139,7 +140,7 @@ export function App() {
         <span className="nav-label">PRZEGLĄD</span>
         <nav aria-label="Sekcje aplikacji">
           {sections
-            .filter((value) => value.id !== "settings")
+            .filter((value) => value.id !== "settings" && value.id !== "profile")
             .map(({ id, title, icon: Icon }) => (
               <a
                 key={id}
@@ -165,7 +166,10 @@ export function App() {
           <div className="workspace">
             <span className="workspace-avatar">FF</span>
             <div>
-              <strong>{auth.user?.display_name}</strong>
+              <a href="#profile" className="workspace-profile" aria-label="Otwórz profil użytkownika"
+                aria-current={section === "profile" ? "page" : undefined}>
+                <strong>{auth.user?.display_name}</strong>
+              </a>
               <button
                 className="logout-button"
                 onClick={() =>
@@ -306,6 +310,8 @@ export function App() {
             />
           ) : section === "vehicles" ? (
             <VehicleCardsPage />
+          ) : section === "profile" ? (
+            <ProfilePage />
           ) : section === "settings" ? (
             <AppSettingsPage
               category={settingsCategory}
