@@ -116,8 +116,9 @@ Główny `.env` jest czytany wyłącznie dla publicznych zmiennych `VITE_*`.
 Jeśli używasz portu 5174, dodaj `http://127.0.0.1:5174` do `CORS_ORIGINS`.
 
 Po zalogowaniu lista i wskaźniki korzystają z rzeczywistych danych cache.
-Filtry nazwy/rejestracji i statusu są współdzielone z mapą. Odświeżanie API co
-60 s (konfigurowane przez `VITE_FLEET_POLL_INTERVAL_MS`, 10 s–24 h) nie wywołuje
+Filtry nazwy/rejestracji i statusu są współdzielone z mapą. Widoczna strona
+odświeża API co 10 s domyślnie (konfigurowane przez `VITE_FLEET_POLL_INTERVAL_MS`,
+10 s–24 h); nie wywołuje to
 dodatkowych odczytów WEBFLEET. To ustawienie dotyczy tylko odpytywania aplikacji;
 częstotliwość synchronizacji źródła i próg nieaktualności ustawia backend przez
 `SYNC_INTERVAL_SECONDS` i `STALE_SECONDS`. Sesja nie trafia do localStorage;

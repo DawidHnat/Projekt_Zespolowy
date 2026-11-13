@@ -2,6 +2,14 @@
 
 Jira: [SCRUM-3](https://fleet-flow.atlassian.net/browse/SCRUM-3).
 
+**Aktualizacja stanu 12.11.2026:** Sprint 1 zakończono 09.11; aktywny jest
+`FF Sprint 2 - podstawa i QA`, z działaniem SCRUM-65. Każdy członek ma już
+własny scalony PR i review cudzego, a PR #62 jest odebranym dowodem konfliktu
+kodu. Dalszy zapis poniżej zachowuje obserwacje z 4–6.11, w tym ówczesne
+braki i nazwy sprintów; nie opisuje aktualnej kolejki. Pełne DoD jednej Story
+S1 pozostaje do zebrania w SCRUM-141. [Aktualna macierz oddania](../COURSE_READINESS.md).
+Potwierdzenie Review z 06.11 nie oznacza potwierdzenia osobnego spotkania retro.
+
 **Retrospektywa na podstawie obserwacji i zapisów z 4.11.2026.**
 Uzupełnienie 06.11.2026: PO potwierdził odbyty tego dnia Review z udziałem
 całego zespołu i pozytywną ocenę pokazanych funkcji. To potwierdzenie Przeglądu,
