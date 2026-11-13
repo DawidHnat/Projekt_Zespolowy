@@ -42,7 +42,7 @@ sekcje „Making HTTP requests”, „General parameters” i „Objects”.
 | `status` | Jakość GPS: A = aktualny fix, V = możliwa niedokładność, L = ostatni dobry fix, 0 = brak. To nie status jazdy. |
 | `pos_time` | Czas ostatniej pozycji; przy `useISO8601=true` normalizujemy do UTC. Bez strefy czasu wartość pozostaje nieznana. |
 | `msgtime` | Czas ostatniej wiadomości; nie zastępuje automatycznie czasu pozycji. |
-| `speed` | Nie zawsze obecne. Diagnostyka liczy pokrycie; parser jednostek i kontrakt prędkości wymagają osobnego potwierdzenia w SCRUM-36. |
+| `speed` | W tabeli wyniku `showObjectReportExtern` pole `speed` jest zdefiniowane jako string i nie określa wprost jednostki w tej operacji. Do czasu weryfikacji na koncie testowym jednostka snapshotu pozostaje formalnie niepotwierdzona; zgodnie z decyzją PO API zwraca `speed_kmh: null`. |
 
 `showObjectReportExtern` zwraca obiekty różnych typów, nie tylko pojazdy. Dlatego
 diagnostyka mówi o obiektach. Zanim API listy nazwie je pojazdami, należy połączyć
@@ -66,10 +66,48 @@ aktualnej pozycji. Interfejs powinien wyświetlać czas ostatniego pomiaru.
 | Backend aplikacji | Adapter nie uruchamia serwera FastAPI ani bazy | SCRUM-39: lokalny serwer, PostgreSQL, migracje, health i CI |
 | Dostęp użytkowników | Obecny frontend działa bez logowania i bez prawdziwych danych | SCRUM-16 przed udostępnieniem danych klientów w aplikacji |
 
-Warunki ukończenia SCRUM-14 wymagają jeszcze zatwierdzenia mapowania jednostki
-prędkości snapshotu oraz niezależnego review. Przy braku potwierdzenia aplikacja
-zwróci `speed_kmh: null`. Fikcyjne dane
-w testach służą weryfikacji adaptera; nie dodajemy demonstracyjnych pojazdów do UI.
+## Wnioski, decyzje PO i status Spike'a SCRUM-14
+
+Rozpoznanie techniczne WEBFLEET.connect i diagnostyki SMTP w ramach SCRUM-14
+potwierdza techniczną wykonalność integracji. Decyzje projektowe, granice RODO i mapowanie pól
+zostały uzgodnione, natomiast kryterium empirycznego potwierdzenia jednostki prędkości
+snapshotu pozostaje formalnie otwarte (z jawną obsługą `speed_kmh: null` w API zgodnie z decyzją PO).
+
+Podsumowanie warunków ukończenia:
+1. **Autoryzacja i transport:** Zweryfikowano działanie HTTPS, formatu JSON, nagłówka
+   HTTP Basic Auth i `apikey` oraz odrzucanie żądań modyfikujących pojazdy.
+   Adapter i diagnostyka zostały wdrożone w PR #7.
+2. **Jednostka prędkości:** W oficjalnym przewodniku 1.74.0 pole `speed` w wyniku
+   `showObjectReportExtern` jest opisane jako string bez wskazania jednostki (w przeciwieństwie
+   do operacji `showTracks`, gdzie km/h jest podane wprost). Z tego względu jednostka prędkości
+   bieżącego snapshotu pozostaje formalnie niepotwierdzona na poziomie specyfikacji tego raportu.
+   Zgodnie z decyzją PO z Planningu do czasu weryfikacji na koncie testowym bez danych klientów
+   API zwraca dla prędkości snapshotu jawne `speed_kmh: null`.
+3. **Adres pozycji a ręczna kartoteka pojazdu:**
+   - **Adres pozycji:** Oficjalna tabela wyniku `showObjectReportExtern` udostępnia pola
+     `postext` oraz `postext_short` zawierające geokodowany adres ostatniej pozycji. Pole to jest
+     związane z bieżącym pomiarem (`Measurement.position_address` w SCRUM-51); w przypadku braku
+     tekstu adresu (np. poza obszarem geokodowania lub przy braku pozycji) API zwraca jawne `null`.
+   - **Ręczna kartoteka pojazdu (marka, model, rok, VIN):** Raporty WEBFLEET nie zwracają
+     tych danych technicznych. Zgodnie z decyzją PO pola `make`, `model`, `year`, `vin` stanowią
+     ręczną kartotekę pojazdu w Fleet-Flow (`Vehicle` w SCRUM-51 / UI w SCRUM-25), zarządzaną
+     lokalnie i nienadpisywaną przez synchronizację.
+4. **Kierowcy (RODO):** Potwierdzono ostatecznie, że kierowcy nie są pobierani z API;
+   pozostają wyłącznie ręcznymi wpisami w aplikacji (SCRUM-42).
+5. **Historia, postoje i geometria (SCRUM-24):** Potwierdzono operacje `showTripReportExtern`
+   (metry/sekundy, limit 1/min), `showStandStills` (sekundy/mikrostopnie, limit 6/min) oraz
+   `showTracks` (km/h, mikrostopnie, max 2 dni, limit 10/min).
+6. **Limity i koordynacja (SCRUM-22 / SCRUM-15):** Potwierdzono limit 6 żądań/min dla
+   snapshotu oraz minimum 10 s odstępu między akcjami. Obsłużono nagłówek `Retry-After: 60`
+   i współdzielenie stanu za pomocą PostgreSQL advisory locks (`pg_try_advisory_lock`).
+7. **Dane syntetyczne:** W testach (`test_sync.py`, `test_fleet_api.py`) oraz kontrakcie
+   `contracts/api-design.json` przygotowano zestaw danych syntetycznych bez sekretów i
+   prawdziwych pozycji GPS.
+
+Wnioski ze Spike'a SCRUM-14 stanowią podstawę implementacji zadań SCRUM-15, SCRUM-24
+oraz SCRUM-51. Kryterium potwierdzenia jednostki pola `speed` snapshotu pozostaje formalnie
+otwarte do czasu testu na żywym koncie testowym (do tego czasu API zwraca `speed_kmh: null`
+zgodnie z decyzją PO). Dokumentacja podsumowująca spike zostaje przekazana do ponownego review.
 
 ## Poczta
 
