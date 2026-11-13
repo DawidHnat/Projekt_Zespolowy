@@ -72,7 +72,7 @@ Przekazanie do tej kolumny nie jest wynikiem PASS ani dowodem ukończenia.
 | SCRUM-16 — logowanie | Testowanie, nadal 5 SP | Marcel w SCRUM-56 |
 | SCRUM-23 — lista/mapa | W toku, 3 SP | Marcel; najpierw scalone przyrosty, następnie retest SCRUM-51 |
 | SCRUM-40 — szablon i układ | Testowanie, 3 SP | Marcel |
-| SCRUM-51 — kartoteka i pomiary | W trakcie weryfikacji, 5 SP | Dawid; implementacja w PR, review drugiego developera |
+| SCRUM-51 — kartoteka i pomiary | W trakcie weryfikacji, 5 SP | Dawid; implementacja w PR, review |
 | SCRUM-56 — sesje/reset | Testowanie, 3 SP | Marcel; rzeczywista dostawa SMTP pozostaje osobnym nieuzgodnionym testem |
 
 SCRUM-5 pozostaje W toku do czasu scalenia i odbioru SCRUM-51 przez QA.
