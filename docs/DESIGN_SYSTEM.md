@@ -165,6 +165,10 @@ Przy edycji zbiorowej reszta wybranej grupy otrzymuje rozmiar przy puszczeniu,
 bez przeliczania całej galerii w każdej klatce.
 Suwaki i strzałki zapewniają alternatywę dla przeciągania. CSS ogranicza szerokość
 na telefonie bez nadpisywania rozmiaru użytkownika.
+Narożnik zachowuje zapisany wymiar osi, której użytkownik nie zmienia.
+Pionowy gest na zwężonym ekranie nie zapisuje szerokości ograniczonej przez CSS.
+Ruch mniejszy niż 5 px traktujemy jako drżenie wskaźnika; celowy ruch poziomy
+rozpoczyna zmianę szerokości od widocznej krawędzi kafelka.
 
 `VehiclePreferencesProvider` udostępnia zdjęcia i niezależny szkic rozmiarów.
 Klucz localStorage `fleet-flow.vehicles.v2.<user-id>` oraz IndexedDB

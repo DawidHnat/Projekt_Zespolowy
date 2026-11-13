@@ -196,6 +196,9 @@ a Enter otwiera suwaki. Zapis/Anuluj dotyczą wyłącznie tego widoku.
 Szerokości nie rozciągają się automatycznie do całego wiersza. Mniejszy ekran
 ogranicza tylko wyświetlanie szerokości, zachowując rozmiar zapisany przez
 użytkownika. Układ jest zapisywany lokalnie i osobno dla kont aplikacji.
+Pionowe rozciąganie na telefonie zachowuje zapisaną szerokość z komputera;
+poziomy gest nadal zmienia ją od widocznej krawędzi. Drobny ruch poniżej 5 px
+nie zmienia drugiej osi. [Weryfikacja i scenariusze QA SCRUM-45](../docs/qa/SCRUM-45.md).
 Odczyt starszych rozmiarów jest zachowany; nowy zapis v2 obejmuje domyślny
 rozmiar floty oraz indywidualne nadpisania.
 
