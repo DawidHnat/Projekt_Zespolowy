@@ -33,6 +33,8 @@ jobs:
         working-directory: backend
       - name: Test post-deployment verifier without network
         run: python -m unittest discover -s tools -p 'test_verify_deployment.py' -v
+      - name: Test release staleness validator without network
+        run: python -m unittest discover -s tools -p 'test_validate_release.py' -v
 
   frontend:
     name: Frontend build
@@ -220,6 +222,12 @@ jobs:
             echo '::error::Configure DEV_SSH_PRIVATE_KEY, DEV_SSH_KNOWN_HOSTS and DEV_RUNTIME_ENV.'
             exit 1
           }
+          latest_main=$(git ls-remote \
+            https://github.com/DawidHnat/Projekt_Zespolowy.git refs/heads/main | awk '{print $1}')
+          if [[ -n "$latest_main" && "$GITHUB_SHA" != "$latest_main" ]]; then
+            echo "::error::Próba wdrożenia $GITHUB_SHA; main ma $latest_main."
+            exit 1
+          fi
           [[ "$DEPLOY_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
           umask 077
           staging=$(mktemp -d "$RUNNER_TEMP/fleet-flow.XXXXXX")
