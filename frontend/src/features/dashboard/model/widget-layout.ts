@@ -236,6 +236,36 @@ export const fromGridLayout = (layout: Layout) => scaleLayout(layout, 1 / GRID.p
 export const compactLayout = (layout: Layout, profile: LayoutProfile) =>
   fromGridLayout(verticalCompactor.compact(toGridLayout(layout), columns(profile) * GRID.precision));
 
+function fitRowWidths(layout: Layout, cols: number) {
+  const rows = new Map<number, LayoutItem[]>();
+  for (const item of layout) {
+    const row = rows.get(item.y) ?? [];
+    row.push(item);
+    rows.set(item.y, row);
+  }
+  for (const row of rows.values()) {
+    let total = row.reduce((sum, item) => sum + item.w, 0);
+    if (total <= cols || row.reduce((sum, item) => sum + item.minW!, 0) > cols)
+      continue;
+    // Make room for a neighbour whose content minimum grew at this width.
+    // Use spare width in this row instead of pushing that card
+    // into a new row with a large empty space to its left.
+    while (total > cols) {
+      const flexible = row.reduce((a, b) =>
+        a.w - a.minW! >= b.w - b.minW! ? a : b,
+      );
+      flexible.w -= 1 / GRID.precision;
+      total -= 1 / GRID.precision;
+    }
+    let cursor = 0;
+    for (const item of [...row].sort((a, b) => a.x - b.x)) {
+      item.x = Math.max(cursor, Math.min(item.x, cols - total));
+      cursor = item.x + item.w;
+      total -= item.w;
+    }
+  }
+}
+
 export function fitLayout(
   layout: Layout,
   profile: LayoutProfile,
@@ -244,26 +274,28 @@ export function fitLayout(
   section?: SectionId,
 ): Layout {
   const cols = columns(profile);
-  const fitted = layout.map((item) => {
+  const widths = layout.map((item) => {
     const id = item.i as WidgetId;
     const minW = profile === "compact" ? 1 : Math.min(
       cols,
       Math.max(item.minW ?? 1, widthUnits(section === "map" && id === "vehicles" ? 250 : minimumWidth[id], containerWidth)),
     );
     const w = Math.max(item.w, minW);
-    const pixels = profile === "compact" ? containerWidth : widthPixels(w, containerWidth);
+    return { ...item, minW, w, x: Math.min(item.x, cols - w) };
+  });
+  if (profile === "desktop") fitRowWidths(widths, cols);
+  const fitted = widths.map((item) => {
+    const id = item.i as WidgetId;
+    const pixels = profile === "compact" ? containerWidth : widthPixels(item.w, containerWidth);
     const minH = Math.max(
       item.minH ?? 1,
       heightUnits(Math.max(minimumHeight(id, pixels), measured[id] ?? 0)),
     );
     return {
       ...item,
-      minW,
       minH,
-      w,
       h: Math.max(item.h, minH),
       maxH: Math.max(item.maxH ?? 24, minH),
-      x: Math.min(item.x, cols - w),
     };
   });
   return compactLayout(fitted, profile);

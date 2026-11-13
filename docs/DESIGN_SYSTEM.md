@@ -248,6 +248,15 @@ interakcji otrzymuje dwukrotnie gęstszą siatkę (24 kolumny i rząd 1 px),
 co zachowuje geometrię starszych zapisów i zmniejsza skok wysokości do 17 px.
 Model `widget-layout.ts` odpowiada za konwersję, walidację i kolizje.
 
+Przy zmianie szerokości kontenera `fitLayout` dopasowuje także szerokości
+kafelków w tym samym wierszu. Gdy suma nowych minimów nadal mieści się
+w siatce, szerokość ponad minimum jest oddawana sąsiadom w krokach połowy
+kolumny. Wysokości są obliczane dla tak dopasowanej szerokości, a kolizje
+rozwiązuje silnik układu. Dopasowanie nie mutuje zapisu preferencji;
+powiększenie okna przywraca zapisane proporcje. Próg menu mobilnego wynosi
+760 px szerokości okna; przejście powyżej niego zamyka menu i jego osłonę.
+Profil siatki nadal zależy od 720 px szerokości jej kontenera.
+
 `useGesturePaint` grupuje odświeżanie trzymanego kafelka w klatkach animacji.
 RGL v2 przechowuje pikselową pozycję w refie i memoizuje kartę według komórek
 siatki; zmiana tożsamości tylko aktywnego dziecka pozwala malować również
