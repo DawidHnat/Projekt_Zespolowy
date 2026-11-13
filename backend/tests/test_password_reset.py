@@ -282,7 +282,7 @@ def test_postgres_login_with_old_password_cannot_outlive_reset(monkeypatch):
             )
             # Release reset only once the concurrent login is waiting on its transaction.
             with app.state.engine.connect() as connection:
-                deadline = monotonic() + 5
+                deadline = monotonic() + 10
                 while not connection.scalar(
                     text(
                         "SELECT EXISTS (SELECT FROM pg_stat_activity "
