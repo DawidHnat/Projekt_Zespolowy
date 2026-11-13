@@ -8,8 +8,14 @@ function contentHeight(id: WidgetId, body: HTMLElement): number {
   // current height. Tables reserve the heading and first row, not the whole list.
   if (id === "map") {
     const canvas = body.querySelector(".map-canvas");
-    if (canvas)
-      return Number.parseFloat(getComputedStyle(canvas).minHeight) || 0;
+    if (canvas) {
+      const label = body.querySelector(".map-update-time");
+      return (
+        (Number.parseFloat(getComputedStyle(canvas).minHeight) || 0) +
+        (label?.getBoundingClientRect().height ?? 0) +
+        8
+      );
+    }
   }
   if (id === "vehicles") {
     const head = body.querySelector("thead");

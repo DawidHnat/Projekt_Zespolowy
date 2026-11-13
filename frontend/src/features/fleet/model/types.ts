@@ -67,7 +67,7 @@ export function fleetPollInterval(value: string | undefined) {
     milliseconds >= 10000 &&
     milliseconds <= 86400000
     ? milliseconds
-    : 60000;
+    : 10000;
 }
 export const statusLabels: Record<VehicleStatus, string> = {
   moving: "W ruchu",

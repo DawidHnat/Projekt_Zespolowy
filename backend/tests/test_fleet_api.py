@@ -104,6 +104,12 @@ def test_cold_source_and_degraded_cache_are_explicit(logged_in):
         session.commit()
     result = client.get("/api/v1/fleet/vehicles").json()
     assert result["source"]["status"] == "degraded" and result["total"] == 3
+    assert result["source"]["last_success_at"]
+    stale_vehicles = [item for item in result["items"] if item["position_at"]]
+    assert all(item["is_stale"] and item["status"] == "offline" for item in stale_vehicles)
+    geo = client.get("/api/v1/fleet/map").json()
+    assert geo["source"] == result["source"]
+    assert all(feature["properties"]["is_stale"] for feature in geo["features"])
 
 
 def test_vehicle_card_patch_telemetry_and_stale_address(logged_in):
