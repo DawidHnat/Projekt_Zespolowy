@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from sqlalchemy import select
+from sqlalchemy.exc import OperationalError
 
 from app.core.models import Driver, Measurement, Vehicle
 from app.integrations.webfleet.client import WebfleetError
@@ -531,5 +532,53 @@ def test_corrupt_odometer_marks_sync_degraded_and_recovers_on_next_cycle():
         assert payload["error_code"] is None
         measurement = session.get(Measurement, vehicle.id)
         assert float(measurement.odometer_km) == 1240.0
+
+    engine.dispose()
+
+
+def test_unexpected_operational_error_does_not_set_invalid_records():
+    url = os.environ.get("TEST_DATABASE_URL")
+    if not url:
+        pytest.skip("Requires an isolated PostgreSQL database")
+    engine = create_engine(url)
+    settings = Settings(
+        database_url=url,
+        sync_enabled=True,
+        webfleet_account="acc-operational",
+        webfleet_username="u",
+        webfleet_password="p",
+        webfleet_api_key="k",
+    )
+    source = account_key(settings.webfleet_account)
+    t0 = datetime(2026, 6, 1, 12, 0, 0, tzinfo=UTC)
+
+    class FailingClient:
+        def __init__(self, _):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            pass
+
+        async def fetch_vehicles(self):
+            raise OperationalError("SELECT 1", {}, Exception("Database connection lost"))
+
+        async def fetch_objects(self):
+            return []
+
+    with pytest.raises(OperationalError):
+        sync_once(
+            engine,
+            settings,
+            client_factory=FailingClient,
+            now=t0,
+            sync_interval_seconds=60,
+        )
+
+    with Session(engine) as session:
+        state = session.get(SyncState, source)
+        assert state is None or state.error_code != "INVALID_RECORDS"
 
     engine.dispose()

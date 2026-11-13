@@ -222,23 +222,6 @@ def sync_once(
                     state.error_code = error.code
                     session.commit()
                     return "degraded"
-                except Exception as error:
-                    session.rollback()
-                    state = session.get(SyncState, source)
-                    if not state:
-                        state = SyncState(source_account=source)
-                        session.add(state)
-                    failed_at = (
-                        datetime.now(UTC)
-                        if not supplied_now
-                        else (now + timedelta(seconds=tracker.elapsed_seconds))
-                    )
-                    state.last_attempt_at = failed_at
-                    state.error_code = (
-                        error.code if isinstance(error, WebfleetError) else "INVALID_RECORDS"
-                    )
-                    session.commit()
-                    return "degraded"
         finally:
             connection.execute(text("SELECT pg_advisory_unlock(:key)"), {"key": lock_id})
             connection.commit()
