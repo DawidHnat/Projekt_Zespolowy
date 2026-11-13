@@ -123,6 +123,10 @@ def main():
         with Session(engine) as session:
             session.execute(delete(LoginAttempt))
             session.execute(delete(LoginSession))
+            for user in session.scalars(
+                select(User).where(User.username.in_(("e2e-editor", "e2e-viewer")))
+            ):
+                user.password_hash = password_hasher.hash("synthetic-e2e-password")
             session.commit()
         source_state(engine, "ok")
         engine.dispose()

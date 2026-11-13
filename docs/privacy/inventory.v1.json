@@ -1,0 +1,2414 @@
+{
+  "document": "SCRUM-112",
+  "version": 1,
+  "recorded_on": "2026-10-29",
+  "author": "Jakub Czaja (przygotowanie techniczne)",
+  "scope": "Inwentarz kodu i rejestr brakujących decyzji. Nie jest inwentaryzacją rekordów ani dowodem wdrożenia VPS.",
+  "policy_approval": "NONE; decyzje prywatności wymagają SCRUM-113. BLOCKED oznacza brak decyzji dla przetwarzania/aktywacji, nie brak wykonania technicznego spisu.",
+  "snapshots": {
+    "main": {
+      "sha": "4ce144e3e988106059acdbb6cd01ae9baa3beee4",
+      "delivery": "scalony kod; nie dowód aktywnej wersji serwera"
+    },
+    "review_stack": {
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "pr": 51,
+      "delivery": "otwarty stos PR; nie w main"
+    },
+    "profile_pr31": {
+      "sha": "0408144b943bc7ad5e9e3d47ae4f0b5640c94b7e",
+      "pr": 31,
+      "delivery": "osobny otwarty PR, poza stosem PR #51"
+    }
+  },
+  "schema_snapshots": {
+    "main": {
+      "drivers": {
+        "path": "backend/app/core/models.py",
+        "fields": [
+          "id",
+          "display_name",
+          "active"
+        ]
+      },
+      "vehicles": {
+        "path": "backend/app/core/models.py",
+        "fields": [
+          "id",
+          "source_account",
+          "external_uid",
+          "name",
+          "number",
+          "license_plate",
+          "vehicle_type",
+          "active",
+          "driver_id"
+        ]
+      },
+      "measurements": {
+        "path": "backend/app/core/models.py",
+        "fields": [
+          "vehicle_id",
+          "latitude",
+          "longitude",
+          "odometer_km",
+          "ignition_on",
+          "standing_still",
+          "gps_quality",
+          "position_at",
+          "received_at"
+        ]
+      },
+      "sync_states": {
+        "path": "backend/app/core/models.py",
+        "fields": [
+          "source_account",
+          "last_attempt_at",
+          "last_success_at",
+          "error_code"
+        ]
+      },
+      "users": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "id",
+          "username",
+          "display_name",
+          "password_hash",
+          "role",
+          "active",
+          "email"
+        ]
+      },
+      "login_sessions": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "token_hash",
+          "user_id",
+          "expires_at"
+        ]
+      },
+      "login_attempts": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "key",
+          "window_start",
+          "attempts"
+        ]
+      },
+      "password_resets": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "token_hash",
+          "user_id",
+          "expires_at"
+        ]
+      },
+      "alert_rules": {
+        "path": "backend/app/modules/analytics/models.py",
+        "fields": [
+          "id",
+          "source_account",
+          "type",
+          "threshold_km",
+          "vehicle_id",
+          "active"
+        ]
+      },
+      "alerts": {
+        "path": "backend/app/modules/analytics/models.py",
+        "fields": [
+          "id",
+          "rule_id",
+          "vehicle_id",
+          "event_day",
+          "occurred_at",
+          "created_at",
+          "threshold_km",
+          "distance_km"
+        ]
+      },
+      "daily_distances": {
+        "path": "backend/app/modules/analytics/models.py",
+        "fields": [
+          "vehicle_id",
+          "event_day",
+          "distance_km",
+          "first_observed_at",
+          "last_observed_at"
+        ]
+      },
+      "alert_receipts": {
+        "path": "backend/app/modules/analytics/models.py",
+        "fields": [
+          "alert_id",
+          "user_id",
+          "read_at"
+        ]
+      }
+    },
+    "review_stack": {
+      "drivers": {
+        "path": "backend/app/core/models.py",
+        "fields": [
+          "id",
+          "display_name",
+          "active",
+          "source_account",
+          "first_name",
+          "last_name",
+          "identifier",
+          "identifier_key",
+          "phone",
+          "email",
+          "search_text",
+          "version"
+        ]
+      },
+      "vehicles": {
+        "path": "backend/app/core/models.py",
+        "fields": [
+          "id",
+          "source_account",
+          "external_uid",
+          "name",
+          "number",
+          "license_plate",
+          "vehicle_type",
+          "active",
+          "search_name",
+          "search_number",
+          "search_license_plate",
+          "driver_id"
+        ]
+      },
+      "measurements": {
+        "path": "backend/app/core/models.py",
+        "fields": [
+          "vehicle_id",
+          "latitude",
+          "longitude",
+          "odometer_km",
+          "ignition_on",
+          "standing_still",
+          "gps_quality",
+          "position_at",
+          "received_at"
+        ]
+      },
+      "sync_states": {
+        "path": "backend/app/core/models.py",
+        "fields": [
+          "source_account",
+          "last_attempt_at",
+          "last_success_at",
+          "error_code"
+        ]
+      },
+      "users": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "id",
+          "username",
+          "display_name",
+          "password_hash",
+          "role",
+          "active",
+          "email"
+        ]
+      },
+      "login_sessions": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "token_hash",
+          "user_id",
+          "expires_at"
+        ]
+      },
+      "login_attempts": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "key",
+          "window_start",
+          "attempts"
+        ]
+      },
+      "password_resets": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "token_hash",
+          "user_id",
+          "expires_at"
+        ]
+      },
+      "alert_rules": {
+        "path": "backend/app/modules/analytics/models.py",
+        "fields": [
+          "id",
+          "source_account",
+          "type",
+          "threshold_km",
+          "vehicle_id",
+          "active"
+        ]
+      },
+      "alerts": {
+        "path": "backend/app/modules/analytics/models.py",
+        "fields": [
+          "id",
+          "rule_id",
+          "vehicle_id",
+          "event_day",
+          "occurred_at",
+          "created_at",
+          "threshold_km",
+          "distance_km"
+        ]
+      },
+      "daily_distances": {
+        "path": "backend/app/modules/analytics/models.py",
+        "fields": [
+          "vehicle_id",
+          "event_day",
+          "distance_km",
+          "first_observed_at",
+          "last_observed_at"
+        ]
+      },
+      "alert_receipts": {
+        "path": "backend/app/modules/analytics/models.py",
+        "fields": [
+          "alert_id",
+          "user_id",
+          "read_at"
+        ]
+      },
+      "trips": {
+        "path": "backend/app/modules/trips/models.py",
+        "fields": [
+          "id",
+          "vehicle_id",
+          "external_uid",
+          "start_at",
+          "end_at",
+          "distance_km"
+        ]
+      },
+      "trip_annotations": {
+        "path": "backend/app/modules/trips/models.py",
+        "fields": [
+          "trip_id",
+          "purpose",
+          "description",
+          "version",
+          "updated_by",
+          "updated_at"
+        ]
+      },
+      "driver_categories": {
+        "path": "backend/app/modules/drivers/models.py",
+        "fields": [
+          "driver_id",
+          "category"
+        ]
+      },
+      "driver_assignments": {
+        "path": "backend/app/modules/drivers/models.py",
+        "fields": [
+          "id",
+          "driver_id",
+          "vehicle_id",
+          "active",
+          "started_at",
+          "ended_at",
+          "recorded_at"
+        ]
+      }
+    }
+  },
+  "evidence": {
+    "core": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/core/models.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/core/models.py"
+    },
+    "auth": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/modules/auth/models.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/modules/auth/models.py"
+    },
+    "auth-service": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/modules/auth/service.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/modules/auth/service.py"
+    },
+    "auth-router": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/modules/auth/router.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/modules/auth/router.py"
+    },
+    "reset": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/modules/auth/reset.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/modules/auth/reset.py"
+    },
+    "settings": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/core/settings.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/core/settings.py"
+    },
+    "config": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/core/config.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/core/config.py"
+    },
+    "drivers": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/modules/drivers/models.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/modules/drivers/models.py"
+    },
+    "drivers-api": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/modules/drivers/router.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/modules/drivers/router.py"
+    },
+    "drivers-service": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/modules/drivers/service.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/modules/drivers/service.py"
+    },
+    "fleet-api": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/modules/fleet/router.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/modules/fleet/router.py"
+    },
+    "fleet-service": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/modules/fleet/service.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/modules/fleet/service.py"
+    },
+    "sync": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/modules/fleet/sync.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/modules/fleet/sync.py"
+    },
+    "adapter": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/integrations/webfleet/client.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/integrations/webfleet/client.py"
+    },
+    "snapshot": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/integrations/webfleet/models.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/integrations/webfleet/models.py"
+    },
+    "trips": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/modules/trips/models.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/modules/trips/models.py"
+    },
+    "trips-api": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/modules/trips/router.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/modules/trips/router.py"
+    },
+    "analytics": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/modules/analytics/models.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/modules/analytics/models.py"
+    },
+    "analytics-api": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/modules/analytics/router.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/modules/analytics/router.py"
+    },
+    "analytics-service": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/modules/analytics/service.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/modules/analytics/service.py"
+    },
+    "mail": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/integrations/mail/client.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/integrations/mail/client.py"
+    },
+    "photo-store": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "frontend/src/features/fleet/model/vehicle-photo-store.ts",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/frontend/src/features/fleet/model/vehicle-photo-store.ts"
+    },
+    "photo": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "frontend/src/shared/media/local-image.ts",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/frontend/src/shared/media/local-image.ts"
+    },
+    "background": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "frontend/src/features/dashboard/model/background-image.ts",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/frontend/src/features/dashboard/model/background-image.ts"
+    },
+    "preferences": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "frontend/src/app/preferences.ts",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/frontend/src/app/preferences.ts"
+    },
+    "preference-model": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "frontend/src/app/preference-model.ts",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/frontend/src/app/preference-model.ts"
+    },
+    "vehicle-preferences": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "frontend/src/features/fleet/model/VehiclePreferences.tsx",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/frontend/src/features/fleet/model/VehiclePreferences.tsx"
+    },
+    "fleet-browser": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "frontend/src/features/fleet/model/FleetProvider.tsx",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/frontend/src/features/fleet/model/FleetProvider.tsx"
+    },
+    "driver-preferences": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "frontend/src/features/drivers/model/preferences.ts",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/frontend/src/features/drivers/model/preferences.ts"
+    },
+    "driver-browser": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "frontend/src/features/drivers/model/DriverContext.tsx",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/frontend/src/features/drivers/model/DriverContext.tsx"
+    },
+    "map": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "frontend/src/features/fleet/components/VehicleMap.tsx",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/frontend/src/features/fleet/components/VehicleMap.tsx"
+    },
+    "markers": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "frontend/src/features/fleet/components/vehicle-markers.ts",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/frontend/src/features/fleet/components/vehicle-markers.ts"
+    },
+    "http-client": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "frontend/src/shared/api/client.ts",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/frontend/src/shared/api/client.ts"
+    },
+    "caddy": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "infra/deploy/Caddyfile",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/infra/deploy/Caddyfile"
+    },
+    "compose": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "infra/deploy/compose.yml",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/infra/deploy/compose.yml"
+    },
+    "docker": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "infra/deploy/backend.Dockerfile",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/infra/deploy/backend.Dockerfile"
+    },
+    "backup": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "infra/backup/backup.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/infra/backup/backup.py"
+    },
+    "backup-guide": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "infra/backup/README.md",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/infra/backup/README.md"
+    },
+    "deploy": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "infra/deploy/deploy.sh",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/infra/deploy/deploy.sh"
+    },
+    "ci": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": ".github/workflows/ci.yml",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/.github/workflows/ci.yml"
+    },
+    "errors": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/core/errors.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/core/errors.py"
+    },
+    "main": {
+      "snapshot": "review_stack",
+      "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+      "path": "backend/app/main.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/ff8834917a9c05cc272dccede12689dc0f5c37a1/backend/app/main.py"
+    },
+    "profile-pr31": {
+      "snapshot": "profile_pr31",
+      "sha": "0408144b943bc7ad5e9e3d47ae4f0b5640c94b7e",
+      "path": "backend/app/modules/auth/profile.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/0408144b943bc7ad5e9e3d47ae4f0b5640c94b7e/backend/app/modules/auth/profile.py"
+    },
+    "readme": {
+      "snapshot": "main",
+      "sha": "4ce144e3e988106059acdbb6cd01ae9baa3beee4",
+      "path": "README.md",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/4ce144e3e988106059acdbb6cd01ae9baa3beee4/README.md"
+    },
+    "main-auth": {
+      "snapshot": "main",
+      "sha": "4ce144e3e988106059acdbb6cd01ae9baa3beee4",
+      "path": "backend/app/modules/auth/models.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/4ce144e3e988106059acdbb6cd01ae9baa3beee4/backend/app/modules/auth/models.py"
+    },
+    "main-core": {
+      "snapshot": "main",
+      "sha": "4ce144e3e988106059acdbb6cd01ae9baa3beee4",
+      "path": "backend/app/core/models.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/4ce144e3e988106059acdbb6cd01ae9baa3beee4/backend/app/core/models.py"
+    },
+    "main-analytics": {
+      "snapshot": "main",
+      "sha": "4ce144e3e988106059acdbb6cd01ae9baa3beee4",
+      "path": "backend/app/modules/analytics/models.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/4ce144e3e988106059acdbb6cd01ae9baa3beee4/backend/app/modules/analytics/models.py"
+    },
+    "main-caddy": {
+      "snapshot": "main",
+      "sha": "4ce144e3e988106059acdbb6cd01ae9baa3beee4",
+      "path": "infra/deploy/Caddyfile",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/4ce144e3e988106059acdbb6cd01ae9baa3beee4/infra/deploy/Caddyfile"
+    },
+    "main-deploy": {
+      "snapshot": "main",
+      "sha": "4ce144e3e988106059acdbb6cd01ae9baa3beee4",
+      "path": "infra/deploy/deploy.sh",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/4ce144e3e988106059acdbb6cd01ae9baa3beee4/infra/deploy/deploy.sh"
+    }
+  },
+  "datasets": [
+    {
+      "id": "D01",
+      "title": "Konta aplikacji",
+      "implementation": "MAIN",
+      "fields": {
+        "users": [
+          "id",
+          "username",
+          "display_name",
+          "email",
+          "role",
+          "active"
+        ]
+      },
+      "origin": "Ręczne zarządzanie kontami; User jest odrębny od Driver.",
+      "technical_purpose": "Identyfikacja użytkownika, logowanie, role i adres resetu.",
+      "storage": "PostgreSQL users; odpowiedź API i pamięć przeglądarki.",
+      "current_access_and_recipients": "Użytkownik widzi własną podstawową tożsamość; operator przez narzędzie zarządzania/DB. Pełny panel administracji SCRUM-48 dopiero planowany.",
+      "current_lifecycle": "Brak automatycznego usuwania kont ani zatwierdzonego okresu; active=false odcina dostęp, nie usuwa danych.",
+      "minimum_scope_to_confirm": "Uzasadnić username/display_name/email i zakres admina; nie dopisywać PESEL ani dokumentów osoby.",
+      "policy_decisions": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "main-auth",
+        "auth-service",
+        "auth-router"
+      ]
+    },
+    {
+      "id": "D02",
+      "title": "Skróty haseł i hasło w żądaniu",
+      "implementation": "MAIN",
+      "fields": {
+        "users": [
+          "password_hash"
+        ],
+        "transient": [
+          "hasło w HTTPS request body"
+        ]
+      },
+      "origin": "Użytkownik ustawia hasło; narzędzie operatora tworzy konto.",
+      "technical_purpose": "Sprawdzenie hasła bez przechowywania jego jawnej wartości.",
+      "storage": "Hash w PostgreSQL; jawne hasło tylko podczas obsługi żądania; nie należy do payloadu API.",
+      "current_access_and_recipients": "Backend i uprzywilejowany operator/backup; nie frontendowy odczyt profilu.",
+      "current_lifecycle": "Zmiana/reset nadpisuje hash; brak odrębnej retencji starych kopii backupu.",
+      "minimum_scope_to_confirm": "Nie eksportować hashy, haseł ani sekretów w DSAR lub raporcie biznesowym.",
+      "policy_decisions": [
+        "P02",
+        "P04",
+        "P05",
+        "P06",
+        "P13",
+        "P14"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "auth",
+        "auth-service",
+        "reset"
+      ]
+    },
+    {
+      "id": "D03",
+      "title": "Sesje i cookie",
+      "implementation": "MAIN",
+      "fields": {
+        "login_sessions": [
+          "token_hash",
+          "user_id",
+          "expires_at"
+        ],
+        "browser": [
+          "fleet_flow_session"
+        ]
+      },
+      "origin": "Losowy token po logowaniu.",
+      "technical_purpose": "Utrzymanie uwierzytelnienia.",
+      "storage": "Surowy token w HttpOnly cookie; SHA-256 tokenu w DB.",
+      "current_access_and_recipients": "Przeglądarka i backend; nie localStorage. Operator/backup ma dostęp do DB.",
+      "current_lifecycle": "Ważność domyślnie 12 h. Logout usuwa bieżącą sesję. Wygasłe rekordy są sprzątane przy udanym logowaniu; sam upływ czasu nie wykonuje DELETE.",
+      "minimum_scope_to_confirm": "Oddzielić czas ważności, czyszczenie rekordu i retencję kopii.",
+      "policy_decisions": [
+        "P02",
+        "P03",
+        "P04",
+        "P06",
+        "P13",
+        "P15"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "auth",
+        "auth-router",
+        "auth-service",
+        "settings"
+      ]
+    },
+    {
+      "id": "D04",
+      "title": "Liczniki prób logowania/resetu",
+      "implementation": "MAIN",
+      "fields": {
+        "login_attempts": [
+          "key",
+          "window_start",
+          "attempts"
+        ],
+        "transient": [
+          "adres IP klienta",
+          "login podany w żądaniu"
+        ]
+      },
+      "origin": "Żądania login/reset; IP z połączenia ASGI/proxy.",
+      "technical_purpose": "Ograniczenie nadużyć i prób haseł.",
+      "storage": "W DB SHA-256 prefiksu+IP lub loginu, początek okna i licznik; nie surowy IP w tej tabeli.",
+      "current_access_and_recipients": "Backend; operator DB/backup. Przepływ i adres klienta na edge są odrębnym D19.",
+      "current_lifecycle": "Okno resetuje się przy następnym użyciu. Liczniki starsze niż 1 dzień są usuwane przy udanym loginie; brak niezależnego harmonogramu retencji.",
+      "minimum_scope_to_confirm": "Haszowanie deterministyczne nie jest gwarancją anonimowości; ustalić zasadność i retencję kluczy oraz poprawność trusted proxy.",
+      "policy_decisions": [
+        "P02",
+        "P04",
+        "P13",
+        "P14"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "auth",
+        "auth-router",
+        "reset",
+        "caddy",
+        "main-caddy"
+      ]
+    },
+    {
+      "id": "D05",
+      "title": "Reset hasła i wiadomość",
+      "implementation": "MAIN",
+      "fields": {
+        "password_resets": [
+          "token_hash",
+          "user_id",
+          "expires_at"
+        ],
+        "transient": [
+          "login",
+          "recipient",
+          "URL resetu z surowym tokenem w fragmencie"
+        ]
+      },
+      "origin": "Żądanie użytkownika; adres z users.email.",
+      "technical_purpose": "Jednorazowe ustawienie nowego hasła.",
+      "storage": "Hash w DB; treść wiadomości i adres przechodzą przez OVH SMTP/skrzynki; token trafia do przeglądarki z linku.",
+      "current_access_and_recipients": "Backend, serwer pocztowy i adresat; odbiorca musi być przypisany do konta.",
+      "current_lifecycle": "Link ważny 20 min. Nowy reset zastępuje tokeny osoby; udane potwierdzenie usuwa tokeny i sesje. Wygaśnięcie samo nie usuwa rekordu ani kopii wiadomości.",
+      "minimum_scope_to_confirm": "Brak haseł w wiadomości. Uzgodnić retencję wiadomości, tokenów po wygaśnięciu i procedurę błędu dostawy.",
+      "policy_decisions": [
+        "P01",
+        "P02",
+        "P04",
+        "P06",
+        "P14"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "reset",
+        "mail",
+        "main-auth"
+      ]
+    },
+    {
+      "id": "D06",
+      "title": "Pojazdy i prywatne indeksy wyszukiwania",
+      "implementation": "MAIN + REVIEW_STACK",
+      "fields": {
+        "vehicles": [
+          "id",
+          "source_account",
+          "external_uid",
+          "name",
+          "number",
+          "license_plate",
+          "vehicle_type",
+          "active",
+          "search_name",
+          "search_number",
+          "search_license_plate",
+          "driver_id"
+        ]
+      },
+      "origin": "WEBFLEET: allowlist raportu pojazdów; driver_id jest lokalną projekcją.",
+      "technical_purpose": "Lista, identyfikacja auta, filtrowanie i powiązanie z pomiarami.",
+      "storage": "PostgreSQL; UUID/nazwa/rejestracja w API i DOM. search_* to pochodne prywatne dodane w PR #38.",
+      "current_access_and_recipients": "Wszyscy uwierzytelnieni w bieżącym źródle. Operator/backup widzi także wewnętrzne UID i hash konta źródła.",
+      "current_lifecycle": "Synchronizacja aktualizuje dane; brak auta w kompletnym odczycie ustawia active=false, nie usuwa rekordu.",
+      "minimum_scope_to_confirm": "Uzasadnić nazwę/numer/rejestrację/typ i kopie casefold; source_account/external_uid pozostają poza publicznym payloadem.",
+      "policy_decisions": [
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P07"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "main-core",
+        "core",
+        "sync",
+        "fleet-api",
+        "fleet-service"
+      ]
+    },
+    {
+      "id": "D07",
+      "title": "Ostatnia pozycja i stan pojazdu",
+      "implementation": "MAIN",
+      "fields": {
+        "measurements": [
+          "vehicle_id",
+          "latitude",
+          "longitude",
+          "odometer_km",
+          "ignition_on",
+          "standing_still",
+          "gps_quality",
+          "position_at",
+          "received_at"
+        ],
+        "transient": [
+          "speed z allowlisty raportu źródła; API nie potwierdza jednostki i zwraca null"
+        ]
+      },
+      "origin": "WEBFLEET object report przez backend.",
+      "technical_purpose": "Pozycja, świeżość i stan floty oraz przyrost obserwowanego dystansu.",
+      "storage": "Jedna ostatnia próbka na pojazd w PostgreSQL; GeoJSON i szczegóły w pamięci/DOM przeglądarki.",
+      "current_access_and_recipients": "Wszyscy uwierzytelnieni w źródle widzą GPS niezależnie od admin/editor/viewer; brak per-User zakresu pojazdów.",
+      "current_lifecycle": "Nowy pomiar nadpisuje istniejący, stary nie cofa czasu. 15 min to próg świeżości, nie retencja. Brak próbek archiwalnych w tej tabeli; stare stany mogą istnieć w backupie/logach.",
+      "minimum_scope_to_confirm": "Zakres dokładności GPS, częstość odczytu, godziny użycia i role wymagają decyzji; hash source_account nie izoluje użytkowników tenantów.",
+      "policy_decisions": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P07",
+        "P08",
+        "P10",
+        "P12",
+        "P13"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "core",
+        "sync",
+        "snapshot",
+        "fleet-service",
+        "fleet-api",
+        "map"
+      ]
+    },
+    {
+      "id": "D08",
+      "title": "Ręczna kartoteka kierowcy",
+      "implementation": "MAIN podstawowa; REVIEW_STACK rozszerzona",
+      "fields": {
+        "drivers": [
+          "id",
+          "display_name",
+          "active",
+          "source_account",
+          "first_name",
+          "last_name",
+          "identifier",
+          "identifier_key",
+          "phone",
+          "email",
+          "search_text",
+          "version"
+        ]
+      },
+      "origin": "Ręczny wpis Fleet-Flow; brak importu kierowców WEBFLEET.",
+      "technical_purpose": "Kontakt i identyfikacja osoby przypisanej do auta.",
+      "storage": "PostgreSQL; profil/kontakt w odpowiedzi API i pamięci widoku SCRUM-53.",
+      "current_access_and_recipients": "Odczyt uwierzytelnionego użytkownika bieżącego źródła; admin/editor zapisuje. Stare source_account=null wymagają prywatnego rozstrzygnięcia operatora.",
+      "current_lifecycle": "Dezaktywacja nie usuwa profilu. Zmiana nadpisuje pola i zwiększa version; nie tworzy pełnego audytu poprzednich wartości.",
+      "minimum_scope_to_confirm": "Imię/nazwisko/identyfikator; telefon/e-mail opcjonalne. search_text powiela dane do wyszukiwania. Nie dodano PESEL, numeru prawa jazdy lub skanu dokumentu osoby.",
+      "policy_decisions": [
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P07",
+        "P09"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "main-core",
+        "core",
+        "drivers-api",
+        "drivers-service",
+        "driver-browser"
+      ]
+    },
+    {
+      "id": "D09",
+      "title": "Ręczne kategorie prawa jazdy",
+      "implementation": "REVIEW_STACK PR #50",
+      "fields": {
+        "driver_categories": [
+          "driver_id",
+          "category"
+        ]
+      },
+      "origin": "Wybór operatora z wersjonowanego katalogu.",
+      "technical_purpose": "Zapis deklarowanych kategorii; nie dowód uprawnienia ani wykonana ocena zgodności.",
+      "storage": "PostgreSQL, odczyt w API i formularzu.",
+      "current_access_and_recipients": "Jak profil kierowcy; admin/editor zapisuje.",
+      "current_lifecycle": "Zmiana zastępuje zbiór kategorii; nie ma historii każdej poprzedniej zmiany kategorii.",
+      "minimum_scope_to_confirm": "Tylko ID kategorii; źródło/weryfikacja i przyszła zgodność SCRUM-70 wymagają uzgodnienia, bez dodatkowych dokumentów osoby.",
+      "policy_decisions": [
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P09"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "drivers",
+        "drivers-api",
+        "drivers-service"
+      ]
+    },
+    {
+      "id": "D10",
+      "title": "Historia przypisań kierowca–pojazd",
+      "implementation": "MAIN wskaźnik; REVIEW_STACK PR #50 historia",
+      "fields": {
+        "driver_assignments": [
+          "id",
+          "driver_id",
+          "vehicle_id",
+          "active",
+          "started_at",
+          "ended_at",
+          "recorded_at"
+        ],
+        "vehicles": [
+          "driver_id"
+        ]
+      },
+      "origin": "Ręczne przypisanie/zakończenie, migracja legacy bez zgadywania dat.",
+      "technical_purpose": "Aktualne relacje wiele:wiele i historia ich obowiązywania.",
+      "storage": "PostgreSQL; stronicowana lista w API/UI.",
+      "current_access_and_recipients": "Odczyt jak profil, zapis admin/editor; operator migracji.",
+      "current_lifecycle": "Zamknięcie zachowuje wiersz z ended_at; dezaktywacja kończy bieżące relacje. Legacy started_at=null oznacza brak wiedzy. Ponowna aktywacja nie otwiera relacji.",
+      "minimum_scope_to_confirm": "Przy wielu kierowcach nie przypisywać całego GPS lub historycznego przejazdu pierwszej osobie. W eksporcie opisać niejednoznaczność/okresy i dane innych osób.",
+      "policy_decisions": [
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P08"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "drivers",
+        "drivers-api",
+        "drivers-service",
+        "core"
+      ]
+    },
+    {
+      "id": "D11",
+      "title": "Fakty zapisanych przejazdów",
+      "implementation": "REVIEW_STACK PR #30; importer SCRUM-24 PLANNED",
+      "fields": {
+        "trips": [
+          "id",
+          "vehicle_id",
+          "external_uid",
+          "start_at",
+          "end_at",
+          "distance_km"
+        ]
+      },
+      "origin": "Docelowo WEBFLEET; w badanym kodzie brak uruchomionego importera historii.",
+      "technical_purpose": "Lista historycznych faktów i punkt zaczepienia adnotacji.",
+      "storage": "PostgreSQL po przyroście SCRUM-30; odczyt API; geometria odpowiedzi null.",
+      "current_access_and_recipients": "Uwierzytelniony użytkownik źródła pojazdu.",
+      "current_lifecycle": "Brak zatwierdzonej retencji. Limit odczytu 93 dni nie jest okresem przechowywania. Model nie zapisuje kierowcy/snapshotu osoby ani geometrii.",
+      "minimum_scope_to_confirm": "Nie deklarować pełnej historii lub jednoznacznej osoby na podstawie obecnego przypisania; przyszły import SCRUM-24 wymaga minimalnego zakresu i pokrycia danych.",
+      "policy_decisions": [
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P08",
+        "P10"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "trips",
+        "trips-api"
+      ]
+    },
+    {
+      "id": "D12",
+      "title": "Cel/opis przejazdu i autor ostatniej edycji",
+      "implementation": "REVIEW_STACK PR #30",
+      "fields": {
+        "trip_annotations": [
+          "trip_id",
+          "purpose",
+          "description",
+          "version",
+          "updated_by",
+          "updated_at"
+        ]
+      },
+      "origin": "Wolny tekst użytkownika.",
+      "technical_purpose": "Lokalne uzupełnienie przejazdu, wersjonowanie współbieżnego zapisu.",
+      "storage": "PostgreSQL, API i edytor w RAM.",
+      "current_access_and_recipients": "Uwierzytelniony odczyt w źródle; admin/editor zapisuje; widoczny autor/czas ostatniej edycji.",
+      "current_lifecycle": "Aktualizacja nadpisuje poprzedni cel/opis; wyczyszczenie daje null. Rekord autora/czasu nie jest pełnym audit trail SCRUM-87.",
+      "minimum_scope_to_confirm": "Cel do 200 i opis do 2000 znaków; ograniczenia długości nie zapobiegają wpisaniu nadmiarowych danych osoby. Zakres wolnego tekstu i instrukcja dla użytkownika wymagają decyzji.",
+      "policy_decisions": [
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P09",
+        "P16"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "trips",
+        "trips-api"
+      ]
+    },
+    {
+      "id": "D13",
+      "title": "Reguły alertów",
+      "implementation": "MAIN",
+      "fields": {
+        "alert_rules": [
+          "id",
+          "source_account",
+          "type",
+          "threshold_km",
+          "vehicle_id",
+          "active"
+        ]
+      },
+      "origin": "Ręczna konfiguracja admin/editor.",
+      "technical_purpose": "Próg dziennego dystansu pojazdu albo całego źródła.",
+      "storage": "PostgreSQL i API/UI reguł.",
+      "current_access_and_recipients": "Uwierzytelniony odczyt; admin/editor zapisuje.",
+      "current_lifecycle": "Wyłączenie nie usuwa reguły ani wcześniejszych zdarzeń. Brak czasu autora/pełnego audytu zmian w tabeli.",
+      "minimum_scope_to_confirm": "Typ/prog/zakres i aktywność; dalsze typy lub adresaci e-mail to kolejne zadania, nie istniejąca funkcja.",
+      "policy_decisions": [
+        "P02",
+        "P03",
+        "P04",
+        "P06",
+        "P16"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "main-analytics",
+        "analytics",
+        "analytics-api"
+      ]
+    },
+    {
+      "id": "D14",
+      "title": "Dzienny dystans i granice obserwacji",
+      "implementation": "MAIN",
+      "fields": {
+        "daily_distances": [
+          "vehicle_id",
+          "event_day",
+          "distance_km",
+          "first_observed_at",
+          "last_observed_at"
+        ]
+      },
+      "origin": "Obliczenie z kolejnych odebranych pomiarów licznika.",
+      "technical_purpose": "Dolna granica zaobserwowanego dystansu, ocena reguł.",
+      "storage": "PostgreSQL; wartości w alertach/odpowiedziach.",
+      "current_access_and_recipients": "Backend i użytkownicy źródła przez funkcje floty/alertów; operator DB.",
+      "current_lifecycle": "Kolejne pomiary agregują dzień Europe/Warsaw; brak automatycznego kasowania dni. To nie pełna historia i nie dane anonimowe po zachowaniu vehicle_id.",
+      "minimum_scope_to_confirm": "Uzgodnić dni, pokrycie oraz dopuszczalne raporty; nie wywodzić czasu pracy osoby z częściowych danych.",
+      "policy_decisions": [
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P08"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "main-analytics",
+        "analytics",
+        "analytics-service"
+      ]
+    },
+    {
+      "id": "D15",
+      "title": "Alerty i potwierdzenia odczytu",
+      "implementation": "MAIN; UI w REVIEW_STACK PR #49",
+      "fields": {
+        "alerts": [
+          "id",
+          "rule_id",
+          "vehicle_id",
+          "event_day",
+          "occurred_at",
+          "created_at",
+          "threshold_km",
+          "distance_km"
+        ],
+        "alert_receipts": [
+          "alert_id",
+          "user_id",
+          "read_at"
+        ]
+      },
+      "origin": "Wynik reguły oraz ręczny odczyt użytkownika.",
+      "technical_purpose": "Trwały dowód przekroczenia, deduplikacja i prywatny stan odczytu.",
+      "storage": "PostgreSQL, API, UI.",
+      "current_access_and_recipients": "Alerty źródła widoczne po logowaniu; receipt własnego User, nie wspólny stan zespołu. Operator/backup widzi powiązanie User/time.",
+      "current_lifecycle": "Alert zachowuje snapshot dystansu/progu; reguła może się zmienić. Brak retencji alertów/receipts; odczyt nie usuwa zdarzenia.",
+      "minimum_scope_to_confirm": "Uzgodnić zakres odbiorców i retencję śladu odczytu; e-mail/kolejka SCRUM-73 oraz wspólna obsługa SCRUM-69 nie są wdrożone.",
+      "policy_decisions": [
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P09"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "main-analytics",
+        "analytics",
+        "analytics-api"
+      ]
+    },
+    {
+      "id": "D16",
+      "title": "Stan synchronizacji i konto źródła",
+      "implementation": "MAIN",
+      "fields": {
+        "sync_states": [
+          "source_account",
+          "last_attempt_at",
+          "last_success_at",
+          "error_code"
+        ]
+      },
+      "origin": "Worker/CLI synchronicznego odczytu.",
+      "technical_purpose": "Wspólny limit, ostatnia próba/sukces i bezpieczny kod błędu.",
+      "storage": "PostgreSQL i bezpieczny payload aktualności.",
+      "current_access_and_recipients": "Backend; część stanu świeżości w API; operator DB.",
+      "current_lifecycle": "Aktualizacja wiersza per hash konta. Brak historii każdej próby i zatwierdzonej retencji; hash nadal wiąże cały zbiór źródła.",
+      "minimum_scope_to_confirm": "Minimalny stan techniczny; nie dodawać payloadu ani loginu dostawcy. Source account nie jest tenantem User.",
+      "policy_decisions": [
+        "P03",
+        "P04",
+        "P07",
+        "P14"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "main-core",
+        "core",
+        "sync"
+      ]
+    },
+    {
+      "id": "D17",
+      "title": "Lokalne preferencje i identyfikatory",
+      "implementation": "MAIN + REVIEW_STACK PR #51",
+      "fields": {
+        "browser": [
+          "fleet-flow.dashboard.v2 oraz legacyv1",
+          "fleet-flow.vehicles.v2.<user-id> oraz legacyv1",
+          "fleet-flow.list-page-size.v1.<user-id>",
+          "fleet-flow.drivers.v1.<user-id> w PR51"
+        ]
+      },
+      "origin": "Wygląd i zapis układu użytkownika.",
+      "technical_purpose": "Prezentacja: widoczność/rozmiary/UUID porządku/limit strony.",
+      "storage": "localStorage w danym origin/przeglądarce, część per konto; brak synchronizacji SCRUM-91.",
+      "current_access_and_recipients": "Kod tego samego origin i użytkownik urządzenia; klucze per konto to izolacja UI, nie szyfrowanie.",
+      "current_lifecycle": "Zapis do nadpisania/Reset/czyszczenia danych witryny; logout nie usuwa tych trwałych magazynów. Frazy/kontakt/formularz kierowcy nie są zapisywane w jego preferencjach.",
+      "minimum_scope_to_confirm": "Uzgodnić urządzenia współdzielone, domyślne dane i migrację SCRUM-91; zapisane filtry mogą w przyszłości zawierać dane osoby.",
+      "policy_decisions": [
+        "P02",
+        "P04",
+        "P07",
+        "P15"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "preferences",
+        "preference-model",
+        "vehicle-preferences",
+        "fleet-browser",
+        "driver-preferences"
+      ]
+    },
+    {
+      "id": "D18",
+      "title": "Lokalne zdjęcia i tło",
+      "implementation": "MAIN",
+      "fields": {
+        "browser": [
+          "IndexedDB fleet-flow.vehicle-photos.v1/photos: vehicleId,image{id,blob,name,width,height}, klucz userId:vehicleId",
+          "IndexedDB fleet-flow.media.v1/backgrounds: custom, image{id,blob,name,width,height}"
+        ]
+      },
+      "origin": "Plik wybrany przez użytkownika na jego urządzeniu.",
+      "technical_purpose": "Zdjęcie auta i tło interfejsu.",
+      "storage": "Bitmapa WebP w IndexedDB; ObjectURL/DOM w RAM; brak upload API.",
+      "current_access_and_recipients": "Konto UI dla zdjęć; tło wspólne dla przeglądarki. Kod origin/posiadacz profilu przeglądarki ma lokalny dostęp.",
+      "current_lifecycle": "Re-encoding zmienia bajty obrazu; pole name zachowuje do 120 znaków oryginalnej nazwy. Zmiana/usunięcie obsługuje rekord; logout odwołuje ObjectURL, nie kasuje IndexedDB.",
+      "minimum_scope_to_confirm": "Rozpoznać twarze/rejestracje i dane w nazwie pliku. Nie twierdzić, że usunięcie EXIF usuwa treść lub nazwę. Lokalnych mediów nie ma w pg_dump.",
+      "policy_decisions": [
+        "P02",
+        "P04",
+        "P05",
+        "P06",
+        "P15",
+        "P16"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "photo",
+        "photo-store",
+        "background",
+        "vehicle-preferences"
+      ]
+    },
+    {
+      "id": "D19",
+      "title": "Logi, request URL i dane transportowe",
+      "implementation": "MAIN + REVIEW_STACK hardening",
+      "fields": {
+        "transport": [
+          "IP, URL/path/query i metadane żądania zależnie od loggera",
+          "kod statusu/błędu",
+          "sync event/code/event_id w PR36",
+          "znaczniki operacji backupu w PR35"
+        ]
+      },
+      "origin": "Przeglądarka, reverse proxy, ASGI, integracje i narzędzia operatora.",
+      "technical_purpose": "Diagnostyka i obsługa awarii/nadużyć.",
+      "storage": "Procesy/standardowe logi kontenerów i journal; rzeczywisty sink/rotacja VPS nie zostały zbadane.",
+      "current_access_and_recipients": "Operator oraz dostawcy utrzymujący logi; dokładny dostęp do potwierdzenia.",
+      "current_lifecycle": "CMD uvicorn nie wyłącza access log. Caddy nie deklaruje access log w pliku; to nie dowód braku logów u dostawcy. Brak spójnej polityki/centralnego monitora SCRUM-99.",
+      "minimum_scope_to_confirm": "Frontend kontaktu używa POST body w PR #51, ale GET drivers?q nadal istnieje; query floty/driver może zawierać nazwisko. Filtry WEBFLEET i handler walidacji ograniczają wybrane wycieki, nie gwarantują czystości wszystkich logów.",
+      "policy_decisions": [
+        "P01",
+        "P02",
+        "P04",
+        "P11",
+        "P14"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "docker",
+        "caddy",
+        "main-caddy",
+        "adapter",
+        "errors",
+        "sync",
+        "backup",
+        "driver-browser",
+        "drivers-api"
+      ]
+    },
+    {
+      "id": "D20",
+      "title": "Kopie PostgreSQL, manifest i recovery",
+      "implementation": "MAIN kopia przed wydaniem; REVIEW_STACK PR #35 off-site",
+      "fields": {
+        "copies": [
+          "pełny pg_dump wszystkich istniejących tabel",
+          "manifest: sha256,revision,created_at",
+          "status: snapshot/revision/time po sukcesie"
+        ]
+      },
+      "origin": "Proces wydania lub przygotowany runner restic.",
+      "technical_purpose": "Odtworzenie bazy po awarii i kontroli migracji.",
+      "storage": "MAIN: /opt/fleet-flow/shared/backups/before-*.dump. PR #35: lokalny tymczasowy dump+zaszyfrowane repozytorium sieciowe, ostatni sukces w state.",
+      "current_access_and_recipients": "Uprzywilejowany operator, opiekun klucza i wybrany dostawca storage; szyfrowanie nie usuwa danych ani nie zastępuje polityki.",
+      "current_lifecycle": "MAIN nie ma automatycznej retencji lokalnych dumpów. PR #35 proponuje 7 dziennych/4 tygodniowe/6 miesięcznych po weryfikacji nowej kopii; nie jest aktywowany ani zatwierdzony wybór storage. Backup nie usuwa danych po usunięciu rekordu w DB.",
+      "minimum_scope_to_confirm": "Pełny dump zawiera także hash hasła, sesje i powiązania osób; bez lokalnych zdjęć/logów/.env. Uzgodnić odzyskanie kluczy i ponowne zastosowanie wykonanych usunięć po restore.",
+      "policy_decisions": [
+        "P01",
+        "P02",
+        "P04",
+        "P05",
+        "P06",
+        "P13",
+        "P14"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "main-deploy",
+        "deploy",
+        "backup",
+        "backup-guide"
+      ]
+    },
+    {
+      "id": "D21",
+      "title": "Sekrety konfiguracji, TLS i dostępu",
+      "implementation": "MAIN + REVIEW_STACK PR #35",
+      "fields": {
+        "private_config": [
+          "DATABASE_URL, POSTGRES_PASSWORD",
+          "WEBFLEET_ACCOUNT/USERNAME/PASSWORD/API_KEY",
+          "SMTP_USERNAME/PASSWORD",
+          "DEV_SSH_PRIVATE_KEY, DEV_RUNTIME_ENV, DEV_SSH_KNOWN_HOSTS",
+          "RESTIC_REPOSITORY, RESTIC_PASSWORD_FILE, poświadczenia storage",
+          "prywatne klucze/certyfikaty w caddy_data; publiczny pk Mapbox w frontendzie"
+        ]
+      },
+      "origin": "Prywatna konfiguracja operatora i GitHub environment secrets.",
+      "technical_purpose": "Dostęp do DB, dostawców, wydania i recovery.",
+      "storage": "Prywatne runtime.env/.previous, pliki kluczy, środowisko procesów, systemowy/GitHub magazyn sekretów, wolumen Caddy. Wartości nie są częścią inwentarza.",
+      "current_access_and_recipients": "Operatorzy i procesy z odpowiednim dostępem. VITE_MAPBOX_TOKEN jest publicznym tokenem w bundle, nie prywatnym kluczem.",
+      "current_lifecycle": "Runtime może mieć kopię previous; rotacja/revocation i retencja nie są wspólnym mechanizmem aplikacji. pg_dump nie obejmuje tych plików; odzyskanie wymaga niezależnego bezpiecznego procesu.",
+      "minimum_scope_to_confirm": "Nie kopiować wartości do Git/Jira/rejestru. Uzgodnić uprawnienia, rotację, recovery i co dzieje się po utracie VPS.",
+      "policy_decisions": [
+        "P01",
+        "P03",
+        "P04",
+        "P11",
+        "P13",
+        "P18"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "config",
+        "compose",
+        "deploy",
+        "ci",
+        "backup-guide",
+        "map"
+      ]
+    },
+    {
+      "id": "D22",
+      "title": "Planowane dokumenty, eksporty i audit",
+      "implementation": "PLANNED SCRUM-57/58/59/60/87/109/110/111",
+      "fields": {
+        "planned": [
+          "zakres plików, metadanych dokumentów i eksportów do uzgodnienia",
+          "minimalny ślad audytowy operacji do uzgodnienia w94/87"
+        ]
+      },
+      "origin": "Przyszłe uploady operatora, eksport osoby/biznesowy i zdarzenia audytu.",
+      "technical_purpose": "Terminy dokumentów, udostępnienie zatwierdzonego zakresu i rozliczalność operacji.",
+      "storage": "Brak działającego storage uploadów, DSAR i append-only audit w badanych snapshotach; nie utożsamiać z lokalnym IndexedDB.",
+      "current_access_and_recipients": "Role/odbiorca eksportu i dostęp do pliku zależą od decyzji SCRUM-94/48; brak publicznego URL w założeniach nie jest jeszcze kontrolą.",
+      "current_lifecycle": "Brak istniejącego wykonawcy polityki; okresy i wyjątki wymagają SCRUM-113 przed SCRUM-109–111. Nie aktywowano usuwania.",
+      "minimum_scope_to_confirm": "Nie dodawać dowolnych dokumentów tożsamości. Rozróżnić plik, wersje, eksport tymczasowy, kopie i ślad po usunięciu.",
+      "policy_decisions": [
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P09",
+        "P16",
+        "P17"
+      ],
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null,
+      "technical_verification_owner": "Dawid Hnat",
+      "policy_status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "evidence": [
+        "readme"
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "id": "F01",
+      "path": "Przeglądarka → Caddy/HTTPS → FastAPI → PostgreSQL",
+      "datasets": [
+        "D01",
+        "D02",
+        "D03",
+        "D04",
+        "D06",
+        "D07",
+        "D08",
+        "D09",
+        "D10",
+        "D11",
+        "D12",
+        "D13",
+        "D14",
+        "D15",
+        "D16"
+      ],
+      "note": "Sesja cookie i autoryzacja; Origin przy zapisach. Obecny odczyt obejmuje całe źródło. Runtime/tenant do potwierdzenia.",
+      "evidence": [
+        "main",
+        "auth-router",
+        "fleet-api",
+        "drivers-api",
+        "compose",
+        "caddy",
+        "main-caddy"
+      ],
+      "version": 1,
+      "coordination_owner": "Jakub Czaja",
+      "policy_status": "BLOCKED",
+      "decisions": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P07",
+        "P08",
+        "P09",
+        "P10",
+        "P12",
+        "P13",
+        "P14",
+        "P15",
+        "P16"
+      ],
+      "implementation": "MAIN + REVIEW_STACK: rozszerzenia API kierowców/przejazdów",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null
+    },
+    {
+      "id": "F02",
+      "path": "Worker/CLI → WEBFLEET.connect → allowlist → PostgreSQL",
+      "datasets": [
+        "D06",
+        "D07",
+        "D14",
+        "D15",
+        "D16",
+        "D19",
+        "D21"
+      ],
+      "note": "Backend ma poświadczenia; columnfilter i ponowna allowlista odrzucają nadmiarowe pola. Nazw/kontaktów kierowców nie importuje. Błędy nie potwierdzają sukcesu.",
+      "evidence": [
+        "adapter",
+        "sync",
+        "snapshot"
+      ],
+      "version": 1,
+      "coordination_owner": "Jakub Czaja",
+      "policy_status": "BLOCKED",
+      "decisions": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P07",
+        "P08",
+        "P09",
+        "P10",
+        "P11",
+        "P12",
+        "P13",
+        "P14",
+        "P18"
+      ],
+      "implementation": "MAIN; kontrola synchronizacji rozszerzona w REVIEW_STACK PR #36",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null
+    },
+    {
+      "id": "F03",
+      "path": "PostgreSQL → uwierzytelnione GeoJSON/API → DOM markerów",
+      "datasets": [
+        "D06",
+        "D07",
+        "D08"
+      ],
+      "note": "Geometria i nazwa w przeglądarce. Znaczniki HTML są lokalną reprezentacją; nie są dowodem braku zewnętrznego przetwarzania przez SDK.",
+      "evidence": [
+        "fleet-api",
+        "map",
+        "markers"
+      ],
+      "version": 1,
+      "coordination_owner": "Jakub Czaja",
+      "policy_status": "BLOCKED",
+      "decisions": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P07",
+        "P08",
+        "P09",
+        "P10",
+        "P12",
+        "P13"
+      ],
+      "implementation": "MAIN",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null
+    },
+    {
+      "id": "F04",
+      "path": "Przeglądarka → usługa Mapbox",
+      "datasets": [
+        "D07",
+        "D19",
+        "D21"
+      ],
+      "note": "Style/mapa i kamera/obszar; token pk w bundle. CSP review dopuszcza api/events/tiles Mapbox. Rzeczywisty zakres telemetrii i warunki wymagają P12; brak testu żywego API.",
+      "evidence": [
+        "map",
+        "caddy"
+      ],
+      "version": 1,
+      "coordination_owner": "Jakub Czaja",
+      "policy_status": "BLOCKED",
+      "decisions": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P07",
+        "P08",
+        "P10",
+        "P11",
+        "P12",
+        "P13",
+        "P14",
+        "P18"
+      ],
+      "implementation": "MAIN; CSP rozszerzona w REVIEW_STACK",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null
+    },
+    {
+      "id": "F05",
+      "path": "Użytkownik → ręczny profil/przypisanie/adnotacja → DB",
+      "datasets": [
+        "D08",
+        "D09",
+        "D10",
+        "D12",
+        "D13",
+        "D15"
+      ],
+      "note": "Admin/editor; wersje i konflikty. Brak pełnego audit trail zmian i brak dowodu historycznej tożsamości kierowcy przejazdu.",
+      "evidence": [
+        "drivers-api",
+        "trips-api",
+        "analytics-api"
+      ],
+      "version": 1,
+      "coordination_owner": "Jakub Czaja",
+      "policy_status": "BLOCKED",
+      "decisions": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P07",
+        "P08",
+        "P09",
+        "P16"
+      ],
+      "implementation": "MAIN reguły/odczyt alertów; REVIEW_STACK profile, przypisania i adnotacje",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null
+    },
+    {
+      "id": "F06",
+      "path": "Reset → PostgreSQL(hash) + OVH SMTP → skrzynka → URL w przeglądarce",
+      "datasets": [
+        "D01",
+        "D03",
+        "D05",
+        "D19",
+        "D21"
+      ],
+      "note": "Token surowy w wiadomości/linku, w DB hash. Fragment URL nie trafia standardowo jako path HTTP, ale jest w przeglądarce/historii i poczcie. Diagnostyka SMTP robi LOGIN/NOOP bez wysyłki.",
+      "evidence": [
+        "reset",
+        "mail"
+      ],
+      "version": 1,
+      "coordination_owner": "Jakub Czaja",
+      "policy_status": "BLOCKED",
+      "decisions": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P11",
+        "P13",
+        "P14",
+        "P15",
+        "P18"
+      ],
+      "implementation": "MAIN",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null
+    },
+    {
+      "id": "F07",
+      "path": "Plik użytkownika → lokalny canvas → IndexedDB/DOM",
+      "datasets": [
+        "D17",
+        "D18"
+      ],
+      "note": "Bitmapa re-encoded, nazwa pliku do 120 znaków zachowana. Brak server uploadu; logout nie usuwa trwałego lokalnego magazynu.",
+      "evidence": [
+        "photo",
+        "photo-store",
+        "background",
+        "vehicle-preferences"
+      ],
+      "version": 1,
+      "coordination_owner": "Jakub Czaja",
+      "policy_status": "BLOCKED",
+      "decisions": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P07",
+        "P15",
+        "P16"
+      ],
+      "implementation": "MAIN",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null
+    },
+    {
+      "id": "F08",
+      "path": "DB → lokalny dump przed migracją → tymczasowy restore",
+      "datasets": [
+        "D01",
+        "D02",
+        "D03",
+        "D04",
+        "D05",
+        "D06",
+        "D07",
+        "D08",
+        "D09",
+        "D10",
+        "D11",
+        "D12",
+        "D13",
+        "D14",
+        "D15",
+        "D16",
+        "D20"
+      ],
+      "note": "Kopie zawierają pełną bazę; brak retencji lokalnych dumpów w deploy.sh. Tryb/stan realnego VPS nie zbadany.",
+      "evidence": [
+        "main-deploy",
+        "deploy"
+      ],
+      "version": 1,
+      "coordination_owner": "Jakub Czaja",
+      "policy_status": "BLOCKED",
+      "decisions": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P07",
+        "P08",
+        "P09",
+        "P10",
+        "P12",
+        "P13",
+        "P14",
+        "P15",
+        "P16"
+      ],
+      "implementation": "MAIN",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null
+    },
+    {
+      "id": "F09",
+      "path": "DB → tymczasowy dump/manifest → restic off-site → restore-check",
+      "datasets": [
+        "D01",
+        "D02",
+        "D03",
+        "D04",
+        "D05",
+        "D06",
+        "D07",
+        "D08",
+        "D09",
+        "D10",
+        "D11",
+        "D12",
+        "D13",
+        "D14",
+        "D15",
+        "D16",
+        "D20",
+        "D21"
+      ],
+      "note": "Kod w PR #35. Storage/koszt/klucz/aktywacja odłożone; brak objęcia IndexedDB i sekretów konfiguracji przez pg_dump.",
+      "evidence": [
+        "backup",
+        "backup-guide"
+      ],
+      "version": 1,
+      "coordination_owner": "Jakub Czaja",
+      "policy_status": "BLOCKED",
+      "decisions": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P07",
+        "P08",
+        "P09",
+        "P10",
+        "P11",
+        "P12",
+        "P13",
+        "P14",
+        "P15",
+        "P16",
+        "P18"
+      ],
+      "implementation": "REVIEW_STACK PR #35; bez aktywacji",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null
+    },
+    {
+      "id": "F10",
+      "path": "GitHub CI → artefakt + sekrety runtime → SSH/deployment",
+      "datasets": [
+        "D19",
+        "D20",
+        "D21"
+      ],
+      "note": "Kod/static oraz syntetyczne testy; pełny runtime.env tylko prywatnie w kroku deploy. Umask/verified SSH nie ustala retencji usług ani uprawnień administratorów.",
+      "evidence": [
+        "ci",
+        "deploy"
+      ],
+      "version": 1,
+      "coordination_owner": "Jakub Czaja",
+      "policy_status": "BLOCKED",
+      "decisions": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P11",
+        "P13",
+        "P14",
+        "P18"
+      ],
+      "implementation": "MAIN; hardening w REVIEW_STACK",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null
+    },
+    {
+      "id": "F11",
+      "path": "PostgreSQL → powiadomienie o zmianie hasła w osobnym PR #31",
+      "datasets": [
+        "D01",
+        "D02",
+        "D03",
+        "D05",
+        "D21"
+      ],
+      "note": "Osobna gałąź PR #31: profil/zmiana hasła/logout-all i próba powiadomienia. Nie jest częścią main ani badanego stosu PR #51. Potwierdzenie nowego e-maila nadal planowane.",
+      "evidence": [
+        "profile-pr31"
+      ],
+      "version": 1,
+      "coordination_owner": "Jakub Czaja",
+      "policy_status": "BLOCKED",
+      "decisions": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P11",
+        "P13",
+        "P14",
+        "P15",
+        "P18"
+      ],
+      "implementation": "PROFILE_PR31; poza main i review_stack",
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null
+    }
+  ],
+  "suppliers": [
+    {
+      "id": "V01",
+      "service": "WEBFLEET.connect",
+      "observed_endpoint": "https://csv.webfleet.com/extern",
+      "flow": "F02",
+      "data": "Poświadczenia backendu i zapytania źródła; wejściowo pola allowlisty pojazdów/pomiarów.",
+      "unknown": "Podmiot umowy, rola prawna, kraj/region, retencja dostawcy, podwykonawcy i uprawnienia realnego konta.",
+      "policy_status": "BLOCKED",
+      "coordination_owner": "Jakub Czaja",
+      "technical_verification_owner": "Dawid Hnat",
+      "decision_refs": [
+        "P01"
+      ],
+      "version": 1,
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null
+    },
+    {
+      "id": "V02",
+      "service": "Mapbox",
+      "observed_endpoint": "api.mapbox.com; events.mapbox.com; *.tiles.mapbox.com dopuszczone w CSP review",
+      "flow": "F04",
+      "data": "Mapa/style, token publiczny i obszar kamery wyznaczany z floty; telemetryka i rzeczywiste żądania niezweryfikowane.",
+      "unknown": "Konfiguracja SDK/token, przepływy sieciowe, zakres/wyłączenie telemetrii, umowy, region i odbiorcy.",
+      "policy_status": "BLOCKED",
+      "coordination_owner": "Jakub Czaja",
+      "technical_verification_owner": "Dawid Hnat",
+      "decision_refs": [
+        "P01",
+        "P12"
+      ],
+      "version": 1,
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null
+    },
+    {
+      "id": "V03",
+      "service": "OVH SMTP",
+      "observed_endpoint": "smtp.mail.ovh.net / ssl0.ovh.net, TLS 465",
+      "flow": "F06",
+      "data": "Konto SMTP, adres nadawcy/odbiorcy i wiadomość resetu; osobno PR #31 powiadomienie o haśle.",
+      "unknown": "Umowa/rola, retencja skrzynek i logów, faktyczna dostawa oraz dostęp do poczty.",
+      "policy_status": "BLOCKED",
+      "coordination_owner": "Jakub Czaja",
+      "technical_verification_owner": "Dawid Hnat",
+      "decision_refs": [
+        "P01"
+      ],
+      "version": 1,
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null
+    },
+    {
+      "id": "V04",
+      "service": "VPS, DNS i HTTPS",
+      "observed_endpoint": "Konfiguracja Compose/Caddy; dostawca/umowa środowiska do potwierdzenia",
+      "flow": "F01",
+      "data": "Ruch HTTPS, baza, logi/backupy i prywatny runtime; osobne konto operatora.",
+      "unknown": "Podmiot umowy, region, kopie dostawcy, logdriver, uprawnienia operatorów i wdrożony SHA.",
+      "policy_status": "BLOCKED",
+      "coordination_owner": "Jakub Czaja",
+      "technical_verification_owner": "Dawid Hnat",
+      "decision_refs": [
+        "P01"
+      ],
+      "version": 1,
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null
+    },
+    {
+      "id": "V05",
+      "service": "Off-site storage",
+      "observed_endpoint": null,
+      "flow": "F09",
+      "data": "Po aktywacji: zaszyfrowany pełny dump+manifest i metadane repozytorium restic.",
+      "unknown": "Wyboru nie dokonano; niezależność, koszt, role, klucz i region pozostają BLOCKED.",
+      "policy_status": "BLOCKED",
+      "coordination_owner": "Jakub Czaja",
+      "technical_verification_owner": "Dawid Hnat",
+      "decision_refs": [
+        "P01",
+        "P13"
+      ],
+      "version": 1,
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null
+    },
+    {
+      "id": "V06",
+      "service": "GitHub / CI / registry oraz Atlassian",
+      "observed_endpoint": "Repozytorium projektu i Jira SCRUM; registry do wyboru",
+      "flow": "F10",
+      "data": "Kod, dane zespołu i zadania, syntetyczne testy/artefakty; prywatne sekrety wyłącznie w odpowiednim magazynie.",
+      "unknown": "Uprawnienia usług, retencja logów/zadań, region/umowy i przyszły registry; brak danych klientów w dowodach.",
+      "policy_status": "BLOCKED",
+      "coordination_owner": "Jakub Czaja",
+      "technical_verification_owner": "Dawid Hnat",
+      "decision_refs": [
+        "P01",
+        "P18"
+      ],
+      "version": 1,
+      "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
+      "decision_owner_person": null
+    }
+  ],
+  "policy_decisions": [
+    {
+      "id": "P01",
+      "title": "Wskazać administratora, dostawców i uprawnionych zatwierdzających",
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych — tożsamość do potwierdzenia; koordynuje Jakub Czaja",
+      "decision_owner_person": null,
+      "status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence_needed": "Nazwa podmiotu/rola każdej usługi, osoba zatwierdzająca, umowy, lokalizacje, podwykonawcy i zakres uprawnień. Nie wywodzić ich z hosta lub nazwy produktu.",
+      "followup": "SCRUM-113",
+      "decision_due_on": null,
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+    },
+    {
+      "id": "P02",
+      "title": "Zatwierdzić cel, dopuszczalne użycie i podstawę dla każdej kategorii",
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych z właściwą konsultacją DPO/prawną",
+      "decision_owner_person": null,
+      "status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence_needed": "Wiersze D01–D22; uzasadnione minimalne pola i zakazane dodatkowe użycia. Inwentarz techniczny nie wybiera podstawy ani nie ustanawia zgody.",
+      "followup": "SCRUM-113",
+      "decision_due_on": null,
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+    },
+    {
+      "id": "P03",
+      "title": "Zatwierdzić macierz odczytu GPS i danych osoby",
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych i PO; technicznie Dawid Hnat",
+      "decision_owner_person": null,
+      "status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence_needed": "Role biznesowe, admin IT, zakres pojazdów/historii/dokumentów/eksportu oraz odcięcie sesji; mapowanie do obecnych admin/editor/viewer.",
+      "followup": "SCRUM-113 / SCRUM-48",
+      "decision_due_on": null,
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+    },
+    {
+      "id": "P04",
+      "title": "Zatwierdzić retencję, zdarzenia początku i wyjątki per kategoria",
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych; technicznie Dawid Hnat",
+      "decision_owner_person": null,
+      "status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence_needed": "Osobno baza, kopie, pliki, logi i przeglądarka; okres/zdarzenie wygaśnięcia, blokada, wyjątki i dowód zatwierdzenia. Brak liczby nie uruchamia usuwania.",
+      "followup": "SCRUM-113 → SCRUM-109",
+      "decision_due_on": null,
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+    },
+    {
+      "id": "P05",
+      "title": "Ustalić uprawniony zakres eksportu osoby",
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych; koordynuje Jakub Czaja",
+      "decision_owner_person": null,
+      "status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence_needed": "Weryfikacja zgłaszającego, autoryzujący, okres/identyfikatory, niejednoznaczne przypisania i wyłączenie danych innych osób; bez sekretów.",
+      "followup": "SCRUM-113 → SCRUM-110",
+      "decision_due_on": null,
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+    },
+    {
+      "id": "P06",
+      "title": "Ustalić usuwanie, anonimizację, wyjątki i recovery",
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych; wykonuje operator po zatwierdzeniu",
+      "decision_owner_person": null,
+      "status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence_needed": "Rozróżnić archiwizację/wyczyszczenie pola/usunięcie, wyjątki i pliki; trwały minimalny ślad oraz sposób ponownego zastosowania po restore.",
+      "followup": "SCRUM-113 → SCRUM-109/111/84",
+      "decision_due_on": null,
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+    },
+    {
+      "id": "P07",
+      "title": "Rozstrzygnąć ADR jednej organizacji lub modelu tenantów",
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "PO i administrator danych; projektuje Dawid Hnat",
+      "decision_owner_person": null,
+      "status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence_needed": "Hash konta WEBFLEET nie przypisuje User do organizacji. Wymagania izolacji, operatorzy i użycie wspólnej przeglądarki przed rozszerzeniem.",
+      "followup": "SCRUM-113 / SCRUM-48",
+      "decision_due_on": null,
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+    },
+    {
+      "id": "P08",
+      "title": "Ustalić prywatne użycie pojazdu i zakres GPS",
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych i kierownik floty przez PO",
+      "decision_owner_person": null,
+      "status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence_needed": "Godziny/cel/odbiorcy prywatnych przejazdów, brakujące dane i niejednoznaczność wielu kierowców. Bez automatycznego przypisania osoby lub uniwersalnej zgody.",
+      "followup": "SCRUM-113",
+      "decision_due_on": null,
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+    },
+    {
+      "id": "P09",
+      "title": "Przygotować informowanie osób i instrukcje wolnego tekstu",
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych; koordynuje Jakub Czaja",
+      "decision_owner_person": null,
+      "status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence_needed": "Osoby/kategorie/odbiorcy, aktualizacja informacji i instrukcja ograniczenia treści nazw, adnotacji, plików i kontaktu do zatwierdzonego celu.",
+      "followup": "SCRUM-113",
+      "decision_due_on": null,
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+    },
+    {
+      "id": "P10",
+      "title": "Przeprowadzić i udokumentować screening DPIA",
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Właściwy DPO/prawnik i administrator danych — do wskazania w SCRUM-113",
+      "decision_owner_person": null,
+      "status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence_needed": "Zakres GPS, historii, skali, dostępu i zastosowań; uzasadniony wynik screeningu i dalsze działania. Ten dokument nie rozstrzyga wyniku.",
+      "followup": "SCRUM-113",
+      "decision_due_on": null,
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+    },
+    {
+      "id": "P11",
+      "title": "Ustalić procedurę incydentu i kontakty odpowiedzialne",
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych i operator; koordynuje Jakub Czaja",
+      "decision_owner_person": null,
+      "status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence_needed": "Kontakt i odpowiedzialność, zabezpieczenie dowodów, zakres logów, ograniczenie dostępu, decyzje i właściwe dalsze powiadomienia. Nie wysyłano zgłoszeń.",
+      "followup": "SCRUM-113 / SCRUM-99",
+      "decision_due_on": null,
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+    },
+    {
+      "id": "P12",
+      "title": "Zweryfikować zakres zewnętrznej mapy i SDK",
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Operator Dawid Hnat; zatwierdza administrator danych/PO",
+      "decision_owner_person": null,
+      "status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence_needed": "Kamera dopasowuje się do pozycji floty. Ustalić rzeczywiste żądania i ewentualną telemetrię wersji SDK, ustawienia tokenu, umowy i transfery. Bez założenia, że cały GeoJSON jest uploadowany lub że SDK nic nie wysyła.",
+      "followup": "SCRUM-113",
+      "decision_due_on": null,
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+    },
+    {
+      "id": "P13",
+      "title": "Wybrać i odebrać niezależny storage/recovery",
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Dawid Hnat i PO; administrator danych zatwierdza zakres",
+      "decision_owner_person": null,
+      "status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence_needed": "Niezależność konta/dostawcy, koszt, klucz poza VPS, retencja, RPO/RTO, restore poza VPS i dowody. Użytkownik odłożył wybór storage.",
+      "followup": "SCRUM-84 / SCRUM-113",
+      "decision_due_on": null,
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+    },
+    {
+      "id": "P14",
+      "title": "Ustalić inwentarz sinków logów, dostęp i rotację",
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Operator Dawid Hnat; zakres zatwierdza administrator danych",
+      "decision_owner_person": null,
+      "status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence_needed": "ASGI/proxy/journal/logdriver/SMTP/provider/Mapbox; query z nazwą/kontaktem, traceback, bezpieczne kody i brak sekretów. Nie kopiować rzeczywistych logów do publicznego PR.",
+      "followup": "SCRUM-113 / SCRUM-99",
+      "decision_due_on": null,
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+    },
+    {
+      "id": "P15",
+      "title": "Ustalić lifecycle lokalnego urządzenia",
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "PO i administrator danych; implementacja frontend",
+      "decision_owner_person": null,
+      "status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence_needed": "Klucze i zakres konta, wspólne tło, zachowane nazwy plików i bitmapy, instrukcja usunięcia danych witryny; logout nie jest wymazaniem urządzenia.",
+      "followup": "SCRUM-113 / SCRUM-91",
+      "decision_due_on": null,
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+    },
+    {
+      "id": "P16",
+      "title": "Uzgodnić minimalne pola przyszłych plików i audytu",
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych i PO; projektuje Dawid Hnat",
+      "decision_owner_person": null,
+      "status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence_needed": "Dokumenty auta kontra dokumenty osoby, pola metadanych, aktualny owner/retencja, storage/weryfikacja, minimalny audit bez treści GPS/PII.",
+      "followup": "SCRUM-113 / SCRUM-57/87",
+      "decision_due_on": null,
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+    },
+    {
+      "id": "P17",
+      "title": "Uzgodnić bezpieczne wydanie i wygaśnięcie pliku eksportu",
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Administrator danych; implementacja backend/QA",
+      "decision_owner_person": null,
+      "status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence_needed": "Osoba otrzymująca, autoryzacja pobrania, limity, manifest braków, czas życia, anulowanie oraz usunięcie wszystkich kopii; DSAR odrębny od CSV biznesowego.",
+      "followup": "SCRUM-113 / SCRUM-110/50",
+      "decision_due_on": null,
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+    },
+    {
+      "id": "P18",
+      "title": "Potwierdzić dostęp i retencję narzędzi wytwarzania/wdrożenia",
+      "coordination_owner": "Jakub Czaja",
+      "decision_owner_role": "Owner repozytorium i operator Dawid Hnat; PO",
+      "decision_owner_person": null,
+      "status": "BLOCKED",
+      "version": 1,
+      "recorded_on": "2026-10-29",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence_needed": "GitHub/Atlassian/runner/registry: dane zespołu, logi, artefakty, sekrety, uprawnienia. 7 dni dotyczy wybranych artefaktów workflow, nie wszystkich logów i danych usług.",
+      "followup": "SCRUM-113 / SCRUM-95/100",
+      "decision_due_on": null,
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+    }
+  ],
+  "product_decisions": [
+    {
+      "id": "PROD-01",
+      "status": "APPROVED",
+      "version": 1,
+      "approved_on": "2026-10-28",
+      "approved_by": "Jakub Czaja / PO",
+      "decision": "Wielu kierowców jednego pojazdu jednocześnie, także wiele aut jednego kierowcy.",
+      "source": "Bezpośrednia odpowiedź użytkownika w czacie; nie zatwierdza celu/dostępu/retencji GPS."
+    },
+    {
+      "id": "PROD-02",
+      "status": "APPROVED",
+      "version": 1,
+      "approved_on": "2026-10-28",
+      "approved_by": "Jakub Czaja / PO",
+      "decision": "Istotny postój: 5 minut jako konfigurowalna wartość początkowa w SCRUM-24.",
+      "source": "Bezpośrednia odpowiedź użytkownika w czacie; importer SCRUM-24 pozostaje planowany."
+    }
+  ],
+  "technical_inventory_status": "PREPARED_FOR_REVIEW"
+}
