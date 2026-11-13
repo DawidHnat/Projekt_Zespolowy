@@ -44,7 +44,7 @@ function VehicleDetailsContent({ vehicle, unsaved, onUnsaved, mayLeave }: {
 }) {
   const [active, setActive] = useState(0);
   const id = useId();
-  const day = useTripDay();
+  const day = useTripDay(unsaved);
   const current = tabs[active];
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
     let next: number;
