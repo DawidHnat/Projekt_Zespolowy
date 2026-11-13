@@ -1,11 +1,14 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
-import { api, onSessionExpired } from "../../shared/api/client";
+import { advanceSessionVersion, api, onSessionExpired } from "../../shared/api/client";
+import { listenForSessionChanges } from "./session-changes";
 
 type User = {
   id: string;
@@ -19,6 +22,8 @@ type AuthState = {
   error: string | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  logoutAll: () => Promise<void>;
+  passwordChanged: () => void;
   retry: () => void;
   clearSession: () => void;
 };
@@ -27,22 +32,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [revision, setRevision] = useState(0);
-  useEffect(
-    () =>
-      onSessionExpired(() => {
-        setUser(null);
-        setError("Sesja wygasła. Zaloguj się ponownie.");
-      }),
-    [],
-  );
-  useEffect(() => {
+  const pendingSession = useRef<AbortController | null>(null);
+  const changes = useRef<ReturnType<typeof listenForSessionChanges> | null>(null);
+  const finishSession = useCallback((next: User | null, message: string | null = null) => {
+    advanceSessionVersion();
+    pendingSession.current?.abort();
+    setUser(next);
+    setLoading(false);
+    setError(message);
+  }, []);
+  const checkSession = useCallback(() => {
+    advanceSessionVersion();
+    pendingSession.current?.abort();
     const controller = new AbortController();
+    pendingSession.current = controller;
+    setUser(null);
     setLoading(true);
+    setError(null);
     api<{ user: User }>("/auth/me", { signal: controller.signal }, false)
       .then((data) => {
-        setUser(data.user);
-        setError(null);
+        if (!controller.signal.aborted) setUser(data.user);
       })
       .catch((err) => {
         if (controller.signal.aborted) return;
@@ -53,8 +62,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);
       });
-    return () => controller.abort();
-  }, [revision]);
+  }, []);
+  useEffect(() => {
+    changes.current = listenForSessionChanges(checkSession);
+    const onRestore = (event: PageTransitionEvent) => {
+      if (event.persisted) checkSession();
+    };
+    window.addEventListener("pageshow", onRestore);
+    const unsubscribe = onSessionExpired(() =>
+      finishSession(null, "Sesja wygasła. Zaloguj się ponownie."),
+    );
+    checkSession();
+    return () => {
+      pendingSession.current?.abort();
+      changes.current?.close();
+      changes.current = null;
+      window.removeEventListener("pageshow", onRestore);
+      unsubscribe();
+    };
+  }, [checkSession, finishSession]);
   const login = async (username: string, password: string) => {
     const data = await api<{ user: User }>(
       "/auth/login",
@@ -64,12 +90,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       false,
     );
-    setUser(data.user);
-    setError(null);
+    finishSession(data.user);
+    changes.current?.notify();
   };
   const logout = async () => {
     await api("/auth/logout", { method: "POST" }, false);
-    setUser(null);
+    finishSession(null);
+    changes.current?.notify();
+  };
+  const logoutAll = async () => {
+    await api("/auth/sessions/logout-all", { method: "POST" });
+    finishSession(null);
+    changes.current?.notify();
+  };
+  const passwordChanged = () => {
+    finishSession(user);
+    changes.current?.notify();
   };
   return (
     <AuthContext
@@ -79,8 +115,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         error,
         login,
         logout,
-        retry: () => setRevision((v) => v + 1),
-        clearSession: () => setUser(null),
+        logoutAll,
+        passwordChanged,
+        retry: checkSession,
+        clearSession: () => {
+          finishSession(null);
+          changes.current?.notify();
+        },
       }}
     >
       {children}

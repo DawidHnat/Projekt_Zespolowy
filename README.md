@@ -148,12 +148,18 @@ wyłącznie prototypowi. Poprzednią wersję zachowano na stronie archiwalnej Fi
 - [Przepływy, ekrany i instrukcja przeglądu](docs/PROTOTYPE.md)
 - [Historyjki MVP i podział dużych Story](docs/MVP_BACKLOG.md)
 - [Odbiór zadania kursowego, linki i polecenia do oddania](docs/COURSE_SUBMISSION.md)
+- [Gotowość zadań 4.1/4.2: dowody Sprintów 1/2 i prace do domknięcia](docs/COURSE_READINESS.md)
 - [Przegląd Sprintu i PR-y — dowody kolejnego zadania](docs/SPRINT_REVIEW_SUBMISSION.md)
 - [Scenariusz Review Sprintu 1](docs/SPRINT_1_REVIEW.md) i [retrospektywa do potwierdzenia przez zespół](docs/retro/sprint-1.md)
 
 Udostępnienie pliku prowadzącemu oczekuje na podanie jego adresu e-mail.
 
 ## Uruchomienie lokalne
+
+Pierwszy przyrost SCRUM-49 dodaje **Profil** dostępny po kliknięciu własnej nazwy
+w menu (`#profile`). Pokazuje dane konta, pozwala zmienić własne hasło oraz
+wylogować wszystkie sesje. Potwierdzanie zmiany e-maila pozostaje kolejnym
+przyrostem tej Story. [Zakres i scenariusze odbioru](docs/qa/SCRUM-49.md).
 
 SCRUM-26 dodaje edycję celu i opisu zapisanych przejazdów: **Pojazdy → Szczegóły
 (ikona informacji) → Podróże → dzień → przejazd**. Zapis ma autora, datę i
@@ -242,3 +248,9 @@ wymaga osobistego adresu przypisanego do konta oraz działającego SMTP. Zdalne 
 
 - [Uruchomienie i testy integracji](backend/README.md)
 - [Mapowanie WEBFLEET i dalsze sprawdzenia](docs/WEBFLEET_INTEGRATION.md)
+
+## Inwentarz danych
+
+[SCRUM-112: dane, przepływy i rejestr decyzji](docs/privacy/SCRUM-112-inventory.md)
+opisuje stan kodu main oraz osobno oczekujące PR. Rejestr wskazuje wejście do
+zatwierdzeń SCRUM-113 i implementacji retencji/eksportu/usuwania SCRUM-109–111.
