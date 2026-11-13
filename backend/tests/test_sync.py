@@ -537,19 +537,22 @@ def test_corrupt_odometer_marks_sync_degraded_and_recovers_on_next_cycle():
 
 
 def test_unexpected_operational_error_does_not_set_invalid_records():
+    import os
+    from uuid import uuid4
+
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import Session
+
+    from app.core.config import WebfleetSettings
+    from app.core.models import SyncState
+    from app.modules.fleet.sync import account_key, sync_once
+
     url = os.environ.get("TEST_DATABASE_URL")
     if not url:
         pytest.skip("Requires an isolated PostgreSQL database")
     engine = create_engine(url)
-    settings = Settings(
-        database_url=url,
-        sync_enabled=True,
-        webfleet_account="acc-operational",
-        webfleet_username="u",
-        webfleet_password="p",
-        webfleet_api_key="k",
-    )
-    source = account_key(settings.webfleet_account)
+    settings = WebfleetSettings("acc-" + str(uuid4()), "u", "p", "k")
+    source = account_key(settings.account)
     t0 = datetime(2026, 6, 1, 12, 0, 0, tzinfo=UTC)
 
     class FailingClient:
