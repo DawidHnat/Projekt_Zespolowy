@@ -196,11 +196,28 @@ i harmonogram należą do SCRUM-24; adnotacje są kolejnym przyrostem.
 
 Po zalogowaniu: `/api/v1/fleet/vehicles`, `/fleet/map`, `/fleet/summary` oraz
 `/fleet/vehicles/{UUID}` (wspólny prefiks `/api/v1`). Lista i mapa obsługują `q`
-i `status`; lista dodatkowo `page`/`page_size`. Mapa zwraca GeoJSON i obejmuje
+i `status`; lista dodatkowo `page`, `page_size` i `sort` (`name-asc`, `name-desc`,
+`status`, `odometer-asc`, `odometer-desc`). Sortowanie odbywa się przed
+paginacją. Mapa zwraca GeoJSON i obejmuje
 pasujące pozycje z całej listy, niezależnie od jej bieżącej strony. Pojazdy bez
 GPS pozostają na liście. Dane stare i brakujące mają jawne oznaczenia; prędkość
 pozostaje `null` do potwierdzenia jednostki. Publiczne API nie zwraca UID źródła.
 `/docs` pokazuje aktualny OpenAPI; plan kolejnych operacji jest w contracts/.
+
+## Preferencje konta — SCRUM-91
+
+`GET` i `PUT /api/v1/preferences/dashboard` oraz `/api/v1/preferences/vehicles`
+wymagają sesji. Każdy moduł ma osobny rekord dla użytkownika. Odpowiedź zawiera
+`module`, `version`, `value` i `updated_at`; zapis przyjmuje
+`{"version": <odczytana wersja>, "value": <ustawienia>}`. Zmiana zapisanej już
+wersji wymaga bieżącej wartości `version`; niezgodność zwraca `409
+VERSION_CONFLICT`, bez cichego nadpisania. Wartości są walidowane według modułu.
+
+Pulpit przechowuje widoczne widgety i układy desktop/compact. Pojazdy przechowują
+układ kafelków, sortowanie, filtry wyszukiwania/statusu i limit strony. Migracja
+`0006` tworzy tabelę `account_preferences`. Import zastanych ustawień
+`localStorage` wykonuje się dopiero po wyborze użytkownika i wyłącznie przy
+wersji 0, więc nie zastępuje istniejących preferencji konta.
 
 ## Reset hasła przez e-mail — SCRUM-44
 
