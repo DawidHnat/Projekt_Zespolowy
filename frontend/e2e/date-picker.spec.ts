@@ -1,0 +1,82 @@
+﻿import { execFileSync } from "node:child_process";
+import { test, expect, type Page } from "@playwright/test";
+
+test.beforeEach(async ({ context }) => {
+  execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", "reset-case"], {
+    cwd: "../backend",
+    env: { ...process.env, PYTHONPATH: ".", FLEET_FLOW_E2E: "true" },
+    stdio: "pipe",
+  });
+  await context.route("**/*", route =>
+    new URL(route.request().url()).hostname === "127.0.0.1"
+      ? route.continue() : route.abort()
+  );
+});
+
+async function login(page: Page) {
+  await page.goto("/#vehicles");
+  await page.getByLabel("Login", { exact: true }).fill("e2e-editor");
+  await page.getByLabel("Hasło", { exact: true }).fill("synthetic-e2e-password");
+  await page.getByRole("button", { name: "Zaloguj się", exact: true }).click();
+  await expect(page.getByRole("heading", { name: /^Pojazdy\.?$/, level: 1 })).toBeVisible();
+}
+
+test("SCRUM-77: Enter otwiera kalendarz, Escape zamyka i oddaje fokus", async ({ page }) => {
+  await login(page);
+  await page.goto("/#dashboard");
+
+  const trigger = page.getByRole("button", { name: "Dzień ostatnich przejazdów" });
+  await expect(trigger).toBeVisible();
+  await trigger.focus();
+  await trigger.press("Enter");
+
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  await trigger.press("Escape");
+
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  await expect(trigger).toBeFocused();
+});
+
+test("SCRUM-77: Spacja i skróty dat działają, wpisywanie jest zablokowane", async ({ page }) => {
+  await login(page);
+  await page.goto("/#dashboard");
+
+  const group = page.getByRole("group", { name: "Dzień ostatnich przejazdów" });
+  const trigger = group.getByRole("button", { name: "Dzień ostatnich przejazdów" });
+
+  await trigger.focus();
+  await trigger.press("Space");
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+
+  await trigger.press("Escape");
+  await group.getByRole("button", { name: "Wczoraj" }).click();
+  await expect(group.getByRole("button", { name: "Wczoraj" })).toHaveAttribute("aria-pressed", "true");
+
+  const before = await trigger.innerText();
+  await trigger.press("Backspace");
+  await trigger.press("a");
+  expect(await trigger.innerText()).toBe(before);
+
+  await group.getByRole("button", { name: "Dzisiaj" }).click();
+  await expect(group.getByRole("button", { name: "Dzisiaj" })).toHaveAttribute("aria-pressed", "true");
+});
+
+test("SCRUM-77: Escape kalendarza nie zamyka okna pojazdu", async ({ page }) => {
+  await login(page);
+
+  await page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByRole("tab", { name: "Podróże", exact: true }).click();
+
+  const trigger = dialog.getByRole("button", { name: "Dzień podróży pojazdu" });
+  await expect(trigger).toBeVisible();
+
+  await trigger.focus();
+  await trigger.press("Enter");
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+
+  await trigger.press("Escape");
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  await expect(dialog).toBeVisible();
+  await expect(trigger).toBeFocused();
+});
