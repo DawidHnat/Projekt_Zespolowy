@@ -40,6 +40,31 @@ Dopiero wtedy podmienia wskaźnik `current`. Przy błędzie próbuje przywróci�
 poprzednią aplikację i jej środowisko; migracji bazy nie cofa automatycznie.
 Zmiany niezgodne ze starym schematem wymagają osobnego planu migracji.
 
+### Walidacja aktualności wydania i jawny rollback (SCRUM-137)
+
+Przed rozpakowaniem artefaktu i jakąkolwiek zmianą stanu serwera (`releases/`,
+`runtime.env`, `current`) skrypt `deploy.sh` uruchamia walidator
+`validate_release.py` względem bare cache `/opt/fleet-flow/shared/repo.git`:
+
+- Pierwsze wdrożenie oraz każde kolejne wymagają udanego `git fetch` (w trybie
+  online), istnienia docelowego SHA i jego przynależności do gałęzi `main`.
+  Błąd `git fetch` przerywa wdrożenie z kodem niezerowym i nie ufa staremu cache.
+- Ponowienie tego samego SHA co `/opt/fleet-flow/current/commit` jest dozwolone
+  (idempotentny retry).
+- Starszy commit (przodek aktywnego wydania, np. ponowienie historycznego runu CI)
+  lub rozbieżna historia są odrzucane przed rozpakowaniem archiwum.
+- **Aktywacja na VPS:** po odbiorze i scaleniu PR administrator aktualizuje
+  skrypty serwerowe przez ponowne wykonanie `sudo bash bootstrap.sh /ścieżka/do/klucza-CI.pub`
+  (instaluje `/usr/local/libexec/fleet-flow/validate_release.py`, `deploy.sh` i
+  `ssh-dispatch.sh`). Dowód odrzucenia przestarzałego przebiegu zbiera się w
+  izolowanym symulatorze (`python3 tools/test_validate_release.py`), bez cofania
+  działającego VPS.
+- **Jawny rollback:** celowe przywrócenie wcześniejszego wydania wymaga najpierw
+  weryfikacji zgodności schematu PostgreSQL (migracje Alembic między bieżącym a
+  docelowym SHA oraz kopia bazy), a następnie jawnego wywołania na serwerze z
+  flagą `--allow-rollback` (lub `FLEET_FLOW_ALLOW_ROLLBACK=1`). Standardowy klucz
+  SSH CI nie przekazuje tej flagi automatycznie.
+
 ## Jednorazowe przygotowanie przez administratora
 
 1. Skieruj rekord A `fleet-flow.pl` na `57.129.179.53`. Rekord AAAA dodaj tylko
