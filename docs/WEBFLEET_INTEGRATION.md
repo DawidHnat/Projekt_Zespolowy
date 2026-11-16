@@ -88,10 +88,19 @@ Podsumowanie warunków ukończenia:
      `postext` oraz `postext_short` zawierające geokodowany adres ostatniej pozycji. Pole to jest
      związane z bieżącym pomiarem (`Measurement.position_address` w SCRUM-51); w przypadku braku
      tekstu adresu (np. poza obszarem geokodowania lub przy braku pozycji) API zwraca jawne `null`.
-   - **Ręczna kartoteka pojazdu (marka, model, rok, VIN):** Raporty WEBFLEET nie zwracają
-     tych danych technicznych. Zgodnie z decyzją PO pola `make`, `model`, `year`, `vin` stanowią
-     ręczną kartotekę pojazdu w Fleet-Flow (`Vehicle` w SCRUM-51 / UI w SCRUM-25), zarządzaną
-     lokalnie i nienadpisywaną przez synchronizację.
+    - **Możliwości raportów dostawcy:** oficjalna tabela `showVehicleReportExtern`
+      (przewodnik 1.74.0) opisuje `identnumber` jako VIN przy odpowiednim urządzeniu
+      ([strona 95 PDF](https://media.webfleet.com/fl_attachment/media/doc/documentations/webfleet.connect-doc-1.74.0.pdf#page=95))
+      oraz opcjonalne `manufacturedyear`
+      ([strona 97 PDF](https://media.webfleet.com/fl_attachment/media/doc/documentations/webfleet.connect-doc-1.74.0.pdf#page=97)).
+      Marka i model nie zostały potwierdzone jako pola tego raportu. Dostępność pól po stronie
+      dostawcy nie była weryfikowana na żywym koncie.
+    - **Aktualny zakres Fleet-Flow:** adapter nie pobiera `showVehicleReportExtern`, a
+      allowlista synchronizacji nie obejmuje VIN ani roku produkcji. Niepobieranie pola przez
+      nasz kod nie oznacza, że dostawca go nie udostępnia. Zgodnie z decyzją PO pola `make`,
+      `model`, `year`, `vin` są ręczną kartoteką pojazdu w Fleet-Flow (`Vehicle` w SCRUM-51 /
+      UI w SCRUM-25), zarządzaną lokalnie, a ręczne zmiany mają pierwszeństwo i nie są
+      nadpisywane przez synchronizację. Import VIN/roku jest poza zakresem tego PR.
 4. **Kierowcy (RODO):** Potwierdzono ostatecznie, że kierowcy nie są pobierani z API;
    pozostają wyłącznie ręcznymi wpisami w aplikacji (SCRUM-42).
 5. **Historia, postoje i geometria (SCRUM-24):** Potwierdzono operacje `showTripReportExtern`
