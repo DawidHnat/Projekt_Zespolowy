@@ -207,11 +207,14 @@ a Enter otwiera suwaki. Zapis/Anuluj dotyczą wyłącznie tego widoku.
 
 Szerokości nie rozciągają się automatycznie do całego wiersza. Mniejszy ekran
 ogranicza tylko wyświetlanie szerokości, zachowując rozmiar zapisany przez
-użytkownika. układ, sortowanie, filtry wyszukiwania/statusu i limit strony zapisują się
+użytkownika. Układ, sortowanie, filtry wyszukiwania/statusu i limit strony zapisują się
 osobno na koncie aplikacji. Ustawienia zachowane w starszym localStorage są
 importowane tylko po jawnym wyborze, gdy konto nie ma jeszcze własnej wersji.
 Równoległe zmiany pokazują konflikt i pozwalają wczytać wersję z konta albo
-zapisać bieżący układ jako nową wersję.
+zapisać bieżący układ jako nową wersję. Pionowe rozciąganie na telefonie
+zachowuje zapisaną szerokość z komputera; poziomy gest nadal zmienia ją od
+widocznej krawędzi. Drobny ruch poniżej 5 px nie zmienia drugiej osi.
+[Weryfikacja i scenariusze QA SCRUM-45](../docs/qa/SCRUM-45.md).
 Odczyt starszych rozmiarów jest zachowany; nowy zapis v2 obejmuje domyślny
 rozmiar floty oraz indywidualne nadpisania.
 
