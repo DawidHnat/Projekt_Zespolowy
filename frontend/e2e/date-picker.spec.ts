@@ -80,3 +80,62 @@ test("SCRUM-77: Escape kalendarza nie zamyka okna pojazdu", async ({ page }) => 
   await expect(dialog).toBeVisible();
   await expect(trigger).toBeFocused();
 });
+
+test("SCRUM-77: min/max i wybór daty wywołują onChange", async ({ page }) => {
+  await page.goto("/e2e/fixtures/date-picker.html");
+
+  const trigger = page.getByRole("button", { name: "Data testowa" });
+  await trigger.click();
+
+  const calendar = page.locator(".ff-calendar");
+  await expect(calendar).toBeVisible();
+
+  const day = (number: number) =>
+    calendar.locator(".flatpickr-day:not(.prevMonthDay):not(.nextMonthDay)")
+      .filter({ hasText: new RegExp(`^${number}$`) });
+
+  await expect(day(14)).toHaveClass(/flatpickr-disabled/);
+  await expect(day(21)).toHaveClass(/flatpickr-disabled/);
+  await expect(day(18)).not.toHaveClass(/flatpickr-disabled/);
+
+  await day(18).click();
+  await expect(page.getByTestId("value")).toHaveText("2026-10-18");
+  await expect(page.getByTestId("changes")).toHaveText("2026-10-18");
+  await expect(trigger).toContainText("18.10.2026");
+});
+
+test("SCRUM-77: zewnętrzna zmiana wartości nie wywołuje onChange", async ({ page }) => {
+  await page.goto("/e2e/fixtures/date-picker.html");
+
+  await page.getByRole("button", { name: "Ustaw z zewnątrz" }).click();
+
+  await expect(page.getByTestId("value")).toHaveText("2026-10-19");
+  await expect(page.getByTestId("changes")).toBeEmpty();
+
+  const trigger = page.getByRole("button", { name: "Data testowa" });
+  await expect(trigger).toContainText("19.10.2026");
+
+  await trigger.click();
+  await expect(page.locator(".ff-calendar .flatpickr-day.selected")).toContainText("19");
+});
+
+test("SCRUM-77: disabled blokuje otwieranie i zachowuje datę", async ({ page }) => {
+  await page.goto("/e2e/fixtures/date-picker.html");
+
+  const trigger = page.getByRole("button", { name: "Data testowa" });
+  await trigger.click();
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+
+  await page.getByRole("button", { name: "Przełącz blokadę" }).evaluate((button: HTMLButtonElement) => button.click());
+  await expect(trigger).toBeDisabled();
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+
+  await expect(page.getByTestId("value")).toHaveText("2026-10-17");
+  await expect(page.getByTestId("changes")).toBeEmpty();
+
+  await page.getByRole("button", { name: "Przełącz blokadę" }).evaluate((button: HTMLButtonElement) => button.click());
+  await expect(trigger).toBeEnabled();
+  await trigger.click();
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+});
+
