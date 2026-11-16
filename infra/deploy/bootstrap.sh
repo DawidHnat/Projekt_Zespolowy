@@ -6,7 +6,7 @@ umask 077
   printf 'Użycie: sudo bash bootstrap.sh /ścieżka/do/klucza-CI.pub\n' >&2
   exit 1
 }
-for dependency in docker python3 curl ssh-keygen visudo; do
+for dependency in docker python3 curl ssh-keygen visudo git; do
   command -v "$dependency" >/dev/null
 done
 docker compose version >/dev/null
@@ -25,11 +25,14 @@ fi
 passwd -l fleetdeploy >/dev/null
 install -d -m 755 -o root -g root /opt/fleet-flow
 install -m 755 -o root -g root "$scripts/deploy.sh" /usr/local/sbin/fleet-flow-deploy
+install -m 755 -o root -g root "$scripts/validate_release.py" \
+  /usr/local/sbin/fleet-flow-validate-release
 install -m 755 -o root -g root "$scripts/receive.sh" /usr/local/bin/fleet-flow-receive
 install -d -m 700 -o fleetdeploy -g fleetdeploy /home/fleetdeploy/.ssh
 authorized=/home/fleetdeploy/.ssh/authorized_keys
 touch "$authorized"
-key_line="restrict,command=\"/usr/local/bin/fleet-flow-receive\" $(awk 'NF {print; exit}' "$key_file")"
+key_content=$(awk 'NF {print; exit}' "$key_file")
+key_line="restrict,command=\"/usr/local/bin/fleet-flow-receive\" $key_content"
 grep -qxF -- "$key_line" "$authorized" || printf '\n%s\n' "$key_line" >> "$authorized"
 chown fleetdeploy:fleetdeploy "$authorized"
 chmod 600 "$authorized"
@@ -38,4 +41,4 @@ trap 'rm -f -- "$sudoers"' EXIT
 printf 'fleetdeploy ALL=(root) NOPASSWD: /usr/local/sbin/fleet-flow-deploy\n' > "$sudoers"
 visudo -cf "$sudoers"
 install -m 440 -o root -g root "$sudoers" /etc/sudoers.d/fleet-flow-deploy
-printf 'Konto CI gotowe. Przed wdrożeniem potwierdź DNS, sekrety Actions i reguły portów 80/443.\n'
+printf 'Konto CI gotowe. Potwierdź DNS, sekrety Actions i reguły portów 80/443.\n'
