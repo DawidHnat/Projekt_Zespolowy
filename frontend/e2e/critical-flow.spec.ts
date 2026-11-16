@@ -106,6 +106,8 @@ test("account preferences sync between independent browsers and resolve concurre
       const { value } = await response.json();
       return value?.filters?.q;
     }).toBe("SECOND DEVICE");
+    await page.evaluate(() => { window.location.hash = "#vehicles"; });
+    await expect(page.getByLabel("Sortowanie pojazdów")).toBeVisible();
     await page.getByLabel("Sortowanie pojazdów").selectOption("name-desc");
     const conflict = page.getByRole("alert").filter({ hasText: "zmieniły się na innym urządzeniu" });
     await expect(conflict).toBeVisible();
@@ -138,6 +140,7 @@ test("local dashboard settings require explicit migration and cannot replace acc
     localStorage.setItem(key, JSON.stringify(value));
   }, { key: "fleet-flow.dashboard.v2", value: localSettings });
   await login(page);
+  await page.evaluate(() => { window.location.hash = "#dashboard"; });
   const migration = page.getByRole("region", { name: "Migracja ustawień: Pulpit" });
   await expect(migration).toBeVisible();
   await page.evaluate(() => { window.location.hash = "#dashboard"; });

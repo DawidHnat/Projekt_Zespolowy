@@ -162,6 +162,12 @@ test("SCRUM-38: desktop and compact edits persist independently and cancel resto
   await expect(page.locator(".dashboard-canvas")).toHaveAttribute("data-profile", "compact");
   await page.getByRole("button", { name: "Przesuń: Mapa floty", exact: true }).press("Shift+ArrowDown");
   await page.getByRole("button", { name: "Zapisz układ", exact: true }).click();
+  await expect.poll(async () => {
+    const saved = await preferences(page);
+    return ["desktop", "compact"].map(profile =>
+      saved.layouts.dashboard[profile].find((item: { i: string }) => item.i === "map").h);
+  }).toEqual(["desktop", "compact"].map(profile =>
+    original.layouts.dashboard[profile].find((item: { i: string }) => item.i === "map").h + 0.5));
   const saved = await preferences(page);
   for (const profile of ["desktop", "compact"])
     expect(saved.layouts.dashboard[profile].find((item: { i: string }) => item.i === "map").h)
