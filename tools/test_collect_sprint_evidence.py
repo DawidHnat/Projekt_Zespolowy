@@ -38,9 +38,50 @@ class EvidenceTests(unittest.TestCase):
             self.assertIn("gh", (root / "missing.stderr.txt").read_text())
 
     @staticmethod
-    def successful_command(args, _root, _output, _name):
+    def successful_command(args, _root, _output, name):
         return {"command": " ".join(args), "exit_code": 0,
-                "stdout": "ok\n", "stderr": "", "file": "example.txt"}
+                "stdout": '{"status":"ok"}\n200\n' if name == "01-health" else "ok\n",
+                "stderr": "", "file": "example.txt"}
+
+    def collect_with_health(self, stdout, exit_code=0):
+        def run(args, root, output, name):
+            result = self.successful_command(args, root, output, name)
+            if name == "03-commity":
+                result.update(exit_code=1, stdout="0\n")
+            elif name == "01-health":
+                result.update(exit_code=exit_code, stdout=stdout)
+            return result
+
+        with tempfile.TemporaryDirectory() as temp:
+            out = Path(temp) / "results"
+            with patch.object(evidence, "capture", side_effect=run):
+                result = evidence.main([
+                    "--output", str(out), "--protection-since", "2026-10-20"])
+            return result, (out / "ODDANIE.md").read_text()
+
+    def test_health_redirect_cannot_pass_even_when_curl_exits_zero(self):
+        result, report = self.collect_with_health('{"status":"ok"}\n308\n')
+        self.assertEqual(result, 1)
+        self.assertIn("BŁĄD", report)
+
+    def test_health_requires_successful_transport_and_json_object_with_ok_status(self):
+        for stdout, code in (
+            ('{"status":"unavailable"}\n200\n', 0),
+            ('<html>proxy error</html>\n200\n', 0),
+            ('[]\n200\n', 0),
+            ('{"status":"ok"}\n503\n', 0),
+            ('{"status":"ok"}\n200\n', 28),
+        ):
+            with self.subTest(stdout=stdout, exit_code=code):
+                self.assertEqual(self.collect_with_health(stdout, code)[0], 1)
+
+    def test_readiness_uses_canonical_https_and_records_http_status(self):
+        with tempfile.TemporaryDirectory() as temp:
+            with patch.object(evidence, "capture", side_effect=self.successful_command) as run:
+                evidence.main(["--output", str(Path(temp) / "results")])
+        args = next(c.args[0] for c in run.call_args_list if c.args[3] == "01-health")
+        self.assertIn("https://fleet-flow.pl/api/health/ready", args)
+        self.assertIn("--write-out", args)
 
     def test_missing_date_collects_other_evidence_but_returns_incomplete(self):
         with tempfile.TemporaryDirectory() as temp:

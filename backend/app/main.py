@@ -17,6 +17,7 @@ from app.modules.auth.reset import router as reset_router
 from app.modules.auth.router import router as auth_router
 from app.modules.fleet.router import router as fleet_router
 from app.modules.fleet.sync import sync_worker
+from app.modules.preferences.router import router as preferences_router
 from app.modules.trips.router import router as trips_router
 
 
@@ -49,7 +50,7 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
         CORSMiddleware,
         allow_origins=list(settings.origins),
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PATCH"],
+        allow_methods=["GET", "POST", "PATCH", "PUT"],
         allow_headers=["Content-Type"],
     )
     register_handlers(app)
@@ -59,6 +60,7 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
     app.include_router(fleet_router)
     app.include_router(analytics_router)
     app.include_router(trips_router)
+    app.include_router(preferences_router)
 
     @app.middleware("http")
     async def private_responses(request: Request, call_next):
