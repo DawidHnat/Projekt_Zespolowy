@@ -109,8 +109,14 @@ for (const failure of ["404", "abort"] as const) {
     );
     if (test.info().project.name === "mobile") {
       await page.getByRole("button", { name: "Otwórz menu" }).click();
+      await expect(page.getByRole("link", { name: "Pojazdy" })).toBeAttached();
+      await page
+        .locator(".sidebar")
+        .getByRole("button", { name: "Zamknij menu" })
+        .click();
+    } else {
+      await expect(page.getByRole("link", { name: "Pojazdy" })).toBeAttached();
     }
-    await expect(page.getByRole("link", { name: "Pojazdy" })).toBeAttached();
     allowChunkLoad = true;
     await Promise.all([
       page.waitForNavigation({ waitUntil: "load" }),
