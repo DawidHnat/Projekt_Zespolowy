@@ -114,6 +114,9 @@ for (const failure of ["404", "abort"] as const) {
         .locator(".sidebar")
         .getByRole("button", { name: "Zamknij menu" })
         .click();
+      await expect(
+        page.getByRole("button", { name: "Otwórz menu" }),
+      ).toHaveAttribute("aria-expanded", "false");
     } else {
       await expect(page.getByRole("link", { name: "Pojazdy" })).toBeAttached();
     }
