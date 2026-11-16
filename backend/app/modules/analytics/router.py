@@ -23,7 +23,7 @@ router = APIRouter(prefix="/api/v1/analytics", tags=["analytics"])
 SessionDep = Annotated[Session, Depends(get_session)]
 UserDep = Annotated[User, Depends(current_user)]
 EditorDep = Annotated[User, Depends(editor)]
-Page = Annotated[int, Query(ge=1)]
+Page = Annotated[int, Query(ge=1, le=100_000)]
 PageSize = Annotated[int, Query(ge=1, le=100)]
 
 

@@ -414,6 +414,8 @@ def test_rules_and_alerts_have_stable_pagination(logged_in):
         assert len(first["items"]) == 25 and len(second["items"]) == 1
         assert {x["id"] for x in first["items"]}.isdisjoint({x["id"] for x in second["items"]})
         assert client.get(path, params={"page": 0}).status_code == 422
+        assert client.get(path, params={"page": 10**100}).status_code == 422
+        assert client.get(path, params={"page": 100_001}).status_code == 422
         assert client.get(path, params={"page_size": 101}).status_code == 422
 
 
