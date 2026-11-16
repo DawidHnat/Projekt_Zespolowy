@@ -28,7 +28,7 @@ export default defineConfig({
       env: { PYTHONPATH: ".", FLEET_FLOW_E2E: "true", SYNC_ENABLED: "false" },
     },
     {
-      command: "npm run dev -- --config vite.e2e.config.ts",
+      command: "npm run preview -- --config vite.e2e.config.ts",
       url: "http://127.0.0.1:54173",
       reuseExistingServer: false,
       env: { VITE_MAPBOX_TOKEN: "", SYNC_ENABLED: "false" },
