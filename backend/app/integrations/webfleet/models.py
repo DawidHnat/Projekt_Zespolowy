@@ -5,6 +5,9 @@ from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+MAX_ODOMETER_KM = Decimal("9999999999999.9")
+MAX_ODOMETER_RAW = Decimal("99999999999999")
+
 
 def _number(value: Any) -> Decimal | None:
     if value is None or isinstance(value, bool):
@@ -14,6 +17,27 @@ def _number(value: Any) -> Decimal | None:
     except InvalidOperation:
         return None
     return number if number.is_finite() else None
+
+
+def _odometer(value: Any) -> Decimal | None:
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, str) and not value.strip():
+        return None
+    number = _number(value)
+    if number is None or number < 0:
+        return None
+    # Maximum value permitted by PostgreSQL column Numeric(14, 1):
+    # Absolute value must be strictly less than 10^13 km.
+    if number > MAX_ODOMETER_RAW:
+        raise ValueError(f"Wartość odometru przekracza limit Numeric(14,1): {number}")
+    km = number / 10
+    if km > MAX_ODOMETER_KM:
+        raise ValueError(f"Wartość odometru przekracza limit Numeric(14,1): {km}")
+    try:
+        return km.quantize(Decimal("0.1"))
+    except InvalidOperation:
+        raise ValueError(f"Niepoprawny wykładnik dziesiętny odometru: {km}") from None
 
 
 def _coordinate(value: Any, limit: int) -> float | None:
@@ -58,13 +82,12 @@ class ObjectSnapshot:
         uid = record.get("objectuid")
         if not isinstance(uid, str) or not uid.strip():
             raise ValueError("Brak stabilnego objectuid w rekordzie WEBFLEET")
-        odometer = _number(record.get("odometer"))
         return cls(
             uid=uid,
             number=record.get("objectno") or None,
             latitude=_coordinate(record.get("latitude_mdeg"), 90),
             longitude=_coordinate(record.get("longitude_mdeg"), 180),
-            odometer_km=odometer / 10 if odometer is not None and odometer >= 0 else None,
+            odometer_km=_odometer(record.get("odometer")),
             ignition_on=_binary(record.get("ignition")),
             standing_still=_binary(record.get("standstill")),
             gps_quality=record.get("status")
