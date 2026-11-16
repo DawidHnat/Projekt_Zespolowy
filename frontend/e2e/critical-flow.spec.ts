@@ -197,6 +197,7 @@ test("unauthorized detail refresh removes private state and returns to login", a
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
   await dialog.getByRole("tab", { name: "Podróże", exact: true }).click();
+  await dialog.getByRole("list", { name: "Przejazdy pojazdu", exact: true }).getByRole("button").first().click();
   const form = dialog.getByRole("form", { name: "Cel i opis przejazdu", exact: true });
   await form.getByLabel(/Cel przejazdu/).fill("Prywatny szkic do usunięcia");
   await page.route(detailPath, route => route.fulfill({
