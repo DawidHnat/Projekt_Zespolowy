@@ -1,160 +1,113 @@
-# Przegląd Sprintu i Pull Requesty — dowody do oddania
+# Przegląd Sprintu i Pull Requesty — oddanie 4.1
 
-Jira: [SCRUM-3](https://fleet-flow.atlassian.net/browse/SCRUM-3).
-Każdy oddaje osobno. Polecenia wykonujemy w repozytorium po ostatnim scaleniu
-i udanym wdrożeniu; nie zastępujemy wyników planem ani przykładem.
-
-## Zebranie wyników jednym poleceniem
-
-W repozytorium uruchom skrypt z Pythonem 3.10+, Git, curl i zalogowanym `gh`:
-
-```bash
-python3 tools/collect_sprint_evidence.py
-```
-
-Powstanie nowy, ignorowany przez Git katalog `.local/sprint-evidence/` z plikiem
-`ODDANIE.md`, surowymi wynikami, stderr i `manifest.json`. Skrypt odczytuje
-GitHub oraz publiczną stronę wersji i health; `git fetch` aktualizuje lokalne
-referencje. Nie scala PR, nie uruchamia Sprintu 2 ani żywego WEBFLEET/SMTP.
-Nie nadpisuje wcześniejszych wyników. Opcja `--output` pozwala wskazać inny
-**nowy** katalog; nie dodawaj wyników do publicznego repozytorium.
-
-Bez potwierdzonej daty ochrony zbierze pozostałe wyniki i zakończy się kodem
-`2` z oznaczeniem **NIEKOMPLETNE**. Po uzyskaniu daty od Dawida:
-
-```bash
-# Wstaw rzeczywiście potwierdzoną datę, nie przykładowy dzień.
-python3 tools/collect_sprint_evidence.py --protection-since "RRRR-MM-DD"
-```
-
-Kod `1` oznacza błąd polecenia albo niezgodne tematy commitów; kod `0` oznacza
-zebranie wyników technicznych, **nie zaliczenie wszystkich kryteriów**.
-Odczytaj raport, uzupełnij wymagane dowody zespołu i odśwież go po ostatnim merge
-i wdrożeniu. Każdy uruchamia narzędzie i oddaje odpowiedź osobno.
-
-[Pulpit przyrostów w Jirze](https://fleet-flow.atlassian.net/jira/dashboards/10001)
-pokazuje właścicieli i kolejkę odbiorów. [Rejestr w SCRUM-3](https://fleet-flow.atlassian.net/browse/SCRUM-3?focusedCommentId=10084)
-opisuje stan implementacji i blokady; sam status w Jirze nie zastępuje QA.
+Stan sprawdzony **12.11.2026**. Koordynacja:
+[SCRUM-143](https://fleet-flow.atlassian.net/browse/SCRUM-143).
+[Macierz obu zadań i właściciele braków](COURSE_READINESS.md).
+To materiał do dokończenia: pełne DoD i historia Git nadal wymagają rozliczenia.
 
 ## 1. Serwer i ostatni main
 
-- Aplikacja: https://vps-9171bf52.vps.ovh.net/
-- Strona wersji HTTP do zadania: http://57.129.179.53/
+Aplikacja: <https://fleet-flow.pl/>. Strona wersji do polecenia:
+<http://57.129.179.53/>. W klonie zespołu, po ostatnim wdrożeniu:
 
 ```bash
 git fetch && curl -s http://57.129.179.53/ | grep "$(git rev-parse --short=7 origin/main)"
+curl -fsS https://fleet-flow.pl/api/health/ready
 ```
 
-Zapisać rzeczywisty HTML i SHA po zakończeniu wdrożenia. Dodatkowo:
+12.11 fetch wskazał `2b3f2ba`, znaleziony HTML zawierał
+`<code data-build-sha="2b3f2ba">2b3f2ba</code>`, readiness zwróciło HTTP 200
+i `{"status":"ok"}`. [Run 43105067278](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/43105067278)
+ma sukces testów, lintu, deploymentu i smoke. To dowód wersji; nie zastępuje
+pełnego odbioru Story z [SCRUM-141](https://fleet-flow.atlassian.net/browse/SCRUM-141).
 
-```bash
-curl -fsS https://vps-9171bf52.vps.ovh.net/api/health/ready
-```
+## 2. Dokładny filtr autorów, review i gałęzi
 
-Poprawne SHA i health nie zastępują jednej odebranej Story zgodnej z całym DoD.
-Pokaz przeprowadzamy według [historyjek](SPRINT_1_REVIEW.md).
-
-## 2. Autorzy, review, gałęzie i klucze Jiry
-
-Dokładny filtr z kroku 6 tutorialu został dostarczony 29.10.2026. Używamy jego
-wersji, która usuwa powtórzenia recenzentów i odrzuca autora danego PR:
+Filtr z kroku 6 tutorialu, dostarczony 29.10.2026:
 
 ```bash
 gh pr list --state merged --limit 100 --json number,headRefName,author,reviews,body \
   --jq '.[] | .author.login as $a | "#\(.number) \(.headRefName) author=\($a) reviewers=\([.reviews[].author.login] | unique | map(select(. != $a)) | join(",")) key_in_body=\(.body | test("[A-Z]+-[0-9]+"))"'
 ```
 
-Sprawdzić, czy każdy z `jczaja51`, `DawidHnat`, `jnazarewiczs`, `mglowacki0`
-jest autorem scalonego PR i recenzentem cudzego PR. Zwrócony wpis review nie
-może być własnym komentarzem autora. Samo przypisanie jako reviewer nie jest
-wykonanym przeglądem. Do dowodów używamy rzeczywistych review, a do przyjęcia
-zmiany wymaganego aktualnego approval.
+Odczyt 12.11: 67 scalonych PR, wszystkie `key_in_body=true`. Każdy członek
+jest autorem i recenzentem cudzego scalonego PR:
 
-Stan sprawdzony 29.10.2026: 26 scalonych PR, wszystkie `key_in_body=true`.
-Filtr nie sprawdza stanu Approved ani aktualności approval — to osobny warunek DoD.
+| Login | Autor | Cudze review |
+| --- | --- | --- |
+| jczaja51 | #63 | #64 APPROVED |
+| DawidHnat | #60 | #76 APPROVED |
+| jnazarewiczs | #64 | #62 APPROVED |
+| mglowacki0 | #28 | #63 APPROVED |
 
-| Członek | Własny scalony PR | Wykonane review cudzego PR | Pozostała praca |
-| --- | --- | --- | --- |
-| Jakub Czaja — jczaja51 | np. #26 | #28, APPROVED | Dokończyć odbiór wybranej Story Sprintu 1 z QA. |
-| Dawid Hnat — DawidHnat | Brak | np. #26, APPROVED | Dostarczyć własny PR rzeczywistej zmiany z kluczem Jiry i uzyskać review/merge. |
-| Jakub Nazarewicz — jnazarewiczs | Brak | Brak | Dostarczyć własny PR i przejrzeć cudzy. |
-| Marcel Głowacki — mglowacki0 | #28 | Brak | Przejrzeć cudzy PR oraz wykonać odbiory QA. |
+Do własnej odpowiedzi wkleić pełny rzeczywisty wynik filtra, nie tylko tę
+tabelę. Filtr sam nie sprawdza aktualności ani stanu Approved — to osobny
+warunek DoD. Dawnych PR bez approval nie przedstawiamy jako przejrzanych.
 
-Starsze PR-y #1/#2 nie mają klucza Jiry w nazwie gałęzi — to pozostaje
-historyczną niezgodnością. W opisach #1/#2/#4 uzupełniono powiązanie SCRUM-12
-podczas audytu. Nie zmieniamy historycznego autorstwa ani nie tworzymy
-pustych commitów dla statystyki. Nie przedstawiamy starszych nazw jako zgodnych.
-Każdy przyszły PR ma klucz Jiry w opisie i nazwie gałęzi oraz review innej osoby.
-Formalnego Approved innej osoby nie ma w 22 starszych scalonych PR (#1–21 i #23).
-Nie przedstawiamy ich jako przejrzanych; zakres historycznej zgodności trzeba
-odnieść do potwierdzonej daty ochrony, a zakres odbieranej Story do całego DoD.
+**Niezgodne historyczne gałęzie:** #1/#2 `codex/azure-dev-server` oraz
+#54 `jczaja51-patch-1`. Ukończenie bieżących zadań nie zmieni tych nazw.
+Rozliczenie wyjątków: SCRUM-143, z prowadzącym.
 
-## 3. Conventional Commits od włączenia ochrony
+## 3. Conventional Commits i data ochrony
 
-Dawid potwierdza dokładną datę/godzinę włączenia reguły. Zapisany test
-`23dd927` z 20.10 był jeszcze przyjęty bez PR, późniejszy `be4bc42` został
-odrzucony. API pełnej ochrony jest niedostępne współpracownikowi (404), więc
-nie wyprowadzamy dokładnej godziny z daty pliku konfiguracyjnego.
-
-Po potwierdzeniu daty wykonać polecenia z zadania:
+Dawid potwierdza dokładną datę/godzinę w
+[SCRUM-140](https://fleet-flow.atlassian.net/browse/SCRUM-140).
+Test `23dd927` był jeszcze przyjęty, późniejszy `be4bc42` odrzucony;
+nie wyprowadzamy dokładnej godziny z daty pliku konfiguracji.
 
 ```bash
 git fetch
-git log --no-merges --since="<data włączenia ochrony>" --format=%s origin/main | grep -vcE '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert|breaking)(\([^)]+\))?!?: .+'
+git log --no-merges --since="<potwierdzona data włączenia ochrony>" --format=%s origin/main | grep -vcE '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert|breaking)(\([^)]+\))?!?: .+'
 ```
 
-Kontrola szerszego, konserwatywnego zakresu od `2026-10-20T00:00:00+02:00`
-zwróciła 0 również podczas kontroli 29.10.2026. To nie jest potwierdzenie dokładnej
-godziny włączenia ochrony. Przy `grep -vcE` wynik 0 jest oczekiwany; samo `grep`
-może wtedy zakończyć się kodem 1, bo nie znalazło niedopasowanych linii.
+W konserwatywnym zakresie od `2026-10-20T00:00:00+02:00` wynik wynosi **1**,
+nie 0. Temat `2bffba9` z PR #54 to
+`Update Marcel Głowacki's key status in DEV_SERVER.md`.
+Nie podstawiać innej daty dla uzyskania zera i nie przepisywać main.
+Wymagany sposób rozliczenia historycznego naruszenia pozostaje do uzgodnienia
+z prowadzącym. Przy wyniku 0 grep może zwrócić kod 1; oceniamy także wynik,
+nie sam kod wyjścia.
 
-Przykładowy właściwy temat: `feat(SCRUM-51): uzupełnij dane pojazdu`.
-Przy squash osoba scalająca sprawdza temat końcowego commita. Nigdy nie
-przepisujemy chronionego `main`, by poprawić historię.
+## 4. Gotowy dowód konfliktu
 
-## 4. Konflikt scalania — jeszcze do wykonania
+**[PR #62](https://github.com/DawidHnat/Projekt_Zespolowy/pull/62)** jest scalony
+i ma APPROVED Nazarewicza dla ostatniego head `f646c82`.
+Wcześniejszy PR #30 był już scalony do main. Dwie zmiany tych samych linii
+`frontend/src/features/trips/components/TripDayPicker.tsx` powodowały konflikt
+między `type="button"` a `disabled={disabled}`. Ręczne rozwiązanie zachowało oba:
+skróty dat nie wysyłają formularza i respektują blokadę niezapisanego szkicu.
+Opis PR zawiera przyczynę, znaczniki konfliktu, rodziców merge i walidację.
 
-Nie zebrano dotąd dowodu spełniającego to kryterium. PR #27 łączy się
-z aktualnym main bez konfliktu; nie opisujemy go jako rozwiązanego konfliktu.
-Samo zielone CI i zdanie w opisie nie wystarczają.
+[CI 42271127635](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/42271127635)
+dotyczy dokładnie ostatniego head `f646c82d1e0b35188cfe8d16ab1b9220860a61a7`;
+wszystkie kontrole PR mają success, deployment jest prawidłowo skipped.
+To istniejący dowód — nie trzeba tworzyć kolejnego sztucznego konfliktu.
 
-Zespół wybiera dwie uzasadnione zmiany tego samego fragmentu kodu w osobnych
-zadaniach. Obie gałęzie powstają z tego samego `main`, mają klucze swoich
-zgłoszeń i własnych autorów. Pierwszy PR przechodzi review/CI i zostaje scalony.
-Na drugiej gałęzi developer wykonuje:
+## 5. Przyrost, retro i Sprint 2
 
-```bash
-git fetch origin
-git merge origin/main
-git status
-# Ręcznie połączyć obie intencje w plikach z konfliktem, usunąć znaczniki.
-# Uruchomić wymagane testy; git add z konkretnymi nazwami plików.
-git commit -m "fix(SCRUM-NUMER): rozwiąż konflikt z main z zachowaniem obu zmian"
-git push
-```
+Review S1 odbyło się 06.11, z udziałem całego zespołu i pozytywnym ogólnym
+feedbackiem potwierdzonym przez PO. [Protokół](SPRINT_1_REVIEW.md) nie deklaruje
+nieznanego SHA pokazu ani brakujących wyników QA.
+[Retro S1](retro/sprint-1.md) ma trzy części i działanie
+[SCRUM-65](https://fleet-flow.atlassian.net/browse/SCRUM-65).
+Sprint 1 zakończono 09.11.2026; Sprint 2 jest aktywny.
 
-W opisie drugiego PR podać: wcześniejszy scalony PR, plik i wspólne linie,
-przyczynę konfliktu, zachowane zachowanie obu zmian i wynik testów. Poczekać
-na zielone CI ostatniego commita oraz ponowne review. Wkleić jego numer/link
-do odpowiedzi dopiero po rzeczywistym rozwiązaniu.
+**Nazwa:** `FF Sprint 2 - podstawa i QA` (id 3).
+**Cel z Jiry, odczyt 12.11.2026:**
 
-## 5. Review, retrospektywa i Sprint 2
+> Domknąć istniejący kod i odbiór floty/UI, źródłowe pola WEBFLEET, podstawową kartotekę, backup/odtworzenie i synchronizację. Równolegle preferencje konta oraz decyzje prywatności i macierz bezpieczeństwa. Bieżącą dostępność i pozostały wysiłek zespół aktualizuje podczas Planningu; historyczne SCRUM-4 jest zakończone. Priorytet: review/QA i usunięcie blokad przed nowymi funkcjami. SCRUM-64 wymaga odebranego SCRUM-84 i wymaganych decyzji. Założenie PO: 10–15 h/osobę/tydzień, z review i QA; dostępność i pozostały wysiłek potwierdzają wykonawcy. SP są istniejącą wyceną pełnego zakresu, nie pozostałymi godzinami. Nie sumować punktów rodzica i podzadań.
 
-- Doprowadzić co najmniej jedną Story Sprintu 1 do pełnego DoD na VPS,
-  zapisać QA i przeprowadzić rzeczywisty [Review](SPRINT_1_REVIEW.md).
-- Potwierdzić z zespołem i uzupełnić
-  [docs/retro/sprint-1.md](retro/sprint-1.md) — trzy części, właściciele,
-  terminy sprawdzenia i feedback. Obecnie jest to materiał roboczy.
-- [SCRUM-65](https://fleet-flow.atlassian.net/browse/SCRUM-65) jest działaniem
-  usprawniającym przypisanym Jakubowi Czai i dodanym do planowanego Sprintu 2.
-- Na Planningu potwierdzić daty, pojemność i cel **FF Sprint 2 - historia i auta**,
-  uporządkować prace niedokończone, zakończyć Sprint 1 i uruchomić Sprint 2.
-  Potem wkleić rzeczywistą nazwę i cel z Jiry. Stan planowany nie spełnia
-  wymagania „w Jirze trwa Sprint 2”.
-  Odczyt 29.10: 15 pozycji, 74 SP, przy opisie celu mówiącym o roboczych 38 SP.
-  Uzgodnić rzeczywistą pojemność i usunąć tę rozbieżność przed rozpoczęciem.
+Pełne DoD jednej Story S1 nadal wymaga kompletu dowodów w SCRUM-141.
+Administracyjne Gotowe SCRUM-16 nie zastępuje tego odbioru.
 
-Gotowa odpowiedź musi zawierać bieżący wynik SHA, zestawienie PR z filtrem,
-wynik 0 dla komunikatów, numer rzeczywistego PR z konfliktem, link do
-zatwierdzonej retrospektywy na main i aktywny Sprint 2. Puste pola lub
-niniejsza instrukcja nie są kompletnym oddaniem.
+## Zebranie lokalnego pakietu
+
+`tools/collect_sprint_evidence.py` zapisuje surowe wyniki do nowego ignorowanego
+katalogu `.local/sprint-evidence/`. Bez potwierdzonej daty ochrony ma zakończyć
+się jako NIEKOMPLETNE. [PR #87](https://github.com/DawidHnat/Projekt_Zespolowy/pull/87)
+naprawia kontrolę readiness; przed jego scaleniem używać kanonicznego endpointu
+i osobno wymagać HTTP 200 oraz JSON `status=ok`. Stary hostname zwraca 308,
+a samo curl exit 0 nie potwierdza gotowości API.
+
+Po spełnieniu braków każdy odświeża wyniki i oddaje osobno: serwer/HTML,
+pełny filtr PR, wynik kontroli commitów, link #62, retro S1 oraz nazwę i cel S2.

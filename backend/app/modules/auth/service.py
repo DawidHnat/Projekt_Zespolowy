@@ -1,9 +1,9 @@
 import hashlib
 import secrets
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
-from fastapi import Depends, Request
+from fastapi import Depends, Request, Response
 from pwdlib import PasswordHash
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
@@ -70,5 +70,29 @@ def revoke_sessions(session: Session, user: User):
     session.execute(delete(LoginSession).where(LoginSession.user_id == user.id))
 
 
-def find_user(session: Session, username: str):
-    return session.scalar(select(User).where(User.username == username.strip().lower()))
+def find_user(session: Session, username: str, *, lock=False):
+    statement = select(User).where(User.username == username.strip().lower())
+    if lock:
+        statement = statement.with_for_update().execution_options(populate_existing=True)
+    return session.scalar(statement)
+
+
+def issue_session(request: Request, response: Response, session: Session, user: User):
+    token = secrets.token_urlsafe(32)
+    seconds = request.app.state.settings.session_hours * 3600
+    session.add(
+        LoginSession(
+            token_hash=digest(token),
+            user_id=user.id,
+            expires_at=now_utc() + timedelta(seconds=seconds),
+        )
+    )
+    response.set_cookie(
+        COOKIE_NAME,
+        token,
+        max_age=seconds,
+        httponly=True,
+        secure=request.app.state.settings.cookie_secure,
+        samesite="strict",
+        path="/",
+    )
