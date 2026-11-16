@@ -46,6 +46,8 @@ zależność w opisie. Po sprawdzeniu i scaleniu poprzednika przestaw bazę na
 sprawdzamy i scalamy od najstarszej zależności. Nie omija to review ani QA.
 
 Frontend sprawdzamy poleceniami `npm test` i `npm run build` w `frontend/`.
+`npm run test:e2e` buduje frontend, a następnie uruchamia Playwright na
+zbudowanych assetach z lokalnym backendem i dedykowaną bazą E2E.
 Zmiany wyglądu wymagają sprawdzenia w przeglądarce na komputerze i małym ekranie.
 Uzgodnienia UI opisuje [system wyglądu](docs/DESIGN_SYSTEM.md).
 

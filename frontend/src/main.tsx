@@ -9,6 +9,7 @@ import { VehiclePreferencesProvider } from "./features/fleet/model/VehiclePrefer
 import "./app/fleet-data.css";
 import "./app/vehicle-gallery.css";
 import { App } from "./app/App";
+import { ErrorBoundary } from "./shared/components/ErrorBoundary";
 import "./app/styles.css";
 import "./app/dashboard-editor.css";
 import "./app/glass.css";
@@ -23,18 +24,39 @@ import "./shared/components/list-pagination.css";
 import "./app/build-version.css";
 import "./app/account-preferences.css";
 
+function AppErrorFallback() {
+  return (
+    <main className="app-error-fallback" role="alert">
+      <h1>Nie udało się uruchomić aplikacji</h1>
+      <p>
+        Odśwież stronę, aby spróbować ponownie. Niezapisane zmiany mogą nie
+        zostać zachowane.
+      </p>
+      <button
+        className="button button-primary"
+        type="button"
+        onClick={() => window.location.reload()}
+      >
+        Odśwież stronę
+      </button>
+    </main>
+  );
+}
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <AuthProvider>
-      <DashboardPreferencesProvider>
-        <AuthGate>
-          <VehiclePreferencesProvider>
-            <FleetProvider>
-              <App />
-            </FleetProvider>
-          </VehiclePreferencesProvider>
-        </AuthGate>
-      </DashboardPreferencesProvider>
-    </AuthProvider>
-  </React.StrictMode>,
+  <ErrorBoundary fallback={<AppErrorFallback />}>
+    <React.StrictMode>
+      <AuthProvider>
+        <DashboardPreferencesProvider>
+          <AuthGate>
+            <VehiclePreferencesProvider>
+              <FleetProvider>
+                <App />
+              </FleetProvider>
+            </VehiclePreferencesProvider>
+          </AuthGate>
+        </DashboardPreferencesProvider>
+      </AuthProvider>
+    </React.StrictMode>
+  </ErrorBoundary>,
 );
