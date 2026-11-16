@@ -35,8 +35,8 @@ samej instrukcji konfiguracji.
 
 ## Bramy jakości Sprintu 2
 
-Stan 12.11.2026: `Lint` i `Post-deploy smoke` są na main po PR #76
-(SCRUM-127). Run `43105067278` dla `2b3f2ba` potwierdza sukces testów,
+Stan 16.11.2026: `Lint` i `Post-deploy smoke` są na main po PR #76
+(SCRUM-127). Run `43948005790` dla `c0544d1` potwierdza sukces testów,
 lintu, wdrożenia i smoke; nie potwierdza pełnego odbioru Story przez człowieka.
 Zachowujemy nazwy wszystkich dotychczasowych jobów. `Post-deploy smoke`
 nie jest wymaganym checkiem PR: dla PR deployment i smoke są pomijane.

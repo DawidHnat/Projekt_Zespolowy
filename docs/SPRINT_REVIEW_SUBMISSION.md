@@ -1,5 +1,9 @@
 # Przegląd Sprintu i Pull Requesty — oddanie 4.1
 
+**Aktualizacja 16.11.2026:** aktualny odczyt main i serwera `c0544d1`, [run 43948005790](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/43948005790) success łącznie z deploy/smoke. Filtr zwraca 86 scalonych PR. Ochrona nadal wymaga tylko `Required CI`; kontrola Conventional Commits w szerokim zakresie od 20.10 zwraca **3** (#93 dwa tematy, #54 jeden), bez potwierdzonej dokładnej daty ochrony. SCRUM-91 jest w Testowaniu po #93. Pełne DoD obu wybranych Story, rzeczywiste Review/retro S2 i start S3 pozostają do potwierdzenia. [Bieżąca macierz i właściciele](COURSE_READINESS.md), [polecenia dla agentów](COURSE_AGENT_HANDOFFS.md).
+
+Dalsze odczyty oznaczone datą 12.11 są zachowanymi historycznymi przykładami. Do odpowiedzi używać świeżych wyników po ostatnim wdrożeniu.
+
 Stan sprawdzony **12.11.2026**. Koordynacja:
 [SCRUM-143](https://fleet-flow.atlassian.net/browse/SCRUM-143).
 [Macierz obu zadań i właściciele braków](COURSE_READINESS.md).
