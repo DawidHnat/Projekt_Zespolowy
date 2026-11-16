@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { test, expect, type Page } from "@playwright/test";
 
 const trip = "22222222-2222-4222-8222-222222222222";
+const vehicle = "11111111-1111-4111-8111-111111111111";
 
 function sourceState(value: "ok" | "degraded" | "unavailable") {
   execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", "source-state", value], {
@@ -113,6 +114,105 @@ test("cold unavailable source shows a recoverable error instead of an empty flee
   expect((await page.request.get("/api/v1/fleet/vehicles")).status()).toBe(503);
   await expect(page.getByText("Oczekiwanie na pierwszy odczyt WEBFLEET.").first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toHaveCount(0);
+});
+
+test("vehicle details recover from an initial 503 without signing in again", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", error => pageErrors.push(error.message));
+  const detailPath = `**/api/v1/fleet/vehicles/${vehicle}`;
+  await page.route(detailPath, route => route.fulfill({
+    status: 503,
+    contentType: "application/json",
+    body: JSON.stringify({ error: { code: "DATABASE_UNAVAILABLE" } }),
+  }));
+  await login(page);
+  await page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ }).click();
+  const dialog = page.getByRole("dialog");
+  const alert = dialog.getByRole("alert");
+  await expect(alert).toContainText("Baza danych jest chwilowo niedostępna.");
+  await expect(alert.getByRole("button", { name: "Spróbuj ponownie" })).toBeVisible();
+  await expect(dialog.getByRole("status")).toHaveCount(0);
+  await page.unroute(detailPath);
+  await alert.getByRole("button", { name: "Spróbuj ponownie" }).click();
+  await expect(dialog.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+  await expect(dialog.getByRole("tab", { name: "Pojazd", exact: true })).toBeVisible();
+  expect(pageErrors).toEqual([]);
+});
+
+test("detail refresh failure warns and preserves an unsaved trip draft", async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(new Date());
+  const pageErrors: string[] = [];
+  page.on("pageerror", error => pageErrors.push(error.message));
+  const detailPath = `**/api/v1/fleet/vehicles/${vehicle}`;
+  await login(page);
+  await page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+  await dialog.getByRole("tab", { name: "Podróże", exact: true }).click();
+  await dialog.getByRole("list", { name: "Przejazdy pojazdu", exact: true }).getByRole("button").first().click();
+  const form = dialog.getByRole("form", { name: "Cel i opis przejazdu", exact: true });
+  const draft = `Szkic po błędzie odświeżania ${Date.now()}`;
+  await form.getByLabel(/Cel przejazdu/).fill(draft);
+  await page.route(detailPath, route => route.fulfill({
+    status: 503,
+    contentType: "application/json",
+    body: JSON.stringify({ error: { code: "DATABASE_UNAVAILABLE" } }),
+  }));
+  const failedRefresh = page.waitForResponse(response =>
+    new URL(response.url()).pathname === `/api/v1/fleet/vehicles/${vehicle}` &&
+    response.status() === 503,
+  );
+  await page.evaluate(() => window.dispatchEvent(new Event("online")));
+  await failedRefresh;
+  const alert = dialog.getByRole("alert");
+  await expect(alert).toContainText("Baza danych jest chwilowo niedostępna.");
+  await expect(form.getByLabel(/Cel przejazdu/)).toHaveValue(draft);
+  await page.unroute(detailPath);
+  await alert.getByRole("button", { name: "Spróbuj ponownie" }).click();
+  await expect(dialog.getByRole("alert")).toHaveCount(0);
+  await expect(form.getByLabel(/Cel przejazdu/)).toHaveValue(draft);
+  expect(pageErrors).toEqual([]);
+});
+
+test("missing vehicle details close the dialog without changing list state", async ({ page }) => {
+  const detailPath = `**/api/v1/fleet/vehicles/${vehicle}`;
+  await page.route(detailPath, route => route.fulfill({
+    status: 404,
+    contentType: "application/json",
+    body: JSON.stringify({ error: { code: "NOT_FOUND" } }),
+  }));
+  await login(page);
+  await page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+});
+
+test("unauthorized detail refresh removes private state and returns to login", async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(new Date());
+  const detailPath = `**/api/v1/fleet/vehicles/${vehicle}`;
+  await login(page);
+  await page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+  await dialog.getByRole("tab", { name: "Podróże", exact: true }).click();
+  const form = dialog.getByRole("form", { name: "Cel i opis przejazdu", exact: true });
+  await form.getByLabel(/Cel przejazdu/).fill("Prywatny szkic do usunięcia");
+  await page.route(detailPath, route => route.fulfill({
+    status: 401,
+    contentType: "application/json",
+    body: JSON.stringify({ error: { code: "UNAUTHENTICATED" } }),
+  }));
+  const unauthorizedRefresh = page.waitForResponse(response =>
+    new URL(response.url()).pathname === `/api/v1/fleet/vehicles/${vehicle}` &&
+    response.status() === 401,
+  );
+  await page.evaluate(() => window.dispatchEvent(new Event("online")));
+  await unauthorizedRefresh;
+  await expect(page.getByRole("button", { name: "Zaloguj się", exact: true })).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByLabel(/Cel przejazdu/)).toHaveCount(0);
 });
 
 test("invalidated session returns to login", async ({ page }) => {
