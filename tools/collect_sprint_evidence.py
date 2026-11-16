@@ -23,6 +23,7 @@ SERVER_COMMAND = (
     'git fetch && curl -s --max-time 25 http://57.129.179.53/ '
     '| grep "$(git rev-parse --short=7 origin/main)"'
 )
+APP_ORIGIN = "https://fleet-flow.pl"
 HUMAN_CHECKS = """## Nadal do potwierdzenia przez zespół
 
 - Pełny odbiór przynajmniej jednej Story Sprintu 1 według DEFINITION_OF_DONE.md.
@@ -73,6 +74,20 @@ def commit_count(result):
     return count if result["exit_code"] == expected_code else None
 
 
+def readiness_ok(result):
+    """A redirect or a proxy page is not evidence of API/database readiness."""
+    if result["exit_code"] != 0:
+        return False
+    body, separator, status = result["stdout"].strip().rpartition("\n")
+    if not separator or status != "200":
+        return False
+    try:
+        payload = json.loads(body)
+    except ValueError:
+        return False
+    return isinstance(payload, dict) and payload.get("status") == "ok"
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--protection-since", type=protection_date,
@@ -91,9 +106,10 @@ def main(argv=None):
     checks["main"] = capture(
         ["git", "rev-parse", "--short=7", "origin/main"], root, output, "01-main")
     checks["health"] = capture(
-        ["curl", "-fsS", "--max-time", "25",
-         "https://vps-9171bf52.vps.ovh.net/api/health/ready"],
+        ["curl", "-fsS", "--max-time", "25", "--write-out", "\n%{http_code}\n",
+         APP_ORIGIN + "/api/health/ready"],
         root, output, "01-health")
+    checks["health"]["ready"] = readiness_ok(checks["health"])
     checks["pull_requests"] = capture(
         ["gh", "pr", "list", "--repo", "DawidHnat/Projekt_Zespolowy",
          "--state", "merged", "--limit", "100", "--json",
@@ -112,6 +128,8 @@ def main(argv=None):
         count = commit_count(checks["commits"])
     failures = [name for name, result in checks.items()
                 if name != "commits" and result["exit_code"] != 0]
+    if not checks["health"]["ready"] and "health" not in failures:
+        failures.append("health")
     if "commits" in checks and (count is None or count > 0):
         failures.append("commits")
     state = "BŁĄD — sprawdź wyniki" if failures else (
@@ -124,11 +142,14 @@ def main(argv=None):
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     sections = ["# Dowody Sprintu 1\n", f"Stan zbierania: **{state}**.\n",
                 f"Czas UTC: {now.isoformat()}.\n",
-                "Aplikacja: https://vps-9171bf52.vps.ovh.net/ .\n"]
+                f"Aplikacja: {APP_ORIGIN}/ .\n"]
     for name, result in checks.items():
         sections.extend([f"## {name}\n", "```sh\n" + result["command"] + "\n```\n",
                          f"Kod wyjścia: {result['exit_code']}.\n",
                          "```text\n" + result["stdout"].rstrip() + "\n```\n"])
+        if name == "health":
+            sections.append("Gotowość API i bazy: **" +
+                            ("PASS" if result["ready"] else "FAIL") + "**.\n")
         if result["stderr"]:
             sections.append("stderr:\n```text\n" + result["stderr"].rstrip() + "\n```\n")
     if not args.protection_since:

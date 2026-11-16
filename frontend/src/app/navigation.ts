@@ -8,6 +8,7 @@ import {
   Users,
   Wrench,
   Settings,
+  UserRound,
 } from "lucide-react";
 
 // Page IDs are independent of the persisted dashboard layout groups.
@@ -84,6 +85,12 @@ export const sections = [
       description:
         "Tu pojawią się alerty floty, ich statusy i reguły powiadomień, aby łatwo odnaleźć sprawy wymagające reakcji.",
     },
+  },
+  {
+    id: "profile",
+    title: "Profil",
+    icon: UserRound,
+    description: "Twoje konto, hasło i bezpieczeństwo sesji.",
   },
   {
     id: "settings",

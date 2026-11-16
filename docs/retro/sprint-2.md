@@ -1,5 +1,20 @@
 # Retrospektywa Sprintu 2 — materiał do spotkania
 
+**Aktualizacja 12.11.2026:** PO ponownie potwierdził, że Review/retro S2
+i pełny odbiór całej Story jeszcze się nie odbyły. Organizacja spotkań
+i start istniejącego S3: SCRUM-142; pełne DoD: SCRUM-141. Zachowujemy niżej
+historyczne obserwacje z 10.11 jako materiał do oceny przez zespół.
+
+Od tego czasu PR #76 trafił do main. Run `43105067278` dla `2b3f2ba`
+potwierdza success testów, osobnego lintu, wdrożenia i smoke. HTTP pokazuje
+to samo SHA, HTTPS readiness zwraca 200 i JSON `status=ok`. Wymagane checki
+ochrony nadal obejmują tylko `Required CI`; dodanie dwóch osobnych checków
+pozostaje u Dawida w SCRUM-140. S3 nadal jest przyszły, a SCRUM-128/129 są
+w nim zaplanowane. [Aktualne dowody i braki](../COURSE_READINESS.md).
+
+Po spotkaniu dopisać rzeczywistą datę, uczestników, ocenę skutków działań
+S1 oraz decyzję o nowych działaniach; niniejszy materiał tego nie zastępuje.
+
 Stan dowodów: **10.11.2026**, Sprint 2 nadal trwa. PO potwierdził, że Review
 Sprintu 2 i odbiór przez Marcela całej historyjki jeszcze się nie odbyły.
 To przygotowany zapis obserwacji i propozycji do prawdziwej retrospektywy;
