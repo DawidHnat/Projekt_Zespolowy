@@ -23,6 +23,7 @@ def test_postgres_migration_round_trip():
         # Never print a migration exception that may contain connection credentials.
         assert result.returncode == 0, f"Migration command failed: {command}"
 
+
 def test_migrations_have_one_unique_head():
     from pathlib import Path
 
