@@ -4,18 +4,54 @@
 set -Eeuo pipefail
 umask 077
 
-[[ $EUID -eq 0 && $# -eq 1 && $1 =~ ^[0-9a-f]{40}$ ]] || {
-  printf 'Użycie: root fleet-flow-deploy <40 znaków SHA>, archiwum na stdin.\n' >&2
+[[ $EUID -eq 0 && $# -ge 1 && $1 =~ ^[0-9a-f]{40}$ ]] || {
+  printf 'Użycie: root fleet-flow-deploy <40 znaków SHA> ' >&2
+  printf '[--allow-rollback], archiwum na stdin.\n' >&2
   exit 1
 }
 
 revision=$1
+allow_rollback=0
+for arg in "${@:2}"; do
+  if [[ "$arg" == "--allow-rollback" ]]; then
+    allow_rollback=1
+  fi
+done
+if [[ "${FLEET_FLOW_ALLOW_ROLLBACK:-}" =~ ^(1|true|yes)$ ]]; then
+  allow_rollback=1
+fi
+
 short_revision=${revision:0:7}
 base=/opt/fleet-flow
 shared="$base/shared"
 install -d -m 700 "$base/releases" "$shared/backups"
-release=$(mktemp -d "$base/releases/$revision.XXXXXX")
 previous=$(readlink -f "$base/current" || true)
+
+current_commit=""
+if [[ -n $previous && -f "$previous/commit" ]]; then
+  current_commit=$(cat "$previous/commit")
+fi
+
+# Walidacja aktualności wydania PRZED wypakowaniem i PRZED mutacją (SCRUM-137)
+scripts_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+validator="/usr/local/sbin/fleet-flow-validate-release"
+test -f "$validator" || validator="$scripts_dir/validate_release.py"
+
+validation_cmd=(
+  python3 "$validator"
+  --target-sha "$revision"
+  --repo-dir "$shared/repo.git"
+)
+if [[ -n "$current_commit" ]]; then
+  validation_cmd+=(--current-sha "$current_commit")
+fi
+if [[ "$allow_rollback" -eq 1 ]]; then
+  validation_cmd+=(--allow-rollback)
+fi
+
+"${validation_cmd[@]}"
+
+release=$(mktemp -d "$base/releases/$revision.XXXXXX")
 
 # Filtr data odrzuca ścieżki wychodzące poza wydanie, urządzenia i niebezpieczne linki.
 python3 -c '
@@ -44,6 +80,9 @@ rollback() {
   result=$?
   trap - ERR
   printf 'Wdrożenie nie przeszło kontroli; nie zatwierdzono nowej wersji.\n' >&2
+  if [[ -d "${release:-}" ]]; then
+    rm -rf -- "$release"
+  fi
   if [[ -n $previous && -f "$previous/commit" && -f "$shared/runtime.env.previous" ]]; then
     cp "$shared/runtime.env.previous" "$FLEET_FLOW_ENV_FILE"
     old_revision=$(cat "$previous/commit")
@@ -75,7 +114,8 @@ dc exec -T database sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > 
 # Rzeczywista próba odtworzenia do osobnej tymczasowej bazy, bez zmiany bazy aplikacji.
 restore_database="fleet_flow_restore_$(date +%s)_$$"
 dc exec -T database sh -c 'createdb -U "$POSTGRES_USER" "$1"' sh "$restore_database"
-if dc exec -T database sh -c 'pg_restore --exit-on-error --no-owner -U "$POSTGRES_USER" -d "$1"' sh "$restore_database" < "$backup"; then
+restore_cmd='pg_restore --exit-on-error --no-owner -U "$POSTGRES_USER" -d "$1"'
+if dc exec -T database sh -c "$restore_cmd" sh "$restore_database" < "$backup"; then
   dc exec -T database sh -c 'dropdb -U "$POSTGRES_USER" "$1"' sh "$restore_database"
 else
   dc exec -T database sh -c 'dropdb -U "$POSTGRES_USER" "$1"' sh "$restore_database" || true
