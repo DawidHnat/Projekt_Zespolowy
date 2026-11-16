@@ -41,7 +41,7 @@ osobnego uzgodnienia. Raporty/CSV są już w SCRUM-50 i nie są dublowane.
 | --- | --- | --- | --- |
 | SCRUM-12 | Konta SSH OVH i instrukcje zespołu | [#5](https://github.com/DawidHnat/Projekt_Zespolowy/pull/5) | Klucze i własne testy trzech pozostałych osób |
 | SCRUM-38 | Pulpit, wygląd i edycja układu | [#6](https://github.com/DawidHnat/Projekt_Zespolowy/pull/6) | QA SCRUM-40 |
-| SCRUM-14 | Adapter i diagnostyka WEBFLEET/SMTP | [#7](https://github.com/DawidHnat/Projekt_Zespolowy/pull/7) | Potwierdzenie jednostek i pól; prędkość do tego czasu pozostaje null |
+| SCRUM-14 | Adapter i diagnostyka WEBFLEET/SMTP | [#7](https://github.com/DawidHnat/Projekt_Zespolowy/pull/7) | Raport spike'a z mapowaniem, adresem postext i otwartą jednostką speed (null); review QA |
 | SCRUM-36 | Model danych i kontrakt API | [#8](https://github.com/DawidHnat/Projekt_Zespolowy/pull/8) | Uzgadnianie kontraktu kolejnych pól w zadaniach |
 | SCRUM-39 | FastAPI, PostgreSQL, migracje, health i CI | [#9](https://github.com/DawidHnat/Projekt_Zespolowy/pull/9) | Sprawdzenie uruchomienia na komputerach zespołu |
 | SCRUM-16 | Logowanie i sesje | [#10](https://github.com/DawidHnat/Projekt_Zespolowy/pull/10) | QA SCRUM-56, w tym cookie i sesje na działającym HTTPS VPS |
