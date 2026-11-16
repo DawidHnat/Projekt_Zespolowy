@@ -148,6 +148,7 @@ wyłącznie prototypowi. Poprzednią wersję zachowano na stronie archiwalnej Fi
 - [Przepływy, ekrany i instrukcja przeglądu](docs/PROTOTYPE.md)
 - [Historyjki MVP i podział dużych Story](docs/MVP_BACKLOG.md)
 - [Odbiór zadania kursowego, linki i polecenia do oddania](docs/COURSE_SUBMISSION.md)
+- [Gotowość zadań 4.1/4.2: dowody Sprintów 1/2 i prace do domknięcia](docs/COURSE_READINESS.md)
 - [Przegląd Sprintu i PR-y — dowody kolejnego zadania](docs/SPRINT_REVIEW_SUBMISSION.md)
 - [Scenariusz Review Sprintu 1](docs/SPRINT_1_REVIEW.md) i [retrospektywa do potwierdzenia przez zespół](docs/retro/sprint-1.md)
 
@@ -203,6 +204,7 @@ z aktualnego `main`; pozostały zakres i odbiór QA śledzimy w Jirze.
 - [Zasady współpracy i PR](CONTRIBUTING.md)
 - [Przepływ Scrum, role i zasady odbioru](docs/SCRUM_WORKFLOW.md)
 - [Warunki ukończenia przyrostu](DEFINITION_OF_DONE.md)
+- [Przegląd prywatności, korekta inwentarza i otwarte decyzje SCRUM-94](docs/privacy/SCRUM-94-acceptance.md)
 - [Instrukcje dla agentów AI](AGENTS.md)
 
 ## Serwer deweloperski

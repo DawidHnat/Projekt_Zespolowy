@@ -22,8 +22,8 @@ async function privateDraft(page: Page) {
   const form = dialog.getByRole("form", { name: "Cel i opis przejazdu", exact: true });
   await form.getByLabel(/Cel przejazdu/).fill("Private profile session fixture");
   // Suspend polling: the operation itself must invalidate the other tab's view.
-  await page.clock.install();
-  await page.clock.pauseAt(new Date());
+  // pauseAt installs the clock automatically; using a future time avoids racing with real time.
+  await page.clock.pauseAt(new Date(Date.now() + 60_000));
   return form;
 }
 

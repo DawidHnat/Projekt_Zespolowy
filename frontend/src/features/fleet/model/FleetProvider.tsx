@@ -11,6 +11,7 @@ import { browserPollingEnvironment, startPolling } from "../../../shared/api/pol
 import { useAuth } from "../../auth/AuthProvider";
 import { normalizePageSize } from "../../../shared/components/pagination-model";
 import { fleetPollInterval } from "./types";
+import { useVehiclePreferences } from "./VehiclePreferences";
 import type {
   FleetMap,
   Summary,
@@ -33,6 +34,7 @@ type FleetState = {
   status: VehicleStatus | "";
   page: number;
   pageSize: number;
+  preferencesLoading: boolean;
   selectedId: string | null;
   selected: Vehicle | null;
   detailsOpen: boolean;
@@ -52,33 +54,22 @@ export function FleetProvider({ children }: { children: ReactNode }) {
 }
 
 function AccountFleetProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
-  const storageKey = `fleet-flow.list-page-size.v1.${user?.id}`;
+  const preferences = useVehiclePreferences();
   const [list, setList] = useState<VehicleList | null>(null);
   const [map, setMap] = useState<FleetMap | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [q, setQuery] = useState("");
+  const q = preferences.filters.q;
   const [debouncedQ, setDebouncedQ] = useState("");
-  const [status, setFilter] = useState<VehicleStatus | "">("");
+  const status = preferences.filters.status as VehicleStatus | "";
+  const sort = preferences.sort;
   const [page, setPage] = useState(1);
-  const [pageSize, setSize] = useState(() => {
-    try {
-      return normalizePageSize(Number(localStorage.getItem(storageKey)));
-    } catch {
-      return 25;
-    }
-  });
+  const pageSize = preferences.pageSize;
   const setPageSize = (value: number) => {
     const next = normalizePageSize(value);
-    setSize(next);
+    preferences.updatePageSize(next);
     setPage(1);
-    try {
-      localStorage.setItem(storageKey, String(next));
-    } catch {
-      /* Session-only preference. */
-    }
   };
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Vehicle | null>(null);
@@ -90,16 +81,22 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timer);
   }, [q]);
   useEffect(() => {
+    if (preferences.cloud.loading) {
+      setLoading(true);
+      return;
+    }
     const load = async (signal: AbortSignal) => {
       setLoading(true);
       const filter = new URLSearchParams({
         q: debouncedQ,
         ...(status ? { status } : {}),
       });
+      const listFilter = new URLSearchParams(filter);
+      listFilter.set("sort", sort);
       try {
         const [nextList, nextMap, nextSummary] = await Promise.all([
           api<VehicleList>(
-            `/fleet/vehicles?${filter}&page=${page}&page_size=${pageSize}`,
+            `/fleet/vehicles?${listFilter}&page=${page}&page_size=${pageSize}`,
             { signal },
           ),
           api<FleetMap>(`/fleet/map?${filter}`, { signal }),
@@ -133,7 +130,7 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
       poll.dispose();
       listPoll.current = null;
     };
-  }, [debouncedQ, status, page, pageSize]);
+  }, [debouncedQ, status, sort, page, pageSize, preferences.cloud.loading]);
   useEffect(() => {
     if (!selectedId) {
       setSelected(null);
@@ -165,13 +162,13 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
     };
   }, [selectedId]);
   const setQ = (value: string) => {
-    setQuery(value);
+    preferences.updateFilters({ ...preferences.filters, q: value });
     setPage(1);
     setSelectedId(null);
     setDetailsOpen(false);
   };
   const setStatus = (value: VehicleStatus | "") => {
-    setFilter(value);
+    preferences.updateFilters({ ...preferences.filters, status: value });
     setPage(1);
     setSelectedId(null);
     setDetailsOpen(false);
@@ -188,6 +185,8 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
         status,
         page,
         pageSize,
+        preferencesLoading:
+          preferences.cloud.loading || preferences.cloud.migrationAvailable,
         selectedId,
         selected: selected?.id === selectedId ? selected : null,
         detailsOpen,

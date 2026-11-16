@@ -28,20 +28,42 @@ export function useLayoutEditor(
       ...(drafts.map ? { map: drafts.map.layouts } : {}),
     },
   }), [settings.preferences, drafts]);
-  const start = (view: EditableSection) => setDrafts(previous => ({
-    ...previous,
-    [view]: previous[view] ?? createLayoutDraft(settings.preferences, view),
-  }));
+  const start = (view: EditableSection) => {
+    if (view === "dashboard" && (
+      settings.cloud.loading ||
+      settings.cloud.saving ||
+      settings.cloud.migrationAvailable
+    )) return;
+    setDrafts(previous => ({
+      ...previous,
+      [view]: previous[view] ?? createLayoutDraft(settings.preferences, view),
+    }));
+  };
   const cancel = (view: EditableSection) => setDrafts(previous => {
     const next = { ...previous };
     delete next[view];
     return next;
   });
-  const save = (view: EditableSection) => {
+  const save = async (view: EditableSection, overwrite = false) => {
     const draft = drafts[view];
-    if (!draft) return;
-    settings.setPreferences(previous => commitLayoutDraft(previous, view, draft));
-    cancel(view);
+    if (!draft) return false;
+    const next = commitLayoutDraft(settings.preferences, view, draft);
+    if (view === "dashboard") {
+      const saved = await settings.saveArrangement({
+        visibleWidgets: next.visibleWidgets,
+        layouts: { dashboard: next.layouts.dashboard },
+      }, overwrite);
+      if (!saved) return false;
+    } else {
+      settings.setPreferences(next);
+    }
+    setDrafts(previous => {
+      if (previous[view] !== draft) return previous;
+      const remaining = { ...previous };
+      delete remaining[view];
+      return remaining;
+    });
+    return true;
   };
   const update = useCallback<DashboardGridProps["onLayout"]>((view, profile, layout) => {
     if (view !== "map" && view !== "dashboard") return;
@@ -57,8 +79,20 @@ export function useLayoutEditor(
     });
   }, []);
   const toggleWidget = (id: WidgetId) => {
+    if (
+      settings.cloud.loading ||
+      settings.cloud.saving ||
+      settings.cloud.migrationAvailable
+    ) return;
     if (!drafts.dashboard) {
-      settings.toggleWidget(id);
+      const visibleWidgets = settings.preferences.visibleWidgets.includes(id)
+        ? settings.preferences.visibleWidgets.filter(value => value !== id)
+        : [...settings.preferences.visibleWidgets, id];
+      settings.setPreferences(previous => ({ ...previous, visibleWidgets }));
+      void settings.saveArrangement({
+        visibleWidgets,
+        layouts: { dashboard: settings.preferences.layouts.dashboard },
+      });
       return;
     }
     setDrafts(previous => {
@@ -82,22 +116,34 @@ export function useLayoutEditor(
       },
     };
   });
-  const resetAll = () => {
+  const resetAll = async () => {
     const defaults = defaultPreferences();
-    settings.setPreferences(previous => ({
+    const next = {
       ...defaults,
-      visibleWidgets: drafts.dashboard ? previous.visibleWidgets : defaults.visibleWidgets,
+      visibleWidgets: defaults.visibleWidgets,
       layouts: {
         ...defaults.layouts,
-        ...(drafts.dashboard ? { dashboard: previous.layouts.dashboard } : {}),
-        ...(drafts.map ? { map: previous.layouts.map } : {}),
       },
-    }));
+    };
+    const saved = await settings.saveArrangement({
+      visibleWidgets: next.visibleWidgets,
+      layouts: { dashboard: next.layouts.dashboard },
+    });
+    if (!saved) return;
+    settings.setPreferences(next);
     setDrafts(previous => Object.fromEntries(
       (Object.keys(previous) as EditableSection[]).map(view => [
         view, createLayoutDraft(defaults, view),
       ]),
     ));
   };
-  return { drafts, effective, start, cancel, save, update, toggleWidget, resetView, resetAll };
+  const reloadDashboard = () => {
+    settings.reloadRemoteArrangement();
+    cancel("dashboard");
+  };
+  const overwriteDashboard = () => save("dashboard", true);
+  return {
+    drafts, effective, start, cancel, save, update, toggleWidget, resetView,
+    resetAll, reloadDashboard, overwriteDashboard,
+  };
 }

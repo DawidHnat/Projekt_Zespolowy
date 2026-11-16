@@ -32,6 +32,7 @@ import { ProfilePage } from "../features/auth/ProfilePage";
 import { VehicleCardsPage } from "../features/fleet/components/VehicleCardsPage";
 import { VehicleLayoutEditorControls } from "../features/fleet/components/VehicleLayoutEditorControls";
 import { VehicleDetailsDialog } from "../features/fleet/components/VehicleDetailsDialog";
+import { AccountPreferenceNotice } from "../shared/components/AccountPreferenceNotice";
 
 const readSection = () => sectionFromHash(window.location.hash);
 
@@ -69,11 +70,20 @@ export function App() {
   }, []);
   useEffect(() => {
     if (!sidebarOpen) return;
+    const viewport = window.matchMedia("(max-width: 760px)");
+    const handleViewport = () => {
+      if (!viewport.matches) setSidebarOpen(false);
+    };
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setSidebarOpen(false);
     };
+    handleViewport();
+    viewport.addEventListener("change", handleViewport);
     window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
+    return () => {
+      viewport.removeEventListener("change", handleViewport);
+      window.removeEventListener("keydown", handleEscape);
+    };
   }, [sidebarOpen]);
   const current = sections.find((value) => value.id === section)!;
   const SectionIcon = current.icon;
@@ -231,6 +241,29 @@ export function App() {
           className={`main-content ${section === "map" ? "map-main-content" : ""}`}
           tabIndex={-1}
         >
+          {(section === "dashboard" || section === "settings") && (
+            <AccountPreferenceNotice
+              title="Pulpit"
+              loading={settings.cloud.loading}
+              error={settings.cloud.error}
+              saving={settings.cloud.saving}
+              migrationAvailable={settings.cloud.migrationAvailable}
+              conflict={settings.cloud.conflict}
+              onImport={() => void settings.chooseMigration(true)}
+              onDefaults={() => void settings.chooseMigration(false)}
+              onReload={() => {
+                settings.reloadRemoteArrangement();
+                editor.cancel("dashboard");
+              }}
+              onOverwrite={() => {
+                if (editor.drafts.dashboard) void editor.overwriteDashboard();
+                else void settings.saveArrangement({
+                  visibleWidgets: settings.preferences.visibleWidgets,
+                  layouts: { dashboard: settings.preferences.layouts.dashboard },
+                }, true);
+              }}
+            />
+          )}
           <div
             className={`page-heading ${section === "vehicles" ? "vehicles-page-heading" : ""}`}
           >
@@ -255,6 +288,15 @@ export function App() {
                 onReset={() => editor.resetView(editableView)}
                 onCancel={() => editor.cancel(editableView)}
                 onSave={() => editor.save(editableView)}
+                disabled={
+                  editableView === "dashboard" &&
+                  (
+                    settings.cloud.loading ||
+                    settings.cloud.saving ||
+                    settings.cloud.migrationAvailable
+                  )
+                }
+                saving={editableView === "dashboard" && settings.cloud.saving}
               />
             )}
             {section === "vehicles" && (
@@ -267,7 +309,7 @@ export function App() {
                 section="dashboard"
                 ids={visible}
                 layouts={effective.layouts}
-                editing={Boolean(draft)}
+                editing={Boolean(draft) && !settings.cloud.saving}
                 onLayout={editor.update}
                 onHide={editor.toggleWidget}
               />
@@ -336,6 +378,14 @@ export function App() {
               }
               onToggle={editor.toggleWidget}
               onReset={editor.resetAll}
+              modulesDisabled={
+                settings.cloud.loading || settings.cloud.migrationAvailable
+                || settings.cloud.saving
+              }
+              resetDisabled={
+                settings.cloud.loading || settings.cloud.migrationAvailable
+                || settings.cloud.saving
+              }
             />
           ) : (
             <WorkspacePage section={current} />

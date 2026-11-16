@@ -9,13 +9,19 @@ from app.core.database import get_session
 from app.core.errors import ApiError
 from app.core.models import Driver, Measurement, Vehicle
 from app.modules.auth.service import current_user
-from app.modules.fleet.service import fleet_rows, serialize_vehicle, source_payload
+from app.modules.fleet.service import (
+    fleet_rows,
+    serialize_vehicle,
+    sort_fleet_rows,
+    source_payload,
+)
 from app.modules.fleet.sync import account_key
 
 router = APIRouter(prefix="/api/v1/fleet", tags=["fleet"], dependencies=[Depends(current_user)])
 SessionDep = Annotated[Session, Depends(get_session)]
 Search = Annotated[str, Query(max_length=100)]
 Status = Literal["moving", "stopped", "offline", "unknown"] | None
+VehicleSort = Literal["name-asc", "name-desc", "status", "odometer-asc", "odometer-desc"]
 
 
 def context(request, session):
@@ -30,6 +36,7 @@ def vehicles(
     session: SessionDep,
     q: Search = "",
     status: Status = None,
+    sort: VehicleSort = "name-asc",
     page: Annotated[int, Query(ge=1, le=100_000)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 25,
 ):
@@ -42,6 +49,7 @@ def vehicles(
         status,
         source_degraded=metadata["status"] == "degraded",
     )
+    items = sort_fleet_rows(items, sort)
     start = (page - 1) * page_size
     return {
         "items": items[start : start + page_size],

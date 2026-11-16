@@ -21,6 +21,7 @@ from app.main import create_app
 from app.modules.auth.models import LoginAttempt, LoginSession, User
 from app.modules.auth.service import password_hasher
 from app.modules.fleet.sync import account_key
+from app.modules.preferences.models import AccountPreference
 from app.modules.trips.models import Trip
 
 ACCOUNT = "synthetic-e2e-source"
@@ -123,6 +124,7 @@ def main():
         with Session(engine) as session:
             session.execute(delete(LoginAttempt))
             session.execute(delete(LoginSession))
+            session.execute(delete(AccountPreference))
             for user in session.scalars(
                 select(User).where(User.username.in_(("e2e-editor", "e2e-viewer")))
             ):

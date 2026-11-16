@@ -44,6 +44,12 @@ Foreign key bez cascade chroni notatkę przed przypadkowym usunięciem przejazdu
 7. Jasny i ciemny motyw, szkło, ekran 390 px: pola i przyciski mieszczą się
    w dialogu, tekst jest czytelny. Tab/Shift+Tab, strzałki zakładek i Escape
    pozwalają obsłużyć dialog z klawiatury.
+8. Rozpocznij szkic przy wyborze Dzisiaj przed polską północą. Ukryj kartę
+   i przejdź offline; po wznowieniu następnego dnia tekst i wybrany przejazd
+   nadal mają pozostać. Nie wolno automatycznie zmienić dnia i odmontować
+   edytora. Po świadomym zapisaniu lub anulowaniu szkicu wybór względny
+   ponownie podąża za aktualnym dniem. Test E2E zawsze zaczyna o 23:55
+   Europe/Warsaw i przesuwa zegar przez północ, niezależnie od godziny CI.
 
 ## Weryfikacja automatyczna
 

@@ -35,10 +35,11 @@ samej instrukcji konfiguracji.
 
 ## Bramy jakości Sprintu 2
 
-Macierz opisuje docelowy sposób sprawdzania. Nowe `Lint` i `Post-deploy smoke`
-są dostarczane w PR SCRUM-127; zanim PR trafi do main i odbędzie się udane
-wdrożenie, nie są dowodem istniejącego wykonania na main. Zachowujemy nazwy
-wszystkich dotychczasowych jobów. `Post-deploy smoke` nie jest wymaganym
-checkiem PR: dla PR deployment i smoke są pomijane. Nowy wymagany lint
-i istniejący test `Backend (3.13)` dodaje właściciel, zachowując `Required CI`
-oraz wszystkie dotychczasowe zabezpieczenia.
+Stan 12.11.2026: `Lint` i `Post-deploy smoke` są na main po PR #76
+(SCRUM-127). Run `43105067278` dla `2b3f2ba` potwierdza sukces testów,
+lintu, wdrożenia i smoke; nie potwierdza pełnego odbioru Story przez człowieka.
+Zachowujemy nazwy wszystkich dotychczasowych jobów. `Post-deploy smoke`
+nie jest wymaganym checkiem PR: dla PR deployment i smoke są pomijane.
+Ochrona nadal wymaga tylko `Required CI`. Właściciel dodaje osobno wymagane
+`Backend (3.13)` i `Lint` w SCRUM-140, zachowując dotychczasowe zabezpieczenia.
+[Bieżące dowody i braki oddania](docs/COURSE_READINESS.md).
