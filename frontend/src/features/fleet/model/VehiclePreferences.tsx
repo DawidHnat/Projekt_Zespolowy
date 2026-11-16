@@ -7,12 +7,14 @@ import {
   type ReactNode,
 } from "react";
 import { useAuth } from "../../auth/AuthProvider";
-import { prepareLocalImage } from "../../../shared/media/local-image";
 import {
-  readVehiclePhotos,
-  saveVehiclePhoto,
-  deleteVehiclePhoto,
-} from "./vehicle-photo-store";
+  readAccountPreference,
+  writeAccountPreference,
+  type AccountPreference,
+} from "../../../shared/api/account-preferences";
+import { ApiError } from "../../../shared/api/client";
+import { prepareLocalImage } from "../../../shared/media/local-image";
+import { readVehiclePhotos, saveVehiclePhoto, deleteVehiclePhoto } from "./vehicle-photo-store";
 import {
   normalizeLayoutConfig,
   cardSize,
@@ -23,29 +25,87 @@ import {
   type VehicleLayoutConfig,
 } from "./vehicle-layout";
 
+type VehicleSort = "name-asc" | "name-desc" | "status" | "odometer-asc" | "odometer-desc";
+type VehicleModulePreferences = {
+  layout: VehicleLayoutConfig;
+  sort: VehicleSort;
+  filters: { q: string; status: string };
+  pageSize: number;
+};
+type VehicleCloudState = {
+  loading: boolean;
+  error: string | null;
+  migrationAvailable: boolean;
+  conflict: AccountPreference<VehicleModulePreferences> | null;
+};
+const pageSizes = [10, 25, 50, 100];
+const sorts: VehicleSort[] = ["name-asc", "name-desc", "status", "odometer-asc", "odometer-desc"];
+const statuses = ["moving", "stopped", "offline", "unknown"];
+
+function defaults(): VehicleModulePreferences {
+  return {
+    layout: normalizeLayoutConfig(null),
+    sort: "name-asc",
+    filters: { q: "", status: "" },
+    pageSize: 25,
+  };
+}
+
+function normalizeModulePreferences(value: unknown): VehicleModulePreferences {
+  const item = value && typeof value === "object" && !Array.isArray(value)
+    ? value as Partial<VehicleModulePreferences>
+    : {};
+  const filters: Partial<VehicleModulePreferences["filters"]> =
+    item.filters && typeof item.filters === "object"
+    ? item.filters
+    : {};
+  return {
+    layout: normalizeLayoutConfig(item.layout),
+    sort: sorts.includes(item.sort as VehicleSort)
+      ? item.sort as VehicleSort
+      : "name-asc",
+    filters: {
+      q: typeof filters.q === "string" ? filters.q.slice(0, 100) : "",
+      status: statuses.includes(filters.status ?? "") ? filters.status! : "",
+    },
+    pageSize: pageSizes.includes(item.pageSize ?? 0) ? item.pageSize! : 25,
+  };
+}
+
+function readLocalPreferences(scope: string) {
+  try {
+    const layout = localStorage.getItem(`fleet-flow.vehicles.v2.${scope}`) ??
+      localStorage.getItem(`fleet-flow.vehicles.v1.${scope}`);
+    const pageSize = localStorage.getItem(`fleet-flow.list-page-size.v1.${scope}`);
+    return {
+      value: {
+        ...defaults(),
+        layout: normalizeLayoutConfig(JSON.parse(layout ?? "{}")),
+        pageSize: pageSizes.includes(Number(pageSize)) ? Number(pageSize) : 25,
+      },
+      persistent: true,
+      exists: Boolean(layout || pageSize),
+    };
+  } catch {
+    return { value: defaults(), persistent: false, exists: false };
+  }
+}
+
 function usePreferences(scope: string) {
+  const [initial] = useState(() => readLocalPreferences(scope));
   const storageKey = `fleet-flow.vehicles.v2.${scope}`;
-  const [initial] = useState(() => {
-    try {
-      return {
-        layout: normalizeLayoutConfig(
-          JSON.parse(
-            localStorage.getItem(storageKey) ??
-              localStorage.getItem(`fleet-flow.vehicles.v1.${scope}`) ??
-              "{}",
-          ),
-        ),
-        persistent: true,
-      };
-    } catch {
-      return { layout: normalizeLayoutConfig(null), persistent: false };
-    }
-  });
-  const [saved, setSaved] = useState<VehicleLayoutConfig>(initial.layout);
+  const [saved, setSaved] = useState<VehicleModulePreferences>(initial.value);
   const [draft, setDraft] = useState<VehicleLayoutConfig | null>(null);
   const [editScope, setEditScope] = useState<"all" | "selected">("selected");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [persistent, setPersistent] = useState(initial.persistent);
+  const [cloud, setCloud] = useState<VehicleCloudState>({
+    loading: true,
+    error: null,
+    migrationAvailable: false,
+    conflict: null,
+  });
+  const [saving, setSaving] = useState(false);
   const [photos, setPhotos] = useState<Record<string, string>>({});
   const [photosLoading, setPhotosLoading] = useState(true);
   const [photoError, setPhotoError] = useState("");
@@ -53,6 +113,142 @@ function usePreferences(scope: string) {
   const urls = useRef(new Map<string, string>());
   const mounted = useRef(false);
   const operation = useRef(0);
+  const revision = useRef(0);
+  const conflictRef = useRef<AccountPreference<VehicleModulePreferences> | null>(null);
+  const savedRef = useRef(saved);
+  savedRef.current = saved;
+  const saveQueue = useRef<Promise<boolean>>(Promise.resolve(true));
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setCloud({ loading: true, error: null, migrationAvailable: false, conflict: null });
+    void readAccountPreference<VehicleModulePreferences>("vehicles", controller.signal)
+      .then((result) => {
+        if (controller.signal.aborted) return;
+        revision.current = result.version;
+        if (result.value) setSaved(normalizeModulePreferences(result.value));
+        setCloud({
+          loading: false,
+          error: null,
+          migrationAvailable: result.version === 0 && result.value === null && initial.exists,
+          conflict: null,
+        });
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        setCloud({
+          loading: false,
+          error: error instanceof Error ? error.message : "Nie można pobrać ustawień konta.",
+          migrationAvailable: false,
+          conflict: null,
+        });
+      });
+    return () => controller.abort();
+  }, [scope, initial.exists]);
+
+  const writeValue = (
+    value: VehicleModulePreferences,
+    expectedVersion?: number,
+  ): Promise<boolean> => {
+    const task = saveQueue.current.then(async () => {
+      if (
+        cloud.loading ||
+        (cloud.migrationAvailable && expectedVersion === undefined) ||
+        (conflictRef.current && expectedVersion === undefined)
+      )
+        return false;
+      setSaving(true);
+      setCloud((current) => ({ ...current, error: null }));
+      try {
+        const result = await writeAccountPreference(
+          "vehicles",
+          expectedVersion ?? revision.current,
+          value,
+        );
+        revision.current = result.version;
+        conflictRef.current = null;
+        setCloud({ loading: false, error: null, migrationAvailable: false, conflict: null });
+        return true;
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 409) {
+          try {
+            const latest = await readAccountPreference<VehicleModulePreferences>("vehicles");
+            revision.current = latest.version;
+            conflictRef.current = latest;
+            setCloud({ loading: false, error: null, migrationAvailable: false, conflict: latest });
+          } catch (readError) {
+            setCloud((current) => ({
+              ...current,
+              error: readError instanceof Error
+                ? readError.message
+                : "Nie można odczytać bieżących ustawień konta.",
+            }));
+          }
+        } else {
+          setCloud((current) => ({
+            ...current,
+            error: error instanceof Error ? error.message : "Nie udało się zapisać ustawień konta.",
+          }));
+        }
+        return false;
+      } finally {
+        setSaving(false);
+      }
+    });
+    saveQueue.current = task;
+    return task;
+  };
+
+  const scheduleWrite = (value: VehicleModulePreferences) => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      saveTimer.current = null;
+      void writeValue(value);
+    }, 500);
+  };
+
+  const updateSettings = (patch: Partial<VehicleModulePreferences>) => {
+    if (cloud.loading || cloud.migrationAvailable) return;
+    const next = { ...savedRef.current, ...patch };
+    savedRef.current = next;
+    setSaved(next);
+    scheduleWrite(next);
+  };
+
+  const chooseMigration = async (importLocal: boolean) => {
+    const next = importLocal ? initial.value : defaults();
+    if (await writeValue(next, 0)) {
+      savedRef.current = next;
+      setSaved(next);
+    }
+  };
+
+  const resolveConflict = async (action: "reload" | "overwrite") => {
+    const conflict = conflictRef.current;
+    if (!conflict) return;
+    if (action === "reload") {
+      if (!conflict.value) return;
+      const latest = normalizeModulePreferences(conflict.value);
+      savedRef.current = latest;
+      setSaved(latest);
+      setDraft(null);
+      conflictRef.current = null;
+      setCloud({ loading: false, error: null, migrationAvailable: false, conflict: null });
+      return;
+    }
+    const layoutDraft = draft;
+    const next = {
+      ...savedRef.current,
+      ...(layoutDraft ? { layout: normalizeLayoutConfig(layoutDraft) } : {}),
+    };
+    if (await writeValue(next, conflict.version)) {
+      savedRef.current = next;
+      setSaved(next);
+      setDraft((current) => current === layoutDraft ? null : current);
+    }
+  };
+
   useEffect(() => {
     mounted.current = true;
     let active = true;
@@ -79,18 +275,20 @@ function usePreferences(scope: string) {
     return () => {
       active = false;
       mounted.current = false;
+      if (saveTimer.current) clearTimeout(saveTimer.current);
       for (const url of urls.current.values()) URL.revokeObjectURL(url);
       urls.current.clear();
     };
   }, [scope]);
+
   const upload = async (id: string, file: File) => {
     if (busy || photosLoading) return;
-    const revision = ++operation.current;
+    const revisionId = ++operation.current;
     setBusy(id);
     setPhotoError("");
     try {
       const image = await prepareLocalImage(file, 1024);
-      if (!mounted.current || operation.current !== revision) return;
+      if (!mounted.current || operation.current !== revisionId) return;
       try {
         await saveVehiclePhoto(scope, id, image);
       } catch {
@@ -99,21 +297,20 @@ function usePreferences(scope: string) {
             "Zdjęcie działa w tej sesji, ale przeglądarka nie zapisała go na później.",
           );
       }
-      if (!mounted.current || operation.current !== revision) return;
+      if (!mounted.current || operation.current !== revisionId) return;
       const url = URL.createObjectURL(image.blob);
       const previous = urls.current.get(id);
       urls.current.set(id, url);
       setPhotos((values) => ({ ...values, [id]: url }));
       if (previous) URL.revokeObjectURL(previous);
-    } catch (e) {
+    } catch (error) {
       if (mounted.current)
-        setPhotoError(
-          e instanceof Error ? e.message : "Nie udało się dodać zdjęcia.",
-        );
+        setPhotoError(error instanceof Error ? error.message : "Nie udało się dodać zdjęcia.");
     } finally {
-      if (mounted.current && operation.current === revision) setBusy(null);
+      if (mounted.current && operation.current === revisionId) setBusy(null);
     }
   };
+
   const remove = async (id: string) => {
     if (busy || photosLoading) return;
     setBusy(id);
@@ -131,13 +328,12 @@ function usePreferences(scope: string) {
       });
     } catch {
       if (mounted.current)
-        setPhotoError(
-          "Nie udało się usunąć zapisanego zdjęcia. Spróbuj ponownie.",
-        );
+        setPhotoError("Nie udało się usunąć zapisanego zdjęcia. Spróbuj ponownie.");
     } finally {
       if (mounted.current) setBusy(null);
     }
   };
+
   return {
     photos,
     photosLoading,
@@ -146,6 +342,16 @@ function usePreferences(scope: string) {
     upload,
     remove,
     persistent,
+    cloud,
+    saving,
+    sort: saved.sort,
+    filters: saved.filters,
+    pageSize: saved.pageSize,
+    updateFilters: (filters: VehicleModulePreferences["filters"]) => updateSettings({ filters }),
+    updateSort: (sort: VehicleSort) => updateSettings({ sort }),
+    updatePageSize: (pageSize: number) => updateSettings({ pageSize }),
+    chooseMigration,
+    resolveConflict,
     editing: draft !== null,
     editScope,
     selectedIds,
@@ -153,7 +359,7 @@ function usePreferences(scope: string) {
     isSelected: (id: string) =>
       draft !== null && (editScope === "all" || selectedIds.includes(id)),
     groupSize: targetSizes(
-      draft ?? saved,
+      draft ?? saved.layout,
       editScope === "all" ? "all" : selectedIds,
     ),
     toggle: (id: string) => {
@@ -180,12 +386,12 @@ function usePreferences(scope: string) {
       if (editScope === "selected" && !selectedIds.includes(id))
         setSelectedIds([id]);
     },
-    size: (id: string) => cardSize(draft ?? saved, id),
+    size: (id: string) => cardSize(draft ?? saved.layout, id),
     start: () => {
-      if (draft) return;
+      if (draft || cloud.loading || cloud.migrationAvailable || saving) return;
       setEditScope("selected");
       setSelectedIds([]);
-      setDraft(saved);
+      setDraft(saved.layout);
     },
     change: (id: string, patch: Partial<CardSize>) =>
       setDraft((previous) =>
@@ -204,47 +410,41 @@ function usePreferences(scope: string) {
     changeGroup: (patch: Partial<CardSize>) =>
       setDraft((previous) =>
         previous
-          ? resizeCards(
-              previous,
-              editScope === "all" ? "all" : selectedIds,
-              patch,
-            )
+          ? resizeCards(previous, editScope === "all" ? "all" : selectedIds, patch)
           : previous,
       ),
-    reset: () =>
-      setDraft((previous) =>
-        previous ? normalizeLayoutConfig(null) : previous,
-      ),
+    reset: () => setDraft((previous) => previous ? normalizeLayoutConfig(null) : previous),
     cancel: () => setDraft(null),
-    save: () => {
-      if (!draft) return;
-      const next = normalizeLayoutConfig(draft);
+    save: async (overwrite = false) => {
+      if (!draft) return false;
+      const layoutDraft = draft;
+      const next = { ...savedRef.current, layout: normalizeLayoutConfig(layoutDraft) };
+      if (!await writeValue(
+        next,
+        overwrite ? conflictRef.current?.version : undefined,
+      )) return false;
       try {
-        localStorage.setItem(storageKey, JSON.stringify(next));
+        localStorage.setItem(storageKey, JSON.stringify(next.layout));
+        localStorage.setItem(`fleet-flow.list-page-size.v1.${scope}`, String(next.pageSize));
         setPersistent(true);
       } catch {
         setPersistent(false);
       }
+      savedRef.current = next;
       setSaved(next);
-      setDraft(null);
+      setDraft((current) => current === layoutDraft ? null : current);
+      return true;
     },
   };
 }
+
 const Context = createContext<ReturnType<typeof usePreferences> | null>(null);
-function ScopedPreferences({
-  scope,
-  children,
-}: {
-  scope: string;
-  children: ReactNode;
-}) {
+
+function ScopedPreferences({ scope, children }: { scope: string; children: ReactNode }) {
   return <Context value={usePreferences(scope)}>{children}</Context>;
 }
-export function VehiclePreferencesProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
+
+export function VehiclePreferencesProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   return user ? (
     <ScopedPreferences key={user.id} scope={user.id}>
@@ -252,6 +452,7 @@ export function VehiclePreferencesProvider({
     </ScopedPreferences>
   ) : null;
 }
+
 export function useVehiclePreferences() {
   const value = useContext(Context);
   if (!value) throw new Error("VehiclePreferencesProvider required");

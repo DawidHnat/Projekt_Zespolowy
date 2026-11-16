@@ -1,19 +1,21 @@
 import { useEffect, useState } from "react";
 import { previousDay, validTripDay, warsawDay } from "./trip-day";
 
-// Relative choices follow Polish midnight; a custom date remains fixed.
-export function useTripDay() {
+// Relative choices follow Polish midnight except while an editor owns a draft.
+export function useTripDay(hold = false) {
   const [today, setToday] = useState(warsawDay);
   const [choice, setChoice] = useState("today");
   useEffect(() => {
+    if (hold) return;
     const update = () => setToday(warsawDay());
+    update();
     const timer = setInterval(update, 60000);
     document.addEventListener("visibilitychange", update);
     return () => {
       clearInterval(timer);
       document.removeEventListener("visibilitychange", update);
     };
-  }, []);
+  }, [hold]);
   const yesterday = previousDay(today);
   return {
     today,

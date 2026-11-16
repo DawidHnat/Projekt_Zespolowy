@@ -4,6 +4,7 @@ import { useFleet } from "../model/FleetProvider";
 import { useVehiclePreferences } from "../model/VehiclePreferences";
 import { CARD_PRESETS } from "../model/vehicle-layout";
 import { VehicleSizeDialog } from "./VehicleSizeDialog";
+import { AccountPreferenceNotice } from "../../../shared/components/AccountPreferenceNotice";
 
 export function VehicleLayoutEditorControls() {
   const f = useFleet();
@@ -13,6 +14,18 @@ export function VehicleLayoutEditorControls() {
   const enabled = p.editScope === "all" || p.selectedIds.length > 0;
   return (
     <div className="vehicle-layout-editor">
+      <AccountPreferenceNotice
+        title="Pojazdy"
+        loading={p.cloud.loading}
+        error={p.cloud.error}
+        saving={p.saving}
+        migrationAvailable={p.cloud.migrationAvailable}
+        conflict={p.cloud.conflict}
+        onImport={() => void p.chooseMigration(true)}
+        onDefaults={() => void p.chooseMigration(false)}
+        onReload={() => p.resolveConflict("reload")}
+        onOverwrite={() => void p.resolveConflict("overwrite")}
+      />
       <div className="vehicle-layout-actions">
         {p.editing && (
           <div
@@ -38,9 +51,11 @@ export function VehicleLayoutEditorControls() {
           title="Pojazdy"
           editing={p.editing}
           onEdit={p.start}
-          onSave={p.save}
+          onSave={() => void p.save()}
           onCancel={p.cancel}
           onReset={p.reset}
+          disabled={p.cloud.loading || p.cloud.migrationAvailable}
+          saving={p.saving}
         />
       </div>
       {p.editing && (
