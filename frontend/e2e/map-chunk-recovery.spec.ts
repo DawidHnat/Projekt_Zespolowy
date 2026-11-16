@@ -50,8 +50,9 @@ for (const failure of ["404", "abort"] as const) {
   }) => {
     await login(page);
     const form = await annotation(page);
-    const purpose = `Niezapisany cel ${test.info().project.name}`;
-    const description = `Niezapisany opis ${test.info().project.name}`;
+    const caseId = `${test.info().project.name} ${failure} ${Date.now()}`;
+    const purpose = `Niezapisany cel ${caseId}`;
+    const description = `Niezapisany opis ${caseId}`;
     await form.getByLabel(/Cel przejazdu/).fill(purpose);
     await form.getByLabel(/Opis przejazdu/).fill(description);
 
@@ -103,10 +104,13 @@ for (const failure of ["404", "abort"] as const) {
       .getByRole("alert")
       .filter({ hasText: "Nie udało się załadować mapy" });
     await expect(mapError).toBeVisible();
-    await expect(page.getByRole("link", { name: "Pojazdy" })).toBeAttached();
     await expect(page.locator(".fleet-map-page .vehicle-card")).toContainText(
       "Pojazd E2E",
     );
+    if (test.info().project.name === "mobile") {
+      await page.getByRole("button", { name: "Otwórz menu" }).click();
+    }
+    await expect(page.getByRole("link", { name: "Pojazdy" })).toBeAttached();
     allowChunkLoad = true;
     await Promise.all([
       page.waitForNavigation({ waitUntil: "load" }),
