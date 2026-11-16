@@ -5,6 +5,9 @@ from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+MAX_ODOMETER_KM = Decimal("9999999999999.9")
+MAX_ODOMETER_RAW = Decimal("99999999999999")
+
 
 def _number(value: Any) -> Decimal | None:
     if value is None or isinstance(value, bool):
@@ -14,6 +17,27 @@ def _number(value: Any) -> Decimal | None:
     except InvalidOperation:
         return None
     return number if number.is_finite() else None
+
+
+def _odometer(value: Any) -> Decimal | None:
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, str) and not value.strip():
+        return None
+    number = _number(value)
+    if number is None or number < 0:
+        return None
+    # Maximum value permitted by PostgreSQL column Numeric(14, 1):
+    # Absolute value must be strictly less than 10^13 km.
+    if number > MAX_ODOMETER_RAW:
+        raise ValueError(f"Wartość odometru przekracza limit Numeric(14,1): {number}")
+    km = number / 10
+    if km > MAX_ODOMETER_KM:
+        raise ValueError(f"Wartość odometru przekracza limit Numeric(14,1): {km}")
+    try:
+        return km.quantize(Decimal("0.1"))
+    except InvalidOperation:
+        raise ValueError(f"Niepoprawny wykładnik dziesiętny odometru: {km}") from None
 
 
 def _coordinate(value: Any, limit: int) -> float | None:
@@ -38,6 +62,22 @@ def _utc_time(value: Any) -> datetime | None:
     return timestamp.astimezone(UTC) if timestamp.tzinfo else None
 
 
+def _speed(value: Any) -> Decimal | None:
+    number = _number(value)
+    if number is None:
+        return None
+    if 0 <= number <= 300:
+        return number
+    return None
+
+
+def _address(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    cleaned = value.strip()
+    return cleaned[:500] if cleaned else None
+
+
 @dataclass(frozen=True)
 class ObjectSnapshot:
     """Sensitive data stays in memory; repr hides identity and telemetry."""
@@ -51,6 +91,8 @@ class ObjectSnapshot:
     standing_still: bool | None = field(repr=False)
     gps_quality: str | None = field(repr=False)
     position_at: datetime | None = field(repr=False)
+    speed_kmh: Decimal | None = field(default=None, repr=False)
+    position_address: str | None = field(default=None, repr=False)
 
     @classmethod
     def from_record(cls, record: dict[str, Any]) -> "ObjectSnapshot":
@@ -58,17 +100,18 @@ class ObjectSnapshot:
         uid = record.get("objectuid")
         if not isinstance(uid, str) or not uid.strip():
             raise ValueError("Brak stabilnego objectuid w rekordzie WEBFLEET")
-        odometer = _number(record.get("odometer"))
         return cls(
             uid=uid,
             number=record.get("objectno") or None,
             latitude=_coordinate(record.get("latitude_mdeg"), 90),
             longitude=_coordinate(record.get("longitude_mdeg"), 180),
-            odometer_km=odometer / 10 if odometer is not None and odometer >= 0 else None,
+            odometer_km=_odometer(record.get("odometer")),
             ignition_on=_binary(record.get("ignition")),
             standing_still=_binary(record.get("standstill")),
             gps_quality=record.get("status")
             if record.get("status") in ("A", "V", "L", "0")
             else None,
             position_at=_utc_time(record.get("pos_time")),
+            speed_kmh=_speed(record.get("speed")),
+            position_address=_address(record.get("postext") or record.get("pos_addr")),
         )

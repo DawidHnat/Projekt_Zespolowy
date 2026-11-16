@@ -50,6 +50,162 @@ test.beforeEach(async ({ context }) => {
   });
 });
 
+test("account preferences sync between independent browsers and resolve concurrent edits", async ({ page, browser }) => {
+  await login(page);
+  const search = page.getByRole("searchbox", { name: "Szukaj pojazdu" });
+  await expect(search).toBeEnabled();
+  await search.fill("SYNC E2E");
+  await page.getByLabel("Status pojazdu").selectOption("moving");
+  await page.getByLabel("Sortowanie pojazdów").selectOption("odometer-desc");
+  await page.getByRole("combobox", { name: "Elementów na stronę: pojazdy", exact: true }).selectOption("10");
+  await expect.poll(async () => {
+    const response = await page.request.get("/api/v1/preferences/vehicles");
+    const { value } = await response.json();
+    return [value?.filters?.q, value?.filters?.status, value?.sort, value?.pageSize];
+  }).toEqual(["SYNC E2E", "moving", "odometer-desc", 10]);
+
+  await page.evaluate(() => { window.location.hash = "#dashboard"; });
+  await page.getByRole("button", { name: "Edytuj układ", exact: true }).click();
+  await page.getByRole("button", { name: "Wybierz widgety", exact: true }).click();
+  const vehiclesWidget = page.getByRole("checkbox", { name: "Pokaż moduł: Pojazdy", exact: true });
+  await expect(vehiclesWidget).toBeChecked();
+  await vehiclesWidget.uncheck();
+  await page.evaluate(() => { window.location.hash = "#dashboard"; });
+  await page.getByRole("button", { name: "Zapisz układ", exact: true }).click();
+  await expect.poll(async () => {
+    const response = await page.request.get("/api/v1/preferences/dashboard");
+    const { value } = await response.json();
+    return value?.visibleWidgets;
+  }).toEqual(["metrics", "map", "activity", "utilization", "trips"]);
+
+  const mobile = test.info().project.name === "mobile";
+  const secondContext = await browser.newContext({
+    baseURL: "http://127.0.0.1:54173",
+    locale: "pl-PL",
+    timezoneId: "Europe/Warsaw",
+    viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 1000 },
+    ...(mobile ? { isMobile: true, hasTouch: true } : {}),
+  });
+  try {
+    await secondContext.route("**/*", (route) => {
+      const url = new URL(route.request().url());
+      return url.hostname === "127.0.0.1" ? route.continue() : route.abort();
+    });
+    const secondPage = await secondContext.newPage();
+    await login(secondPage);
+    await secondPage.evaluate(() => { window.location.hash = "#dashboard"; });
+    await expect(secondPage.locator(".vehicles-widget")).toHaveCount(0);
+    await secondPage.evaluate(() => { window.location.hash = "#vehicles"; });
+    await expect(secondPage.getByRole("searchbox", { name: "Szukaj pojazdu" })).toHaveValue("SYNC E2E");
+    await expect(secondPage.getByLabel("Status pojazdu")).toHaveValue("moving");
+    await expect(secondPage.getByLabel("Sortowanie pojazdów")).toHaveValue("odometer-desc");
+
+    await secondPage.getByRole("searchbox", { name: "Szukaj pojazdu" }).fill("SECOND DEVICE");
+    await expect.poll(async () => {
+      const response = await secondPage.request.get("/api/v1/preferences/vehicles");
+      const { value } = await response.json();
+      return value?.filters?.q;
+    }).toBe("SECOND DEVICE");
+    await page.evaluate(() => { window.location.hash = "#vehicles"; });
+    await expect(page.getByLabel("Sortowanie pojazdów")).toBeVisible();
+    await page.getByLabel("Sortowanie pojazdów").selectOption("name-desc");
+    const conflict = page.getByRole("alert").filter({ hasText: "zmieniły się na innym urządzeniu" });
+    await expect(conflict).toBeVisible();
+    await conflict.getByRole("button", { name: "Zapisz moje zmiany", exact: true }).click();
+    await expect.poll(async () => {
+      const response = await page.request.get("/api/v1/preferences/vehicles");
+      const { value } = await response.json();
+      return [value?.filters?.q, value?.sort];
+    }).toEqual(["SYNC E2E", "name-desc"]);
+  } finally {
+    await secondContext.close();
+  }
+});
+
+test("local dashboard settings require explicit migration and cannot replace account settings", async ({ page, browser }) => {
+  const widgets = ["metrics", "map", "activity", "vehicles", "utilization", "trips"];
+  const localSettings = {
+    theme: "light",
+    accent: "#1479e8",
+    material: "glass",
+    visibleWidgets: ["metrics"],
+    layouts: {
+      dashboard: {
+        desktop: widgets.map((i, index) => ({ i, x: 0, y: index * 4, w: 12, h: 4 })),
+        compact: widgets.map((i, index) => ({ i, x: 0, y: index * 4, w: 1, h: 4 })),
+      },
+    },
+  };
+  await page.addInitScript(({ key, value }) => {
+    localStorage.setItem(key, JSON.stringify(value));
+  }, { key: "fleet-flow.dashboard.v2", value: localSettings });
+  await login(page);
+  await page.evaluate(() => { window.location.hash = "#dashboard"; });
+  const migration = page.getByRole("region", { name: "Migracja ustawień: Pulpit" });
+  await expect(migration).toBeVisible();
+  await page.evaluate(() => { window.location.hash = "#dashboard"; });
+  await expect(page.getByRole("button", { name: "Edytuj układ", exact: true })).toBeDisabled();
+  await page.evaluate(() => { window.location.hash = "#settings"; });
+  await page.getByRole("button", { name: /Układ i moduły/ }).click();
+  await expect(page.getByRole("checkbox", { name: "Pokaż moduł: Pojazdy", exact: true })).toBeDisabled();
+  const beforeMigration = await page.request.get("/api/v1/preferences/dashboard");
+  expect((await beforeMigration.json()).version).toBe(0);
+  await migration.getByRole("button", { name: "Przenieś z tej przeglądarki", exact: true }).click();
+  await expect.poll(async () => {
+    const response = await page.request.get("/api/v1/preferences/dashboard");
+    const { version, value } = await response.json();
+    return [version, value?.visibleWidgets];
+  }).toEqual([1, ["metrics"]]);
+
+  const mobile = test.info().project.name === "mobile";
+  const secondContext = await browser.newContext({
+    baseURL: "http://127.0.0.1:54173",
+    locale: "pl-PL",
+    timezoneId: "Europe/Warsaw",
+    viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 1000 },
+    ...(mobile ? { isMobile: true, hasTouch: true } : {}),
+  });
+  try {
+    await secondContext.route("**/*", (route) => {
+      const url = new URL(route.request().url());
+      return url.hostname === "127.0.0.1" ? route.continue() : route.abort();
+    });
+    const secondPage = await secondContext.newPage();
+    await secondPage.addInitScript(({ key, value }) => {
+      localStorage.setItem(key, JSON.stringify(value));
+    }, {
+      key: "fleet-flow.dashboard.v2",
+      value: { ...localSettings, visibleWidgets: ["trips"] },
+    });
+    await login(secondPage);
+    await expect(secondPage.getByRole("region", { name: "Migracja ustawień: Pulpit" })).toHaveCount(0);
+    const remote = await secondPage.request.get("/api/v1/preferences/dashboard");
+    expect((await remote.json()).value.visibleWidgets).toEqual(["metrics"]);
+  } finally {
+    await secondContext.close();
+  }
+
+  const { user: { id } } = await (await page.request.get("/api/v1/auth/me")).json();
+  await page.evaluate((userId) => {
+    localStorage.setItem(`fleet-flow.list-page-size.v1.${userId}`, "10");
+  }, id);
+  await page.reload();
+  await page.evaluate(() => { window.location.hash = "#vehicles"; });
+  const vehicleMigration = page.getByRole("region", { name: "Migracja ustawień: Pojazdy" });
+  const pageSize = page.getByRole("combobox", { name: "Elementów na stronę: pojazdy", exact: true });
+  await expect(vehicleMigration).toBeVisible();
+  await expect(pageSize).toHaveValue("10");
+  await expect(pageSize).toBeDisabled();
+  const beforeVehicleMigration = await page.request.get("/api/v1/preferences/vehicles");
+  expect((await beforeVehicleMigration.json()).version).toBe(0);
+  await vehicleMigration.getByRole("button", { name: "Przenieś z tej przeglądarki", exact: true }).click();
+  await expect.poll(async () => {
+    const response = await page.request.get("/api/v1/preferences/vehicles");
+    const { version, value } = await response.json();
+    return [version, value?.pageSize];
+  }).toEqual([1, 10]);
+});
+
 test("login, filter, map API and fallback, details, durable annotation, logout", async ({ page }) => {
   const unauthorized = await page.request.get("/api/v1/fleet/vehicles");
   expect(unauthorized.status()).toBe(401);

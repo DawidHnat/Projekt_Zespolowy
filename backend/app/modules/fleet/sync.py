@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.models import Measurement, SyncState, Vehicle
 from app.integrations.webfleet.client import REQUEST_INTERVALS, WebfleetClient, WebfleetError
-from app.integrations.webfleet.models import ObjectSnapshot
+from app.integrations.webfleet.models import MAX_ODOMETER_KM, ObjectSnapshot
 from app.modules.analytics.service import evaluate_distance_rules, record_distance_interval
 from app.modules.auth.service import aware
 
@@ -105,12 +105,13 @@ def apply_records(session, source, masters, readings, now):
             session.add(vehicle)
             session.flush()
         # Explicit allowlist. driver_id and all future annotations are local ownership.
-        vehicle.name = str(row.get("objectname") or row.get("objectno") or "Bez nazwy")[:200]
-        vehicle.number = str(row["objectno"])[:200] if row.get("objectno") else None
-        vehicle.license_plate = (
-            str(row["licenseplatenumber"])[:100] if row.get("licenseplatenumber") else None
-        )
-        vehicle.vehicle_type = str(row["vehicletype"])[:100] if row.get("vehicletype") else None
+        if not vehicle.locally_edited:
+            vehicle.name = str(row.get("objectname") or row.get("objectno") or "Bez nazwy")[:200]
+            vehicle.number = str(row["objectno"])[:200] if row.get("objectno") else None
+            vehicle.license_plate = (
+                str(row["licenseplatenumber"])[:100] if row.get("licenseplatenumber") else None
+            )
+            vehicle.vehicle_type = str(row["vehicletype"])[:100] if row.get("vehicletype") else None
         vehicle.active = True
         reading = readings.get(uid)
         if reading:
@@ -121,6 +122,10 @@ def apply_records(session, source, masters, readings, now):
             if not measurement:
                 measurement = Measurement(vehicle_id=vehicle.id, received_at=now)
                 session.add(measurement)
+            if reading.odometer_km is not None and (
+                reading.odometer_km < 0 or reading.odometer_km > MAX_ODOMETER_KM
+            ):
+                raise WebfleetError("INVALID_RECORDS")
             record_distance_interval(session, vehicle.id, measurement, reading, now)
             for field in (
                 "latitude",
@@ -130,6 +135,8 @@ def apply_records(session, source, masters, readings, now):
                 "standing_still",
                 "gps_quality",
                 "position_at",
+                "speed_kmh",
+                "position_address",
             ):
                 setattr(measurement, field, getattr(reading, field))
             measurement.received_at = now
