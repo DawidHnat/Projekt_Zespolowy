@@ -44,6 +44,35 @@ def test_invalid_odometer_is_unknown(value):
     assert ObjectSnapshot.from_record({"objectuid": "test", "odometer": value}).odometer_km is None
 
 
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        (0, Decimal("0.0")),
+        ("0", Decimal("0.0")),
+        ("12345", Decimal("1234.5")),
+        ("99999999999999", Decimal("9999999999999.9")),
+    ],
+)
+def test_valid_odometer_quantized_to_single_decimal_digit(raw, expected):
+    snapshot = ObjectSnapshot.from_record({"objectuid": "test", "odometer": raw})
+    assert snapshot.odometer_km == expected
+
+
+@pytest.mark.parametrize(
+    "overflow_value",
+    [
+        100_000_000_000_000,
+        1_000_000_000_000_000,
+        "1e15",
+        "1e100",
+        Decimal("1e100"),
+    ],
+)
+def test_odometer_exceeding_numeric_14_1_raises_value_error(overflow_value):
+    with pytest.raises(ValueError, match="Numeric\\(14,1\\)"):
+        ObjectSnapshot.from_record({"objectuid": "test", "odometer": overflow_value})
+
+
 @pytest.mark.parametrize("value", [91_000_000, -91_000_000, 0.5, "NaN", "broken"])
 def test_invalid_latitude_is_not_drawn_on_a_map(value):
     assert (

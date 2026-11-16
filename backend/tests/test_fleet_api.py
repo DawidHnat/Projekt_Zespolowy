@@ -80,6 +80,8 @@ def test_lists_filters_missing_gps_map_and_private_fields(logged_in):
     assert client.get("/api/v1/fleet/vehicles?status=offline").json()["total"] == 1
     assert client.get("/api/v1/fleet/vehicles?q=TEST%202").json()["items"][0]["status"] == "unknown"
     assert client.get("/api/v1/fleet/vehicles?page_size=101").status_code == 422
+    assert client.get("/api/v1/fleet/vehicles?page=100001").status_code == 422
+    assert client.get("/api/v1/fleet/vehicles?page=" + "9" * 100).status_code == 422
     geo = client.get("/api/v1/fleet/map").json()
     assert geo["total"] == 3 and geo["located"] == 2
     assert geo["features"][0]["geometry"]["coordinates"] == [21.0, 52.0]
@@ -114,6 +116,9 @@ def test_vehicle_sorting_applies_before_pagination(logged_in):
     third_page = client.get("/api/v1/fleet/vehicles?sort=odometer-desc&page_size=1&page=3").json()
     assert third_page["items"][0]["name"] == "Test 2"
     assert client.get("/api/v1/fleet/vehicles?sort=unsupported").status_code == 422
+    for invalid_page in (0, 10**100, 100_001):
+        response = client.get("/api/v1/fleet/vehicles", params={"page": invalid_page})
+        assert response.status_code == 422
 
 
 def test_cold_source_and_degraded_cache_are_explicit(logged_in):

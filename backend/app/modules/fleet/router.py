@@ -65,7 +65,7 @@ def vehicles(
     q: Search = "",
     status: Status = None,
     sort: VehicleSort = "name-asc",
-    page: Annotated[int, Query(ge=1)] = 1,
+    page: Annotated[int, Query(ge=1, le=100_000)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 25,
 ):
     settings, source, metadata = context(request, session)
