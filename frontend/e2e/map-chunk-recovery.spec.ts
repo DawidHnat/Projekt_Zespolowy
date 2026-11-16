@@ -55,13 +55,12 @@ for (const failure of ["404", "abort"] as const) {
     await form.getByLabel(/Cel przejazdu/).fill(purpose);
     await form.getByLabel(/Opis przejazdu/).fill(description);
 
-    let failedFirstRequest = false;
+    let allowChunkLoad = false;
     await page.route("**/assets/VehicleMap-*.js", async (route) => {
-      if (failedFirstRequest) {
+      if (allowChunkLoad) {
         await route.continue();
         return;
       }
-      failedFirstRequest = true;
       if (failure === "404") {
         await route.fulfill({
           status: 404,
@@ -108,6 +107,7 @@ for (const failure of ["404", "abort"] as const) {
     await expect(page.locator(".fleet-map-page .vehicle-card")).toContainText(
       "Pojazd E2E",
     );
+    allowChunkLoad = true;
     await Promise.all([
       page.waitForNavigation({ waitUntil: "load" }),
       mapError.getByRole("button", { name: "Odśwież stronę" }).click(),
