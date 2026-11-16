@@ -73,13 +73,15 @@ Przekazanie do tej kolumny nie jest wynikiem PASS ani dowodem ukończenia.
 | SCRUM-19 — API floty | Testowanie, 3 SP | Marcel w SCRUM-23 |
 | SCRUM-23 — lista/mapa | W toku, 3 SP | Marcel; najpierw scalone przyrosty, następnie retest SCRUM-51 |
 | SCRUM-40 — szablon i układ | Testowanie, 3 SP | Marcel |
+| SCRUM-51 — kartoteka i pomiary | W trakcie weryfikacji, 5 SP | Dawid; implementacja w PR, review |
 | SCRUM-56 — sesje/reset | Testowanie, 3 SP | Marcel; rzeczywista dostawa SMTP pozostaje osobnym nieuzgodnionym testem |
 
-SCRUM-5 pozostaje W toku: ręczne metadane i pomiary SCRUM-51 nie są jeszcze
-gotowe. Test części listy/mapy nie zamyka całej Story. SCRUM-15 pozostaje
-W trakcie weryfikacji; raport spike'a SCRUM-14 precyzuje mapowanie pól,
-adres z postext, otwartą weryfikację jednostki speed (null) oraz ręczną kartotekę
-w docs/WEBFLEET_INTEGRATION.md. Nie zmieniano istniejących statusów Done.
+SCRUM-5 pozostaje W toku do czasu odbioru SCRUM-51 przez QA.
+Ręczne metadane pojazdu, adres i pomiary prędkości SCRUM-51 zostały zaimplementowane
+i przekazane do weryfikacji. Test części listy/mapy nie zamyka całej Story. SCRUM-15 pozostaje
+W trakcie weryfikacji; raport spike'a SCRUM-14 w docs/WEBFLEET_INTEGRATION.md precyzuje
+mapowanie pól, adres z postext, otwartą weryfikację jednostki speed (null) oraz ręczną
+kartotekę. Nie zmieniano istniejących statusów Done.
 
 W widoku tablicy **Grupa → Subtask** widać punkty i statusy dzieci w osobnych
 kolumnach. Widok bez grupowania pokazuje głównie rodziców, a ich dzieci

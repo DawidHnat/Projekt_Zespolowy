@@ -95,8 +95,9 @@ Podsumowanie warunków ukończenia:
       ([strona 97 PDF](https://media.webfleet.com/fl_attachment/media/doc/documentations/webfleet.connect-doc-1.74.0.pdf#page=97)).
       Marka i model nie zostały potwierdzone jako pola tego raportu. Dostępność pól po stronie
       dostawcy nie była weryfikowana na żywym koncie.
-    - **Aktualny zakres Fleet-Flow:** adapter nie pobiera `showVehicleReportExtern`, a
-      allowlista synchronizacji nie obejmuje VIN ani roku produkcji. Niepobieranie pola przez
+    - **Aktualny zakres Fleet-Flow:** adapter pobiera `showVehicleReportExtern`, ale
+      `VEHICLE_COLUMNS` nie obejmuje `identnumber` ani `manufacturedyear`, więc VIN i rok nie są
+      obecnie importowane. Niepobieranie pola przez
       nasz kod nie oznacza, że dostawca go nie udostępnia. Zgodnie z decyzją PO pola `make`,
       `model`, `year`, `vin` są ręczną kartoteką pojazdu w Fleet-Flow (`Vehicle` w SCRUM-51 /
       UI w SCRUM-25), zarządzaną lokalnie, a ręczne zmiany mają pierwszeństwo i nie są

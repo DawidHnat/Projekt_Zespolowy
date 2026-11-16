@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Numeric, String, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -27,9 +27,14 @@ class Vehicle(Base):
     number: Mapped[str | None] = mapped_column(String(200))
     license_plate: Mapped[str | None] = mapped_column(String(100))
     vehicle_type: Mapped[str | None] = mapped_column(String(100))
+    make: Mapped[str | None] = mapped_column(String(100))
+    model: Mapped[str | None] = mapped_column(String(100))
+    year: Mapped[int | None] = mapped_column(Integer)
+    vin: Mapped[str | None] = mapped_column(String(100))
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     # This local field belongs to Fleet-Flow and is never written by WEBFLEET.
     driver_id: Mapped[UUID | None] = mapped_column(ForeignKey("drivers.id"))
+    locally_edited: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class Measurement(Base):
@@ -43,6 +48,8 @@ class Measurement(Base):
     gps_quality: Mapped[str | None] = mapped_column(String(1))
     position_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    speed_kmh: Mapped[Decimal | None] = mapped_column(Numeric(6, 1))
+    position_address: Mapped[str | None] = mapped_column(String(500))
 
 
 class SyncState(Base):
