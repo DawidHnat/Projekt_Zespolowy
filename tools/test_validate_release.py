@@ -199,6 +199,63 @@ class ValidateReleaseTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("Niepoprawny format SHA", msg)
 
+    def test_failed_fetch_blocks_release_instead_of_trusting_stale_cache(self):
+        """SCRUM-137: nieudany git fetch nie może dopuścić wydania na starym cache."""
+        # Bare cache nie ma skonfigurowanego origin, więc git fetch kończy się błędem.
+        code, msg = vr.validate_release(
+            target_sha=self.sha_c,
+            current_sha=self.sha_b,
+            repo_dir=self.repo_dir,
+            offline=False,
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("Błąd przygotowania repozytorium Git", msg)
+        self.assertNotIn("ZATWIERDZONO", msg)
+
+    def test_first_deployment_rejects_nonexistent_sha(self):
+        code, msg = vr.validate_release(
+            target_sha="f" * 40,
+            current_sha=None,
+            repo_dir=self.repo_dir,
+            offline=True,
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("nie istnieje", msg)
+
+    def test_first_deployment_rejects_commit_outside_main(self):
+        subprocess.run(
+            ["git", "-C", self.work_dir, "checkout", "-b", "side", self.sha_a],
+            check=True,
+            capture_output=True,
+        )
+        with open(os.path.join(self.work_dir, "side.txt"), "w") as f:
+            f.write("Side\n")
+        subprocess.run(["git", "-C", self.work_dir, "add", "."], check=True, capture_output=True)
+        subprocess.run(
+            ["git", "-C", self.work_dir, "commit", "-m", "Side"],
+            check=True,
+            capture_output=True,
+        )
+        sha_side = (
+            subprocess.check_output(["git", "-C", self.work_dir, "rev-parse", "HEAD"])
+            .decode()
+            .strip()
+        )
+        subprocess.run(
+            ["git", "-C", self.work_dir, "push", "origin", "HEAD:refs/heads/side"],
+            check=True,
+            capture_output=True,
+        )
+
+        code, msg = vr.validate_release(
+            target_sha=sha_side,
+            current_sha=None,
+            repo_dir=self.repo_dir,
+            offline=True,
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("ODRZUCONO", msg)
+
 
 class DeploymentSimulatorTests(unittest.TestCase):
     """Izolowany symulator cyklu wdrożenia i odrzucenia starego wydania bez mutacji."""
@@ -259,6 +316,21 @@ class DeploymentSimulatorTests(unittest.TestCase):
             .strip()
         )
 
+        # Commit C
+        with open(file_txt, "w") as f:
+            f.write("App Version C\n")
+        subprocess.run(["git", "-C", self.work_dir, "add", "."], check=True, capture_output=True)
+        subprocess.run(
+            ["git", "-C", self.work_dir, "commit", "-m", "Release C"],
+            check=True,
+            capture_output=True,
+        )
+        self.sha_c = (
+            subprocess.check_output(["git", "-C", self.work_dir, "rev-parse", "HEAD"])
+            .decode()
+            .strip()
+        )
+
         # Push main
         subprocess.run(
             ["git", "-C", self.work_dir, "remote", "add", "origin", self.repo_dir],
@@ -274,7 +346,13 @@ class DeploymentSimulatorTests(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def simulate_deploy(self, revision: str, env_content: str, allow_rollback: bool = False):
+    def simulate_deploy(
+        self,
+        revision: str,
+        env_content: str,
+        allow_rollback: bool = False,
+        offline: bool = True,
+    ):
         """Symulator kroków fleet-flow-deploy."""
         current_symlink = os.path.join(self.base_dir, "current")
         current_commit = None
@@ -290,7 +368,7 @@ class DeploymentSimulatorTests(unittest.TestCase):
             current_sha=current_commit,
             repo_dir=self.repo_dir,
             allow_rollback=allow_rollback,
-            offline=True,
+            offline=offline,
         )
         if code != 0:
             return code, msg
@@ -364,6 +442,30 @@ class DeploymentSimulatorTests(unittest.TestCase):
         )
         with open(env_file) as f:
             self.assertEqual(f.read().strip(), "APP_ENV=VERSION_A_ROLLBACK")
+
+    def test_failed_fetch_online_deploy_causes_no_mutation(self):
+        """Nieudany git fetch przy offline=False zatrzymuje deploy bez zmiany current i env."""
+        code, _ = self.simulate_deploy(self.sha_b, "APP_ENV=VERSION_B", offline=True)
+        self.assertEqual(code, 0)
+
+        current_link = os.path.join(self.base_dir, "current")
+        env_file = os.path.join(self.shared_dir, "runtime.env")
+
+        code_fetch_fail, msg_fetch_fail = self.simulate_deploy(
+            self.sha_c, "APP_ENV=VERSION_C_AFTER_FAILED_FETCH", offline=False
+        )
+        self.assertEqual(code_fetch_fail, 1)
+        self.assertIn("Błąd przygotowania repozytorium Git", msg_fetch_fail)
+
+        self.assertEqual(
+            os.path.realpath(current_link),
+            os.path.realpath(os.path.join(self.releases_dir, f"{self.sha_b}.simulated")),
+        )
+        with open(env_file) as f:
+            self.assertEqual(f.read().strip(), "APP_ENV=VERSION_B")
+        self.assertFalse(
+            os.path.exists(os.path.join(self.releases_dir, f"{self.sha_c}.simulated"))
+        )
 
 
 if __name__ == "__main__":

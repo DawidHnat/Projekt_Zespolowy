@@ -44,7 +44,13 @@ def ensure_repo(repo_dir: str, repo_url: str, offline: bool = False) -> None:
 
     if not offline:
         # Pobierz gałąź main z repozytorium źródłowego
-        run_git(repo_dir, "fetch", "--quiet", "origin", "refs/heads/main:refs/heads/main")
+        fetch = run_git(repo_dir, "fetch", "--quiet", "origin", "refs/heads/main:refs/heads/main")
+        if fetch.returncode != 0:
+            detail = (fetch.stderr or "").strip().splitlines()[:1]
+            raise RuntimeError(
+                f"git fetch zakonczyl sie kodem {fetch.returncode}: "
+                f"{detail[0] if detail else 'brak szczegolow'}"
+            )
 
 
 def is_ancestor(repo_dir: str, ancestor_sha: str, descendant_sha: str) -> bool:
@@ -65,6 +71,11 @@ def commit_exists(repo_dir: str, sha: str, offline: bool = False) -> bool:
     return res.returncode == 0
 
 
+def is_on_main(repo_dir: str, sha: str) -> bool:
+    """Zwraca True, jesli sha nalezy do historii galezi main."""
+    return is_ancestor(repo_dir, sha, "refs/heads/main") or is_ancestor(repo_dir, sha, "main")
+
+
 def validate_release(
     target_sha: str,
     current_sha: str | None = None,
@@ -80,10 +91,6 @@ def validate_release(
     if current_sha and not SHA_RE.match(current_sha):
         return 1, f"Niepoprawny format SHA bieżącego wydania: {current_sha}"
 
-    # Przypadek 1: Pierwsze wdrożenie na czystym serwerze
-    if not current_sha:
-        return 0, f"Pierwsze wdrożenie na serwerze: zatwierdzono {target_sha[:7]}."
-
     # Przypadek 2: Idempotentne ponowienie bieżącego wydania
     if target_sha == current_sha:
         return 0, f"Ponowienie bieżącego wydania {target_sha[:7]} jest dozwolone i idempotentne."
@@ -97,6 +104,16 @@ def validate_release(
     # Sprawdź, czy target_sha istnieje w Git
     if not commit_exists(repo_dir, target_sha, offline=offline):
         return 1, f"Commit {target_sha} nie istnieje w repozytorium {repo_dir}."
+
+    # Przypadek 1: pierwsze wdrożenie na czystym serwerze. Także ono musi wskazywać
+    # istniejący commit z historii main, a nie dowolne lub nieistniejące SHA.
+    if not current_sha:
+        if not is_on_main(repo_dir, target_sha):
+            return (
+                1,
+                f"ODRZUCONO: Commit {target_sha[:7]} nie znajduje się na gałęzi main.",
+            )
+        return 0, f"Pierwsze wdrożenie na serwerze: zatwierdzono {target_sha[:7]}."
 
     # Przypadek 3: target_sha jest starszy od current_sha (próba wdrożenia przeszłości)
     if is_ancestor(repo_dir, target_sha, current_sha):
@@ -130,10 +147,7 @@ def validate_release(
 
     # Przypadek 5: Sprawdzenie, czy target_sha znajduje się na gałęzi main
     # Sprawdzamy refs/heads/main lub main
-    on_main = is_ancestor(repo_dir, target_sha, "refs/heads/main") or is_ancestor(
-        repo_dir, target_sha, "main"
-    )
-    if not on_main:
+    if not is_on_main(repo_dir, target_sha):
         return (
             1,
             f"ODRZUCONO: Commit {target_sha[:7]} nie znajduje się na gałęzi main.",
