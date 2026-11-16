@@ -1,0 +1,24 @@
+.account-preference-notice {
+  display: grid;
+  gap: 8px;
+  margin-block: 12px;
+}
+.account-preference-notice > p,
+.account-preference-notice section {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+}
+.account-preference-notice [role="alert"] {
+  border-color: var(--danger);
+}
+.account-preference-notice section p {
+  margin: 0 0 10px;
+}
+.account-preference-notice section button {
+  margin: 0 8px 4px 0;
+}

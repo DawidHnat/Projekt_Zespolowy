@@ -8,6 +8,13 @@ export class ApiError extends Error {
   }
 }
 const expiredListeners = new Set<() => void>();
+// A response from the previous account must not expire its replacement session.
+let sessionVersion = 0;
+
+export function advanceSessionVersion() {
+  sessionVersion += 1;
+}
+
 export function onSessionExpired(listener: () => void) {
   expiredListeners.add(listener);
   return () => {
@@ -22,13 +29,17 @@ export async function api<T>(
 ): Promise<T> {
   if (!path.startsWith("/") || path.startsWith("//"))
     throw new Error("Invalid API path");
+  const requestedSession = sessionVersion;
   const response = await fetch(`/api/v1${path}`, {
     ...options,
     credentials: "same-origin",
     headers: { "Content-Type": "application/json", ...options.headers },
   });
   if (!response.ok) {
-    if (response.status === 401 && notifyExpiry)
+    if (
+      response.status === 401 && notifyExpiry &&
+      requestedSession === sessionVersion && !options.signal?.aborted
+    )
       expiredListeners.forEach((listener) => listener());
     let code = "UNAVAILABLE";
     try {

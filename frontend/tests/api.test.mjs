@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { api, onSessionExpired } from "../src/shared/api/client.ts";
+import { advanceSessionVersion, api, onSessionExpired } from "../src/shared/api/client.ts";
 import {
   fleetPollInterval,
   measurementLabel,
@@ -68,4 +68,44 @@ test("API rejects external paths and timestamps use Warsaw DST", async () => {
   assert.equal(fleetPollInterval("30000"), 30000);
   assert.equal(fleetPollInterval("9000"), 10000);
   assert.equal(fleetPollInterval(undefined), 10000);
+});
+
+test("a late 401 cannot expire a newer session, while current 401 still notifies", async () => {
+  const saved = globalThis.fetch;
+  let calls = 0;
+  const remove = onSessionExpired(() => calls++);
+  try {
+    let respond;
+    globalThis.fetch = () => new Promise(resolve => { respond = resolve; });
+    const oldRequest = api("/fleet/map");
+    advanceSessionVersion();
+    const unauthorized = () => new Response('{"error":{"code":"UNAUTHENTICATED"}}', { status: 401 });
+    respond(unauthorized());
+    await assert.rejects(oldRequest, error => error.status === 401);
+    assert.equal(calls, 0);
+    globalThis.fetch = async () => unauthorized();
+    await assert.rejects(api("/fleet/map"), error => error.status === 401);
+    assert.equal(calls, 1);
+  } finally {
+    globalThis.fetch = saved;
+    remove();
+  }
+});
+
+test("a canceled request cannot broadcast a late session expiration", async () => {
+  const saved = globalThis.fetch;
+  let calls = 0;
+  const remove = onSessionExpired(() => calls++);
+  try {
+    const controller = new AbortController();
+    globalThis.fetch = async () => {
+      controller.abort();
+      return new Response('{"error":{"code":"UNAUTHENTICATED"}}', { status: 401 });
+    };
+    await assert.rejects(api("/fleet/map", { signal: controller.signal }));
+    assert.equal(calls, 0);
+  } finally {
+    globalThis.fetch = saved;
+    remove();
+  }
 });
