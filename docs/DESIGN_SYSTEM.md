@@ -165,6 +165,10 @@ Przy edycji zbiorowej reszta wybranej grupy otrzymuje rozmiar przy puszczeniu,
 bez przeliczania całej galerii w każdej klatce.
 Suwaki i strzałki zapewniają alternatywę dla przeciągania. CSS ogranicza szerokość
 na telefonie bez nadpisywania rozmiaru użytkownika.
+Narożnik zachowuje zapisany wymiar osi, której użytkownik nie zmienia.
+Pionowy gest na zwężonym ekranie nie zapisuje szerokości ograniczonej przez CSS.
+Ruch mniejszy niż 5 px traktujemy jako drżenie wskaźnika; celowy ruch poziomy
+rozpoczyna zmianę szerokości od widocznej krawędzi kafelka.
 
 `VehiclePreferencesProvider` udostępnia zdjęcia i niezależny szkic rozmiarów.
 Klucz localStorage `fleet-flow.vehicles.v2.<user-id>` oraz IndexedDB
@@ -247,6 +251,15 @@ rzędu 18 px z przerwą 16 px, z dokładnością do połowy jednostki. Silnik
 interakcji otrzymuje dwukrotnie gęstszą siatkę (24 kolumny i rząd 1 px),
 co zachowuje geometrię starszych zapisów i zmniejsza skok wysokości do 17 px.
 Model `widget-layout.ts` odpowiada za konwersję, walidację i kolizje.
+
+Przy zmianie szerokości kontenera `fitLayout` dopasowuje także szerokości
+kafelków w tym samym wierszu. Gdy suma nowych minimów nadal mieści się
+w siatce, szerokość ponad minimum jest oddawana sąsiadom w krokach połowy
+kolumny. Wysokości są obliczane dla tak dopasowanej szerokości, a kolizje
+rozwiązuje silnik układu. Dopasowanie nie mutuje zapisu preferencji;
+powiększenie okna przywraca zapisane proporcje. Próg menu mobilnego wynosi
+760 px szerokości okna; przejście powyżej niego zamyka menu i jego osłonę.
+Profil siatki nadal zależy od 720 px szerokości jej kontenera.
 
 `useGesturePaint` grupuje odświeżanie trzymanego kafelka w klatkach animacji.
 RGL v2 przechowuje pikselową pozycję w refie i memoizuje kartę według komórek
@@ -370,6 +383,9 @@ bez poziomego przewijania. Zachowuj wspólne kolory motywu, materiał i fokus.
 `TripDayPicker` jest wspólny dla kafelka przejazdów i zakładki Podróże.
 Model `trip-day.ts` obsługuje dni kalendarzowe w Europe/Warsaw, a `useTripDay`
 odświeża wybory Dzisiaj/Wczoraj po polskiej północy i powrocie do karty.
+Podczas niezapisanej edycji celu/opisu dzień pozostaje zatrzymany, również
+po północy i wznowieniu sieci. Po zapisaniu lub anulowaniu szkicu wybór
+względny ponownie podąża za aktualną datą; nie odmontowuje formularza w trakcie pracy.
 Natywne pole daty ma opis i ograniczenie do dzisiaj. Puste stany pozostają
 jednoznaczne do czasu podłączenia rzeczywistej historii; nie pokazuj
 przykładowych tras jako danych floty.

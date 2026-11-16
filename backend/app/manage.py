@@ -36,7 +36,7 @@ def main():
     engine = make_engine(Settings.from_environment())
     try:
         with make_sessions(engine)() as session:
-            user = find_user(session, args.username)
+            user = find_user(session, args.username, lock=True)
             if args.operation == "create-user":
                 if user:
                     parser.error("Konto już istnieje")
