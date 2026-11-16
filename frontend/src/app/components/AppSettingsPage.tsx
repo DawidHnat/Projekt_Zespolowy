@@ -32,6 +32,8 @@ type Props = {
   onChange: (value: DashboardPreferences) => void;
   onToggle: (id: WidgetId) => void;
   onReset: () => void;
+  modulesDisabled?: boolean;
+  resetDisabled?: boolean;
   editing: boolean;
   backgroundMedia: BackgroundImageController;
   onBackgroundChange: (value: BackgroundPreferences) => void;
@@ -73,6 +75,8 @@ export function AppSettingsPage({
   onChange,
   onToggle,
   onReset,
+  modulesDisabled = false,
+  resetDisabled = false,
   editing,
   backgroundMedia,
   onBackgroundChange,
@@ -232,6 +236,7 @@ export function AppSettingsPage({
                           type="checkbox"
                           checked={preferences.visibleWidgets.includes(id)}
                           onChange={() => onToggle(id)}
+                          disabled={modulesDisabled}
                           aria-label={`Pokaż moduł: ${widget.title}`}
                         />
                         <span className="switch-track" aria-hidden="true" />
@@ -276,7 +281,7 @@ export function AppSettingsPage({
           <button
             className="button button-secondary"
             onClick={onReset}
-            disabled={backgroundMedia.busy}
+            disabled={backgroundMedia.busy || resetDisabled}
           >
             <RotateCcw size={16} />
             Przywróć domyślne

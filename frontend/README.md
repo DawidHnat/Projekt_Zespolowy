@@ -39,7 +39,12 @@ npm run preview       # podgląd zbudowanego frontendu na 127.0.0.1:4173
 - Niezależne Zapisz/Anuluj oraz układy telefonu i komputera dla obu widoków.
 - Opcjonalne szkło z połyskiem na kartach, przyciskach i nawigacji oraz styl klasyczny.
 - Tło domyślne, galeria i własny obraz, z wyciszeniem i rozmyciem w obu stylach.
-- Zapamiętywanie ustawień na urządzeniu i przywracanie domyślnych.
+- Układ i moduły Pulpitu oraz układ, sortowanie, filtry i paginacja Pojazdów
+  zapisują się na koncie i są dostępne po zalogowaniu w innej przeglądarce.
+  Wygląd i tło pozostają lokalne; ustawienia z localStorage można przenieść
+  na konto wyłącznie po jawnym wyborze. Przy równoległym zapisie można wczytać
+  wersję konta albo świadomie zapisać własne zmiany.
+- Przywracanie ustawień domyślnych.
 - Osobna strona Ustawień (`#settings`): Wygląd, Tło oraz Układ i moduły.
   Koło zębate prowadzi do tej strony; edycja układu pozostaje przy każdym widoku.
 - Lokalna czcionka Inter i ikony Lucide, bez pobierania fontu z Google.
@@ -63,6 +68,13 @@ Rozciąganie ma krok wysokości 17 px. Minimalny rozmiar każdego kafelka
 uwzględnia jego szerokość i treść, w tym zawijanie tekstu. Nagłówki,
 informacje statyczne i pierwszy wiersz tabeli mieszczą się w całości;
 przy większej liczbie wierszy zawartość jest przewijalna.
+
+Zmiana szerokości okna dopasowuje układ bez zapisywania nowych preferencji.
+Jeżeli minimum jednego kafelka rośnie, sąsiad oddaje dostępną szerokość,
+o ile oba mieszczą się w tym samym wierszu. Pozwala to uniknąć pustych
+obszarów przy pośredniej szerokości. Po powiększeniu okna wracają zapisane
+rozmiary. Otwarte menu telefonu zamyka się po przejściu na duży ekran.
+[Zakres sprawdzenia i scenariusze odbioru SCRUM-38](../docs/qa/SCRUM-38.md).
 
 Motyw, akcent, tło i styl powierzchni zmieniają się od razu. Podczas edycji zmiany
 widoczności widgetów Pulpitu czekają na zapis jego układu. Przejście do innej
@@ -109,8 +121,9 @@ Główny `.env` jest czytany wyłącznie dla publicznych zmiennych `VITE_*`.
 Jeśli używasz portu 5174, dodaj `http://127.0.0.1:5174` do `CORS_ORIGINS`.
 
 Po zalogowaniu lista i wskaźniki korzystają z rzeczywistych danych cache.
-Filtry nazwy/rejestracji i statusu są współdzielone z mapą. Odświeżanie API co
-60 s (konfigurowane przez `VITE_FLEET_POLL_INTERVAL_MS`, 10 s–24 h) nie wywołuje
+Filtry nazwy/rejestracji i statusu są współdzielone z mapą. Widoczna strona
+odświeża API co 10 s domyślnie (konfigurowane przez `VITE_FLEET_POLL_INTERVAL_MS`,
+10 s–24 h); nie wywołuje to
 dodatkowych odczytów WEBFLEET. To ustawienie dotyczy tylko odpytywania aplikacji;
 częstotliwość synchronizacji źródła i próg nieaktualności ustawia backend przez
 `SYNC_INTERVAL_SECONDS` i `STALE_SECONDS`. Sesja nie trafia do localStorage;
@@ -194,17 +207,21 @@ a Enter otwiera suwaki. Zapis/Anuluj dotyczą wyłącznie tego widoku.
 
 Szerokości nie rozciągają się automatycznie do całego wiersza. Mniejszy ekran
 ogranicza tylko wyświetlanie szerokości, zachowując rozmiar zapisany przez
-użytkownika. Układ jest zapisywany lokalnie i osobno dla kont aplikacji.
-Pionowe rozciąganie na telefonie zachowuje zapisaną szerokość z komputera;
-poziomy gest nadal zmienia ją od widocznej krawędzi. Drobny ruch poniżej 5 px
-nie zmienia drugiej osi. [Weryfikacja i scenariusze QA SCRUM-45](../docs/qa/SCRUM-45.md).
+użytkownika. Układ, sortowanie, filtry wyszukiwania/statusu i limit strony zapisują się
+osobno na koncie aplikacji. Ustawienia zachowane w starszym localStorage są
+importowane tylko po jawnym wyborze, gdy konto nie ma jeszcze własnej wersji.
+Równoległe zmiany pokazują konflikt i pozwalają wczytać wersję z konta albo
+zapisać bieżący układ jako nową wersję. Pionowe rozciąganie na telefonie
+zachowuje zapisaną szerokość z komputera; poziomy gest nadal zmienia ją od
+widocznej krawędzi. Drobny ruch poniżej 5 px nie zmienia drugiej osi.
+[Weryfikacja i scenariusze QA SCRUM-45](../docs/qa/SCRUM-45.md).
 Odczyt starszych rozmiarów jest zachowany; nowy zapis v2 obejmuje domyślny
 rozmiar floty oraz indywidualne nadpisania.
 
 Wspólny `ListPagination` jest na dole listy, po prawej: 10/25/50/100 elementów,
 zakres wyników i strony. W galerii znajduje się pod ostatnim rzędem kafelków,
 w widgetach jest poza przewijaną treścią. Limit jest wspólny dla galerii,
-tabeli i listy przy mapie, zapamiętany lokalnie dla konta. Zmiana limitu wraca
+tabeli i listy przy mapie, zapamiętany na koncie. Zmiana limitu wraca
 na stronę 1 i nie ogranicza pojazdów z GPS wyświetlanych na mapie.
 
 Ikona aparatu dodaje, zastępuje lub usuwa zdjęcie, wspólne dla kafelka i mapy.
@@ -214,7 +231,9 @@ niezależnie od szkicu układu. Nie trafiają do API ani Mapbox i nie są jeszcz
 współdzielone z zespołem. Usunięcie danych przeglądarki usuwa lokalne zdjęcia.
 Błąd zdjęcia przywraca ikonę samochodu; brak miejsca pozwala użyć zdjęcia w sesji.
 
-Ustawienia są osobną stroną z podziałem konfiguracji. Wygląd i tło zapisują się
-od razu. Widoczność modułów podczas edycji Pulpitu pozostaje szkicem do zatwierdzenia
-na Pulpicie. Reset ustawień przywraca wygląd oraz układy Pulpitu i Mapy;
+Ustawienia są osobną stroną z podziałem konfiguracji. Wygląd i tło pozostają
+lokalne. Widoczność modułów, układ Pulpitu, a także układ i zapisane widoki
+Pojazdów synchronizują się z kontem. Widoczność modułów podczas edycji Pulpitu
+pozostaje szkicem do zatwierdzenia na Pulpicie. Reset ustawień przywraca wygląd
+oraz układy Pulpitu i Mapy;
 rozmiary Pojazdów resetuje się osobno podczas edycji tej sekcji.

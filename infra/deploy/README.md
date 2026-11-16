@@ -97,25 +97,45 @@ cykle po wdrożeniu bez czyszczenia zapisanych danych.
 
 ## Ochrona main — wykonuje właściciel repozytorium
 
-Repozytorium jest prywatne i należy do osobistego konta `DawidHnat`.
-Potrzebny jest plan właściciela obsługujący ochronę, np. GitHub Pro z aktywnego
-Student Developer Pack. Plan współpracownika nie rozszerza planu tego repo.
-Uprawnienia zwykłego współpracownika nie wystarczają do zmiany ochrony.
+Repozytorium jest publiczne. Odczyt 10.11.2026 pokazuje aktywną ochronę
+`main` i wymagany `Required CI`; konto jczaja51 ma push, bez admin/maintain.
+Pełną konfigurację i zmianę reguły potwierdza właściciel Dawid Hnat.
 
-Po udanym runie nowego CI właściciel stosuje regułę z
-[main-protection.json](main-protection.json):
+Po sprawdzeniu PR SCRUM-127 i zielonym runie nowych jobów właściciel otwiera
+istniejącą regułę `main` w Settings → Branches (albo istniejący ruleset).
+Zachowuje wszystkie dotychczasowe wymagania, w tym `Required CI`, wymagany
+PR/approval, aktualność gałęzi, rozmowy i zakaz bypassu/force push/deletion.
+Dodaje dokładne konteksty **Backend (3.13)** (pytest) i **Lint** (Ruff).
+Nie dodaje deploymentu ani smoke jako wymaganego checku PR.
+Nie zastępuje całej reguły szablonem: pełne ustawienia obecnej reguły mogą
+być szersze od [main-protection.json](main-protection.json), który podaje
+minimalny docelowy zestaw, a nie potwierdzenie aktywacji.
+
+Właściciel zapisuje wynik z klonu zespołu:
 
 ```bash
-gh api --method PUT repos/DawidHnat/Projekt_Zespolowy/branches/main/protection \
-  --input infra/deploy/main-protection.json
+gh api 'repos/{owner}/{repo}/branches/main' --jq '.protection.required_status_checks.contexts[]'
+# Dla rulesetu zamiast klasycznej ochrony:
+gh api 'repos/{owner}/{repo}/rules/branches/main' --jq '.[] | select(.type == "required_status_checks") | .parameters.required_status_checks[].context'
 ```
 
-W UI odpowiednikiem jest wymaganie PR, jednego approval, aktualnych zielonych
-checks oraz opcji **Do not allow bypassing the above settings**. Nie dodawaj
-wyjątku dla administratora, osób ani aplikacji. Nie włączaj automerge.
+Po PR SCRUM-127 `Required CI` wymaga również `Lint`, a deployment jawnie
+wymienia testy i lint w `needs`. Osobny job `Post-deploy smoke` po deployment
+sprawdza publiczne strony wersji HTTP i HTTPS oraz readiness API. Wymaga
+SHA bieżącego przebiegu; przy niezgodności workflow kończy się błędem.
+Całe push-workflow main ma `cancel-in-progress: false`, więc następne
+wdrożenie nie wyprzedza smoke bieżącego przebiegu. Weryfikator nie korzysta
+z kont aplikacji i nie zapisuje odpowiedzi API ani sekretów w logu.
+Lokalne sprawdzenie bez deploymentu:
 
-Pierwsze połączenie konfiguracji z `main` także wymaga review. Po tym runie
-ochrona ma wymagać dokładnie `Required CI`, a nie starych nazw osobnych workflowów.
+```bash
+python3 tools/verify_deployment.py --sha "$(git rev-parse origin/main)" \
+  --status-origin http://57.129.179.53 --app-origin https://fleet-flow.pl
+```
+
+Na lokalnym Pythonie macOS bez skonfigurowanego CA można wskazać standardowy
+magazyn przez `SSL_CERT_FILE=/etc/ssl/cert.pem`; weryfikacji TLS nie wyłączamy.
+[Materiały do oddania Sprintu 2](../../docs/SPRINT_2_SUBMISSION.md).
 
 ## HTTP z zadania i HTTPS aplikacji
 

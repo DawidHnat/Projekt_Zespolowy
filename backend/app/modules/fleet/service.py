@@ -22,10 +22,10 @@ def source_payload(session, source):
     }
 
 
-def serialize_vehicle(vehicle, measurement, driver, now, stale_seconds):
+def serialize_vehicle(vehicle, measurement, driver, now, stale_seconds, source_degraded=False):
     time = aware(measurement.position_at) if measurement and measurement.position_at else None
     age = (now - time).total_seconds() if time else None
-    stale = age is None or age > stale_seconds or age < -300
+    stale = source_degraded or age is None or age > stale_seconds or age < -300
     status = "unknown"
     if measurement:
         if stale:
@@ -62,7 +62,7 @@ def serialize_vehicle(vehicle, measurement, driver, now, stale_seconds):
     }
 
 
-def fleet_rows(session, source, stale_seconds, q="", status=None):
+def fleet_rows(session, source, stale_seconds, q="", status=None, *, source_degraded=False):
     statement = (
         select(Vehicle, Measurement, Driver)
         .outerjoin(Measurement, Measurement.vehicle_id == Vehicle.id)
@@ -75,7 +75,7 @@ def fleet_rows(session, source, stale_seconds, q="", status=None):
     records = session.execute(statement).all()
     if len(records) > 10000:
         raise ApiError(503, "FLEET_TOO_LARGE", "Flota wymaga dodatkowej konfiguracji stronicowania")
-    items = [serialize_vehicle(*row, now, stale_seconds) for row in records]
+    items = [serialize_vehicle(*row, now, stale_seconds, source_degraded) for row in records]
     needle = q.strip().casefold()
     return [
         item
@@ -89,3 +89,25 @@ def fleet_rows(session, source, stale_seconds, q="", status=None):
             )
         )
     ]
+
+
+def sort_fleet_rows(items, sort):
+    def name_key(item):
+        return item["name"].casefold(), item["id"]
+
+    if sort == "name-desc":
+        by_id = sorted(items, key=lambda item: item["id"])
+        return sorted(by_id, key=lambda item: item["name"].casefold(), reverse=True)
+    if sort == "status":
+        order = {"moving": 0, "stopped": 1, "offline": 2, "unknown": 3}
+        return sorted(items, key=lambda item: (order[item["status"]], *name_key(item)))
+    if sort in ("odometer-asc", "odometer-desc"):
+        descending = sort == "odometer-desc"
+
+        def odometer_key(item):
+            odometer = item["odometer_km"]
+            value = -(odometer or 0) if descending else (odometer or 0)
+            return odometer is None, value, *name_key(item)
+
+        return sorted(items, key=odometer_key)
+    return sorted(items, key=name_key)

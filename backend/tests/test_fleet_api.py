@@ -77,6 +77,28 @@ def test_lists_filters_missing_gps_map_and_private_fields(logged_in):
     assert summary["moving"] == summary["offline"] == summary["unknown"] == 1
 
 
+def test_vehicle_sorting_applies_before_pagination(logged_in):
+    app, client = logged_in
+    add_fleet(app)
+    source = account_key(app.state.settings.webfleet_account)
+    with app.state.sessions() as session:
+        vehicles = session.query(Vehicle).filter_by(source_account=source).all()
+        odometers = {"Test 0": 100, "Test 1": 300}
+        for vehicle in vehicles:
+            if vehicle.name in odometers:
+                measurement = session.query(Measurement).filter_by(vehicle_id=vehicle.id).one()
+                measurement.odometer_km = odometers[vehicle.name]
+        session.commit()
+
+    descending = client.get("/api/v1/fleet/vehicles?sort=odometer-desc&page_size=1").json()
+    assert descending["items"][0]["name"] == "Test 1"
+    second_page = client.get("/api/v1/fleet/vehicles?sort=odometer-desc&page_size=1&page=2").json()
+    assert second_page["items"][0]["name"] == "Test 0"
+    third_page = client.get("/api/v1/fleet/vehicles?sort=odometer-desc&page_size=1&page=3").json()
+    assert third_page["items"][0]["name"] == "Test 2"
+    assert client.get("/api/v1/fleet/vehicles?sort=unsupported").status_code == 422
+
+
 def test_cold_source_and_degraded_cache_are_explicit(logged_in):
     app, client = logged_in
     assert client.get("/api/v1/fleet/vehicles").status_code == 503
@@ -87,3 +109,9 @@ def test_cold_source_and_degraded_cache_are_explicit(logged_in):
         session.commit()
     result = client.get("/api/v1/fleet/vehicles").json()
     assert result["source"]["status"] == "degraded" and result["total"] == 3
+    assert result["source"]["last_success_at"]
+    stale_vehicles = [item for item in result["items"] if item["position_at"]]
+    assert all(item["is_stale"] and item["status"] == "offline" for item in stale_vehicles)
+    geo = client.get("/api/v1/fleet/map").json()
+    assert geo["source"] == result["source"]
+    assert all(feature["properties"]["is_stale"] for feature in geo["features"])

@@ -67,11 +67,15 @@ Po Review zespół uzupełnia [retrospektywę](retro/sprint-1.md) o rzeczywiste
 ustalenia i porządkuje niedokończone prace. Podział pracy i decyzje na Planning
 są zapisane w części „Działania z właścicielami”.
 
-W Jirze jest aktywny **FF Sprint 2 - historia i auta** (4–18.11.2026).
-Jego cel obejmuje historię tras, podstawową ewidencję, ręczną kartotekę
-kierowców i pełne dane pojazdu. Działanie z retrospektywy należy do sprintu.
+Aktualizacja 10.11: w Jirze jest aktywny **FF Sprint 2 - podstawa i QA**
+(4–18.11.2026), po przeplanowaniu 09.11. Priorytet to odbiór istniejącej
+floty/UI, danych WEBFLEET, kartoteki, kopii/odtworzenia i synchronizacji,
+równolegle preferencje konta i decyzje prywatności. Działanie z retrospektywy
+nadal należy do sprintu.
 [SCRUM-65](https://fleet-flow.atlassian.net/browse/SCRUM-65)
 
-Zakończenie Sprintu 1 w Jirze jest zablokowane przez otwarte podzadania
-SCRUM-1 i SCRUM-66. Oba sprinty są aktywne.
+Sprint 1 został zamknięty w Jirze. Nie jest to potwierdzenie pełnego DoD
+historyjek. [Pomiar SCRUM-65 z 10.11](REVIEW_QUEUE.md) wskazuje rzeczywiste
+autorstwo i review całej czwórki, kolejkę PR-ów oraz brakujące odbiory.
+Historyczny scenariusz powyżej zachowuje datę swojego odczytu.
 [Backlog Jira](https://fleet-flow.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog)

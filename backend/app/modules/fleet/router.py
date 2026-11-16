@@ -9,13 +9,19 @@ from app.core.database import get_session
 from app.core.errors import ApiError
 from app.core.models import Driver, Measurement, Vehicle
 from app.modules.auth.service import current_user
-from app.modules.fleet.service import fleet_rows, serialize_vehicle, source_payload
+from app.modules.fleet.service import (
+    fleet_rows,
+    serialize_vehicle,
+    sort_fleet_rows,
+    source_payload,
+)
 from app.modules.fleet.sync import account_key
 
 router = APIRouter(prefix="/api/v1/fleet", tags=["fleet"], dependencies=[Depends(current_user)])
 SessionDep = Annotated[Session, Depends(get_session)]
 Search = Annotated[str, Query(max_length=100)]
 Status = Literal["moving", "stopped", "offline", "unknown"] | None
+VehicleSort = Literal["name-asc", "name-desc", "status", "odometer-asc", "odometer-desc"]
 
 
 def context(request, session):
@@ -30,11 +36,20 @@ def vehicles(
     session: SessionDep,
     q: Search = "",
     status: Status = None,
+    sort: VehicleSort = "name-asc",
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 25,
 ):
     settings, source, metadata = context(request, session)
-    items = fleet_rows(session, source, settings.stale_seconds, q, status)
+    items = fleet_rows(
+        session,
+        source,
+        settings.stale_seconds,
+        q,
+        status,
+        source_degraded=metadata["status"] == "degraded",
+    )
+    items = sort_fleet_rows(items, sort)
     start = (page - 1) * page_size
     return {
         "items": items[start : start + page_size],
@@ -48,7 +63,14 @@ def vehicles(
 @router.get("/map")
 def fleet_map(request: Request, session: SessionDep, q: Search = "", status: Status = None):
     settings, source, metadata = context(request, session)
-    items = fleet_rows(session, source, settings.stale_seconds, q, status)
+    items = fleet_rows(
+        session,
+        source,
+        settings.stale_seconds,
+        q,
+        status,
+        source_degraded=metadata["status"] == "degraded",
+    )
     features = [
         {
             "type": "Feature",
@@ -72,7 +94,12 @@ def fleet_map(request: Request, session: SessionDep, q: Search = "", status: Sta
 @router.get("/summary")
 def summary(request: Request, session: SessionDep):
     settings, source, metadata = context(request, session)
-    items = fleet_rows(session, source, settings.stale_seconds)
+    items = fleet_rows(
+        session,
+        source,
+        settings.stale_seconds,
+        source_degraded=metadata["status"] == "degraded",
+    )
     return {
         "total": len(items),
         **{
@@ -87,7 +114,7 @@ def summary(request: Request, session: SessionDep):
 def vehicle_detail(vehicle_id: UUID, request: Request, session: SessionDep):
     from datetime import UTC, datetime
 
-    settings, source, _ = context(request, session)
+    settings, source, metadata = context(request, session)
     row = session.execute(
         select(Vehicle, Measurement, Driver)
         .outerjoin(Measurement, Measurement.vehicle_id == Vehicle.id)
@@ -96,4 +123,9 @@ def vehicle_detail(vehicle_id: UUID, request: Request, session: SessionDep):
     ).first()
     if not row:
         raise ApiError(404, "NOT_FOUND", "Pojazd nie istnieje")
-    return serialize_vehicle(*row, datetime.now(UTC), settings.stale_seconds)
+    return serialize_vehicle(
+        *row,
+        datetime.now(UTC),
+        settings.stale_seconds,
+        metadata["status"] == "degraded",
+    )
