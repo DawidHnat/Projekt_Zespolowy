@@ -36,6 +36,8 @@ type FleetState = {
   pageSize: number;
   selectedId: string | null;
   selected: Vehicle | null;
+  detailsLoading: boolean;
+  detailsError: string | null;
   detailsOpen: boolean;
   setQ: (q: string) => void;
   setStatus: (status: VehicleStatus | "") => void;
@@ -44,6 +46,7 @@ type FleetState = {
   setPageSize: (size: number) => void;
   select: (id: string | null) => void;
   inspect: (id: string) => void;
+  retryDetails: () => void;
   closeDetails: () => void;
   refresh: () => void;
 };
@@ -56,6 +59,11 @@ type FleetSnapshot = {
   summary: Summary;
 };
 type RequestState = { key: string; loading: boolean; error: string | null };
+type DetailRequestState = {
+  id: string;
+  loading: boolean;
+  error: string | null;
+};
 export function FleetProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   return user ? <AccountFleetProvider key={user.id}>{children}</AccountFleetProvider> : null;
@@ -89,9 +97,12 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
   };
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Vehicle | null>(null);
+  const [detailRequest, setDetailRequest] = useState<DetailRequestState | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const listPoll = useRef<ReturnType<typeof startPolling> | null>(null);
   const detailPoll = useRef<ReturnType<typeof startPolling> | null>(null);
+  const selectedIdRef = useRef<string | null>(null);
+  selectedIdRef.current = selectedId;
   const filterKey = JSON.stringify([q.trim(), status]);
   const requestKey = JSON.stringify([filterKey, page, pageSize]);
   // Cached results belong to the criteria that produced them, including while
@@ -176,44 +187,81 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!selectedId) {
       setSelected(null);
+      setDetailRequest(null);
       return;
     }
+    const id = selectedId;
     const poll = startPolling(
       async signal => {
         try {
-          const vehicle = await api<Vehicle>(`/fleet/vehicles/${encodeURIComponent(selectedId)}`, { signal });
-          if (!signal.aborted) setSelected(vehicle);
+          const vehicle = await api<Vehicle>(`/fleet/vehicles/${encodeURIComponent(id)}`, { signal });
+          if (signal.aborted || selectedIdRef.current !== id) return;
+          setSelected(vehicle);
+          setDetailRequest({ id, loading: false, error: null });
         } catch (err) {
-          if (!signal.aborted && err instanceof ApiError && err.status === 404) {
+          if (signal.aborted || selectedIdRef.current !== id) throw err;
+          if (err instanceof ApiError && err.status === 404) {
+            selectedIdRef.current = null;
             setSelectedId(null);
             setSelected(null);
+            setDetailRequest(null);
             setDetailsOpen(false);
+          } else if (!(err instanceof ApiError && err.status === 401)) {
+            setDetailRequest({
+              id,
+              loading: false,
+              error: err instanceof Error
+                ? err.message
+                : "Nie można pobrać szczegółów pojazdu.",
+            });
           }
-          // Keep the last detail and mounted editor on a transient failure.
           throw err;
         }
       },
       browserPollingEnvironment(),
-      undefined,
+      () => {
+        if (selectedIdRef.current !== id) return;
+        const message = !navigator.onLine
+          ? "Brak połączenia z siecią. Szczegóły zostaną odświeżone po odzyskaniu połączenia."
+          : "Odświeżanie szczegółów zostanie wznowione po powrocie do aplikacji.";
+        setDetailRequest(current => ({
+          id,
+          loading: false,
+          error: current?.id === id && current.error ? current.error : message,
+        }));
+      },
       fleetPollIntervalMs,
     );
+    if (!document || document.visibilityState === "hidden" || !navigator.onLine) {
+      const message = !navigator.onLine
+        ? "Brak połączenia z siecią. Szczegóły zostaną odświeżone po odzyskaniu połączenia."
+        : "Odświeżanie szczegółów zostanie wznowione po powrocie do aplikacji.";
+      setDetailRequest(current => ({ id, loading: false, error: current?.error ?? message }));
+    }
     detailPoll.current = poll;
     return () => {
       poll.dispose();
       detailPoll.current = null;
     };
   }, [selectedId]);
+  const chooseVehicle = (id: string | null, open: boolean) => {
+    if (selectedIdRef.current !== id) {
+      selectedIdRef.current = id;
+      setDetailRequest(id ? { id, loading: true, error: null } : null);
+      if (!id) setSelected(null);
+    }
+    setSelectedId(id);
+    setDetailsOpen(open);
+  };
   const setQ = (value: string) => {
     setQuery(value);
     setPage(1);
-    setSelectedId(null);
-    setDetailsOpen(false);
+    chooseVehicle(null, false);
   };
   const setStatus = (value: VehicleStatus | "") => {
     setFilter(value);
     setPage(1);
-    setSelectedId(null);
-    setDetailsOpen(false);
+    chooseVehicle(null, false);
   };
   return (
     <Context
@@ -230,6 +278,8 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
         pageSize,
         selectedId,
         selected: selected?.id === selectedId ? selected : null,
+        detailsLoading: detailRequest?.id === selectedId && detailRequest.loading,
+        detailsError: detailRequest?.id === selectedId ? detailRequest.error : null,
         detailsOpen,
         setQ,
         setStatus,
@@ -240,13 +290,24 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
         },
         setPage,
         setPageSize,
-        select: (id) => {
-          setSelectedId(id);
-          setDetailsOpen(false);
-        },
-        inspect: (id) => {
-          setSelectedId(id);
-          setDetailsOpen(true);
+        select: id => chooseVehicle(id, false),
+        inspect: id => chooseVehicle(id, true),
+        retryDetails: () => {
+          if (!selectedId) return;
+          if (!navigator.onLine) {
+            setDetailRequest({
+              id: selectedId,
+              loading: false,
+              error: "Brak połączenia z siecią. Szczegóły zostaną odświeżone po odzyskaniu połączenia.",
+            });
+            return;
+          }
+          setDetailRequest({
+            id: selectedId,
+            loading: !selected || selected.id !== selectedId,
+            error: null,
+          });
+          detailPoll.current?.refresh();
         },
         closeDetails: () => setDetailsOpen(false),
         refresh: () => {
