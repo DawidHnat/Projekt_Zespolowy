@@ -8,6 +8,22 @@ jobów bezpieczeństwa; nie zmieniano reguł ochrony repozytorium.
 Wyniki z 28.10 poniżej są historyczne. Nowe CI, review i QA tej integracji
 pozostają warunkami dostarczenia. Nie aktywowano usług na VPS.
 
+## Bieżąca blokada integracji — 17.11.2026
+
+Run [44177076297](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44177076297)
+na `5d01cf2`: Python audit, Semgrep, Gitleaks, Trivy, testy i build PASS.
+Npm audit zwrócił High dla `picomatch` i jego łańcucha zależności
+Vite/tinyglobby/fdir/plugin-react. Required CI prawidłowo FAIL, deploy SKIPPED.
+[GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf)
+(CVE-2026-112366), odczyt 17.11, obejmuje <=4.0.7 i wskazuje brak poprawionej
+wersji. Nie wykonano sugerowanego przez npm przymusowego downgrade Vite.
+Nie dodano ignorowania CVE ani obniżenia progu. PR pozostaje draftem.
+
+Właściciel SCRUM-95 (Dawid) wraz z PO musi odebrać bezpieczną poprawkę
+zależności albo osobno przejrzeć precyzyjny, datowany wyjątek zgodnie
+z zasadami poniżej. Taki wyjątek nie został uzgodniony ani wprowadzony.
+Ta blokada uniemożliwia uznanie integracji SCRUM-133 za ukończoną.
+
 ## Zakres i progi
 
 Required CI zależy od frontend, dwóch wersji backendu, obrazu, E2E oraz trzech
