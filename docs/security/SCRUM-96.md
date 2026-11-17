@@ -1,7 +1,10 @@
 # SCRUM-96 — nagłówki i zaufany reverse proxy
 
-Baza: SCRUM-107 / PR43 → PR40 → PR39 → PR37 → PR30. Wdrożenie infrastruktury
-wymaga review i uzgodnionego okna; nie zmieniono VPS ani DNS/certyfikatów.
+Integracja SCRUM-133, 17.11.2026: odtworzono zakres PR #44 z commitów
+`39b938e` i `5a43ff0` na `main` `9dad2b2`. Zachowano nowe przekierowania domeny,
+konfigurację synchronizacji z prywatnego env oraz wszystkie istniejące bramki CI.
+Wdrożenie infrastruktury wymaga niezależnego review i uzgodnionego okna;
+nie zmieniono VPS ani DNS/certyfikatów.
 
 ## Model zaufania
 
@@ -61,7 +64,10 @@ Skrypt tworzy wyłącznie własną sieć --internal oraz efemeryczne Caddy/API/P
 z prefiksem fleet-proxy-test-UUID. Brak portów publikowanych na hoście, danych
 projektu i żywych integracji. W finally usuwa tylko utworzone przez siebie zasoby.
 Baza nazywa się fleet_flow_test_proxy, dane są syntetyczne, a logi nie drukują
-połączenia/treści żądań. Caddy i jego Caddyfile pochodzą z konfiguracji wdrożenia.
+połączenia/treści żądań. Caddy i obsługa żądań pochodzą z konfiguracji wdrożenia. Test zmienia wyłącznie
+listener aplikacji na HTTP :8080 i wyłącza automatyczne HTTPS w tymczasowej
+kopii Caddyfile. Pozostawia nagłówki, przekierowania i reverse proxy; nie wymaga
+DNS/ACME i nie stanowi testu TLS domeny produkcyjnej.
 
 Dowód developerski 28.10.2026: Caddy2.11.7 (digest zapisany w Compose), API z obrazu
 SCRUM-95 Python3.13 Alpine, PostgreSQL17, lokalny Docker Desktop. PASS:

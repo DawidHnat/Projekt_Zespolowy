@@ -139,6 +139,15 @@ def main():
                 '<html lang="pl"><title>Synthetic proxy</title></html>'
             )
             (pages / "status.html").write_text("Synthetic public status only")
+            # Keep the deployed handlers/headers; replace only the listener so the
+            # isolated network does not need real certificates, DNS or ACME.
+            caddyfile = (ROOT / "infra/deploy/Caddyfile").read_text()
+            assert caddyfile.count("\n{$APP_DOMAIN} {") == 1
+            caddyfile = caddyfile.replace("\n{$APP_DOMAIN} {", "\nhttp://:8080 {")
+            caddyfile = caddyfile.replace(
+                "auto_https disable_redirects", "auto_https off"
+            )
+            (pages / "Caddyfile").write_text(caddyfile)
             docker(
                 "run",
                 "-d",
@@ -151,9 +160,9 @@ def main():
                 "--network-alias",
                 "edge",
                 "-e",
-                "APP_DOMAIN=http://:8080",
+                "APP_DOMAIN=fleet.test",
                 "-v",
-                f"{ROOT / 'infra/deploy/Caddyfile'}:/etc/caddy/Caddyfile:ro",
+                f"{pages / 'Caddyfile'}:/etc/caddy/Caddyfile:ro",
                 "-v",
                 f"{pages}:/srv/frontend:ro",
                 caddy_image,
