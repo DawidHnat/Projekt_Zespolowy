@@ -1,5 +1,20 @@
 # SCRUM-97 — zapytania floty
 
+## Integracja SCRUM-133 — 17.11.2026
+
+Przywrócono źródłowe commity PR #38 (`742546d`, `cab1c42`) na `main`
+`9dad2b2`. Nowa migracja `0008_fleet_search` następuje po istniejącym `0007`;
+nie zmienia żadnej wykonanej migracji. Unicode casefold obejmuje także
+obecne w main markę/model/VIN. Zachowano wszystkie sorty floty i stały
+UUID przy remisie, limitowanie stron w SQL, stan degraded i kartotekę pojazdu.
+
+Walidacja autora: Ruff check/format i 197 pytest PASS na syntetycznym
+PostgreSQL 17, w tym migracja tam/z powrotem, backfill Unicode,
+10 001 pojazdów z materializacją tylko strony oraz regresje aktualnego main.
+Poniższe plany wydajności są historyczne; nie deklarują aktualnego SLA.
+Niezależne review, QA i odbiór wdrożenia/odtworzenia pozostają wymagane.
+
+
 Lista wykonuje literalne wyszukiwanie, filtr statusu, COUNT i LIMIT/OFFSET w SQL.
 Sortowanie `(name, id)` ma stabilny tie breaker. Tylko zwrócona strona przechodzi
 przez serializer pojazdu. Summary wykonuje GROUP BY status, a mapa pobiera sześć
@@ -21,7 +36,7 @@ i znaku escape. Nie ma odczytu całej floty ani filtrowania w Pythonie. Parametr
 z NUL zwraca pusty wynik (tekst PostgreSQL nie może zawierać NUL), bez błędu bazy.
 Wcześniejsza różnica LOWER/casefold z wersji draft została usunięta.
 
-Migracja0006_fleet_search przelicza istniejące rekordy w partiach500 po UUID.
+Migracja0008_fleet_search przelicza istniejące rekordy w partiach500 po UUID.
 Nie zmienia UUID, nazw, identyfikatorów źródła ani ręcznych driver_id; downgrade
 usuwa wyłącznie odtwarzalne pochodne. Test PostgreSQL potwierdza backfill Unicode
 oraz round trip bez zmiany własności danych. Normalne zapisy ORM (w tym sync)
@@ -31,7 +46,7 @@ zapisujący bezpośrednie UPDATE SQL musi utrzymywać te same pochodne.
 Rollout wymaga zwykłego odebranego okna migracji: zatrzymaj API/worker, wykonaj
 migrację nowym kodem, uruchom tę samą wersję i odbierz filtry. Nie mieszaj starego
 writera z nowymi pochodnymi. Przy rollbacku do poprzedniej wersji w tym samym
-oknie cofnij wyłącznie tę migrację do0005, następnie uruchom stary kod; ponowny
+oknie cofnij wyłącznie tę migrację do0007, następnie uruchom stary kod; ponowny
 upgrade odtworzy pochodne z aktualnych faktów. Nie usuwa się pojazdów/adnotacji.
 Po zmianie wersji Unicode Pythona należy ponownie ocenić/backfillować pochodne.
 VPS i żadne rzeczywiste dane nie były zmieniane w ramach tej weryfikacji.

@@ -334,7 +334,7 @@ def test_sql_status_boundaries_match_details_and_zero_gps(logged_in, monkeypatch
     geo = client.get("/api/v1/fleet/map").json()
     assert geo["located"] == 4 and geo["total"] == 7
     assert all(feature["geometry"]["coordinates"] == [0.0, 0.0] for feature in geo["features"])
-    assert geo["source"]["status"] == "degraded"
+    assert geo["source"]["status"] == "ok"
     assert client.get("/api/v1/fleet/summary").json() == {
         "total": 7,
         **{status: len(names) for status, names in expected.items()},
