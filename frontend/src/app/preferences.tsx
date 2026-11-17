@@ -31,6 +31,8 @@ export type {
 } from "./preference-model";
 
 type DashboardPreferences = ReturnType<typeof defaultPreferences>;
+const MIGRATION_STORAGE_KEY = "fleet-flow.dashboard.account-migration.v1";
+type MigrationState = { ownerId: string; completed: boolean };
 export type DashboardArrangement = {
   visibleWidgets: WidgetId[];
   layouts: { dashboard: DashboardPreferences["layouts"]["dashboard"] };
@@ -67,10 +69,49 @@ function hasLocalPreferences() {
   }
 }
 
+function readMigrationState(): MigrationState | null {
+  try {
+    const value: unknown = JSON.parse(
+      localStorage.getItem(MIGRATION_STORAGE_KEY) ?? "null",
+    );
+    if (
+      !value ||
+      typeof value !== "object" ||
+      !("ownerId" in value) ||
+      typeof value.ownerId !== "string" ||
+      !("completed" in value) ||
+      typeof value.completed !== "boolean"
+    ) return null;
+    return { ownerId: value.ownerId, completed: value.completed };
+  } catch {
+    return null;
+  }
+}
+
+function writeMigrationState(value: MigrationState) {
+  try {
+    localStorage.setItem(MIGRATION_STORAGE_KEY, JSON.stringify(value));
+  } catch {
+    // Migration ownership is also tracked in memory for the active page.
+  }
+}
+
 function arrangementOf(value: DashboardPreferences): DashboardArrangement {
   return {
     visibleWidgets: value.visibleWidgets,
     layouts: { dashboard: value.layouts.dashboard },
+  };
+}
+
+function resetAccountArrangement(current: DashboardPreferences) {
+  const defaults = defaultPreferences();
+  return {
+    ...current,
+    visibleWidgets: defaults.visibleWidgets,
+    layouts: {
+      ...current.layouts,
+      dashboard: defaults.layouts.dashboard,
+    },
   };
 }
 
@@ -90,12 +131,15 @@ function applyArrangement(
 
 function useDashboardPreferencesState() {
   const { user } = useAuth();
-  const [preferences, setPreferences] = useState(readPreferences);
+  const [initialPreferences] = useState(readPreferences);
+  const [preferences, setPreferences] = useState(initialPreferences);
   const [systemDark, setSystemDark] = useState(
     () => window.matchMedia("(prefers-color-scheme: dark)").matches,
   );
   const [persistent, setPersistent] = useState(true);
   const [localWasPresent] = useState(hasLocalPreferences);
+  const migrationCandidate = useRef(arrangementOf(initialPreferences));
+  const migrationState = useRef(readMigrationState());
   const [cloud, setCloud] = useState<DashboardCloudState>({
     loading: Boolean(user),
     saving: false,
@@ -106,6 +150,7 @@ function useDashboardPreferencesState() {
   });
   const version = useRef(0);
   const accountId = useRef(user?.id);
+  const activeAccountId = useRef(user?.id ?? null);
   accountId.current = user?.id;
   const resolvedTheme =
     preferences.theme === "system"
@@ -135,7 +180,21 @@ function useDashboardPreferencesState() {
       setPersistent(false);
     }
   }, [preferences]);
-  useEffect(() => {
+  useLayoutEffect(() => {
+    const nextId = user?.id ?? null;
+    if (activeAccountId.current !== nextId) {
+      activeAccountId.current = nextId;
+      version.current = 0;
+      setPreferences(resetAccountArrangement);
+      setCloud({
+        loading: Boolean(nextId),
+        saving: false,
+        version: 0,
+        error: null,
+        migrationAvailable: false,
+        conflict: null,
+      });
+    }
     if (!user) {
       version.current = 0;
       setCloud({
@@ -165,13 +224,30 @@ function useDashboardPreferencesState() {
         version.current = result.version;
         if (result.value) {
           setPreferences((current) => applyArrangement(current, result.value!));
+          if (
+            !migrationState.current ||
+            migrationState.current.ownerId === id
+          ) {
+            migrationState.current = { ownerId: id, completed: true };
+            writeMigrationState(migrationState.current);
+          }
+        }
+        let migrationAvailable = false;
+        if (result.version === 0 && result.value === null && localWasPresent) {
+          if (!migrationState.current) {
+            migrationState.current = { ownerId: id, completed: false };
+            writeMigrationState(migrationState.current);
+          }
+          migrationAvailable =
+            migrationState.current.ownerId === id &&
+            !migrationState.current.completed;
         }
         setCloud({
           loading: false,
           saving: false,
           version: result.version,
           error: null,
-          migrationAvailable: result.version === 0 && result.value === null && localWasPresent,
+          migrationAvailable,
           conflict: null,
         });
       })
@@ -212,6 +288,10 @@ function useDashboardPreferencesState() {
         value,
       );
       if (accountId.current !== user.id) return false;
+      if (onlyIfMissing) {
+        migrationState.current = { ownerId: user.id, completed: true };
+        writeMigrationState(migrationState.current);
+      }
       version.current = result.version;
       setPreferences((current) => applyArrangement(current, value));
       setCloud({
@@ -259,7 +339,7 @@ function useDashboardPreferencesState() {
 
   const chooseMigration = async (importLocal: boolean) => {
     const candidate = importLocal
-      ? arrangementOf(readPreferences())
+      ? migrationCandidate.current
       : arrangementOf(defaultPreferences());
     const saved = await writeArrangement(candidate, false, true);
     if (saved && !importLocal)

@@ -122,6 +122,107 @@ test("account preferences sync between independent browsers and resolve concurre
   }
 });
 
+test("dashboard preferences stay isolated when switching accounts in one browser", async ({ page, browser }) => {
+  const widgets = ["metrics", "map", "activity", "vehicles", "utilization", "trips"];
+  const localSettings = {
+    theme: "light",
+    accent: "#1479e8",
+    material: "glass",
+    visibleWidgets: [],
+    layouts: {
+      dashboard: {
+        desktop: widgets.map((i, index) => ({ i, x: 0, y: index * 4, w: 12, h: 4 })),
+        compact: widgets.map((i, index) => ({ i, x: 0, y: index * 4, w: 1, h: 4 })),
+      },
+    },
+  };
+  await page.addInitScript((value) => {
+    localStorage.setItem("fleet-flow.dashboard.v2", JSON.stringify(value));
+  }, localSettings);
+  await login(page);
+  await page.evaluate(() => { window.location.hash = "#dashboard"; });
+  const migration = page.getByRole("region", { name: "Migracja ustawień: Pulpit" });
+  await expect(migration).toBeVisible();
+  await migration.getByRole("button", {
+    name: "Przenieś z tej przeglądarki",
+    exact: true,
+  }).click();
+  await expect.poll(async () => {
+    const response = await page.request.get("/api/v1/preferences/dashboard");
+    const { value } = await response.json();
+    return value?.visibleWidgets;
+  }).toEqual([]);
+
+  const secondContext = await browser.newContext({
+    baseURL: "http://127.0.0.1:54173",
+    locale: "pl-PL",
+    timezoneId: "Europe/Warsaw",
+    viewport: test.info().project.name === "mobile"
+      ? { width: 390, height: 844 }
+      : { width: 1440, height: 1000 },
+    ...(test.info().project.name === "mobile"
+      ? { isMobile: true, hasTouch: true }
+      : {}),
+  });
+  try {
+    await secondContext.route("**/*", (route) => {
+      const url = new URL(route.request().url());
+      return url.hostname === "127.0.0.1" ? route.continue() : route.abort();
+    });
+    const accountAPage = await secondContext.newPage();
+    await login(accountAPage);
+
+    await page.evaluate(() => { window.location.hash = "#dashboard"; });
+    await page.getByRole("button", { name: "Edytuj układ", exact: true }).click();
+    await page.getByRole("button", { name: "Wybierz widgety", exact: true }).click();
+    for (const widget of [
+      "Przegląd floty",
+      "Mapa floty",
+      "Alerty i aktywność",
+      "Pojazdy",
+      "Wykorzystanie floty",
+      "Ostatnie przejazdy",
+    ]) {
+      const checkbox = page.getByRole("checkbox", {
+        name: `Pokaż moduł: ${widget}`,
+        exact: true,
+      });
+      if (await checkbox.isChecked()) await checkbox.uncheck();
+    }
+    await page.getByRole("button", { name: "Zapisz układ", exact: true }).click();
+    await expect.poll(async () => {
+      const response = await page.request.get("/api/v1/preferences/dashboard");
+      const { value } = await response.json();
+      return value?.visibleWidgets;
+    }).toEqual([]);
+
+    await page.getByRole("button", { name: "Wyloguj się", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Zaloguj się", exact: true })).toBeVisible();
+    await login(page, "editor-two");
+    await page.evaluate(() => { window.location.hash = "#dashboard"; });
+    await expect(page.locator("[data-widget]")).toHaveCount(6);
+    await expect(page.getByRole("region", { name: "Migracja ustawień: Pulpit" })).toHaveCount(0);
+
+    const accountBBeforeSave = await page.request.get("/api/v1/preferences/dashboard");
+    expect(await accountBBeforeSave.json()).toMatchObject({
+      version: 0,
+      value: null,
+    });
+    await page.getByRole("button", { name: "Edytuj układ", exact: true }).click();
+    await page.getByRole("button", { name: "Zapisz układ", exact: true }).click();
+    await expect.poll(async () => {
+      const response = await page.request.get("/api/v1/preferences/dashboard");
+      const { version, value } = await response.json();
+      return [version, value?.visibleWidgets?.length];
+    }).toEqual([1, 6]);
+
+    const accountA = await accountAPage.request.get("/api/v1/preferences/dashboard");
+    expect((await accountA.json()).value.visibleWidgets).toEqual([]);
+  } finally {
+    await secondContext.close();
+  }
+});
+
 test("local dashboard settings require explicit migration and cannot replace account settings", async ({ page, browser }) => {
   const widgets = ["metrics", "map", "activity", "vehicles", "utilization", "trips"];
   const localSettings = {

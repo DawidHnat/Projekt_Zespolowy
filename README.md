@@ -169,12 +169,15 @@ pokazuje pustą listę. [Scenariusze QA i zależność importera](docs/qa/SCRUM-
 
 Frontend ma Pulpit, motywy, edytor układu, logowanie, listę i kafelki pojazdów
 oraz Mapbox bez grupowania znaczników. Osobna strona Ustawień obejmuje wygląd,
-tło i moduły. Zdjęcia pojazdów oraz indywidualne rozmiary kafelków są lokalnymi
-preferencjami użytkownika; zdjęcia nie są jeszcze współdzielone z zespołem.
+tło i moduły. Układ Pulpitu oraz rozmiary, sortowanie, filtry i limit listy
+Pojazdów są zapisywane jako preferencje konta i synchronizują się między
+przeglądarkami; wygląd i tło pozostają lokalne. Zdjęcia pojazdów są zapisane
+lokalnie i nie są współdzielone z zespołem.
 Edycja Pojazdów pozwala zaznaczyć kilka kafelków i wspólnie zmienić ich rozmiar
 lub wyrównać całą flotę. Wspólna paginacja galerii, tabeli i listy przy mapie
 oferuje 10/25/50/100 elementów na stronę; mapa nadal pokazuje wszystkie
 pasujące pojazdy z GPS.
+[Zakres i procedura niezależnego QA preferencji SCRUM-91](docs/qa/SCRUM-91.md).
 Kliknięcie pojazdu na mapie pokazuje mały podgląd; przycisk Szczegóły otwiera
 panel z zakładkami Pojazd, Kierowca, Przegląd i Podróże.
 Panel i kafelek Ostatnie przejazdy mają wybór dnia;
