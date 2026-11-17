@@ -1,5 +1,18 @@
 # SCRUM-52 — ręczna kartoteka i relacje wiele do wielu
 
+## Integracja SCRUM-133 — 17.11.2026
+
+Własny zakres PR #50 (`8aaef29`) odtworzono po kontraktach, alertach,
+SQL i ograniczeniu ról z aktualnego main `9dad2b2`. Nowa migracja
+`0010_manual_drivers` następuje po `0009_user_roles`; nie zmieniono
+wykonanych migracji. Zachowano kartotekę, telemetrię, degraded, sorty,
+Unicode marki/modelu/VIN, preferencje i nowe sesje. Test atrapy synchronizacji
+uwzględnia obecny protokół retry (`sleep`/`tracker`), bez żywego dostawcy.
+
+Niezależny review/QA i kontrolowany odbiór migracji/rollback nadal wymagane.
+Kierowcy są wyłącznie ręczni; nie wykonano migracji VPS ani importu WEBFLEET.
+
+
 Decyzja PO z 28.10.2026: wielu kierowców jednego pojazdu jednocześnie oraz
 wiele pojazdów jednego kierowcy. Kierowcy, kontakt, kategorie i przypisania
 powstają wyłącznie ręcznie. WEBFLEET nie zapisuje żadnej z tych tabel.
