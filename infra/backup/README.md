@@ -1,5 +1,15 @@
 # Cykliczny backup - SCRUM-84
 
+Integracja SCRUM-133, 17.11.2026: własny commit `c9baac0` / PR #35
+odtworzono na main `9dad2b2`, bez przyrostów alertów, które później trafiły
+do tej samej gałęzi. Ruff check/format PASS; backend 191 PASS / 12 SKIP
+bez dedykowanej bazy. Osobno 12/12 testów backupu PASS z rzeczywistym,
+zweryfikowanym SHA-256 restic 0.19.1, Dockerem i PostgreSQL 17:
+syntetyczny dump → szyfrowany snapshot → pobranie → SHA-256 → izolowany restore.
+Nie skonfigurowano storage, monitoringu, timerów ani rzeczywistych danych.
+Niezależny review/QA i operacyjny odbiór na innym hoście nadal wymagane.
+
+
 Przyrost audytu z 27.10.2026. Kod jest gotowy do review; nie oznacza uruchomienia
 backupu na VPS ani odbioru SCRUM-84. Przed aktywacją właściciel wskazuje niezależne
 repozytorium, koszt, opiekuna klucza oraz akceptuje RPO/RTO. Nie zamawiamy storage.
