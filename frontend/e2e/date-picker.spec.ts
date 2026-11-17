@@ -38,6 +38,7 @@ test("SCRUM-77: Enter otwiera kalendarz, Escape zamyka i oddaje fokus", async ({
 });
 
 test("SCRUM-77: Spacja i skróty dat działają, wpisywanie jest zablokowane", async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-10-18T10:00:00.000Z"));
   await login(page);
   await page.goto("/#dashboard");
 
@@ -55,6 +56,15 @@ test("SCRUM-77: Spacja i skróty dat działają, wpisywanie jest zablokowane", a
   const before = await trigger.innerText();
   await trigger.press("Backspace");
   await trigger.press("a");
+  await trigger.evaluate(button => {
+    const clipboard = new DataTransfer();
+    clipboard.setData("text/plain", "2026-01-01");
+    button.dispatchEvent(new ClipboardEvent("paste", {
+      bubbles: true,
+      cancelable: true,
+      clipboardData: clipboard,
+    }));
+  });
   expect(await trigger.innerText()).toBe(before);
 
   await group.getByRole("button", { name: "Dzisiaj" }).click();
