@@ -1,5 +1,17 @@
 # SCRUM-32 — alerty i formularze reguł MVP
 
+## Integracja SCRUM-133 — 17.11.2026
+
+Przywrócono własny commit PR #49 `873d5d0` po integracjach kontraktu,
+dostępności i oznaczeń UX, zachowując aktualny profil, preferencje i sesje.
+Walidacja autora: Ruff check/format PASS; 213 pytest PASS na osobnym
+PostgreSQL 17; 55 npm test i build PASS; 14 Playwright PASS desktop/390 px
+(lista/odczyt per konto/reload, reguły, awarie/retry, axe w obu motywach
+oraz aktualne oznaczenia planowanych modułów). Obejrzano zrzuty obu ekranów.
+Terminy i e-maile pozostają w osobnych zadaniach; bez żywych integracji.
+Niezależne review, QA SCRUM-33 i odbiór wdrożenia nadal wymagane.
+
+
 Widok `#alerts` pokazuje rzeczywiste alerty dziennego dystansu z API SCRUM-31:
 pojazd, polski dzień, wartość, zapisany próg i odczyt własnego konta. Filtr
 Wszystkie/Nieprzeczytane/Przeczytane i wspólna paginacja działają na serwerze.

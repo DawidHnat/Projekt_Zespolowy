@@ -214,7 +214,8 @@ def test_postgres_concurrent_versions_multiple_drivers_and_repeat_sync_preserve_
                     )
                 }
 
-            async def source_read(*_):
+            async def source_read(*_, **options):
+                assert set(options) == {"sleep", "tracker"}
                 return (
                     [
                         {
