@@ -1,5 +1,24 @@
 # SCRUM-53 — kartoteka kierowców
 
+## Integracja SCRUM-133 — 17.11.2026
+
+Przywrócono własny commit PR #51 `ff88349` po API kierowców i jego
+jawnych zależnościach na aktualnym main `132fefc`. Wspólny hook resize
+zachowuje nowszą poprawkę zapisanego wymiaru osi bez gestu, również na telefonie.
+Nie cofnięto profilu, sesji, preferencji konta ani kartoteki/telemetrii.
+
+Walidacja autora: Ruff check/format i generator PASS; 265 pytest PASS
+na osobnym PostgreSQL 17; 55 npm test, build i pełne 114/114 Playwright PASS
+na desktop/390 px (kierowcy i przypisania/konflikty/role, alerty,
+profile i sesje między kartami, map recovery, kalendarz, zdjęcia i resize).
+Po ostatniej poprawce układu profilu: 55 npm test/build i dodatkowe
+10/10 axe/klawiatura/lista-kafelki PASS w obu motywach na obu ekranach.
+Obejrzano zrzuty desktop/mobile. Wyłącznie fikcyjne konta i dane.
+
+To walidacja autora. Review, ręczny QA SCRUM-54 (w tym Safari/dotyk)
+i operacyjny odbiór wdrożenia pozostają wymagane; nie aktywowano usług.
+
+
 Gałąź opiera się na API i migracji SCRUM-52 (PR #50). Nie ma nowej migracji,
 importu kierowców ani fikcyjnych rekordów w aplikacji. Syntetyczne profile
 są wyłącznie w opt-in fixture dedykowanej lokalnej bazie E2E.
