@@ -182,7 +182,7 @@ export function App() {
           <div className="workspace">
             <span className="workspace-avatar">FF</span>
             <div>
-              <a href="#profile" className="workspace-profile" aria-label="Otwórz profil użytkownika"
+              <a href="#profile" className="workspace-profile" aria-label={`Otwórz profil użytkownika: ${auth.user?.display_name ?? ""}`}
                 aria-current={section === "profile" ? "page" : undefined}>
                 <strong>{auth.user?.display_name}</strong>
               </a>
