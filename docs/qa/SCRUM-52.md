@@ -100,3 +100,6 @@ Walidacja autora integracji: Ruff check/format, generator typów i build PASS;
 (migracje, konflikty, wiele przypisań, izolacja i powtórna synchronizacja).
 Aktualna baza main po odświeżeniu: `132fefc` (nowa dokumentacja SCRUM-101).
 Wyniki nie są niezależnym QA ani odbiorem operacyjnej migracji.
+
+Osobny test przeglądarkowy API: 2/2 Playwright PASS desktop/mobile — wielu
+kierowców, brak arbitralnego primary oraz zgodna lista i szczegóły floty.
