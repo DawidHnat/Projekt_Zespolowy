@@ -6,6 +6,18 @@ konfigurację synchronizacji z prywatnego env oraz wszystkie istniejące bramki 
 Wdrożenie infrastruktury wymaga niezależnego review i uzgodnionego okna;
 nie zmieniono VPS ani DNS/certyfikatów.
 
+## Sprawdzenie integracji 17.11.2026
+
+Na gałęzi integracji: Ruff check/format PASS, backend 180 PASS / 11 SKIP
+(testy PostgreSQL wymagające osobnej bazy), actionlint i lokalne linki PASS.
+Zbudowano obraz `fleet-flow-scrum133-api:edge`; izolowany test prawdziwego
+Caddy/API/PostgreSQL przeszedł: nagłówki strony/readiness/401, 10 × 401 → 429
+mimo podrobionych nagłówków, osobny limit drugiego klienta, odmowa spoofingu
+bezpośredniego klienta API oraz koszyki PostgreSQL `[11, 1, 11]`.
+HTTP nie ujawnia API floty; zasoby testowe usunięto. Bez żywego WEBFLEET/SMTP.
+To walidacja autora. Aktualne CI, niezależne review/QA i odbiór wdrożenia
+pozostają wymagane; historyczny wynik poniżej nie zastępuje tych odbiorów.
+
 ## Model zaufania
 
 Caddy jest pierwszym publicznym hopem, bez CDN/LB przed nim. Nie ufa żadnym
