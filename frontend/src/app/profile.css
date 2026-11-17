@@ -1,4 +1,4 @@
-.workspace-profile { color: inherit; text-decoration: none; }
+.workspace-profile { display: inline-flex; align-items: center; min-height: 24px; min-width: 24px; color: inherit; text-decoration: none; }
 .workspace-profile:hover { color: var(--accent); }
 .workspace-profile:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
 .profile-page { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; max-width: 960px; }

@@ -1,5 +1,21 @@
 # SCRUM-107 — dostępność
 
+## Integracja SCRUM-133 — 17.11.2026
+
+Przywrócono własne commity PR #43 na main `9dad2b2`, zachowując nowsze
+testy sesji, profilu i preferencji. Axe znalazł też nowsze regresje:
+nazwa dostępności profilu pomijała widoczną nazwę użytkownika, link miał
+zbyt mały cel, a przycisk kalendarza pomijał widoczną datę. Poprawiono je,
+bez wyłączania reguł ani progów. Natywny dialog nadal obsługuje fokus i Escape.
+
+Walidacja autora: 55 npm test PASS, build PASS, Ruff check/format PASS.
+Chromium: 6/6 testów axe/klawiatury PASS na desktop i 390 px, w obu motywach;
+login/błąd, wszystkie statusy floty, fallback mapy, dialog, edycja adnotacji
+oraz błąd zapisu zachowujący szkic. Dane i konta wyłącznie syntetyczne.
+To automatyczna walidacja autora. Niezależny review oraz ręczne QA Marcela
+pozostają wymagane; wyniki historyczne poniżej nie są nowym odbiorem.
+
+
 Baza: PR40 → PR39 → PR37 → PR30. Testy axe są w istniejącym E2E i przez ten job
 wchodzą do Required CI. Brak nowych wywołań WEBFLEET/SMTP lub danych demo w produkcie.
 
