@@ -94,3 +94,9 @@ frontend test/build oraz browser E2E. PostgreSQL bada odmowę utraty danych,
 równoległe wersje i wielu kierowców oraz ponowną synchronizację bez nadpisania
 lokalnych profili/relacji. Dane są syntetyczne; brak żywych WEBFLEET/SMTP.
 Niezależny QA SCRUM-54 i review nadal wymagane.
+
+Walidacja autora integracji: Ruff check/format, generator typów i build PASS;
+55 npm test PASS; 262 pytest PASS na dedykowanej syntetycznej bazie PostgreSQL 17
+(migracje, konflikty, wiele przypisań, izolacja i powtórna synchronizacja).
+Aktualna baza main po odświeżeniu: `132fefc` (nowa dokumentacja SCRUM-101).
+Wyniki nie są niezależnym QA ani odbiorem operacyjnej migracji.
