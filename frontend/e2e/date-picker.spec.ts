@@ -1,12 +1,7 @@
-﻿import { execFileSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { test, expect, type Page } from "@playwright/test";
 
 test.beforeEach(async ({ context }) => {
-  execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", "reset-case"], {
-    cwd: "../backend",
-    env: { ...process.env, PYTHONPATH: ".", FLEET_FLOW_E2E: "true" },
-    stdio: "pipe",
-  });
   await context.route("**/*", route =>
     new URL(route.request().url()).hostname === "127.0.0.1"
       ? route.continue() : route.abort()
@@ -14,6 +9,11 @@ test.beforeEach(async ({ context }) => {
 });
 
 async function login(page: Page) {
+  execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", "reset-case"], {
+    cwd: "../backend",
+    env: { ...process.env, PYTHONPATH: ".", FLEET_FLOW_E2E: "true" },
+    stdio: "pipe",
+  });
   await page.goto("/#vehicles");
   await page.getByLabel("Login", { exact: true }).fill("e2e-editor");
   await page.getByLabel("Hasło", { exact: true }).fill("synthetic-e2e-password");
@@ -82,7 +82,7 @@ test("SCRUM-77: Escape kalendarza nie zamyka okna pojazdu", async ({ page }) => 
 });
 
 test("SCRUM-77: min/max i wybór daty wywołują onChange", async ({ page }) => {
-  await page.goto("/e2e/fixtures/date-picker.html");
+  await page.goto("http://127.0.0.1:54174/e2e/fixtures/date-picker.html");
 
   const trigger = page.getByRole("button", { name: "Data testowa" });
   await trigger.click();
@@ -105,7 +105,7 @@ test("SCRUM-77: min/max i wybór daty wywołują onChange", async ({ page }) => 
 });
 
 test("SCRUM-77: zewnętrzna zmiana wartości nie wywołuje onChange", async ({ page }) => {
-  await page.goto("/e2e/fixtures/date-picker.html");
+  await page.goto("http://127.0.0.1:54174/e2e/fixtures/date-picker.html");
 
   await page.getByRole("button", { name: "Ustaw z zewnątrz" }).click();
 
@@ -120,7 +120,7 @@ test("SCRUM-77: zewnętrzna zmiana wartości nie wywołuje onChange", async ({ p
 });
 
 test("SCRUM-77: disabled blokuje otwieranie i zachowuje datę", async ({ page }) => {
-  await page.goto("/e2e/fixtures/date-picker.html");
+  await page.goto("http://127.0.0.1:54174/e2e/fixtures/date-picker.html");
 
   const trigger = page.getByRole("button", { name: "Data testowa" });
   await trigger.click();
@@ -138,4 +138,3 @@ test("SCRUM-77: disabled blokuje otwieranie i zachowuje datę", async ({ page })
   await trigger.click();
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
 });
-
