@@ -1,8 +1,12 @@
 # SCRUM-95 — wymagane bramki bezpieczeństwa
 
-Baza PR: SCRUM-98 / PR39 → SCRUM-83 / PR37 → SCRUM-26 / PR30. Należy scalać
-po review w tej kolejności i przestawiać kolejne PR na main z ponowieniem CI.
-Nie włączono automerge ani płatnych usług.
+Integracja SCRUM-133, 17.11.2026: przywrócono własne commity PR #40
+`28d2481` i `8dbdeb6` na `main` `9dad2b2`. Zachowano osobne Lint,
+Markdown links, E2E, ochronę przed starym wdrożeniem, post-deploy smoke
+oraz konfigurację WEBFLEET. Required CI wymaga także wszystkich nowych
+jobów bezpieczeństwa; nie zmieniano reguł ochrony repozytorium.
+Wyniki z 28.10 poniżej są historyczne. Nowe CI, review i QA tej integracji
+pozostają warunkami dostarczenia. Nie aktywowano usług na VPS.
 
 ## Zakres i progi
 
