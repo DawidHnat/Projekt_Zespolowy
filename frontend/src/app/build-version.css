@@ -6,7 +6,7 @@
 .build-version {
   min-height: 28px;
   padding: 6px 16px;
-  color: var(--muted);
+  color: var(--wallpaper-muted);
   background: var(--background);
   font-size: 12px;
   line-height: 16px;
