@@ -35,7 +35,7 @@ def test_role_migration_preserves_accounts_and_rejects_invalid_direct_writes():
     first, dirty = uuid4(), uuid4()
     token_hash = uuid4().hex * 2
     migrate("upgrade", "head")
-    migrate("downgrade", "0006_fleet_search")
+    migrate("downgrade", "0008_fleet_search")
     users = Table("users", MetaData(), autoload_with=engine)
     sessions = Table("login_sessions", MetaData(), autoload_with=engine)
     try:
@@ -68,7 +68,7 @@ def test_role_migration_preserves_accounts_and_rejects_invalid_direct_writes():
             )
             assert (
                 connection.scalar(text("SELECT version_num FROM alembic_version"))
-                == "0006_fleet_search"
+                == "0008_fleet_search"
             )
             # Explicit correction of a disposable fixture, never automatic production coercion.
             connection.execute(users.update().where(users.c.id == dirty).values(role="viewer"))
@@ -87,7 +87,7 @@ def test_role_migration_preserves_accounts_and_rejects_invalid_direct_writes():
                 )
                 == first
             )
-        migrate("downgrade", "0006_fleet_search")
+        migrate("downgrade", "0008_fleet_search")
         with engine.connect() as connection:
             assert connection.scalar(select(users.c.role).where(users.c.id == dirty)) == "viewer"
     finally:

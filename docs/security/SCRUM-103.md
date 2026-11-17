@@ -1,5 +1,12 @@
 # SCRUM-103 — role w bazie i lokalna dokumentacja API
 
+Integracja SCRUM-133, 17.11.2026: przywrócono `b3d05aa` / PR #48.
+Baza to integracja SQL PR #38 na main `9dad2b2`; migracja `0009_user_roles`
+następuje po `0008_fleet_search`, zachowując istniejące migracje preferencji
+i kartoteki. PR kierujemy do gałęzi SQL do jej odebranego scalenia, potem
+na aktualny main z ponownym CI. Nie wdrażano VPS ani nie zmieniano kont.
+
+
 Obecny katalog ról pozostaje `admin`, `editor`, `viewer`. Login, zależności
 żądań i CLI korzystają z `app/modules/auth/policies.py`. Admin i editor mogą
 edytować istniejące funkcje biznesowe, viewer czyta dane i zachowuje własny
@@ -9,7 +16,7 @@ odwołanie sesji pozostają egzekwowane na serwerze.
 
 ## Migracja
 
-`0007_user_roles` dodaje CHECK `ck_users_role`. Przed skanem zajmuje blokadę
+`0009_user_roles` dodaje CHECK `ck_users_role`. Przed skanem zajmuje blokadę
 zapisu `users`, następnie sprawdza istniejące wartości. Nieznana rola przerywa
 całą transakcję bez zmiany rekordów i bez wypisywania danych użytkownika.
 Operator musi wyjaśnić niepoprawne konto z właścicielem dostępu; nie ma
@@ -27,7 +34,7 @@ Po zatwierdzeniu review, QA i okna infrastruktury:
 4. Uruchomić procesy na odebranym SHA; sprawdzić login, odczyt viewer,
    zabronioną edycję viewer i dozwoloną edycję editor na danych testowych.
 
-Rollback DDL: zatrzymać zapisy i `python -m alembic downgrade 0006_fleet_search`.
+Rollback DDL: zatrzymać zapisy i `python -m alembic downgrade 0008_fleet_search`.
 Usuwa jedynie constraint ról, zachowuje UUID, role, hashe i sesje. Wcześniejsza
 migracja wyszukiwania pozostaje. Nie wykonywać downgrade poniżej 0006 bez
 instrukcji SCRUM-97. Wdrożenia ani migracji VPS nie wykonano w tym PR.
