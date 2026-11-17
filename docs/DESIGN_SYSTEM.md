@@ -114,8 +114,9 @@ samą instancją; stan daty nie jest zapisywany w preferencjach wyglądu.
 `app/preference-model.ts` waliduje `theme`, `accent`, `material`, `background`,
 `visibleWidgets` i `layouts`. Hook `app/preferences.ts` zapisuje je w
 `fleet-flow.dashboard.v2` w localStorage; odczyt starszego klucza v1 zachowuje
-motyw, akcent i widoczność. Są to preferencje przeglądarki bez synchronizacji
-pomiędzy urządzeniami. Zablokowany zapis działa w pamięci sesji.
+motyw, akcent i widoczność. Wygląd, tło i układ Mapy pozostają lokalne. Układy Pulpitu i Pojazdów
+korzystają z preferencji konta w backendzie (SCRUM-91), z jawną migracją
+starszego zapisu i kontrolą konfliktu. Zablokowany zapis lokalny działa w pamięci sesji.
 Nieznane ID, duplikaty i niepoprawne rozmiary są odrzucane lub ograniczane.
 Ukrycie wszystkich modułów jest dozwolone; można je ponownie włączyć.
 
@@ -129,9 +130,10 @@ Nawigacja pobiera oznaczenie „Planowane” z obecności `placeholder` w rejest
 to samo oznaczenie jest na stronie sekcji. Po implementacji usuń `placeholder`
 i podłącz rzeczywisty widok. Nie zmieniaj przy tym trwałego ID sekcji.
 Ustawienia, galeria pojazdów i dodawanie zdjęć jawnie informują o zapisie
-tylko na urządzeniu i w danej przeglądarce. Zdjęcia pojazdów są dodatkowo
+tylko na urządzeniu i w danej przeglądarce. Układ Pulpitu i Pojazdów zapisuje się
+na koncie; komunikaty muszą odróżniać te dwa zakresy. Zdjęcia pojazdów są dodatkowo
 rozdzielone według konta, a preferencje dashboardu i jego tło należą do
-przeglądarki. Nie obiecuj synchronizacji między urządzeniami (SCRUM-91).
+przeglądarki. Nie obiecuj synchronizacji zdjęć, tła ani układu Mapy między urządzeniami.
 
 Rejestr stron jest niezależny od `SectionId` i grup zapisanych w preferencjach układu.
 Stare grupy `fleet`, `trips`, `analytics` pozostają w modelu, aby zachować

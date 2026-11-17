@@ -642,3 +642,48 @@ test("multiple manual drivers are represented without an arbitrary primary drive
   await expect(page.getByRole("cell", { name: "2 kierowców", exact: true })).toBeVisible();
   await page.screenshot({ path: test.info().outputPath("multiple-drivers.png") });
 });
+for (const theme of ["light", "dark"]) {
+  test(`planned modules and local-only data ${theme}`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.addInitScript(value => {
+      localStorage.setItem("fleet-flow.dashboard.v2", JSON.stringify({ theme: value }));
+    }, theme);
+    await login(page);
+    const openMenu = async () => {
+      const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
+      if (await menu.isVisible()) await menu.click();
+    };
+    for (const title of ["Serwis", "Ewidencja przebiegu", "Kierowcy", "Karty paliwowe"]) {
+      await openMenu();
+      const link = page.getByRole("navigation", { name: "Sekcje aplikacji" })
+        .getByRole("link", { name: `${title} Planowane`, exact: true });
+      await link.focus();
+      await expect(link).toBeFocused();
+      await page.keyboard.press("Enter");
+      await expect(page.getByRole("heading", { name: new RegExp(`^${title}\\.?$`), level: 1 })).toBeVisible();
+      await expect(page.locator(".planned-page").getByText("Planowane", { exact: true })).toBeVisible();
+      await accessible(page, `planned ${title}`);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    }
+    await openMenu();
+    await page.getByRole("link", { name: "Ustawienia", exact: true }).click();
+    await expect(page.getByText(/Wygląd, tło i układ Mapy zapisują się tylko w tej przeglądarce/)).toBeVisible();
+    await page.getByRole("navigation", { name: "Kategorie ustawień" }).getByRole("button", { name: /^Tło(?: |$)/ }).click();
+    await page.getByRole("button", { name: "Własne", exact: true }).click();
+    await expect(page.getByText(/Tylko na tym urządzeniu i w tej przeglądarce\. Nie wysyłamy zdjęcia/)).toBeVisible();
+    await accessible(page, "local background and settings");
+    await page.screenshot({ path: test.info().outputPath(`local-settings-${theme}.png`) });
+    await openMenu();
+    await page.getByRole("navigation", { name: "Sekcje aplikacji" }).getByRole("link", { name: "Pojazdy", exact: true }).click();
+    const opener = page.getByRole("button", { name: "Zdjęcie: Pojazd E2E", exact: true });
+    await opener.focus();
+    await page.keyboard.press("Enter");
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByText(/Tylko na tym urządzeniu i w tej przeglądarce, dla Twojego konta/)).toBeVisible();
+    await accessible(page, "local vehicle photo");
+    await page.screenshot({ path: test.info().outputPath(`local-photo-${theme}.png`) });
+    await page.keyboard.press("Escape");
+    await expect(dialog).not.toBeVisible();
+    await expect(opener).toBeFocused();
+  });
+}
