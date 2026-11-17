@@ -1,5 +1,13 @@
 # SCRUM-64 - kontrolowane uruchomienie synchronizacji
 
+Integracja SCRUM-133, 17.11.2026: przywrócono własny commit PR #36
+`3e9f305` na main `9dad2b2`. Zachowano trwałą konfigurację wdrożenia,
+obecne retry i minimalny interwał źródła; zarówno worker, jak i canary
+przekazują skonfigurowany interwał. Status jest lokalnym odczytem cache.
+Nowy test workera sprawdza też przekazanie interwału, bez wywołania dostawcy.
+Nie wykonywano polecenia `once`, aktywacji na VPS ani żywego WEBFLEET/SMTP.
+
+
 Przyrost audytu: Compose respektuje `SYNC_ENABLED` z prywatnego `runtime.env`.
 Domyślnie pozostaje false. Worker zapisuje zanonimizowany kod zdarzenia zamiast
 połykać wyjątek; nieoczekiwany błąd importu oznacza cache jako degraded i zachowuje
@@ -47,3 +55,7 @@ pierwszego sukcesu nowego konta. Nie obchodź jej kopiowaniem identyfikatorów.
 Testy syntetyczne: ruff, pytest; PostgreSQL sprawdza advisory lock, limit i cache.
 **Żywy canary i VPS nie zostały uruchomione w ramach przygotowania kodu.**
 Nie zamykaj SCRUM-64 ani nadrzędnego SCRUM-15 przed rzeczywistym odbiorem.
+
+Walidacja autora integracji: Ruff check/format PASS; 193 pytest PASS na
+dedykowanej syntetycznej bazie PostgreSQL 17. Niezależne review/QA i
+operacyjny odbiór SCRUM-84/64 nadal wymagane.

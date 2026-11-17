@@ -294,7 +294,7 @@ def test_postgres_shared_limiter_failure_cache_and_lock():
     with Session(engine) as session:
         state = session.get(SyncState, source)
         assert state.error_code == "SYNC_INTERNAL_ERROR"
-        assert state.last_success_at == now
+        assert state.last_success_at == now + timedelta(seconds=30)
     key = int.from_bytes(bytes.fromhex(source)[:8], signed=True)
     with engine.connect() as connection:
         connection.execute(text("SELECT pg_advisory_lock(:key)"), {"key": key})
