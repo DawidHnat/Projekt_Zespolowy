@@ -1,5 +1,21 @@
 # SCRUM-108 — automatyczna kontrola React–FastAPI
 
+## Integracja SCRUM-133 — 17.11.2026
+
+Zakres PR #45 (`c8e9506`) odtworzono na `main` `9dad2b2`, zachowując
+aktualne sesje, profil i preferencje oraz nowe pola kartoteki. Kontrakt
+obejmuje również PATCH kartoteki pojazdu; test wykonuje rzeczywistą zmianę
+syntetycznego rekordu, nie tylko walidację przykładu. Pozostałe operacje
+profilu/preferencji zachowują własne testy; ten przyrost obejmuje jawny
+zestaw operacji w kanonicznym pliku, bez deklaracji pełnego OpenAPI.
+
+Walidacja autora: Ruff check/format PASS; 212 pytest PASS z lokalnym
+PostgreSQL 17, w tym migracje; 55 npm test PASS i build PASS; 26 Playwright
+PASS na desktop/390 px (logowanie, API floty i fallback, edycja adnotacji,
+sesje i reset między kartami). Dane syntetyczne, WEBFLEET/SMTP wyłączone.
+CI aktualnego SHA, niezależny review i QA nadal wymagane.
+
+
 Jedynym źródłem pozostaje `contracts/api-design.json` wskazany w SCRUM-36.
 Dodano do **tego samego pliku** definicje JSON Schema 2020-12 i referencje
 odpowiedzi operacji. Nie utworzono konkurencyjnego OpenAPI ani drugiej specyfikacji.

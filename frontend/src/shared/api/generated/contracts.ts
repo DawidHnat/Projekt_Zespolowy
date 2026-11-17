@@ -9,7 +9,7 @@ export type Author = { "id": string; "display_name": string; };
 export type Driver = { "id": string; "display_name": string; };
 export type VehicleStatus = "moving" | "stopped" | "offline" | "unknown";
 export type Source = { "status": "ok" | "degraded"; "last_success_at": string | null; "error_code": string | null; };
-export type Vehicle = { "id": string; "name": string; "number": string | null; "license_plate": string | null; "vehicle_type": string | null; "status": VehicleStatus; "driver": Driver | null; "latitude": number | null; "longitude": number | null; "position_at": string | null; "received_at": string | null; "is_stale": boolean; "odometer_km": number | null; "speed_kmh": number | null; "ignition_on": boolean | null; "standing_still": boolean | null; };
+export type Vehicle = { "id": string; "name": string; "number": string | null; "license_plate": string | null; "vehicle_type": string | null; "status": VehicleStatus; "driver": Driver | null; "latitude": number | null; "longitude": number | null; "position_at": string | null; "received_at": string | null; "is_stale": boolean; "odometer_km": number | null; "speed_kmh": number | null; "ignition_on": boolean | null; "standing_still": boolean | null; "make"?: string | null; "model"?: string | null; "vin"?: string | null; "position_address"?: string | null; "year"?: number | null; };
 export type FleetFeature = { "type": "Feature"; "geometry": { "type": "Point"; "coordinates": [number, number]; }; "properties": { "id": string; "name": string; "status": VehicleStatus; "is_stale": boolean; "position_at": string | null; }; };
 export type FleetMap = { "type": "FeatureCollection"; "features": Array<FleetFeature>; "located": number; "total": number; "source": Source; };
 export type Summary = { "total": number; "moving": number; "stopped": number; "offline": number; "unknown": number; "source": Source; };
@@ -32,6 +32,7 @@ export type Responses = {
   "GET /fleet/map": FleetMap;
   "GET /fleet/summary": Summary;
   "GET /fleet/vehicles/{id}": Vehicle;
+  "PATCH /fleet/vehicles/{id}": Vehicle;
   "GET /trips": TripList;
   "GET /trips/{id}": Trip;
   "PATCH /trips/{id}/annotation": Annotation;

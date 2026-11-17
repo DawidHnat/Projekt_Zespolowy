@@ -286,6 +286,13 @@
             "message": "Syntetyczny przykład błędu"
           }
         }
+      },
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/Vehicle"
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
       }
     },
     {
@@ -1143,6 +1150,58 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "make": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "vin": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "position_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "year": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1900,
+              "maximum": 2100
             },
             {
               "type": "null"
