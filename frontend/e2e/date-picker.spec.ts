@@ -22,6 +22,7 @@ async function login(page: Page) {
 }
 
 test("SCRUM-77: Enter otwiera kalendarz, Escape zamyka i oddaje fokus", async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-10-18T10:00:00.000Z"));
   await login(page);
   await page.goto("/#dashboard");
 
@@ -72,6 +73,7 @@ test("SCRUM-77: Spacja i skróty dat działają, wpisywanie jest zablokowane", a
 });
 
 test("SCRUM-77: Escape kalendarza nie zamyka okna pojazdu", async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-10-18T10:00:00.000Z"));
   await login(page);
 
   await page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ }).click();
