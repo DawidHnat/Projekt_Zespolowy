@@ -103,7 +103,13 @@
 .fleet-filters select {
   padding: 9px;
   font-size: 12px;
+  min-width: 145px;
   flex: 1;
+}
+.fleet-clear-filters {
+  font-size: 12px;
+  padding: 9px;
+  margin-left: auto;
 }
 .fleet-notice {
   margin: 0 16px;
