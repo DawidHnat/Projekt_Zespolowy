@@ -336,11 +336,16 @@ test("local dashboard settings require explicit migration and cannot replace acc
     },
   };
   await page.addInitScript(({ key, value }) => {
+    if (sessionStorage.getItem("migration-reload-seeded")) return;
     localStorage.setItem(key, JSON.stringify(value));
+    sessionStorage.setItem("migration-reload-seeded", "true");
   }, { key: "fleet-flow.dashboard.v2", value: localSettings });
   await login(page);
   await page.evaluate(() => { window.location.hash = "#dashboard"; });
   const migration = page.getByRole("region", { name: "Migracja ustawień: Pulpit" });
+  await expect(migration).toBeVisible();
+  await page.reload();
+  await page.evaluate(() => { window.location.hash = "#dashboard"; });
   await expect(migration).toBeVisible();
   await page.evaluate(() => { window.location.hash = "#dashboard"; });
   await expect(page.getByRole("button", { name: "Edytuj układ", exact: true })).toBeDisabled();

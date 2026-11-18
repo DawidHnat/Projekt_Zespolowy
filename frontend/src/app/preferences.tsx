@@ -32,10 +32,14 @@ export type {
 
 type DashboardPreferences = ReturnType<typeof defaultPreferences>;
 const MIGRATION_STORAGE_KEY = "fleet-flow.dashboard.account-migration.v1";
-type MigrationState = { ownerId: string; completed: boolean };
 export type DashboardArrangement = {
   visibleWidgets: WidgetId[];
   layouts: { dashboard: DashboardPreferences["layouts"]["dashboard"] };
+};
+type MigrationState = {
+  ownerId: string;
+  completed: boolean;
+  candidate?: DashboardArrangement;
 };
 type DashboardCloudState = {
   loading: boolean;
@@ -82,7 +86,11 @@ function readMigrationState(): MigrationState | null {
       !("completed" in value) ||
       typeof value.completed !== "boolean"
     ) return null;
-    return { ownerId: value.ownerId, completed: value.completed };
+    const candidate =
+      "candidate" in value && value.candidate && typeof value.candidate === "object"
+        ? arrangementOf(parsePreferences(JSON.stringify(value.candidate)))
+        : undefined;
+    return { ownerId: value.ownerId, completed: value.completed, candidate };
   } catch {
     return null;
   }
@@ -137,9 +145,13 @@ function useDashboardPreferencesState() {
     () => window.matchMedia("(prefers-color-scheme: dark)").matches,
   );
   const [persistent, setPersistent] = useState(true);
-  const [localWasPresent] = useState(hasLocalPreferences);
-  const migrationCandidate = useRef(arrangementOf(initialPreferences));
   const migrationState = useRef(readMigrationState());
+  const [localWasPresent] = useState(
+    () => hasLocalPreferences() || Boolean(migrationState.current?.candidate),
+  );
+  const migrationCandidate = useRef(
+    migrationState.current?.candidate ?? arrangementOf(initialPreferences),
+  );
   const [cloud, setCloud] = useState<DashboardCloudState>({
     loading: Boolean(user),
     saving: false,
@@ -210,8 +222,18 @@ function useDashboardPreferencesState() {
     const id = user.id;
     // A failed or cancelled GET must not hand local settings to the next account.
     if (localWasPresent && !migrationState.current) {
-      migrationState.current = { ownerId: id, completed: false };
+      migrationState.current = {
+        ownerId: id,
+        completed: false,
+        candidate: migrationCandidate.current,
+      };
       writeMigrationState(migrationState.current);
+    } else if (
+      migrationState.current?.ownerId === id &&
+      !migrationState.current.completed &&
+      migrationState.current.candidate
+    ) {
+      migrationCandidate.current = migrationState.current.candidate;
     }
     const controller = new AbortController();
     version.current = 0;
