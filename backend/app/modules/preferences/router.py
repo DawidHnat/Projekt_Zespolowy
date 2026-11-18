@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_session
 from app.core.errors import ApiError
 from app.modules.auth.models import User
-from app.modules.auth.service import current_user
+from app.modules.auth.service import check_origin, current_user
 from app.modules.preferences.models import AccountPreference
 
 router = APIRouter(prefix="/api/v1/preferences", tags=["preferences"])
@@ -34,12 +34,11 @@ def _object(value: Any, label: str) -> dict[str, Any]:
 
 
 def _bounded_number(value: Any, minimum: float, maximum: float) -> bool:
-    return (
-        isinstance(value, (int, float))
-        and not isinstance(value, bool)
-        and math.isfinite(value)
-        and minimum <= value <= maximum
-    )
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return False
+    if isinstance(value, int):
+        return minimum <= value <= maximum
+    return math.isfinite(value) and minimum <= value <= maximum
 
 
 def _validate_dashboard(value: dict[str, Any]) -> None:
@@ -159,6 +158,7 @@ def write_preference(
     body: PreferenceWrite,
     session: SessionDep,
     user: UserDep,
+    _: Annotated[None, Depends(check_origin)],
 ):
     try:
         if module == "dashboard":
