@@ -1,0 +1,69 @@
+# SCRUM-133 — rejestr przywracanych przyrostów
+
+Odczyt 17.11.2026. Baza `main`: `132fefc16de8fa47367fcf579b1d2b6975ef1c7c`. Koordynacja: Jakub Czaja.
+Stan: **W toku — PR-y przygotowane, żaden nowy zakres nie jest jeszcze dostarczony do main**. Testy autora i status Merged historycznych PR-ów nie zastępują niezależnego review, QA ani odbioru wdrożenia.
+
+## Jak odtworzono zakres
+
+Pełna historia main została sprawdzona przez `git rev-list`. Własne commity każdego zadania wyodrębniono z historii, zamiast kopiować najnowszy head dawnych gałęzi: zawierały już kolejne scalone funkcje. Użyto cherry-pick z pochodzeniem `-x`, rozwiązano konflikty względem aktualnego main i zachowano autorstwo. Dokładne SHA, dawna baza, obecność każdego pliku (missing/empty/identical/different), review i nowe gałęzie są w [dowodach JSON](SCRUM-133-evidence.json). Różny plik sam nie dowodzi braku funkcji; ocenę zachowania zapisano poniżej.
+
+## Macierz wszystkich zakresów
+
+Każdy z 12 historycznych PR-ów ma 0 zapisanych review w GitHub. Komentarze Jiry potwierdzają brak końcowego niezależnego odbioru; statusy Gotowe niżej są administracyjne i nie potwierdzają obecności w main. Właściciel QA: Marcel Głowacki (dla kierowców SCRUM-54, alertów SCRUM-33).
+
+| Źródło / własne commity / gałąź | Właściciel i Jira | Main: pliki i zachowanie | Nowy PR |
+| --- | --- | --- | --- |
+| [#35](https://github.com/DawidHnat/Projekt_Zespolowy/pull/35): `c9baac0`; `infra/SCRUM-84-offsite-backup` | [SCRUM-84](https://fleet-flow.atlassian.net/browse/SCRUM-84) — Dawid Hnat; Do zrobienia | Merge commit **nie** jest przodkiem main; 8 plików brak/pustych. Narzędzia restic i timery nieobecne; `infra/backup/backup.py` brak. | [#105](https://github.com/DawidHnat/Projekt_Zespolowy/pull/105) |
+| [#36](https://github.com/DawidHnat/Projekt_Zespolowy/pull/36): `3e9f305`; `fix/SCRUM-64-controlled-sync` | [SCRUM-64](https://fleet-flow.atlassian.net/browse/SCRUM-64) — Dawid Hnat; W trakcie weryfikacji | Merge commit **nie** jest przodkiem main; 3 plików brak/pustych. Częściowo: konfiguracja wdrożenia #56 jest obecna, brak `app/sync_control.py` i bezpiecznych zdarzeń workera. | [#107](https://github.com/DawidHnat/Projekt_Zespolowy/pull/107) |
+| [#38](https://github.com/DawidHnat/Projekt_Zespolowy/pull/38): `742546d`, `cab1c42`; `perf/SCRUM-97-sql-fleet` | [SCRUM-97](https://fleet-flow.atlassian.net/browse/SCRUM-97) — Dawid Hnat; Gotowe | Merge commit **nie** jest przodkiem main; 6 plików brak/pustych. Brak paginacji SQL; lista nadal materializuje flotę w Pythonie. Brak migracji wyszukiwania. | [#103](https://github.com/DawidHnat/Projekt_Zespolowy/pull/103) |
+| [#40](https://github.com/DawidHnat/Projekt_Zespolowy/pull/40): `28d2481`, `8dbdeb6`; `chore/SCRUM-95-security-gates` | [SCRUM-95](https://fleet-flow.atlassian.net/browse/SCRUM-95) — Dawid Hnat; Gotowe | Merge commit **nie** jest przodkiem main; 5 plików brak/pustych. Obecne funkcjonalne Required CI/Lint/E2E/linki; brak SCA/SAST/Gitleaks/Trivy i ich konfiguracji. | [#101](https://github.com/DawidHnat/Projekt_Zespolowy/pull/101) |
+| [#43](https://github.com/DawidHnat/Projekt_Zespolowy/pull/43): `740850c`, `8331767`, `fdb0e05`; `test/SCRUM-107-accessibility` | [SCRUM-107](https://fleet-flow.atlassian.net/browse/SCRUM-107) — Marcel Głowacki; Gotowe | Merge commit **nie** jest przodkiem main; 1 plików brak/pustych. Częściowe istniejące UI/fokus; brak axe i pełnego skanu obu motywów/statusów. | [#106](https://github.com/DawidHnat/Projekt_Zespolowy/pull/106) |
+| [#44](https://github.com/DawidHnat/Projekt_Zespolowy/pull/44): `39b938e`, `5a43ff0`; `fix/SCRUM-96-http-proxy` | [SCRUM-96](https://fleet-flow.atlassian.net/browse/SCRUM-96) — Dawid Hnat; Gotowe | Merge commit **nie** jest przodkiem main; 2 plików brak/pustych. Brak nowych CSP/Permissions-Policy/X-Frame-Options, prywatnej sieci proxy i testu Caddy. | [#100](https://github.com/DawidHnat/Projekt_Zespolowy/pull/100) |
+| [#45](https://github.com/DawidHnat/Projekt_Zespolowy/pull/45): `c8e9506`; `test/SCRUM-108-api-contracts` | [SCRUM-108](https://fleet-flow.atlassian.net/browse/SCRUM-108) — Dawid Hnat; Gotowe | Merge commit **nie** jest przodkiem main; 4 plików brak/pustych. Kontrakt JSON jest obecny, brak generatora, generowanych typów i testów odpowiedzi API. | [#102](https://github.com/DawidHnat/Projekt_Zespolowy/pull/102) |
+| [#47](https://github.com/DawidHnat/Projekt_Zespolowy/pull/47): `56d9f4c`; `fix/SCRUM-105-planned-local-ux` | [SCRUM-105](https://fleet-flow.atlassian.net/browse/SCRUM-105) — Jakub Nazarewicz; Gotowe | Merge commit **nie** jest przodkiem main; 1 plików brak/pustych. Częściowo: puste widoki są, brak wspólnego oznaczenia Planowane; opisy lokalnych danych wymagają dopasowania do SCRUM-91. | [#108](https://github.com/DawidHnat/Projekt_Zespolowy/pull/108) |
+| [#48](https://github.com/DawidHnat/Projekt_Zespolowy/pull/48): `b3d05aa`; `fix/SCRUM-103-role-docs-hardening` | [SCRUM-103](https://fleet-flow.atlassian.net/browse/SCRUM-103) — Dawid Hnat; Gotowe | Merge commit **nie** jest przodkiem main; 5 plików brak/pustych. Role sprawdzane w runtime, brak CHECK w PostgreSQL i kontrolowanego wyłączenia dokumentacji API. | [#104](https://github.com/DawidHnat/Projekt_Zespolowy/pull/104) |
+| [#49](https://github.com/DawidHnat/Projekt_Zespolowy/pull/49): `873d5d0`; `feat/SCRUM-32-alerts-ui` | [SCRUM-32](https://fleet-flow.atlassian.net/browse/SCRUM-32) — Jakub Czaja; W trakcie weryfikacji | Merge commit **nie** jest przodkiem main; 10 plików brak/pustych. API SCRUM-31 jest obecne, brak rzeczywistej listy/reguł React; Alerty są placeholderem. | [#109](https://github.com/DawidHnat/Projekt_Zespolowy/pull/109) |
+| [#50](https://github.com/DawidHnat/Projekt_Zespolowy/pull/50): `8aaef29`; `feat/SCRUM-52-manual-drivers` | [SCRUM-52](https://fleet-flow.atlassian.net/browse/SCRUM-52) — Jakub Czaja; W trakcie weryfikacji | Merge commit **nie** jest przodkiem main; 13 plików brak/pustych. Jest minimalny Driver/driver_id; brak kartoteki API, kategorii i historii wiele-do-wielu. | [#110](https://github.com/DawidHnat/Projekt_Zespolowy/pull/110) |
+| [#51](https://github.com/DawidHnat/Projekt_Zespolowy/pull/51): `ff88349`; `feat/SCRUM-53-drivers-ui` | [SCRUM-53](https://fleet-flow.atlassian.net/browse/SCRUM-53) — Jakub Nazarewicz; W trakcie weryfikacji | Merge commit **nie** jest przodkiem main; 20 plików brak/pustych. Brak kartoteki React; Kierowcy są placeholderem. | [#111](https://github.com/DawidHnat/Projekt_Zespolowy/pull/111) |
+| [#79](https://github.com/DawidHnat/Projekt_Zespolowy/pull/79): `7929fc8`; `fix/SCRUM-78-deploy-package` | SCRUM-78 | **Obecny** przez #53; poprawka paczkowania w historii main. | Nie dublować |
+
+## Gałęzie i walidacja autora
+
+Wszystkie gałęzie zawierają main `132fefc`, który podczas pracy dołączył dokumentację ASVS. Ta aktualizacja main nie zmieniła kodu produktu. Wyniki lokalne dotyczą wskazanego kodu; pełny aktualny SHA i wymagane CI są widoczne pod linkiem Checks. Nowe review/QA/deploy pozostają **NOT RECEIVED / NOT RUN**. Nie scalać gałęzi dla samej statystyki.
+
+| PR / head | Gałąź i bezpośrednia baza | Walidacja autora |
+| --- | --- | --- |
+| [#100](https://github.com/DawidHnat/Projekt_Zespolowy/pull/100) / `6e2734f` · [Checks](https://github.com/DawidHnat/Projekt_Zespolowy/pull/100/checks) | `fix/SCRUM-133-edge-integration` → `main` | Ruff + 180 / 11 SKIP; realne izolowane Caddy/API/PG i koszyki [11,1,11] PASS |
+| [#101](https://github.com/DawidHnat/Projekt_Zespolowy/pull/101) / `2a8175a` · [Checks](https://github.com/DawidHnat/Projekt_Zespolowy/pull/101/checks) | `chore/SCRUM-133-security-integration` → `main` | Build/import/Argon2 PASS; skany PASS poza npm High → wymagane CI FAIL |
+| [#102](https://github.com/DawidHnat/Projekt_Zespolowy/pull/102) / `797e5bc` · [Checks](https://github.com/DawidHnat/Projekt_Zespolowy/pull/102/checks) | `test/SCRUM-133-contract-integration` → `main` | Ruff + 212 pytest PostgreSQL; 55 npm/build; 26/26 Playwright |
+| [#103](https://github.com/DawidHnat/Projekt_Zespolowy/pull/103) / `d9d6fc8` · [Checks](https://github.com/DawidHnat/Projekt_Zespolowy/pull/103/checks) | `perf/SCRUM-133-sql-integration` → `main` | Ruff + 197 pytest PostgreSQL; backfill Unicode i test >10 tys. rekordów |
+| [#104](https://github.com/DawidHnat/Projekt_Zespolowy/pull/104) / `ec02780` · [Checks](https://github.com/DawidHnat/Projekt_Zespolowy/pull/104/checks) | `fix/SCRUM-133-roles-integration` → `perf/SCRUM-133-sql-integration` | Ruff + 212 pytest PostgreSQL; kontrolowana odmowa brudnej migracji |
+| [#105](https://github.com/DawidHnat/Projekt_Zespolowy/pull/105) / `fd1870b` · [Checks](https://github.com/DawidHnat/Projekt_Zespolowy/pull/105/checks) | `feat/SCRUM-133-backup-integration` → `main` | Ruff + 191 pytest / 12 SKIP; osobno 12/12 prawdziwy restic + dump + restore |
+| [#106](https://github.com/DawidHnat/Projekt_Zespolowy/pull/106) / `fde687f` · [Checks](https://github.com/DawidHnat/Projekt_Zespolowy/pull/106/checks) | `test/SCRUM-133-accessibility-integration` → `main` | 55 npm + build; 6/6 axe/klawiatura; backend 180 / 11 SKIP |
+| [#107](https://github.com/DawidHnat/Projekt_Zespolowy/pull/107) / `d25e94b` · [Checks](https://github.com/DawidHnat/Projekt_Zespolowy/pull/107/checks) | `fix/SCRUM-133-sync-integration` → `main` | Ruff + 193 pytest PostgreSQL; bez canary/live |
+| [#108](https://github.com/DawidHnat/Projekt_Zespolowy/pull/108) / `bf7e7cb` · [Checks](https://github.com/DawidHnat/Projekt_Zespolowy/pull/108/checks) | `fix/SCRUM-133-planned-ux-integration` → `test/SCRUM-133-accessibility-integration` | 55 npm/build; 4/4 Playwright oba motywy i ekrany |
+| [#109](https://github.com/DawidHnat/Projekt_Zespolowy/pull/109) / `b39607c` · [Checks](https://github.com/DawidHnat/Projekt_Zespolowy/pull/109/checks) | `feat/SCRUM-133-alerts-integration` → `test/SCRUM-133-contract-integration` | Ruff + 213 pytest PostgreSQL; 55 npm/build; 14/14 Playwright |
+| [#110](https://github.com/DawidHnat/Projekt_Zespolowy/pull/110) / `9f445f7` · [Checks](https://github.com/DawidHnat/Projekt_Zespolowy/pull/110/checks) | `feat/SCRUM-133-drivers-api-integration` → `feat/SCRUM-133-alerts-integration` | Ruff + 262 pytest PostgreSQL; 55 npm/build; 2/2 Playwright wielu kierowców |
+| [#111](https://github.com/DawidHnat/Projekt_Zespolowy/pull/111) / `caf3ccd` · [Checks](https://github.com/DawidHnat/Projekt_Zespolowy/pull/111/checks) | `feat/SCRUM-133-drivers-ui-integration` → `feat/SCRUM-133-drivers-api-integration` | Ruff + 265 pytest PostgreSQL; 55 npm/build; 114/114 pełne E2E + 10/10 końcowe axe/klawiatura |
+
+## Kolejność i warunki dostarczenia
+
+1. Najpierw review edge #100 i bramek #101 oraz kontraktu #102. #101 jest **draft/BLOCKED**: npm audit wykrywa High [GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf), CVE-2026-112366, picomatch <=4.0.7; według odczytu 17.11 brak poprawionej wersji. Nie obniżono progu, nie dodano ignore ani wymuszonego downgrade Vite. Dawid + PO muszą odebrać bezpieczną poprawkę albo osobno uzgodnić precyzyjny, datowany wyjątek. Obecnie brak takiej decyzji.
+2. #106 → #108 (axe/fokus → UX), #103 → #104 (SQL → CHECK ról); #105 dostarcza narzędzia backupu, #107 diagnostykę synchronizacji. Konfiguracja storage, monitoring, infrastrukturalny rollout i live canary wymagają właściwego odbioru; narzędzia nie aktywują usług.
+3. #109 wymaga #102 oraz #106/#108; #110 wymaga #109 i #103/#104; #111 wymaga #110. #109–111 są draftami do odebrania poprzedników. Bezpośrednie bazy podano w tabeli; dodatkowe zależności scalono tylko dla wspólnego testu.
+4. Po zatwierdzeniu i scaleniu każdego poprzednika przestawić zależny PR na aktualny main, sprawdzić diff i ancestry oraz powtórzyć wymagane CI. **Nie uznawać merge do gałęzi pośredniej za dostarczenie**. Nie wymaga to force push, automerge ani obchodzenia ochrony.
+5. Liniowy schemat po istniejącym `0007`: `0008_fleet_search` → `0009_user_roles` → `0010_manual_drivers`. Wykonanych migracji nie przepisano. Testy sprawdzają backfill/zachowanie danych, rollback i kontrolowaną odmowę stratnego downgrade; produkcyjny restore/rollout pozostaje do odbioru operatora.
+6. Po review i QA zweryfikować wdrożony SHA przez HTTP, readiness HTTPS oraz scenariusze każdego faktycznie scalonego przyrostu. Dopiero wtedy uzupełnić `delivered_to_main`, dowody QA i status SCRUM-133. Nie wykonywano VPS, live WEBFLEET/SMTP ani kopiowania danych klientów.
+
+## Bezpieczeństwo i niezależny odbiór
+
+Nowy DoD SCRUM-101 jest zachowany. Zmienione role/operacje danych wymagają osobnej oceny wybranych kontroli `v5.0.0-8.2.1`, `v5.0.0-8.2.2`, `v5.0.0-8.3.1`, `v5.0.0-2.2.1/2.2.2` i `v5.0.0-3.4.2`; edge — `v5.0.0-6.3.1`. Testy syntetyczne autoryzacji, walidacji, izolacji, Origin i błędów 401/403/422 są dowodami autora w opisach PR. Nie są deklaracją pełnej zgodności ASVS ani nowym podpisem QA.
+
+Znane usterki preferencji SCRUM-144/145/146 (poprawka #99) oraz ustalenia cookie/timeoutu z [macierzy SCRUM-101](../security/SCRUM-101-ASVS-5.0.0-L2.md) zachowują osobny zakres i wymagają retestu po ich scaleniach. Integracja nie zmienia nazwy cookie ani polityki timeoutu i nie zatwierdza wyjątków. Przed Done obowiązuje niezależne review/QA i decyzja PO o ryzykach zgodnie z DoD.
+
+## Odbiór kryteriów SCRUM-133
+
+- AC1: **PASS przygotowania** — wszystkie wymienione zakresy i #79 mają źródła, pliki/behavior, właścicieli i jawny stan review/QA.
+- AC2: **PARTIAL** — osobne PR-y i pochodzenie commitów gotowe; niezależne zatwierdzenia i dostarczenie do main oczekują.
+- AC3: **PARTIAL/BLOCKED** — zachowano priorytet edge/bramek/kontraktów; bramka npm ujawniła rzeczywistą, nierozwiązaną podatność. Nie aktywowano usług.
+- AC4: **PARTIAL** — testy autora wykonane; aktualne CI pod linkami Checks, osobne review/QA oraz weryfikacja wdrożenia wymagane. SCRUM-133 pozostaje **W toku**.
