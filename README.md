@@ -172,13 +172,14 @@ oraz Mapbox bez grupowania znaczników. Osobna strona Ustawień obejmuje wygląd
 tło i moduły. Układ i widoczność modułów Pulpitu oraz rozmiary kafelków,
 filtry, sortowanie i limit strony Pojazdów zapisują się na koncie przez backend
 (SCRUM-91). Ustawienia wracają po zalogowaniu w innej przeglądarce; migracja
-dawnego zapisu lokalnego wymaga jawnego wyboru, a równoległy zapis ma kontrolę
-wersji. Wygląd, tło, układ Mapy i zdjęcia pozostają lokalne; zdjęcia nie są
-jeszcze współdzielone z zespołem.
+dawnego zapisu lokalnego wymaga jawnego wyboru i jest izolowana per konto,
+a równoległy zapis ma kontrolę wersji. Wygląd, tło, układ Mapy i zdjęcia
+pozostają lokalne; zdjęcia nie są jeszcze współdzielone z zespołem.
 Edycja Pojazdów pozwala zaznaczyć kilka kafelków i wspólnie zmienić ich rozmiar
 lub wyrównać całą flotę. Wspólna paginacja galerii, tabeli i listy przy mapie
 oferuje 10/25/50/100 elementów na stronę; mapa nadal pokazuje wszystkie
 pasujące pojazdy z GPS.
+[Zakres i procedura niezależnego QA preferencji SCRUM-91](docs/qa/SCRUM-91.md).
 Kliknięcie pojazdu na mapie pokazuje mały podgląd; przycisk Szczegóły otwiera
 panel z zakładkami Pojazd, Kierowca, Przegląd i Podróże.
 Panel i kafelek Ostatnie przejazdy mają wybór dnia;
