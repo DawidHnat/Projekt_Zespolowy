@@ -18,6 +18,14 @@ zamyka panelu; 404 usuwa niedostępny wybór, 401 korzysta ze wspólnego wygaśn
 sesji. Provider jest kluczowany kontem: poprzedni wybór, wyniki, filtry i cykle
 nie przechodzą do kolejnego konta. Rozmiar strony odczytywany jest dla nowego ID.
 
+Pierwsze pobranie szczegółów ma własne ładowanie i błąd powiązane z bieżącym ID.
+Po awarii panel pokazuje komunikat `role=alert` i „Spróbuj ponownie”; ponowienie
+nie zmienia sesji. Awaria odświeżania po sukcesie zachowuje szczegóły i szkic,
+pokazuje ostrzeżenie i pozwala ponowić żądanie. Odpowiedź dla poprzedniego
+wyboru nie zmienia bieżącego panelu. E2E Chromium na desktopie 1440×1000 i
+telefonie 390×844 sprawdza pierwsze 503 → ponowienie → sukces, błąd odświeżania
+ze szkicem, 404 oraz 401 usuwające prywatny stan.
+
 Weryfikacja developerska 28.10.2026, Node 22.18.0, PostgreSQL 17, syntetyczne API:
 
 * `npm test`: 47 PASS, w tym deterministyczne testy braku nakładania, anulowania,

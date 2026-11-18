@@ -148,7 +148,7 @@ wyłącznie prototypowi. Poprzednią wersję zachowano na stronie archiwalnej Fi
 - [Przepływy, ekrany i instrukcja przeglądu](docs/PROTOTYPE.md)
 - [Historyjki MVP i podział dużych Story](docs/MVP_BACKLOG.md)
 - [Odbiór zadania kursowego, linki i polecenia do oddania](docs/COURSE_SUBMISSION.md)
-- [Gotowość zadań 4.1/4.2: dowody Sprintów 1/2 i prace do domknięcia](docs/COURSE_READINESS.md)
+- [Gotowość zadań 3.2/4.2: dowody Sprintów 1/2 i prace do domknięcia](docs/COURSE_READINESS.md)
 - [Przegląd Sprintu i PR-y — dowody kolejnego zadania](docs/SPRINT_REVIEW_SUBMISSION.md)
 - [Scenariusz Review Sprintu 1](docs/SPRINT_1_REVIEW.md) i [retrospektywa do potwierdzenia przez zespół](docs/retro/sprint-1.md)
 
@@ -169,12 +169,17 @@ pokazuje pustą listę. [Scenariusze QA i zależność importera](docs/qa/SCRUM-
 
 Frontend ma Pulpit, motywy, edytor układu, logowanie, listę i kafelki pojazdów
 oraz Mapbox bez grupowania znaczników. Osobna strona Ustawień obejmuje wygląd,
-tło i moduły. Zdjęcia pojazdów oraz indywidualne rozmiary kafelków są lokalnymi
-preferencjami użytkownika; zdjęcia nie są jeszcze współdzielone z zespołem.
+tło i moduły. Układ i widoczność modułów Pulpitu oraz rozmiary kafelków,
+filtry, sortowanie i limit strony Pojazdów zapisują się na koncie przez backend
+(SCRUM-91). Ustawienia wracają po zalogowaniu w innej przeglądarce; migracja
+dawnego zapisu lokalnego wymaga jawnego wyboru i jest izolowana per konto,
+a równoległy zapis ma kontrolę wersji. Wygląd, tło, układ Mapy i zdjęcia
+pozostają lokalne; zdjęcia nie są jeszcze współdzielone z zespołem.
 Edycja Pojazdów pozwala zaznaczyć kilka kafelków i wspólnie zmienić ich rozmiar
 lub wyrównać całą flotę. Wspólna paginacja galerii, tabeli i listy przy mapie
 oferuje 10/25/50/100 elementów na stronę; mapa nadal pokazuje wszystkie
 pasujące pojazdy z GPS.
+[Zakres i procedura niezależnego QA preferencji SCRUM-91](docs/qa/SCRUM-91.md).
 Kliknięcie pojazdu na mapie pokazuje mały podgląd; przycisk Szczegóły otwiera
 panel z zakładkami Pojazd, Kierowca, Przegląd i Podróże.
 Panel i kafelek Ostatnie przejazdy mają wybór dnia;
@@ -209,6 +214,8 @@ z aktualnego `main`; pozostały zakres i odbiór QA śledzimy w Jirze.
 - [Zasady współpracy i PR](CONTRIBUTING.md)
 - [Przepływ Scrum, role i zasady odbioru](docs/SCRUM_WORKFLOW.md)
 - [Warunki ukończenia przyrostu](DEFINITION_OF_DONE.md)
+- [Gotowość obu oddań kursowych i brakujące dowody](docs/COURSE_READINESS.md)
+- [Polecenia dla agentów członków zespołu](docs/COURSE_AGENT_HANDOFFS.md)
 - [Przegląd prywatności, korekta inwentarza i otwarte decyzje SCRUM-94](docs/privacy/SCRUM-94-acceptance.md)
 - [Instrukcje dla agentów AI](AGENTS.md)
 

@@ -1,97 +1,85 @@
-# Gotowość do oddania zadań 4.1 i 4.2
+# Gotowość do oddania zadań 3.2 i 4.2
 
-Stan audytu: **12.11.2026**, zadanie [SCRUM-143](https://fleet-flow.atlassian.net/browse/SCRUM-143).
-To rejestr dowodów i braków, nie potwierdzenie zaliczenia. Ukończenie wszystkich
-zadań sprintu nie zastępuje wymaganych poleceń, pełnego DoD ani spotkań.
-Do tych dwóch zadań nie trzeba kończyć całego produktu ani całego Sprintu 3.
+Stan odczytu: **18.11.2026**, [SCRUM-143](https://fleet-flow.atlassian.net/browse/SCRUM-143).
+**Oba oddania pozostają niekompletne.**
+Decyzja PO z 18.11: historyczne tematy commitów i nazwy gałęzi są poza dalszą pracą; nie kontaktujemy się w tej sprawie z prowadzącym. Zachowujemy rzeczywiste wyniki jako znane niezgodności. Wystarczą odebrane przyrosty i wymagane dowody;
+nie trzeba kończyć całego produktu ani Sprintu 3.
 
-## Co jest już potwierdzone
+## Numeracja sprawdzona w kursie
 
-| Wymaganie | Rzeczywisty dowód |
-| --- | --- |
-| Wdrożony aktualny main | Po fetch `2b3f2ba`; HTTP `http://57.129.179.53/` zawiera ten SHA. `https://fleet-flow.pl/api/health/ready` zwraca HTTP 200 i `{"status":"ok"}`. |
-| CI, lint, wdrożenie i test po wdrożeniu | [Run main 43105067278](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/43105067278): wszystkie joby success. Log: `PASS deployed SHA 2b3f2ba: HTTP status, HTTPS application, API readiness`. |
-| Wdrożenie zależy od testów i lintu | `.github/workflows/ci.yml`: deploy `needs: [required, frontend, backend, e2e, lint]`; smoke `needs: [deploy]`. |
-| Autorstwo i review czterech osób | 67 scalonych PR; wszystkie mają klucz Jiry w opisie. Każdy członek ma własny scalony PR i wykonane review cudzego. Przykłady poniżej. |
-| Rozwiązany konflikt kodu | Scalony [PR #62](https://github.com/DawidHnat/Projekt_Zespolowy/pull/62), po wcześniejszym #30; `TripDayPicker.tsx`, zachowane `type="button"` i `disabled={disabled}`. CI ostatniego head `f646c82` zielone, [run 42271127635](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/42271127635). |
-| Celowo czerwony lint | [PR #77 — NIE SCALAĆ](https://github.com/DawidHnat/Projekt_Zespolowy/pull/77), run `42815387118`: `Lint failure`, deployment i smoke skipped. |
-| Celowo czerwony test | [PR #78 — NIE SCALAĆ](https://github.com/DawidHnat/Projekt_Zespolowy/pull/78), run `42815401269`: `Frontend build failure` na npm test, deployment i smoke skipped. |
-| Macierz DoD | [DEFINITION_OF_DONE.md](../DEFINITION_OF_DONE.md) ma odpowiedzialność przy każdym warunku; testy, lint i smoke istnieją już na main. |
-| Retro S1 i działanie w S2 | [Retro S1](retro/sprint-1.md), działanie SCRUM-65; Sprint 1 closed, Sprint 2 active. Review S1 z 06.11 jest potwierdzone przez PO. |
-| Przygotowane następne usprawnienia | SCRUM-128 i SCRUM-129 są w przyszłym Sprincie 3, który ma cel. Planowany sprint nie spełnia jeszcze warunku „trwa Sprint 3”. |
-
-| Członek | Przykład własnego scalonego PR | Przykład review cudzego scalonego PR |
+| Cursora | Zakres | Instrukcja zespołu |
 | --- | --- | --- |
-| Jakub Czaja — `jczaja51` | #63 | #64 APPROVED |
-| Dawid Hnat — `DawidHnat` | #60 | #76 APPROVED |
-| Jakub Nazarewicz — `jnazarewiczs` | #64 | #62 APPROVED |
-| Marcel Głowacki — `mglowacki0` | #28 | #63 APPROVED |
+| [Zadanie 3.2](https://cursora.org/pl/courses/projekt-zespolowy?lesson=nowa-lekcja-2-26&step=4) | Przegląd Sprintu i Pull Requesty | [Pakiet 3.2](SPRINT_REVIEW_SUBMISSION.md) |
+| Lekcja 4.1 | Teoria Sprintu 2 | Wcześniejsze oznaczenie „oddanie 4.1” było błędne. |
+| [Zadanie 4.2](https://cursora.org/pl/courses/projekt-zespolowy?lesson=nowa-lekcja-2-32&step=6) | Przegląd Sprintu 2 i bramy jakości w pipeline | [Pakiet 4.2](SPRINT_2_SUBMISSION.md) |
 
-## Co blokuje kompletne oddanie
+Numeracja pochodzi z odczytu zalogowanej Cursory 18.11.2026. Historyczne lokalne
+pakiety z 12 i 16 listopada mogą jeszcze mieć dawną nazwę; nie są bieżącą instrukcją.
 
-| Brak | Kto i gdzie go domyka |
+## Dowody potwierdzone
+
+| Wymaganie | Aktualny dowód |
 | --- | --- |
-| Ochrona wymaga tylko `Required CI`; brakuje osobno wymaganego testu i lintu. | Dawid: [SCRUM-140](https://fleet-flow.atlassian.net/browse/SCRUM-140), podzadanie SCRUM-127. Dodać `Backend (3.13)` i `Lint`, zachować dotychczasową ochronę, nazwy i brak bypass. |
-| Brak potwierdzonej dokładnej daty ochrony i niezgodności historyczne. | Dawid podaje datę w SCRUM-140. Jakub: SCRUM-143, wyjaśnia rozliczenie z prowadzącym. Szczegóły poniżej. |
-| Brak kompletnego dowodu pełnego DoD całej Story S1 i S2. | Marcel z PO i niezależnym reviewerem: [SCRUM-141](https://fleet-flow.atlassian.net/browse/SCRUM-141). Wykorzystać istniejące QA, nie powielać testów ani nie utożsamiać statusu Gotowe z odbiorem. |
-| Brak Review/retro S2, rozliczenia i startu S3. | Jakub i zespół: [SCRUM-142](https://fleet-flow.atlassian.net/browse/SCRUM-142), po SCRUM-141. PO potwierdził 12.11, że spotkania jeszcze się nie odbyły. |
-| Brak finalnych odpowiedzi po ostatnim merge/wdrożeniu. | Jakub: SCRUM-143; każdy członek wykonuje końcowe polecenia i oddaje osobno. |
+| Serwer i main | Po fetch `132fefc`; HTTP zawiera ten skrót, dokładne `grep -c` zwraca 1; HTTPS readiness HTTP 200, `status=ok`. |
+| Testy, lint, deploy i smoke | [Run 44176327656](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44176327656): 10/10 jobów success; `PASS deployed SHA 132fefc: HTTP status, HTTPS application, API readiness`. |
+| Zależności wdrożenia | `.github/workflows/ci.yml`: deploy `needs: [required, frontend, backend, e2e, lint]`, smoke `needs: [deploy]`. |
+| Autorzy i review | Dokładny filtr tutorialu zwraca 88 scalonych PR, wszystkie `key_in_body=true`. Zachowane dowody 4/4 osób poniżej. Filtr sam nie sprawdza aktualności Approved. |
+| Konflikt kodu | [#62](https://github.com/DawidHnat/Projekt_Zespolowy/pull/62) po #30, wspólne linie TripDayPicker.tsx; zachowane `type=button` i `disabled`, Approved Nazarewicza na `f646c82`, [CI 42271127635](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/42271127635) success. |
+| Czerwony lint | [#77](https://github.com/DawidHnat/Projekt_Zespolowy/pull/77), run 42815387118: Lint failure, deploy/smoke skipped. NIE SCALAĆ. |
+| Czerwony test | [#78](https://github.com/DawidHnat/Projekt_Zespolowy/pull/78), run 42815401269: Frontend build failure na npm test, deploy/smoke skipped. NIE SCALAĆ. |
+| DoD | [DoD](../DEFINITION_OF_DONE.md) ma 12 warunków z wykonawcą. [Macierz ASVS](security/SCRUM-101-ASVS-5.0.0-L2.md) jest na main po #98; nie zastępuje pełnego review auth ani odbioru Story. |
+| Retro S1 | [Retro S1](retro/sprint-1.md), SCRUM-65 w aktywnym S2. #73 scalony z Approved i CI. Pomiar z 16.11: 0 zwykłych PR bez formalnego review ponad 24 h, z osobnym wyłączeniem dowodów #24/#77/#78. Nie jest to nowy pomiar z 18.11. |
 
-SCRUM-140 blokuje SCRUM-143; SCRUM-141 blokuje SCRUM-142, a SCRUM-142 blokuje
-SCRUM-143. Techniczne przygotowanie nie pozwala zamknąć tych zależności za zespół.
+| Członek | Własny scalony PR | Approved cudzego na końcowym head |
+| --- | --- | --- |
+| jczaja51 | #55 | #28 |
+| DawidHnat | #60 | #22 |
+| jnazarewiczs | #61 | #55 |
+| mglowacki0 | #28 | #29 |
 
-### Historia Git — wynik nie jest równy zero
+## Co jeszcze blokuje oddanie
 
-Kontrola z dokładnym wzorcem kursowym w szerszym zakresie od
-`2026-10-20T00:00:00+02:00` zwraca **1**. Niezgodny temat:
+| Zadanie / właściciel | Wykonane i pozostały krok |
+| --- | --- |
+| [SCRUM-140](https://fleet-flow.atlassian.net/browse/SCRUM-140), Dawid | Wymagany nadal tylko `Required CI`; ruleset nie zwrócił dodatkowych kontekstów. Dodać osobno wymagane `Lint` i `Backend (3.13)`, zachować zabezpieczenia i przedstawić nowy odczyt. Dawne ustalanie daty dla rozliczenia historii pominięto decyzją PO. |
+| [SCRUM-141 / S1](https://fleet-flow.atlassian.net/browse/SCRUM-141?focusedCommentId=10254), Dawid i Marcel, decyzja PO | Kandydat SCRUM-16 ma macierz 4 AC + 12 DoD. Kontrolowane expiry FF-QA-031: 2/2 PASS desktop/mobile. Pozostają całościowy niezależny review auth, końcowe cookie/Origin i odpowiednie retesty, wymagane dowody odtworzenia, pełny odbiór i decyzja PO. SMTP live jest osobnym SCRUM-44, poza czterema AC logowania. |
+| [SCRUM-141 / S2](https://fleet-flow.atlassian.net/browse/SCRUM-141?focusedCommentId=10255), Nazarewicz, Dawid i Marcel, decyzja PO | SCRUM-91 nadal Testowanie. Poprawki SCRUM-144/145/146 są w [#99](https://github.com/DawidHnat/Projekt_Zespolowy/pull/99), gotowym do ponownego review Dawida: head `7f5aca0` zawiera obie uwagi poprzedniego review i 4 nowe regresje. Lokalnie 55 testów frontendu, 193 backendowe z PostgreSQL oraz 84 E2E PASS; build i Ruff PASS. [CI 44308507367](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44308507367) ostatniego head jest do końcowego potwierdzenia. Pozostają niezależny review, merge/wdrożenie i końcowy QA Marcela. [Lokalna próba odtworzenia](https://github.com/DawidHnat/Projekt_Zespolowy/blob/fix/SCRUM-91-preference-isolation/docs/qa/SCRUM-91-restore-20261118.md) już PASS; Dawid ocenia zakres dowodu w DoD. |
+| [Aktualizacja QA S2](https://fleet-flow.atlassian.net/browse/SCRUM-141?focusedCommentId=10287), Marcel | Offline z błędem i ochroną szkicu już PASS w opisanym zakresie. Brak osobnego potwierdzenia niezmienionej wartości backendu; nie daje to PASS całego AC3 ani Story. Nie powtarzać starego stwierdzenia, że próby Offline w ogóle nie wykonano. |
+| [SCRUM-142](https://fleet-flow.atlassian.net/browse/SCRUM-142), PO i zespół | Po pełnym odbiorze S2 przeprowadzić Review/retro, zapisać datę, uczestników, feedback, ocenę działań S1 i nowe uzgodnione działanie. Rozliczyć S2 i uruchomić istniejący S3. Brak nowego potwierdzenia spotkań. |
+| [SCRUM-143](https://fleet-flow.atlassian.net/browse/SCRUM-143), PO | Dokończyć review/merge dokumentacji i po ostatnim wdrożeniu odświeżyć wyniki. Dawne wyjątki Git pomijamy w dalszych działaniach decyzją PO. |
 
-```text
-2bffba97550d6addf02dd0ef17bb09cf070f7fbf
-Update Marcel Głowacki's key status in DEV_SERVER.md
-```
+## Historia Git
 
-Commit trafił do main przez [PR #54](https://github.com/DawidHnat/Projekt_Zespolowy/pull/54).
-Gałęzie bez klucza Jiry w wyniku filtra: #1/#2 `codex/azure-dev-server`
-i #54 `jczaja51-patch-1`. Opisy tych PR zawierają klucz.
-Dokładną datę ochrony nadal potwierdza Dawid. Nie przesuwamy daty pod wynik,
-nie przepisujemy main ani historycznych autorów i nie przedstawiamy `1` jako `0`.
-Te historyczne wyjątki wymagają jawnego rozliczenia z prowadzącym; poprawna
-nazwa następnej gałęzi i nowy commit nie zmieniają starych wyników.
+Dokładny wzorzec w szerokim zakresie od `2026-10-20T00:00:00+02:00` nadal zwraca
+**3**, a nie 0. To zakres kontrolny, nie potwierdzona data ochrony.
 
-### Wybór Story Sprintu 2
+| Commit | Niezgodny temat |
+| --- | --- |
+| `a2f4d61` | Fix SCRUM-91 preference E2E flows |
+| `1293999` | SCRUM-91: sync account preferences across browsers |
+| `2bffba9` | Update Marcel Głowacki's key status in DEV_SERVER.md |
 
-Odczyt `sprint = 3 AND issuetype = Story` zwraca wyłącznie:
+Dwa tematy pochodzą z [#93](https://github.com/DawidHnat/Projekt_Zespolowy/pull/93),
+jeden z [#54](https://github.com/DawidHnat/Projekt_Zespolowy/pull/54).
+Gałęzie bez klucza: #1/#2 `codex/azure-dev-server`, #54 `jczaja51-patch-1`.
+Decyzja PO z 18.11: bez dalszego audytu tych wyjątków, ustalania daty dla tej kontroli ani kontaktu z prowadzącym. Wynik pozostaje niezgodny z wymaganiem kursowym; nie oznaczamy go jako PASS.
+Nowy commit lub tytuł PR nie usuwa dawnych tematów; historii main nie przepisujemy.
 
-- **SCRUM-84 — kopie poza VPS**, Dawid, Do zrobienia. Pełne DoD wymaga
-  uzgodnionego storage/kosztu/RPO/RTO oraz niezależnego odtworzenia. Istniejąca
-  decyzja odkłada wybór storage; sam kod backupu nie jest pełnym odbiorem.
-- **SCRUM-91 — preferencje konta między urządzeniami**, Nazarewicz,
-  Do zrobienia. Wymagane backendowe preferencje, dwa urządzenia, izolacja kont,
-  konflikt wersji i jawna migracja ustawień lokalnych.
+## Sprinty i kolejność
 
-PO wybiera rzeczywisty wykonalny przyrost z zespołem. SCRUM-38/45/46 oraz
-SCRUM-127 są Zadaniami; nie zamieniamy ich w Story dla wyniku kursowego.
-SCRUM-83 ma lokalne QA Marcela, ale należy do zamkniętego Sprintu 1.
+Odczyt 18.11: S1 closed; **FF Sprint 2 - podstawa i QA** (id 3) active;
+**FF Sprint 3 - dane i konta** (id 4) future. W S3 są SCRUM-128 (proponowane
+działanie retro, Czaja) i SCRUM-129 (wybite okno, Nazarewicz:
+`frontend/vite.config.ts`, `frontend/src/features/fleet/components/VehicleMap.tsx`).
+Nie trzeba kończyć tych zadań do 4.2; muszą należeć do rzeczywiście aktywnego S3,
+a działanie ma wynikać z uzgodnionej retrospektywy.
 
-## Materiały do użycia
+Najpierw zachować datowany pakiet **3.2** z aktywnym S2, pełnym DoD S1
+i rzeczywistymi wynikami Git; historyczne niezgodności pomijamy w dalszych pracach decyzją PO. Następnie odebrać Story S2, przeprowadzić Review/retro,
+rozliczyć S2 i uruchomić istniejący S3. Potem zebrać oddzielny komplet **4.2**.
+Każdy oddaje osobno pod własnym kontem; szkic nie zastępuje spotkań.
 
-### Kolejność dwóch oddań
-
-1. **Podczas aktywnego Sprintu 2** domknąć DoD Story S1 i rozliczenie historii
-   Git, zebrać komplet 4.1 z datowanym odczytem aktywnego S2 i jego celem.
-   Zachować tę migawkę przed zamknięciem S2; nie zastępować jej późniejszym
-   twierdzeniem, że zamknięty sprint nadal trwa.
-2. Domknąć DoD Story S2, wymagane checki oraz prawdziwe Review/retro S2.
-   Przed rozliczeniem sprintu sprawdzić, czy komplet 4.1 jest już zapisany.
-3. Rozliczyć S2 i uruchomić istniejący S3. Zebrać komplet 4.2 z nowym odczytem
-   aktywnego S3 oraz świeżym main/runem/wersją serwera. Pierwsze i drugie
-   oddanie opisują kolejne etapy, nie dwa równolegle aktywne sprinty.
-
-- [Polecenia i dowody 4.1](SPRINT_REVIEW_SUBMISSION.md).
-- [Polecenia i dowody 4.2](SPRINT_2_SUBMISSION.md).
-- [Review S1](SPRINT_1_REVIEW.md), [scenariusz i protokół S2](SPRINT_2_REVIEW.md).
-- [Retro S1](retro/sprint-1.md), [materiał na retro S2](retro/sprint-2.md).
-
-Surowe odczyty audytu są lokalne. Do publicznego repo nie dodajemy eksportów
-Jiry, logów z danymi floty, sekretów ani danych klientów. Wyniki wersji i runu
-trzeba odświeżyć po każdym kolejnym wdrożeniu.
+Materiały: [3.2](SPRINT_REVIEW_SUBMISSION.md), [4.2](SPRINT_2_SUBMISSION.md),
+[Review S2](SPRINT_2_REVIEW.md), [retro S2](retro/sprint-2.md),
+[polecenia dla zespołu](COURSE_AGENT_HANDOFFS.md). Surowe wyniki i osobiste szkice
+pozostają lokalne, poza publicznym repozytorium.
