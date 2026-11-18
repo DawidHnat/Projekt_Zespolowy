@@ -141,7 +141,7 @@ export function DatePicker(props: Props) {
           id={id}
           type="button"
           className="date-picker-trigger"
-          aria-label={label}
+          aria-label={`${label}: ${displayCalendarDate(value) || "Wybierz datę"}`}
           aria-describedby={`${id}-value`}
           aria-haspopup="dialog"
           aria-expanded={open}

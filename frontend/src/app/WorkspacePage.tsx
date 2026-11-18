@@ -9,7 +9,7 @@ export function WorkspacePage({ section }: { section: AppSection }) {
     <WidgetFrame
       title={section.title}
       icon={section.icon}
-      badge="W przygotowaniu"
+      badge="Planowane"
       className="planned-page"
     >
       <EmptyState
