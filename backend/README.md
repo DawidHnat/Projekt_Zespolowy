@@ -200,8 +200,11 @@ i `status`; lista dodatkowo `page`, `page_size` i `sort` (`name-asc`, `name-desc
 `status`, `odometer-asc`, `odometer-desc`). Sortowanie odbywa się przed
 paginacją. Mapa zwraca GeoJSON i obejmuje
 pasujące pozycje z całej listy, niezależnie od jej bieżącej strony. Pojazdy bez
-GPS pozostają na liście. Dane stare i brakujące mają jawne oznaczenia; prędkość
-pozostaje `null` do potwierdzenia jednostki. Publiczne API nie zwraca UID źródła.
+GPS pozostają na liście. Prędkość świeżego, poprawnego pomiaru jest podawana
+w `speed_kmh` (km/h, 0–300); brak, stary/przyszły pomiar, niedostępne źródło
+lub niepotwierdzony GPS oznaczają `null`, bez zastępowania braku zerem.
+[Kontrolne potwierdzenie jednostki](../docs/qa/SCRUM-14-speed-unit.md).
+Publiczne API nie zwraca UID źródła.
 `/docs` pokazuje aktualny OpenAPI; plan kolejnych operacji jest w contracts/.
 
 ## Preferencje konta — SCRUM-91
