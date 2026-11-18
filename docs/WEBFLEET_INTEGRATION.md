@@ -1,4 +1,4 @@
-# WEBFLEET.connect — wynik wstępnego sprawdzenia SCRUM-14
+# WEBFLEET.connect — ustalenia SCRUM-14
 
 ## Potwierdzony zakres
 
@@ -7,8 +7,11 @@ odczyt `showObjectReportExtern` oraz `showVehicleReportExtern`. Identyfikatory
 obu raportów pasują do siebie. Dla jednego pojazdu i dzisiejszego okresu
 potwierdzono niepuste odpowiedzi `showTripReportExtern`, `showStandStills`
 i `showTracks`. Nie publikujemy odpowiedzi, identyfikatorów, liczebności floty
-ani lokalizacji klientów. Jednostka numerycznej prędkości snapshotu nie została
-potwierdzona dokładnie tym samym pomiarem historii; nie należy jej zgadywać.
+ani lokalizacji klientów. 18.11.2026, na wyraźne polecenie PO, wykonano także
+[kontrolne porównanie jednostki snapshotu](qa/SCRUM-14-speed-unit.md).
+Jeden niezerowy pomiar o zgodnych czasach GPS i wiadomości, jakości `A`,
+tym samym UID i czasie w `showTracks` potwierdził km/h bez przeliczania.
+Zakres i ograniczenia tej empirycznej weryfikacji opisuje powiązany dokument.
 
 Źródło: [oficjalny przewodnik WEBFLEET.connect 1.74.0](https://media.webfleet.com/fl_attachment/media/doc/documentations/webfleet.connect-doc-1.74.0.pdf),
 sekcje „Making HTTP requests”, „General parameters” i „Objects”.
@@ -42,7 +45,7 @@ sekcje „Making HTTP requests”, „General parameters” i „Objects”.
 | `status` | Jakość GPS: A = aktualny fix, V = możliwa niedokładność, L = ostatni dobry fix, 0 = brak. To nie status jazdy. |
 | `pos_time` | Czas ostatniej pozycji; przy `useISO8601=true` normalizujemy do UTC. Bez strefy czasu wartość pozostaje nieznana. |
 | `msgtime` | Czas ostatniej wiadomości; nie zastępuje automatycznie czasu pozycji. |
-| `speed` | W tabeli wyniku `showObjectReportExtern` pole `speed` jest zdefiniowane jako string i nie określa wprost jednostki w tej operacji. Do czasu weryfikacji na koncie testowym jednostka snapshotu pozostaje formalnie niepotwierdzona; zgodnie z decyzją PO API zwraca `speed_kmh: null`. |
+| `speed` | km/h bez przelicznika, potwierdzone kontrolnym porównaniem 18.11.2026. Adapter przyjmuje liczbę lub tekst liczbowy 0–300; brak/niepoprawna wartość to `None`. API zwraca ją wyłącznie dla świeżego, poprawnego pomiaru GPS i działającego źródła; w pozostałych przypadkach `speed_kmh: null`. |
 
 `showObjectReportExtern` zwraca obiekty różnych typów, nie tylko pojazdy. Dlatego
 diagnostyka mówi o obiektach. Zanim API listy nazwie je pojazdami, należy połączyć
@@ -70,8 +73,8 @@ aktualnej pozycji. Interfejs powinien wyświetlać czas ostatniego pomiaru.
 
 Rozpoznanie techniczne WEBFLEET.connect i diagnostyki SMTP w ramach SCRUM-14
 potwierdza techniczną wykonalność integracji. Decyzje projektowe, granice RODO i mapowanie pól
-zostały uzgodnione, natomiast kryterium empirycznego potwierdzenia jednostki prędkości
-snapshotu pozostaje formalnie otwarte (z jawną obsługą `speed_kmh: null` w API zgodnie z decyzją PO).
+zostały uzgodnione. Empiryczne potwierdzenie jednostki prędkości snapshotu
+uzupełniono 18.11.2026; wynik autora nadal wymaga niezależnego review i odbioru QA.
 
 Podsumowanie warunków ukończenia:
 1. **Autoryzacja i transport:** Zweryfikowano działanie HTTPS, formatu JSON, nagłówka
@@ -79,10 +82,10 @@ Podsumowanie warunków ukończenia:
    Adapter i diagnostyka zostały wdrożone w PR #7.
 2. **Jednostka prędkości:** W oficjalnym przewodniku 1.74.0 pole `speed` w wyniku
    `showObjectReportExtern` jest opisane jako string bez wskazania jednostki (w przeciwieństwie
-   do operacji `showTracks`, gdzie km/h jest podane wprost). Z tego względu jednostka prędkości
-   bieżącego snapshotu pozostaje formalnie niepotwierdzona na poziomie specyfikacji tego raportu.
-   Zgodnie z decyzją PO z Planningu do czasu weryfikacji na koncie testowym bez danych klientów
-   API zwraca dla prędkości snapshotu jawne `speed_kmh: null`.
+   do operacji `showTracks`, gdzie km/h jest podane wprost). Kontrolne porównanie
+   tego samego zdarzenia na używanym koncie 18.11.2026 potwierdziło km/h bez
+   przeliczenia. Nowa decyzja PO uruchamia przekazywanie potwierdzonej prędkości
+   do API w SCRUM-22; braki i nieaktualne/niepotwierdzone odczyty pozostają `null`.
 3. **Adres pozycji a ręczna kartoteka pojazdu:**
    - **Adres pozycji:** Oficjalna tabela wyniku `showObjectReportExtern` udostępnia pola
      `postext` oraz `postext_short` zawierające geokodowany adres ostatniej pozycji. Pole to jest
@@ -115,9 +118,9 @@ Podsumowanie warunków ukończenia:
    prawdziwych pozycji GPS.
 
 Wnioski ze Spike'a SCRUM-14 stanowią podstawę implementacji zadań SCRUM-15, SCRUM-24
-oraz SCRUM-51. Kryterium potwierdzenia jednostki pola `speed` snapshotu pozostaje formalnie
-otwarte do czasu testu na żywym koncie testowym (do tego czasu API zwraca `speed_kmh: null`
-zgodnie z decyzją PO). Dokumentacja podsumowująca spike zostaje przekazana do ponownego review.
+oraz SCRUM-51. Uzupełnione potwierdzenie jednostki `speed` oraz implementacja
+jej przekazywania w SCRUM-22 zostają przekazane do review i QA. Nie jest to
+deklaracja zamknięcia całego spike'a ani potwierdzenie wdrożenia.
 
 ## Poczta
 
