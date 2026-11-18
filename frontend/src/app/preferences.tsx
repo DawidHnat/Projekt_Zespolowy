@@ -208,6 +208,11 @@ function useDashboardPreferencesState() {
       return;
     }
     const id = user.id;
+    // A failed or cancelled GET must not hand local settings to the next account.
+    if (localWasPresent && !migrationState.current) {
+      migrationState.current = { ownerId: id, completed: false };
+      writeMigrationState(migrationState.current);
+    }
     const controller = new AbortController();
     version.current = 0;
     setCloud({
@@ -234,13 +239,9 @@ function useDashboardPreferencesState() {
         }
         let migrationAvailable = false;
         if (result.version === 0 && result.value === null && localWasPresent) {
-          if (!migrationState.current) {
-            migrationState.current = { ownerId: id, completed: false };
-            writeMigrationState(migrationState.current);
-          }
+          const migration = migrationState.current;
           migrationAvailable =
-            migrationState.current.ownerId === id &&
-            !migrationState.current.completed;
+            migration?.ownerId === id && !migration.completed;
         }
         setCloud({
           loading: false,

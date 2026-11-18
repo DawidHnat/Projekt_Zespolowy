@@ -81,6 +81,10 @@ nie jest wynikiem QA.
 3. Dla konta z nowszą wartością w backendzie przygotuj różną wartość lokalną.
    Prompt nie może zastąpić wartości konta ani pokazać ustawień poprzedniego
    użytkownika. Samo odświeżenie i automatyczny polling nie są zgodą na import.
+4. Sprawdź także pierwsze logowanie A, kiedy odczyt ustawień zwraca błąd
+   albo zostaje przerwany przez wylogowanie. Bez przeładowania strony zaloguj B:
+   B ma własny domyślny układ, bez propozycji importu ustawień A. Po powrocie
+   na A jawny import jego lokalnego układu nadal jest dostępny i działa.
 
 ## API i istniejące testy
 
@@ -109,6 +113,7 @@ Regresje automatyczne:
 `backend/migrations/versions/0006_account_preferences.py` tworzy tabelę
 `account_preferences`, klucz per użytkownik/moduł, ograniczenia wersji i nazw
 modułów. Test przejścia migracji nie jest operacyjnym dowodem odtworzenia.
-Dawid Hnat ma dołączyć bezpieczny wynik próby restore/rollback z izolowanej
-kopii przed uznaniem warunku DoD za PASS. W tym przekazaniu takiej próby nie
-wykonano.
+Dawid Hnat sprawdza dowód restore/rollback z izolowanej kopii przed uznaniem
+warunku DoD za PASS. [Lokalna próba z 18.11.2026](SCRUM-91-restore-20261118.md)
+wykonana przez agenta na polecenie Jakuba Czai odzyskała obie preferencje,
+także po downgrade/upgrade. Nie jest to odbiór operatora ani dowód kopii VPS.

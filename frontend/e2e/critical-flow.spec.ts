@@ -189,6 +189,8 @@ test("dashboard preferences stay isolated when switching accounts in one browser
       });
       if (await checkbox.isChecked()) await checkbox.uncheck();
     }
+    await page.evaluate(() => { window.location.hash = "#dashboard"; });
+    await expect(page.getByRole("heading", { name: /^Pulpit\.?$/, level: 1 })).toBeVisible();
     await page.getByRole("button", { name: "Zapisz układ", exact: true }).click();
     await expect.poll(async () => {
       const response = await page.request.get("/api/v1/preferences/dashboard");
@@ -196,6 +198,8 @@ test("dashboard preferences stay isolated when switching accounts in one browser
       return value?.visibleWidgets;
     }).toEqual([]);
 
+    const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
+    if (await menu.isVisible()) await menu.click();
     await page.getByRole("button", { name: "Wyloguj się", exact: true }).click();
     await expect(page.getByRole("button", { name: "Zaloguj się", exact: true })).toBeVisible();
     await login(page, "editor-two");
@@ -222,6 +226,100 @@ test("dashboard preferences stay isolated when switching accounts in one browser
     await secondContext.close();
   }
 });
+
+for (const initialRead of ["failed", "cancelled"] as const) {
+  test(`dashboard migration stays with its first account after a ${initialRead} initial read`, async ({ page }) => {
+    const widgets = ["metrics", "map", "activity", "vehicles", "utilization", "trips"];
+    await page.addInitScript((ids) => {
+      if (sessionStorage.getItem("migration-fixture-seeded")) return;
+      localStorage.setItem("fleet-flow.dashboard.v2", JSON.stringify({
+        theme: "light",
+        accent: "#1479e8",
+        material: "glass",
+        visibleWidgets: [],
+        layouts: {
+          dashboard: {
+            desktop: ids.map((i, index) => ({ i, x: 0, y: index * 4, w: 12, h: 4 })),
+            compact: ids.map((i, index) => ({ i, x: 0, y: index * 4, w: 1, h: 4 })),
+          },
+        },
+      }));
+      sessionStorage.setItem("migration-fixture-seeded", "true");
+    }, widgets);
+
+    let firstReadSeen = false;
+    let releaseRead = () => {};
+    const heldRead = new Promise<void>((resolve) => { releaseRead = resolve; });
+    await page.route("**/api/v1/preferences/dashboard", async (route) => {
+      if (route.request().method() !== "GET" || firstReadSeen) {
+        await route.continue();
+        return;
+      }
+      firstReadSeen = true;
+      if (initialRead === "failed") {
+        await route.fulfill({
+          status: 503,
+          json: { error: { code: "UNAVAILABLE", message: "Testowy błąd odczytu ustawień." } },
+        });
+      } else {
+        await heldRead;
+        await route.abort();
+      }
+    });
+
+    const loginWithoutReload = async (role: string) => {
+      await page.getByLabel("Login", { exact: true }).fill(`e2e-${role}`);
+      await page.getByLabel("Hasło", { exact: true }).fill("synthetic-e2e-password");
+      await page.getByRole("button", { name: "Zaloguj się", exact: true }).click();
+      await expect(page.getByRole("button", { name: "Zaloguj się", exact: true })).toHaveCount(0);
+    };
+    const logout = async () => {
+      const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
+      if (await menu.isVisible()) await menu.click();
+      await page.getByRole("button", { name: "Wyloguj się", exact: true }).click();
+      await expect(page.getByRole("button", { name: "Zaloguj się", exact: true })).toBeVisible();
+    };
+
+    try {
+      await login(page);
+      await expect.poll(() => firstReadSeen).toBe(true);
+      await page.evaluate(() => { window.location.hash = "#dashboard"; });
+      if (initialRead === "failed") {
+        await expect(page.getByRole("alert").filter({ hasText: "Nie udało się pobrać danych. Spróbuj ponownie." })).toBeVisible();
+      }
+      await logout();
+      releaseRead();
+      await loginWithoutReload("editor-two");
+      await page.evaluate(() => { window.location.hash = "#dashboard"; });
+      await expect(page.getByText("Pobieranie zapisanych ustawień: Pulpit…")).toHaveCount(0);
+      await expect(page.locator("[data-widget]")).toHaveCount(6);
+      const migration = page.getByRole("region", { name: "Migracja ustawień: Pulpit" });
+      await expect(migration).toHaveCount(0);
+      expect(await (await page.request.get("/api/v1/preferences/dashboard")).json()).toMatchObject({
+        version: 0,
+        value: null,
+      });
+      await page.getByRole("button", { name: "Edytuj układ", exact: true }).click();
+      await page.getByRole("button", { name: "Zapisz układ", exact: true }).click();
+      await expect.poll(async () => {
+        const { value } = await (await page.request.get("/api/v1/preferences/dashboard")).json();
+        return value?.visibleWidgets?.length;
+      }).toBe(6);
+
+      await logout();
+      await loginWithoutReload("editor");
+      await expect(migration).toBeVisible();
+      await migration.getByRole("button", { name: "Przenieś z tej przeglądarki", exact: true }).click();
+      await expect.poll(async () => {
+        const { value } = await (await page.request.get("/api/v1/preferences/dashboard")).json();
+        return value?.visibleWidgets;
+      }).toEqual([]);
+      await page.screenshot({ path: test.info().outputPath(`migration-${initialRead}-owner.png`) });
+    } finally {
+      releaseRead();
+    }
+  });
+}
 
 test("local dashboard settings require explicit migration and cannot replace account settings", async ({ page, browser }) => {
   const widgets = ["metrics", "map", "activity", "vehicles", "utilization", "trips"];
