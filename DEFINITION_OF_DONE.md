@@ -43,3 +43,14 @@ nie jest wymaganym checkiem PR: dla PR deployment i smoke są pomijane.
 Ochrona nadal wymaga tylko `Required CI`. Właściciel dodaje osobno wymagane
 `Backend (3.13)` i `Lint` w SCRUM-140, zachowując dotychczasowe zabezpieczenia.
 [Bieżące dowody i braki oddania](docs/COURSE_READINESS.md).
+
+## SCRUM-101 — bezpieczeństwo przyrostu (ASVS 5.0.0)
+
+Dla zmian w obszarze auth, sesji, uprawnień i danych reviewer i QA wskazują
+konkretne wymagania OWASP ASVS **v5.0.0** (identyfikatory `v5.0.0-X.Y.Z`),
+wersję/commit testu, środowisko oraz wynik PASS/FAIL/BLOCKED lub umotywowane N/A.
+Macierz i aktualne luki: [SCRUM-101](docs/security/SCRUM-101-ASVS-5.0.0-L2.md).
+Nie oznaczamy pełnej zgodności ASVS L2 na podstawie wybranych kontroli.
+Przed Done: zamknięte błędy krytyczne i wysokie lub jawna decyzja PO dotycząca
+ryzyka; niezależny code review/QA; testy regresji, migracji i odtworzenia,
+gdy dotyczą zmiany. Dowody nie mogą zawierać sekretów ani danych klientów.
