@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from app.core.models import Measurement, SyncState, Vehicle
 from app.core.settings import Settings
 from app.main import create_app
+from app.modules.analytics.models import Alert, AlertReceipt, DailyDistance, Rule
 from app.modules.auth.models import LoginAttempt, LoginSession, User
 from app.modules.auth.service import password_hasher
 from app.modules.fleet.sync import account_key
@@ -129,8 +130,60 @@ def main():
                 select(User).where(User.username.in_(("e2e-editor", "e2e-viewer")))
             ):
                 user.password_hash = password_hasher.hash("synthetic-e2e-password")
+            for model in (AlertReceipt, Alert, Rule, DailyDistance):
+                session.execute(delete(model))
+            measurement = session.get(Measurement, VEHICLE)
+            measurement.position_at = measurement.received_at = datetime.now(UTC)
+            measurement.standing_still = True
             session.commit()
         source_state(engine, "ok")
+        engine.dispose()
+        return
+    if len(sys.argv) == 3 and sys.argv[1] == "alerts-case":
+        if sys.argv[2] not in ("single", "pages"):
+            raise RuntimeError("Invalid synthetic alerts case")
+        with Session(engine) as session:
+            now = datetime.now(UTC)
+            day = now.astimezone(ZoneInfo("Europe/Warsaw")).date()
+            session.add(
+                DailyDistance(
+                    vehicle_id=VEHICLE,
+                    event_day=day,
+                    distance_km=Decimal("125.5"),
+                    first_observed_at=now - timedelta(minutes=10),
+                    last_observed_at=now,
+                )
+            )
+            for _ in range(1 if sys.argv[2] == "single" else 26):
+                rule = Rule(source_account=account_key(ACCOUNT), threshold_km=Decimal("100"))
+                session.add(rule)
+                session.flush()
+                session.add(
+                    Alert(
+                        rule_id=rule.id,
+                        vehicle_id=VEHICLE,
+                        event_day=day,
+                        occurred_at=now,
+                        created_at=now,
+                        threshold_km=Decimal("100"),
+                        distance_km=Decimal("125.5"),
+                    )
+                )
+            session.commit()
+        engine.dispose()
+        return
+    if len(sys.argv) == 3 and sys.argv[1] == "measurement-state":
+        if sys.argv[2] not in ("moving", "stopped", "offline", "unknown"):
+            raise RuntimeError("Invalid synthetic measurement state")
+        with Session(engine) as session:
+            measurement = session.get(Measurement, VEHICLE)
+            now = datetime.now(UTC)
+            measurement.position_at = now - timedelta(hours=1) if sys.argv[2] == "offline" else now
+            measurement.received_at = now
+            measurement.standing_still = (
+                None if sys.argv[2] == "unknown" else sys.argv[2] != "moving"
+            )
+            session.commit()
         engine.dispose()
         return
     if len(sys.argv) == 3 and sys.argv[1] == "source-state":

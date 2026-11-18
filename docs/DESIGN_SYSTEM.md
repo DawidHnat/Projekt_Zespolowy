@@ -15,10 +15,10 @@ wpisywania kolorów w komponentach. Motyw zmienia `data-theme` elementu
 | `--background` | `#f3f7fb` | `#0b121e` | tło aplikacji |
 | `--surface` | `#ffffff` | `#131e2e` | karty i panel |
 | `--text` | `#192a42` | `#e7eef8` | główna treść |
-| `--muted` | `#63758a` | `#a1b1c6` | opisy |
+| `--muted` | `#596b80` | `#a1b1c6` | opisy |
 | `--border` | `#e3ebf3` | `#253247` | podziały i obramowania |
 | `--accent` | `#1479e8` domyślnie | kolor użytkownika | aktywne elementy |
-| `--success` | `#138c76` | jaśniejszy turkus | stan poprawny |
+| `--success` | `#10725f` | jaśniejszy turkus | stan poprawny |
 
 `--accent-on` wybiera czarny lub biały tekst zgodnie z luminancją akcentu.
 Nie używaj akcentu jako jedynego znaczenia błędu lub sukcesu. Status ma też
@@ -114,8 +114,9 @@ samą instancją; stan daty nie jest zapisywany w preferencjach wyglądu.
 `app/preference-model.ts` waliduje `theme`, `accent`, `material`, `background`,
 `visibleWidgets` i `layouts`. Hook `app/preferences.ts` zapisuje je w
 `fleet-flow.dashboard.v2` w localStorage; odczyt starszego klucza v1 zachowuje
-motyw, akcent i widoczność. Są to preferencje przeglądarki bez synchronizacji
-pomiędzy urządzeniami. Zablokowany zapis działa w pamięci sesji.
+motyw, akcent i widoczność. Wygląd, tło i układ Mapy pozostają lokalne. Układy Pulpitu i Pojazdów
+korzystają z preferencji konta w backendzie (SCRUM-91), z jawną migracją
+starszego zapisu i kontrolą konfliktu. Zablokowany zapis lokalny działa w pamięci sesji.
 Nieznane ID, duplikaty i niepoprawne rozmiary są odrzucane lub ograniczane.
 Ukrycie wszystkich modułów jest dozwolone; można je ponownie włączyć.
 
@@ -125,6 +126,14 @@ Ukrycie wszystkich modułów jest dozwolone; można je ponownie włączyć.
 Ewidencja przebiegu, Kierowcy, Karty paliwowe, Alerty i Ustawienia. Nowa strona ma trwałe
 ID, polski tytuł, ikonę i opis. `WorkspacePage` zapewnia wspólny pusty widok
 sekcji planowanych. Logikę tych funkcji dodajemy w osobnych zadaniach.
+Nawigacja pobiera oznaczenie „Planowane” z obecności `placeholder` w rejestrze;
+to samo oznaczenie jest na stronie sekcji. Po implementacji usuń `placeholder`
+i podłącz rzeczywisty widok. Nie zmieniaj przy tym trwałego ID sekcji.
+Ustawienia, galeria pojazdów i dodawanie zdjęć jawnie informują o zapisie
+tylko na urządzeniu i w danej przeglądarce. Układ Pulpitu i Pojazdów zapisuje się
+na koncie; komunikaty muszą odróżniać te dwa zakresy. Zdjęcia pojazdów są dodatkowo
+rozdzielone według konta, a preferencje dashboardu i jego tło należą do
+przeglądarki. Nie obiecuj synchronizacji zdjęć, tła ani układu Mapy między urządzeniami.
 
 Rejestr stron jest niezależny od `SectionId` i grup zapisanych w preferencjach układu.
 Stare grupy `fleet`, `trips`, `analytics` pozostają w modelu, aby zachować
@@ -389,3 +398,21 @@ względny ponownie podąża za aktualną datą; nie odmontowuje formularza w tra
 Natywne pole daty ma opis i ograniczenie do dzisiaj. Puste stany pozostają
 jednoznaczne do czasu podłączenia rzeczywistej historii; nie pokazuj
 przykładowych tras jako danych floty.
+
+### Kontrast i fokus panelu (SCRUM-107)
+
+Stopka wersji oraz opisy fallbacku mapy używają `--wallpaper-muted`, aby zachować
+kontrast nad jasnym tłem. Panel pojazdu stosuje ten sam token dla opisów nad szkłem.
+Aktywna zakładka ma tekst `--text` i podkreślenie `--accent`; jej czytelność nie
+zależy od wybranego koloru akcentu. Jasny motyw używa ciemniejszych tokenów tekstowych: muted #596b80, success #10725f, warning #8f570b oraz danger #b83e57.
+Dialog zawija Tab/Shift+Tab między widocznymi kontrolkami, a Escape zachowuje
+potwierdzenie niezapisanego szkicu i przywraca fokus do otwarcia.
+
+### Alerty dziennego dystansu — SCRUM-32
+
+`AlertsPage` podłącza rzeczywistą listę i reguły; `alerts` nie ma już
+`placeholder` ani oznaczenia Planowane. `AlertRows` rozróżnia odczyt tekstem,
+nie samym kolorem. Formularz reguły i wybór pojazdu korzystają ze wspólnych
+przycisków, tokenów i ListPagination, także wewnątrz formularza (type=button).
+Istniejący widget `activity` pokazuje liczbę nieprzeczytanych dla konta oraz
+trzy najnowsze alerty. Rejestr i ID układu pozostają zgodne ze starszym zapisem.

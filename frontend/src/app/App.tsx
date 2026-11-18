@@ -33,6 +33,7 @@ import { VehicleCardsPage } from "../features/fleet/components/VehicleCardsPage"
 import { VehicleLayoutEditorControls } from "../features/fleet/components/VehicleLayoutEditorControls";
 import { VehicleDetailsDialog } from "../features/fleet/components/VehicleDetailsDialog";
 import { AccountPreferenceNotice } from "../shared/components/AccountPreferenceNotice";
+import { AlertsPage } from "../features/analytics/components/AlertsPage";
 
 const readSection = () => sectionFromHash(window.location.hash);
 
@@ -151,18 +152,24 @@ export function App() {
         <nav aria-label="Sekcje aplikacji">
           {sections
             .filter((value) => value.id !== "settings" && value.id !== "profile")
-            .map(({ id, title, icon: Icon }) => (
-              <a
-                key={id}
-                href={`#${id}`}
-                className={`nav-item ${section === id ? "active" : ""}`}
-                aria-current={section === id ? "page" : undefined}
-              >
-                <Icon size={19} aria-hidden="true" />
-                <span>{title}</span>
-                {section === id && <span className="nav-indicator" />}
-              </a>
-            ))}
+            .map((item) => {
+              const { id, title, icon: Icon } = item;
+              return (
+                <a
+                  key={id}
+                  href={`#${id}`}
+                  className={`nav-item ${section === id ? "active" : ""}`}
+                  aria-current={section === id ? "page" : undefined}
+                >
+                  <Icon size={19} aria-hidden="true" />
+                  <span className="nav-item-label">
+                    <span>{title}</span>
+                    {"placeholder" in item && <small>Planowane</small>}
+                  </span>
+                  {section === id && <span className="nav-indicator" />}
+                </a>
+              );
+            })}
         </nav>
         <div className="sidebar-bottom">
           <a
@@ -176,7 +183,7 @@ export function App() {
           <div className="workspace">
             <span className="workspace-avatar">FF</span>
             <div>
-              <a href="#profile" className="workspace-profile" aria-label="Otwórz profil użytkownika"
+              <a href="#profile" className="workspace-profile" aria-label={`Otwórz profil użytkownika: ${auth.user?.display_name ?? ""}`}
                 aria-current={section === "profile" ? "page" : undefined}>
                 <strong>{auth.user?.display_name}</strong>
               </a>
@@ -354,6 +361,8 @@ export function App() {
             <VehicleCardsPage />
           ) : section === "profile" ? (
             <ProfilePage />
+          ) : section === "alerts" ? (
+            <AlertsPage />
           ) : section === "settings" ? (
             <AppSettingsPage
               category={settingsCategory}
