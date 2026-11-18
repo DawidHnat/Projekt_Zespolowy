@@ -33,5 +33,11 @@ export default defineConfig({
       reuseExistingServer: false,
       env: { VITE_MAPBOX_TOKEN: "", SYNC_ENABLED: "false" },
     },
+    {
+      command: "npm run dev -- --config vite.e2e.config.ts --port 54174",
+      url: "http://127.0.0.1:54174/e2e/fixtures/date-picker.html",
+      reuseExistingServer: false,
+      env: { VITE_MAPBOX_TOKEN: "", SYNC_ENABLED: "false" },
+    },
   ],
 });
