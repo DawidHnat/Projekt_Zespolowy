@@ -46,6 +46,12 @@ zależność w opisie. Po sprawdzeniu i scaleniu poprzednika przestaw bazę na
 `main`. Każda gałąź ma własny klucz zadania i własne nowe commity. Takie PR-y
 sprawdzamy i scalamy od najstarszej zależności. Nie omija to review ani QA.
 
+Przy odtwarzaniu dawnych zależności sprawdzamy obecność rzeczywistego
+przyrostu w aktualnym `main`, nie sam status Merged. Źródłowe commity,
+bazy, osobne PR-y i warunki odbioru opisuje
+[rejestr integracji SCRUM-133](docs/integration/SCRUM-133.md).
+
+
 Frontend sprawdzamy poleceniami `npm test` i `npm run build` w `frontend/`.
 `npm run test:e2e` buduje frontend, a następnie uruchamia Playwright na
 zbudowanych assetach z lokalnym backendem i dedykowaną bazą E2E.
