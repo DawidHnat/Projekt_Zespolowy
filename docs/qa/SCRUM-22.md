@@ -38,7 +38,20 @@ i w obu motywach, na syntetycznych odpowiedziach naszego API, z blokadą
 zewnętrznych żądań. Mapa dostawcy nie była przedmiotem tego testu.
 Niezależny review i odbiór QA pozostają wymagane przed Done.
 
-Prędkość z rzeczywistego snapshotu nadal pozostaje `null`: jednostka
-`showObjectReportExtern.speed` jest otwartym punktem SCRUM-14. Usunięcie pustej
-etykiety nie jest uruchomieniem odczytu prędkości. Nie odpytywano żywego
-WEBFLEET ani nie zmieniano konfiguracji VPS.
+### Uzupełnienie — prędkość w km/h
+
+Po wyraźnym poleceniu PO wykonano poza CI [kontrolne potwierdzenie jednostki
+snapshotu](SCRUM-14-speed-unit.md). API przekazuje już zapisane `speed_kmh`
+dla świeżego, poprawnego pomiaru; zero jest poprawną wartością. Stary/przyszły
+pomiar, brak GPS/czasu, niepoprawna prędkość lub błąd źródła dają `null`.
+Nie ma dodatkowych wywołań dostawcy w cyklicznej synchronizacji.
+Nie zmieniano konfiguracji VPS.
+
+Walidacja uzupełnienia: backend `ruff check .` i `ruff format --check .` PASS,
+`pytest` 206/206 PASS z izolowanym PostgreSQL; frontend `npm test` 58/58 PASS
+i `npm run build` PASS. Przeglądarka Chromium z rzeczywistym lokalnym FastAPI
+i syntetyczną bazą PostgreSQL: desktop jasny 1440 × 1000, mobile ciemny
+390 × 844. Sprawdzono odczyt 85,4 → 85 km/h w podglądzie, 0 km/h, brak
+wartości, starą i przyszłą pozycję, niepewny GPS, błąd źródła oraz powrót
+90 km/h bez utraty wyboru; tabela również pokazuje km/h. Żądania zewnętrzne
+były blokowane, a worker źródła wyłączony. Zrzuty obejrzano.
