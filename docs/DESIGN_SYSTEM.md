@@ -112,10 +112,16 @@ Zmiany wartości React, limitów i przycisków skrótów synchronizują się z t
 samą instancją; stan daty nie jest zapisywany w preferencjach wyglądu.
 
 `app/preference-model.ts` waliduje `theme`, `accent`, `material`, `background`,
-`visibleWidgets` i `layouts`. Hook `app/preferences.ts` zapisuje je w
-`fleet-flow.dashboard.v2` w localStorage; odczyt starszego klucza v1 zachowuje
-motyw, akcent i widoczność. Są to preferencje przeglądarki bez synchronizacji
-pomiędzy urządzeniami. Zablokowany zapis działa w pamięci sesji.
+`visibleWidgets` i `layouts`. `app/preferences.tsx` zachowuje lokalny zapis
+`fleet-flow.dashboard.v2`; odczyt starszego klucza v1 zachowuje motyw,
+akcent i widoczność. Wygląd, tło i układ Mapy pozostają lokalne. Widoczność
+modułów oraz układ Pulpitu są dodatkowo zapisywane w backendowym module
+`dashboard` dla zalogowanego konta przez `shared/api/account-preferences.ts`;
+zapis lokalny jest kopią roboczą i nie może przejść na inne konto.
+SCRUM-91 wymaga jawnego wyboru przy migracji starego localStorage na puste konto;
+import używa wersji 0 i nie nadpisuje istniejących preferencji. Zapis ma kontrolę
+wersji, konflikt z wyborem ponownego wczytania lub świadomego zapisu oraz jawny
+błąd. Zablokowany lokalny zapis działa w pamięci sesji; nie zastępuje wyniku API.
 Nieznane ID, duplikaty i niepoprawne rozmiary są odrzucane lub ograniczane.
 Ukrycie wszystkich modułów jest dozwolone; można je ponownie włączyć.
 
@@ -170,9 +176,14 @@ Pionowy gest na zwężonym ekranie nie zapisuje szerokości ograniczonej przez C
 Ruch mniejszy niż 5 px traktujemy jako drżenie wskaźnika; celowy ruch poziomy
 rozpoczyna zmianę szerokości od widocznej krawędzi kafelka.
 
-`VehiclePreferencesProvider` udostępnia zdjęcia i niezależny szkic rozmiarów.
-Klucz localStorage `fleet-flow.vehicles.v2.<user-id>` oraz IndexedDB
-`fleet-flow.vehicle-photos.v1` izolują preferencje kont. Wylogowanie zwalnia URL-e
+`VehiclePreferencesProvider` udostępnia preferencje konta, zdjęcia i niezależny szkic rozmiarów.
+Moduł konta `vehicles` przechowuje w backendzie układ kafelków, sortowanie,
+filtry i limit strony. Odczyt oraz wersjonowany zapis są izolowane według konta
+i modułu; nie nadpisują otwartego szkicu. Starszy localStorage
+`fleet-flow.vehicles.v2.<user-id>` oraz `fleet-flow.list-page-size.v1.<user-id>`
+są źródłem jawnej migracji i lokalną kopią układu. IndexedDB
+`fleet-flow.vehicle-photos.v1` nadal przechowuje wyłącznie lokalne zdjęcia
+i nie są one współdzielone z kontem. Wylogowanie zwalnia URL-e
 obiektowe; podmiana i usunięcie zdjęcia też je zwalniają. Upload zapisuje się
 od razu, niezależnie od Zapisz/Anuluj układu. Brak zapisu ma jawny stan sesji.
 
@@ -205,8 +216,9 @@ bez przyklejania do krawędzi okna ani nakładania na pojazdy.
 wyników. `pagination-model.ts` ogranicza wartości zgodnie z limitem API.
 
 `FleetProvider` dzieli limit między galerią, tabelą i listą Mapy. Zmiana limitu
-wraca na stronę 1. Preferencja limitu jest lokalna dla konta pod kluczem
-`fleet-flow.list-page-size.v1.<user-id>`; brak localStorage pozostawia stan sesji.
+wraca na stronę 1. Limit jest zapisany z preferencjami konta w module
+`vehicles`; dawny klucz `fleet-flow.list-page-size.v1.<user-id>` służy
+wyłącznie jako kandydat do jawnej migracji lokalnych ustawień. Awaria zapisu konta jest komunikowana.
 Filtrowanie i mapowanie floty pozostają niezależne od stronicowania listy.
 `useWidgetMinimums` uwzględnia footer i pierwszy rekord, a dla pustej listy
 mierzy komunikat zamiast rozciągniętego kontenera, aby uniknąć pętli wzrostu.

@@ -1,0 +1,1280 @@
+{
+  "audited_at": "2026-11-17",
+  "main": "132fefc16de8fa47367fcf579b1d2b6975ef1c7c",
+  "scopes": [
+    {
+      "pr": 35,
+      "task": "SCRUM-84",
+      "source_branch": "infra/SCRUM-84-offsite-backup",
+      "merged_into": "fix/SCRUM-64-controlled-sync",
+      "merge_commit": "49b741e41107cb03b375f86422eb40f0384d8703",
+      "merge_is_ancestor_of_main": false,
+      "source_commits": [
+        "c9baac0fdfa413ec6d40e609480ae46997071c29"
+      ],
+      "jira_status": "Do zrobienia",
+      "owner": "Dawid Hnat",
+      "historical_reviews": [],
+      "files": [
+        {
+          "path": "backend/tests/test_backup_operations.py",
+          "state": "missing",
+          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29"
+        },
+        {
+          "path": "infra/backup/README.md",
+          "state": "missing",
+          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29"
+        },
+        {
+          "path": "infra/backup/backup.env.example",
+          "state": "missing",
+          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29"
+        },
+        {
+          "path": "infra/backup/backup.py",
+          "state": "missing",
+          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29"
+        },
+        {
+          "path": "infra/backup/fleet-flow-backup.service",
+          "state": "missing",
+          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29"
+        },
+        {
+          "path": "infra/backup/fleet-flow-backup.timer",
+          "state": "missing",
+          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29"
+        },
+        {
+          "path": "infra/backup/fleet-flow-restore-check.service",
+          "state": "missing",
+          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29"
+        },
+        {
+          "path": "infra/backup/fleet-flow-restore-check.timer",
+          "state": "missing",
+          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29"
+        },
+        {
+          "path": "infra/deploy/README.md",
+          "state": "different",
+          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29"
+        }
+      ],
+      "integration": {
+        "pr": 105,
+        "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/105",
+        "branch": "feat/SCRUM-133-backup-integration",
+        "base": "main",
+        "head": "fd1870b37bd6137d3eccd83b1fcbc6fc06c19b86",
+        "backend_tree": "50f471354ae8d2d7e6c8f96aa2898572fb403d0f",
+        "frontend_tree": "b044396aac373543cebb2517103b4a19a7df257d",
+        "author_validation": "Ruff + 191 pytest / 12 SKIP; osobno 12/12 prawdziwy restic + dump + restore",
+        "independent_review": "NOT RECEIVED",
+        "independent_qa": "NOT RECEIVED",
+        "deployment": "NOT RUN",
+        "delivered_to_main": false
+      },
+      "main_behavior_audit": "Narzędzia restic i timery nieobecne; `infra/backup/backup.py` brak."
+    },
+    {
+      "pr": 36,
+      "task": "SCRUM-64",
+      "source_branch": "fix/SCRUM-64-controlled-sync",
+      "merged_into": "fix/SCRUM-103-role-docs-hardening",
+      "merge_commit": "56d21ca696c85c5197181db1c2d5c0a45faaa69b",
+      "merge_is_ancestor_of_main": false,
+      "source_commits": [
+        "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+      ],
+      "jira_status": "W trakcie weryfikacji",
+      "owner": "Dawid Hnat",
+      "historical_reviews": [],
+      "files": [
+        {
+          "path": "backend/README.md",
+          "state": "different",
+          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+        },
+        {
+          "path": "backend/app/modules/fleet/sync.py",
+          "state": "different",
+          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+        },
+        {
+          "path": "backend/app/sync_control.py",
+          "state": "missing",
+          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+        },
+        {
+          "path": "backend/tests/test_sync.py",
+          "state": "different",
+          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+        },
+        {
+          "path": "backend/tests/test_sync_operations.py",
+          "state": "missing",
+          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+        },
+        {
+          "path": "docs/qa/SCRUM-64.md",
+          "state": "missing",
+          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+        },
+        {
+          "path": "infra/deploy/README.md",
+          "state": "different",
+          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+        },
+        {
+          "path": "infra/deploy/compose.yml",
+          "state": "different",
+          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+        },
+        {
+          "path": "infra/deploy/runtime.env.example",
+          "state": "different",
+          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+        }
+      ],
+      "integration": {
+        "pr": 107,
+        "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/107",
+        "branch": "fix/SCRUM-133-sync-integration",
+        "base": "main",
+        "head": "d25e94bba8891fdfec8f68f255f4d31d1f29faea",
+        "backend_tree": "2a22704f2060d828eafb0deef9430135efa86e43",
+        "frontend_tree": "b044396aac373543cebb2517103b4a19a7df257d",
+        "author_validation": "Ruff + 193 pytest PostgreSQL; bez canary/live",
+        "independent_review": "NOT RECEIVED",
+        "independent_qa": "NOT RECEIVED",
+        "deployment": "NOT RUN",
+        "delivered_to_main": false
+      },
+      "main_behavior_audit": "Częściowo: konfiguracja wdrożenia #56 jest obecna, brak `app/sync_control.py` i bezpiecznych zdarzeń workera."
+    },
+    {
+      "pr": 38,
+      "task": "SCRUM-97",
+      "source_branch": "perf/SCRUM-97-sql-fleet",
+      "merged_into": "test/SCRUM-108-api-contracts",
+      "merge_commit": "c29bae88d7ad587ccdf1121eaf6af34b9383df3d",
+      "merge_is_ancestor_of_main": false,
+      "source_commits": [
+        "742546df92045c64a0ce38e5a9801e8d86e0f45d",
+        "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+      ],
+      "jira_status": "Gotowe",
+      "owner": "Dawid Hnat",
+      "historical_reviews": [],
+      "files": [
+        {
+          "path": "backend/app/core/models.py",
+          "state": "different",
+          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+        },
+        {
+          "path": "backend/app/modules/fleet/router.py",
+          "state": "different",
+          "source_commit": "742546df92045c64a0ce38e5a9801e8d86e0f45d"
+        },
+        {
+          "path": "backend/app/modules/fleet/service.py",
+          "state": "different",
+          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+        },
+        {
+          "path": "backend/migrations/versions/0006_fleet_search.py",
+          "state": "missing",
+          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+        },
+        {
+          "path": "backend/tests/test_fleet_api.py",
+          "state": "different",
+          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+        },
+        {
+          "path": "backend/tests/test_fleet_postgres.py",
+          "state": "missing",
+          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+        },
+        {
+          "path": "backend/tests/test_fleet_search_migration.py",
+          "state": "missing",
+          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+        },
+        {
+          "path": "backend/tools/benchmark_fleet_queries.py",
+          "state": "missing",
+          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+        },
+        {
+          "path": "docs/performance/SCRUM-97-plans.json",
+          "state": "missing",
+          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+        },
+        {
+          "path": "docs/performance/SCRUM-97.md",
+          "state": "missing",
+          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+        }
+      ],
+      "integration": {
+        "pr": 103,
+        "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/103",
+        "branch": "perf/SCRUM-133-sql-integration",
+        "base": "main",
+        "head": "d9d6fc82e8d9d4bf0e03f5d6fff8d38878c6c236",
+        "backend_tree": "b7b18ebbd921fe256063ca25c2d3f0562a93f52b",
+        "frontend_tree": "b044396aac373543cebb2517103b4a19a7df257d",
+        "author_validation": "Ruff + 197 pytest PostgreSQL; backfill Unicode i test >10 tys. rekordów",
+        "independent_review": "NOT RECEIVED",
+        "independent_qa": "NOT RECEIVED",
+        "deployment": "NOT RUN",
+        "delivered_to_main": false
+      },
+      "main_behavior_audit": "Brak paginacji SQL; lista nadal materializuje flotę w Pythonie. Brak migracji wyszukiwania."
+    },
+    {
+      "pr": 40,
+      "task": "SCRUM-95",
+      "source_branch": "chore/SCRUM-95-security-gates",
+      "merged_into": "fix/SCRUM-98-visible-polling",
+      "merge_commit": "f51f55c668ebb3ec8a8ad29e3d52c28b50b3be77",
+      "merge_is_ancestor_of_main": false,
+      "source_commits": [
+        "28d2481708d6b317b79e8952aac4ff3327024f5d",
+        "8dbdeb6ada00bddc431308697fd538b4e5b3dd1c"
+      ],
+      "jira_status": "Gotowe",
+      "owner": "Dawid Hnat",
+      "historical_reviews": [],
+      "files": [
+        {
+          "path": ".github/dependabot.yml",
+          "state": "missing",
+          "source_commit": "28d2481708d6b317b79e8952aac4ff3327024f5d"
+        },
+        {
+          "path": ".github/security/requirements-bootstrap.txt",
+          "state": "missing",
+          "source_commit": "28d2481708d6b317b79e8952aac4ff3327024f5d"
+        },
+        {
+          "path": ".github/security/requirements.txt",
+          "state": "missing",
+          "source_commit": "28d2481708d6b317b79e8952aac4ff3327024f5d"
+        },
+        {
+          "path": ".github/security/semgrep.yml",
+          "state": "missing",
+          "source_commit": "28d2481708d6b317b79e8952aac4ff3327024f5d"
+        },
+        {
+          "path": ".github/workflows/ci.yml",
+          "state": "different",
+          "source_commit": "8dbdeb6ada00bddc431308697fd538b4e5b3dd1c"
+        },
+        {
+          "path": "backend/requirements.txt",
+          "state": "identical",
+          "source_commit": "28d2481708d6b317b79e8952aac4ff3327024f5d"
+        },
+        {
+          "path": "docs/security/SCRUM-95.md",
+          "state": "missing",
+          "source_commit": "8dbdeb6ada00bddc431308697fd538b4e5b3dd1c"
+        },
+        {
+          "path": "infra/deploy/backend.Dockerfile",
+          "state": "different",
+          "source_commit": "28d2481708d6b317b79e8952aac4ff3327024f5d"
+        }
+      ],
+      "integration": {
+        "pr": 101,
+        "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/101",
+        "branch": "chore/SCRUM-133-security-integration",
+        "base": "main",
+        "head": "2a8175ac9c99b16d5b5eae9c63d9a49ddfa25691",
+        "backend_tree": "544c4687465f1a68951415b4f3228654cfe38715",
+        "frontend_tree": "b044396aac373543cebb2517103b4a19a7df257d",
+        "author_validation": "Build/import/Argon2 PASS; skany PASS poza npm High → wymagane CI FAIL",
+        "independent_review": "NOT RECEIVED",
+        "independent_qa": "NOT RECEIVED",
+        "deployment": "NOT RUN",
+        "delivered_to_main": false
+      },
+      "main_behavior_audit": "Obecne funkcjonalne Required CI/Lint/E2E/linki; brak SCA/SAST/Gitleaks/Trivy i ich konfiguracji."
+    },
+    {
+      "pr": 43,
+      "task": "SCRUM-107",
+      "source_branch": "test/SCRUM-107-accessibility",
+      "merged_into": "chore/SCRUM-95-security-gates",
+      "merge_commit": "636e6f0a33663e46a1cb23b3536516dd9562b555",
+      "merge_is_ancestor_of_main": false,
+      "source_commits": [
+        "740850c2a10a0abbdb81921a11c133ea2aadeb05",
+        "8331767a836a478a6630da34dcc3c1fd11493c8e",
+        "fdb0e05458d9a85b8ee748bc75056eee4d83384f"
+      ],
+      "jira_status": "Gotowe",
+      "owner": "Marcel Głowacki",
+      "historical_reviews": [],
+      "files": [
+        {
+          "path": "backend/tests/e2e_server.py",
+          "state": "different",
+          "source_commit": "fdb0e05458d9a85b8ee748bc75056eee4d83384f"
+        },
+        {
+          "path": "docs/DESIGN_SYSTEM.md",
+          "state": "different",
+          "source_commit": "fdb0e05458d9a85b8ee748bc75056eee4d83384f"
+        },
+        {
+          "path": "docs/qa/SCRUM-107.md",
+          "state": "missing",
+          "source_commit": "fdb0e05458d9a85b8ee748bc75056eee4d83384f"
+        },
+        {
+          "path": "frontend/e2e/critical-flow.spec.ts",
+          "state": "different",
+          "source_commit": "fdb0e05458d9a85b8ee748bc75056eee4d83384f"
+        },
+        {
+          "path": "frontend/package-lock.json",
+          "state": "different",
+          "source_commit": "740850c2a10a0abbdb81921a11c133ea2aadeb05"
+        },
+        {
+          "path": "frontend/package.json",
+          "state": "different",
+          "source_commit": "740850c2a10a0abbdb81921a11c133ea2aadeb05"
+        },
+        {
+          "path": "frontend/src/app/build-version.css",
+          "state": "different",
+          "source_commit": "8331767a836a478a6630da34dcc3c1fd11493c8e"
+        },
+        {
+          "path": "frontend/src/app/fleet-data.css",
+          "state": "different",
+          "source_commit": "8331767a836a478a6630da34dcc3c1fd11493c8e"
+        },
+        {
+          "path": "frontend/src/app/tokens.css",
+          "state": "different",
+          "source_commit": "fdb0e05458d9a85b8ee748bc75056eee4d83384f"
+        },
+        {
+          "path": "frontend/src/app/vehicle-details.css",
+          "state": "different",
+          "source_commit": "8331767a836a478a6630da34dcc3c1fd11493c8e"
+        },
+        {
+          "path": "frontend/src/features/fleet/components/VehicleDetailsDialog.tsx",
+          "state": "different",
+          "source_commit": "8331767a836a478a6630da34dcc3c1fd11493c8e"
+        }
+      ],
+      "integration": {
+        "pr": 106,
+        "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/106",
+        "branch": "test/SCRUM-133-accessibility-integration",
+        "base": "main",
+        "head": "fde687f93de159dd447263e28b521f23bca15b5a",
+        "backend_tree": "65f4d5c3da5dcf648e9a9a012f11498bf49f29d2",
+        "frontend_tree": "6520748d18349de673c2d1b4eced7f43a48e70ff",
+        "author_validation": "55 npm + build; 6/6 axe/klawiatura; backend 180 / 11 SKIP",
+        "independent_review": "NOT RECEIVED",
+        "independent_qa": "NOT RECEIVED",
+        "deployment": "NOT RUN",
+        "delivered_to_main": false
+      },
+      "main_behavior_audit": "Częściowe istniejące UI/fokus; brak axe i pełnego skanu obu motywów/statusów."
+    },
+    {
+      "pr": 44,
+      "task": "SCRUM-96",
+      "source_branch": "fix/SCRUM-96-http-proxy",
+      "merged_into": "test/SCRUM-107-accessibility",
+      "merge_commit": "ca4da1ee73dbc66a53acb380e11aec5c216ea4eb",
+      "merge_is_ancestor_of_main": false,
+      "source_commits": [
+        "39b938e313630de8b8c91f7c2e555ea809aedae1",
+        "5a43ff01145e6bf45971b62544fe96a09ff8ed7e"
+      ],
+      "jira_status": "Gotowe",
+      "owner": "Dawid Hnat",
+      "historical_reviews": [],
+      "files": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "state": "different",
+          "source_commit": "39b938e313630de8b8c91f7c2e555ea809aedae1"
+        },
+        {
+          "path": "docs/security/SCRUM-96.md",
+          "state": "missing",
+          "source_commit": "5a43ff01145e6bf45971b62544fe96a09ff8ed7e"
+        },
+        {
+          "path": "infra/deploy/Caddyfile",
+          "state": "different",
+          "source_commit": "39b938e313630de8b8c91f7c2e555ea809aedae1"
+        },
+        {
+          "path": "infra/deploy/compose.yml",
+          "state": "different",
+          "source_commit": "39b938e313630de8b8c91f7c2e555ea809aedae1"
+        },
+        {
+          "path": "infra/tests/check_proxy.py",
+          "state": "missing",
+          "source_commit": "39b938e313630de8b8c91f7c2e555ea809aedae1"
+        }
+      ],
+      "integration": {
+        "pr": 100,
+        "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/100",
+        "branch": "fix/SCRUM-133-edge-integration",
+        "base": "main",
+        "head": "6e2734f9688d0f68fcc316651628b53be1b88b63",
+        "backend_tree": "544c4687465f1a68951415b4f3228654cfe38715",
+        "frontend_tree": "b044396aac373543cebb2517103b4a19a7df257d",
+        "author_validation": "Ruff + 180 / 11 SKIP; realne izolowane Caddy/API/PG i koszyki [11,1,11] PASS",
+        "independent_review": "NOT RECEIVED",
+        "independent_qa": "NOT RECEIVED",
+        "deployment": "NOT RUN",
+        "delivered_to_main": false
+      },
+      "main_behavior_audit": "Brak nowych CSP/Permissions-Policy/X-Frame-Options, prywatnej sieci proxy i testu Caddy."
+    },
+    {
+      "pr": 45,
+      "task": "SCRUM-108",
+      "source_branch": "test/SCRUM-108-api-contracts",
+      "merged_into": "fix/SCRUM-96-http-proxy",
+      "merge_commit": "2c308f6ebcfb2e7ab07321da7c9b5c947bde495b",
+      "merge_is_ancestor_of_main": false,
+      "source_commits": [
+        "c8e95064a2fa8aa120917737b84b9c6862941c61"
+      ],
+      "jira_status": "Gotowe",
+      "owner": "Dawid Hnat",
+      "historical_reviews": [],
+      "files": [
+        {
+          "path": ".dockerignore",
+          "state": "different",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+        },
+        {
+          "path": ".github/workflows/ci.yml",
+          "state": "different",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+        },
+        {
+          "path": "backend/requirements-dev.txt",
+          "state": "different",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+        },
+        {
+          "path": "backend/tests/test_contracts.py",
+          "state": "missing",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+        },
+        {
+          "path": "contracts/api-design.json",
+          "state": "different",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+        },
+        {
+          "path": "docs/DATA_MODEL.md",
+          "state": "different",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+        },
+        {
+          "path": "docs/qa/SCRUM-108.md",
+          "state": "missing",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+        },
+        {
+          "path": "frontend/src/features/auth/AuthProvider.tsx",
+          "state": "different",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+        },
+        {
+          "path": "frontend/src/features/fleet/model/types.ts",
+          "state": "different",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+        },
+        {
+          "path": "frontend/src/features/trips/model/annotations.ts",
+          "state": "different",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+        },
+        {
+          "path": "frontend/src/shared/api/generated/contracts.ts",
+          "state": "missing",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+        },
+        {
+          "path": "infra/deploy/backend.Dockerfile",
+          "state": "different",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+        },
+        {
+          "path": "tools/generate_api_types.py",
+          "state": "missing",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+        }
+      ],
+      "integration": {
+        "pr": 102,
+        "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/102",
+        "branch": "test/SCRUM-133-contract-integration",
+        "base": "main",
+        "head": "797e5bc587dcc2d125460d80fe1c2e17050f97e6",
+        "backend_tree": "d164a7b1f7e4611dae260c5d9a4b80f916404d97",
+        "frontend_tree": "5b0fa37d721e370b27b51805cd8714508345f2eb",
+        "author_validation": "Ruff + 212 pytest PostgreSQL; 55 npm/build; 26/26 Playwright",
+        "independent_review": "NOT RECEIVED",
+        "independent_qa": "NOT RECEIVED",
+        "deployment": "NOT RUN",
+        "delivered_to_main": false
+      },
+      "main_behavior_audit": "Kontrakt JSON jest obecny, brak generatora, generowanych typów i testów odpowiedzi API."
+    },
+    {
+      "pr": 47,
+      "task": "SCRUM-105",
+      "source_branch": "fix/SCRUM-105-planned-local-ux",
+      "merged_into": "perf/SCRUM-97-sql-fleet",
+      "merge_commit": "e08252a2d1b303758e2b0acb2e3847a8e7acf7e5",
+      "merge_is_ancestor_of_main": false,
+      "source_commits": [
+        "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+      ],
+      "jira_status": "Gotowe",
+      "owner": "Jakub Nazarewicz",
+      "historical_reviews": [],
+      "files": [
+        {
+          "path": "docs/DESIGN_SYSTEM.md",
+          "state": "different",
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+        },
+        {
+          "path": "docs/qa/SCRUM-105.md",
+          "state": "missing",
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+        },
+        {
+          "path": "frontend/e2e/critical-flow.spec.ts",
+          "state": "different",
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+        },
+        {
+          "path": "frontend/src/app/App.tsx",
+          "state": "different",
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+        },
+        {
+          "path": "frontend/src/app/WorkspacePage.tsx",
+          "state": "different",
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+        },
+        {
+          "path": "frontend/src/app/components/AppSettingsPage.tsx",
+          "state": "different",
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+        },
+        {
+          "path": "frontend/src/app/styles.css",
+          "state": "different",
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+        },
+        {
+          "path": "frontend/src/app/workspace-pages.css",
+          "state": "different",
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+        },
+        {
+          "path": "frontend/src/features/dashboard/components/BackgroundPicker.tsx",
+          "state": "different",
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+        },
+        {
+          "path": "frontend/src/features/fleet/components/VehicleCardsPage.tsx",
+          "state": "different",
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+        },
+        {
+          "path": "frontend/src/features/fleet/components/VehiclePhotoDialog.tsx",
+          "state": "different",
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+        }
+      ],
+      "integration": {
+        "pr": 108,
+        "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/108",
+        "branch": "fix/SCRUM-133-planned-ux-integration",
+        "base": "test/SCRUM-133-accessibility-integration",
+        "head": "bf7e7cb5b0b5882ed29f2a71fdad83afeb7cb6ab",
+        "backend_tree": "65f4d5c3da5dcf648e9a9a012f11498bf49f29d2",
+        "frontend_tree": "a0b3cfe41ef69409f11aac07b4b45dfb43325edb",
+        "author_validation": "55 npm/build; 4/4 Playwright oba motywy i ekrany",
+        "independent_review": "NOT RECEIVED",
+        "independent_qa": "NOT RECEIVED",
+        "deployment": "NOT RUN",
+        "delivered_to_main": false
+      },
+      "main_behavior_audit": "Częściowo: puste widoki są, brak wspólnego oznaczenia Planowane; opisy lokalnych danych wymagają dopasowania do SCRUM-91."
+    },
+    {
+      "pr": 48,
+      "task": "SCRUM-103",
+      "source_branch": "fix/SCRUM-103-role-docs-hardening",
+      "merged_into": "fix/SCRUM-105-planned-local-ux",
+      "merge_commit": "e4221b4faeabcd5e8c679adef580e139b39fa38a",
+      "merge_is_ancestor_of_main": false,
+      "source_commits": [
+        "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+      ],
+      "jira_status": "Gotowe",
+      "owner": "Dawid Hnat",
+      "historical_reviews": [],
+      "files": [
+        {
+          "path": ".env.example",
+          "state": "different",
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+        },
+        {
+          "path": "backend/README.md",
+          "state": "different",
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+        },
+        {
+          "path": "backend/app/core/settings.py",
+          "state": "different",
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+        },
+        {
+          "path": "backend/app/main.py",
+          "state": "different",
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+        },
+        {
+          "path": "backend/app/manage.py",
+          "state": "different",
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+        },
+        {
+          "path": "backend/app/modules/auth/models.py",
+          "state": "different",
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+        },
+        {
+          "path": "backend/app/modules/auth/policies.py",
+          "state": "missing",
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+        },
+        {
+          "path": "backend/app/modules/auth/router.py",
+          "state": "different",
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+        },
+        {
+          "path": "backend/app/modules/auth/service.py",
+          "state": "different",
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+        },
+        {
+          "path": "backend/migrations/versions/0007_user_roles.py",
+          "state": "missing",
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+        },
+        {
+          "path": "backend/tests/test_role_docs_hardening.py",
+          "state": "missing",
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+        },
+        {
+          "path": "backend/tests/test_user_role_migration.py",
+          "state": "missing",
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+        },
+        {
+          "path": "docs/security/SCRUM-103.md",
+          "state": "missing",
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+        }
+      ],
+      "integration": {
+        "pr": 104,
+        "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/104",
+        "branch": "fix/SCRUM-133-roles-integration",
+        "base": "perf/SCRUM-133-sql-integration",
+        "head": "ec02780907112cdba70829ae1424916eebc76395",
+        "backend_tree": "401418cff8755e268f0b323855dbf6c9c017f8d8",
+        "frontend_tree": "b044396aac373543cebb2517103b4a19a7df257d",
+        "author_validation": "Ruff + 212 pytest PostgreSQL; kontrolowana odmowa brudnej migracji",
+        "independent_review": "NOT RECEIVED",
+        "independent_qa": "NOT RECEIVED",
+        "deployment": "NOT RUN",
+        "delivered_to_main": false
+      },
+      "main_behavior_audit": "Role sprawdzane w runtime, brak CHECK w PostgreSQL i kontrolowanego wyłączenia dokumentacji API."
+    },
+    {
+      "pr": 49,
+      "task": "SCRUM-32",
+      "source_branch": "feat/SCRUM-32-alerts-ui",
+      "merged_into": "infra/SCRUM-84-offsite-backup",
+      "merge_commit": "fa5a85cb11ae4f88b3b251744dc3f129b6c2d858",
+      "merge_is_ancestor_of_main": false,
+      "source_commits": [
+        "873d5d093b17ec0b468c54250e61adce4ae4959c"
+      ],
+      "jira_status": "W trakcie weryfikacji",
+      "owner": "Jakub Czaja",
+      "historical_reviews": [],
+      "files": [
+        {
+          "path": "README.md",
+          "state": "different",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "backend/app/modules/analytics/router.py",
+          "state": "different",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "backend/tests/e2e_server.py",
+          "state": "different",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "backend/tests/test_distance_alerts.py",
+          "state": "different",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "contracts/api-design.json",
+          "state": "different",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "docs/DATA_MODEL.md",
+          "state": "different",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "docs/DESIGN_SYSTEM.md",
+          "state": "different",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "docs/qa/SCRUM-105.md",
+          "state": "missing",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "docs/qa/SCRUM-32.md",
+          "state": "missing",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "frontend/e2e/alerts.spec.ts",
+          "state": "missing",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "frontend/e2e/critical-flow.spec.ts",
+          "state": "different",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "frontend/src/app/App.tsx",
+          "state": "different",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "frontend/src/app/alerts.css",
+          "state": "missing",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "frontend/src/app/navigation.ts",
+          "state": "different",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "frontend/src/features/analytics/components/ActivityWidget.tsx",
+          "state": "different",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "frontend/src/features/analytics/components/AlertRows.tsx",
+          "state": "missing",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "frontend/src/features/analytics/components/AlertsPage.tsx",
+          "state": "missing",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "frontend/src/features/analytics/components/RuleVehiclePicker.tsx",
+          "state": "missing",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "frontend/src/features/analytics/components/RulesPanel.tsx",
+          "state": "missing",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "frontend/src/features/analytics/model/useAlerts.ts",
+          "state": "missing",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "frontend/src/features/dashboard/model/widget-registry.ts",
+          "state": "different",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "frontend/src/main.tsx",
+          "state": "different",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "frontend/src/shared/api/generated/contracts.ts",
+          "state": "missing",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        },
+        {
+          "path": "frontend/src/shared/components/ListPagination.tsx",
+          "state": "different",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+        }
+      ],
+      "integration": {
+        "pr": 109,
+        "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/109",
+        "branch": "feat/SCRUM-133-alerts-integration",
+        "base": "test/SCRUM-133-contract-integration",
+        "head": "b39607c5b0cb869413ef42e75439d5ed83811c94",
+        "backend_tree": "aaa6aac62b85be45c89ba0db7f7c6208c9f5454c",
+        "frontend_tree": "9a05bfe3b6699565303e6032d700bc092f7765e4",
+        "author_validation": "Ruff + 213 pytest PostgreSQL; 55 npm/build; 14/14 Playwright",
+        "independent_review": "NOT RECEIVED",
+        "independent_qa": "NOT RECEIVED",
+        "deployment": "NOT RUN",
+        "delivered_to_main": false
+      },
+      "main_behavior_audit": "API SCRUM-31 jest obecne, brak rzeczywistej listy/reguł React; Alerty są placeholderem."
+    },
+    {
+      "pr": 50,
+      "task": "SCRUM-52",
+      "source_branch": "feat/SCRUM-52-manual-drivers",
+      "merged_into": "feat/SCRUM-32-alerts-ui",
+      "merge_commit": "9dbb86230215e6653094be37562276d30bd7c0d8",
+      "merge_is_ancestor_of_main": false,
+      "source_commits": [
+        "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+      ],
+      "jira_status": "W trakcie weryfikacji",
+      "owner": "Jakub Czaja",
+      "historical_reviews": [],
+      "files": [
+        {
+          "path": "backend/README.md",
+          "state": "different",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "backend/app/core/models.py",
+          "state": "different",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "backend/app/main.py",
+          "state": "different",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "backend/app/modules/drivers/__init__.py",
+          "state": "missing",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "backend/app/modules/drivers/models.py",
+          "state": "missing",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "backend/app/modules/drivers/router.py",
+          "state": "missing",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "backend/app/modules/drivers/schemas.py",
+          "state": "missing",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "backend/app/modules/drivers/service.py",
+          "state": "missing",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "backend/app/modules/fleet/router.py",
+          "state": "different",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "backend/app/modules/fleet/service.py",
+          "state": "different",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "backend/migrations/env.py",
+          "state": "different",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "backend/migrations/versions/0008_manual_drivers.py",
+          "state": "missing",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "backend/tests/e2e_server.py",
+          "state": "different",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "backend/tests/test_contracts.py",
+          "state": "missing",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "backend/tests/test_fleet_search_migration.py",
+          "state": "missing",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "backend/tests/test_manual_drivers.py",
+          "state": "missing",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "backend/tests/test_manual_drivers_postgres.py",
+          "state": "missing",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "contracts/api-design.json",
+          "state": "different",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "docs/DATA_MODEL.md",
+          "state": "different",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "docs/DESIGN_SYSTEM.md",
+          "state": "different",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "docs/qa/SCRUM-52.md",
+          "state": "missing",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "frontend/e2e/critical-flow.spec.ts",
+          "state": "different",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "frontend/src/features/fleet/components/VehicleCardsPage.tsx",
+          "state": "different",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "frontend/src/features/fleet/components/VehicleListWidget.tsx",
+          "state": "different",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "frontend/src/features/fleet/model/driver-label.ts",
+          "state": "missing",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        },
+        {
+          "path": "frontend/src/shared/api/generated/contracts.ts",
+          "state": "missing",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+        }
+      ],
+      "integration": {
+        "pr": 110,
+        "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/110",
+        "branch": "feat/SCRUM-133-drivers-api-integration",
+        "base": "feat/SCRUM-133-alerts-integration",
+        "head": "9f445f7d879c1944563ceee9c5659c594f173337",
+        "backend_tree": "33ba278724965f30935ca6201c260da89cdf47c1",
+        "frontend_tree": "ebd2f330679e4f6c6605f68e1e916de03be1e3e9",
+        "author_validation": "Ruff + 262 pytest PostgreSQL; 55 npm/build; 2/2 Playwright wielu kierowców",
+        "independent_review": "NOT RECEIVED",
+        "independent_qa": "NOT RECEIVED",
+        "deployment": "NOT RUN",
+        "delivered_to_main": false
+      },
+      "main_behavior_audit": "Jest minimalny Driver/driver_id; brak kartoteki API, kategorii i historii wiele-do-wielu."
+    },
+    {
+      "pr": 51,
+      "task": "SCRUM-53",
+      "source_branch": "feat/SCRUM-53-drivers-ui",
+      "merged_into": "feat/SCRUM-52-manual-drivers",
+      "merge_commit": "c3e1c2271dd8216862f45a3f2157149301eb6e0c",
+      "merge_is_ancestor_of_main": false,
+      "source_commits": [
+        "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+      ],
+      "jira_status": "W trakcie weryfikacji",
+      "owner": "Jakub Nazarewicz",
+      "historical_reviews": [],
+      "files": [
+        {
+          "path": "README.md",
+          "state": "different",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "backend/README.md",
+          "state": "different",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "backend/app/modules/drivers/router.py",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "backend/app/modules/drivers/schemas.py",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "backend/app/modules/drivers/service.py",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "backend/tests/e2e_server.py",
+          "state": "different",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "backend/tests/test_manual_drivers.py",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "contracts/api-design.json",
+          "state": "different",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "docs/DESIGN_SYSTEM.md",
+          "state": "different",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "docs/qa/SCRUM-53.md",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/README.md",
+          "state": "different",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/e2e/critical-flow.spec.ts",
+          "state": "different",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/e2e/drivers.spec.ts",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/app/App.tsx",
+          "state": "different",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/app/drivers.css",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/app/navigation.ts",
+          "state": "different",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/features/analytics/components/RuleVehiclePicker.tsx",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/features/dashboard/model/widget-layout.ts",
+          "state": "different",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/features/dashboard/model/widget-registry.ts",
+          "state": "different",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/features/dashboard/model/widget-sizing.ts",
+          "state": "different",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/features/dashboard/model/widget-types.ts",
+          "state": "different",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/features/drivers/DriversPage.tsx",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/features/drivers/components/DriverAssignments.tsx",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/features/drivers/components/DriverCard.tsx",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/features/drivers/components/DriverDetailsPanel.tsx",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/features/drivers/components/DriverForm.tsx",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/features/drivers/components/DriverWidgets.tsx",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/features/drivers/model/DriverContext.tsx",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/features/drivers/model/preferences.ts",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/features/fleet/components/VehiclePicker.tsx",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/features/fleet/components/useCardResize.ts",
+          "state": "different",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/features/fleet/model/vehicle-layout.ts",
+          "state": "different",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/main.tsx",
+          "state": "different",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/shared/components/dialog-focus.ts",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/shared/hooks/useCardResize.ts",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        },
+        {
+          "path": "frontend/src/shared/model/card-layout.ts",
+          "state": "missing",
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+        }
+      ],
+      "integration": {
+        "pr": 111,
+        "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/111",
+        "branch": "feat/SCRUM-133-drivers-ui-integration",
+        "base": "feat/SCRUM-133-drivers-api-integration",
+        "head": "caf3ccd34b3971a93a368fed2cafbe856ad8bfb8",
+        "backend_tree": "b87c7c71c9dba49d1187d0d061d62918e32bc540",
+        "frontend_tree": "32126e496c9553302ef5f588a564ac4d6267c85a",
+        "author_validation": "Ruff + 265 pytest PostgreSQL; 55 npm/build; 114/114 pełne E2E + 10/10 końcowe axe/klawiatura",
+        "independent_review": "NOT RECEIVED",
+        "independent_qa": "NOT RECEIVED",
+        "deployment": "NOT RUN",
+        "delivered_to_main": false
+      },
+      "main_behavior_audit": "Brak kartoteki React; Kierowcy są placeholderem."
+    },
+    {
+      "pr": 79,
+      "task": "SCRUM-78",
+      "source_branch": "fix/SCRUM-78-deploy-package",
+      "merged_into": "test/SCRUM-78-markdown-links",
+      "merge_commit": "a739d684827d6927ce250df279342563414f9b85",
+      "merge_is_ancestor_of_main": true,
+      "source_commits": [
+        "7929fc8d00a28c1a36ae7981627773917f0be6e2"
+      ],
+      "jira_status": "not queried",
+      "owner": "not queried",
+      "historical_reviews": [],
+      "files": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "state": "different",
+          "source_commit": "7929fc8d00a28c1a36ae7981627773917f0be6e2"
+        }
+      ],
+      "main_behavior_audit": "PR #79 jest przodkiem main przez #53; ekstrakcja artefaktu i kontrola paczki są w workflow. Nie przenosić ponownie."
+    }
+  ]
+}

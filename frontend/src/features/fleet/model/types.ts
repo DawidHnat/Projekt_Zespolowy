@@ -1,65 +1,13 @@
-export type VehicleStatus = "moving" | "stopped" | "offline" | "unknown";
-export type Vehicle = {
-  id: string;
-  name: string;
-  number: string | null;
-  license_plate: string | null;
-  vehicle_type: string | null;
-  // Optional display fields for the next API increment; absent values stay unknown.
+import type { Vehicle as ApiVehicle } from "../../../shared/api/generated/contracts";
+export type { VehicleStatus, Source, VehicleList, FleetFeature, FleetMap, Summary } from "../../../shared/api/generated/contracts";
+import type { VehicleStatus } from "../../../shared/api/generated/contracts";
+export type Vehicle = ApiVehicle & {
+  // Optional display fields await a separate agreed API increment.
   make?: string | null;
   model?: string | null;
   year?: number | null;
   vin?: string | null;
   position_address?: string | null;
-  status: VehicleStatus;
-  driver: { id: string; display_name: string } | null;
-  latitude: number | null;
-  longitude: number | null;
-  position_at: string | null;
-  received_at: string | null;
-  is_stale: boolean;
-  odometer_km: number | null;
-  speed_kmh: number | null;
-  ignition_on: boolean | null;
-  standing_still: boolean | null;
-};
-export type Source = {
-  status: "ok" | "degraded";
-  last_success_at: string | null;
-  error_code: string | null;
-};
-export type VehicleList = {
-  items: Vehicle[];
-  total: number;
-  page: number;
-  page_size: number;
-  source: Source;
-};
-export type FleetFeature = {
-  type: "Feature";
-  geometry: { type: "Point"; coordinates: [number, number] };
-  properties: {
-    id: string;
-    name: string;
-    status: VehicleStatus;
-    is_stale: boolean;
-    position_at: string | null;
-  };
-};
-export type FleetMap = {
-  type: "FeatureCollection";
-  features: FleetFeature[];
-  located: number;
-  total: number;
-  source: Source;
-};
-export type Summary = {
-  total: number;
-  moving: number;
-  stopped: number;
-  offline: number;
-  unknown: number;
-  source: Source;
 };
 export function fleetPollInterval(value: string | undefined) {
   const milliseconds = Number(value);
@@ -72,7 +20,7 @@ export function fleetPollInterval(value: string | undefined) {
 export const statusLabels: Record<VehicleStatus, string> = {
   moving: "W ruchu",
   stopped: "Postój",
-  offline: "Dane nieaktualne",
+  offline: "Ostatni znany stan",
   unknown: "Brak pomiaru",
 };
 export function positionTime(value: string | null) {
@@ -97,6 +45,16 @@ export function updateTime(value: string | null) {
         timeZone: "Europe/Warsaw",
       }).format(new Date(value))
     : "Brak udanej synchronizacji";
+}
+export function positionAge(value: string | null, now = Date.now()) {
+  const time = value ? Date.parse(value) : NaN;
+  if (!Number.isFinite(time)) return "Brak czasu pozycji";
+  const age = now - time;
+  if (age < 0) return "Czas pozycji w przyszłości";
+  if (age < 60000) return "Pozycja przed chwilą";
+  if (age < 3600000) return `Pozycja sprzed ${Math.floor(age / 60000)} min`;
+  if (age < 86400000) return `Pozycja sprzed ${Math.floor(age / 3600000)} godz.`;
+  return `Pozycja · ${updateTime(value)}`;
 }
 export function positionCoordinates(
   latitude: number | null,

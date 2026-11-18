@@ -58,6 +58,7 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      - run: python3 ../tools/generate_api_types.py --check
       - run: npm test
       - run: npm run build
       - name: Verify visible release revision
@@ -71,7 +72,7 @@ jobs:
           tar --exclude='__pycache__' --exclude='*.pyc' --exclude='.env' \
             --exclude='.env.*' --exclude='.venv' --exclude='.pytest_cache' \
             --exclude='.ruff_cache' --exclude='*.dump' --exclude='*.log' \
-            -czf release.tgz frontend/dist backend infra/deploy
+            -czf release.tgz frontend/dist backend contracts infra/deploy
       - uses: actions/upload-artifact@v7.0.2
         with:
           name: release-${{ github.sha }}
@@ -129,6 +130,8 @@ jobs:
       - run: docker build -f infra/deploy/backend.Dockerfile -t fleet-flow-api:ci .
       - name: Verify non-root backend can load application code
         run: docker run --rm --entrypoint python fleet-flow-api:ci -c 'import app.main'
+      - name: Verify headers and client limits through real Caddy
+        run: python3 infra/tests/check_proxy.py --image fleet-flow-api:ci
 
   e2e:
     name: Critical browser flows

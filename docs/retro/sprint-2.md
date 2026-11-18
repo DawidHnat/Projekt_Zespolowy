@@ -1,5 +1,9 @@
 # Retrospektywa Sprintu 2 — materiał do spotkania
 
+**Obserwacje do oceny na spotkaniu — 16.11.2026:** #73, #93, #94 i #95 są już scalone. Main `c0544d1` i [run 43948005790](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/43948005790) mają zielone testy/lint/deploy/smoke. Pomiar SCRUM-65: 4/4 autorów/recenzentów, 0 zwykłych PR bez pierwszego formalnego review ponad 24 h; dowody #24/#77/#78 wyłączono z normalnej kolejki. Pełny odbiór Story S1/S2 pozostaje otwarty; kandydaci to SCRUM-16 i SCRUM-91 (Testowanie). Ochrona nadal wymaga tylko Required CI, a historia ma 3 niezgodne tematy w szerokim zakresie audytu.
+
+To aktualizacja materiału, nie protokół ani deklaracja oceny dokonanej przez zespół. SCRUM-128 pozostaje propozycją do potwierdzenia, SCRUM-129 planowanym wybitym oknem, S3 future. [Aktualna macierz](../COURSE_READINESS.md). Poniższe obserwacje z 10–12.11 zachowują historyczny stan; po prawdziwej retrospektywie zapisać datę, uczestników i decyzje.
+
 **Aktualizacja 12.11.2026:** PO ponownie potwierdził, że Review/retro S2
 i pełny odbiór całej Story jeszcze się nie odbyły. Organizacja spotkań
 i start istniejącego S3: SCRUM-142; pełne DoD: SCRUM-141. Zachowujemy niżej

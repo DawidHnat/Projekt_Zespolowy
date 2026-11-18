@@ -106,6 +106,9 @@
   font-size: 12px;
   color: var(--muted);
 }
+.vehicle-details-error {
+  margin: 0 24px;
+}
 @media (max-width: 500px) {
   .vehicle-details-header {
     gap: 12px;
@@ -121,6 +124,9 @@
     font-size: 18px;
   }
   .vehicle-details-tabs {
+    margin-inline: 18px;
+  }
+  .vehicle-details-error {
     margin-inline: 18px;
   }
   .vehicle-details-tabs button {

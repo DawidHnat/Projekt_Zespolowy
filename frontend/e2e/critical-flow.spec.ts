@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { test, expect, type Page } from "@playwright/test";
 
 const trip = "22222222-2222-4222-8222-222222222222";
+const vehicle = "11111111-1111-4111-8111-111111111111";
 
 function sourceState(value: "ok" | "degraded" | "unavailable") {
   execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", "source-state", value], {
@@ -122,6 +123,205 @@ test("account preferences sync between independent browsers and resolve concurre
   }
 });
 
+test("dashboard preferences stay isolated when switching accounts in one browser", async ({ page, browser }) => {
+  const widgets = ["metrics", "map", "activity", "vehicles", "utilization", "trips"];
+  const localSettings = {
+    theme: "light",
+    accent: "#1479e8",
+    material: "glass",
+    visibleWidgets: [],
+    layouts: {
+      dashboard: {
+        desktop: widgets.map((i, index) => ({ i, x: 0, y: index * 4, w: 12, h: 4 })),
+        compact: widgets.map((i, index) => ({ i, x: 0, y: index * 4, w: 1, h: 4 })),
+      },
+    },
+  };
+  await page.addInitScript((value) => {
+    localStorage.setItem("fleet-flow.dashboard.v2", JSON.stringify(value));
+  }, localSettings);
+  await login(page);
+  await page.evaluate(() => { window.location.hash = "#dashboard"; });
+  const migration = page.getByRole("region", { name: "Migracja ustawień: Pulpit" });
+  await expect(migration).toBeVisible();
+  await migration.getByRole("button", {
+    name: "Przenieś z tej przeglądarki",
+    exact: true,
+  }).click();
+  await expect.poll(async () => {
+    const response = await page.request.get("/api/v1/preferences/dashboard");
+    const { value } = await response.json();
+    return value?.visibleWidgets;
+  }).toEqual([]);
+
+  const secondContext = await browser.newContext({
+    baseURL: "http://127.0.0.1:54173",
+    locale: "pl-PL",
+    timezoneId: "Europe/Warsaw",
+    viewport: test.info().project.name === "mobile"
+      ? { width: 390, height: 844 }
+      : { width: 1440, height: 1000 },
+    ...(test.info().project.name === "mobile"
+      ? { isMobile: true, hasTouch: true }
+      : {}),
+  });
+  try {
+    await secondContext.route("**/*", (route) => {
+      const url = new URL(route.request().url());
+      return url.hostname === "127.0.0.1" ? route.continue() : route.abort();
+    });
+    const accountAPage = await secondContext.newPage();
+    await login(accountAPage);
+
+    await page.evaluate(() => { window.location.hash = "#dashboard"; });
+    await page.getByRole("button", { name: "Edytuj układ", exact: true }).click();
+    await page.getByRole("button", { name: "Wybierz widgety", exact: true }).click();
+    for (const widget of [
+      "Przegląd floty",
+      "Mapa floty",
+      "Alerty i aktywność",
+      "Pojazdy",
+      "Wykorzystanie floty",
+      "Ostatnie przejazdy",
+    ]) {
+      const checkbox = page.getByRole("checkbox", {
+        name: `Pokaż moduł: ${widget}`,
+        exact: true,
+      });
+      if (await checkbox.isChecked()) await checkbox.uncheck();
+    }
+    await page.evaluate(() => { window.location.hash = "#dashboard"; });
+    await expect(page.getByRole("heading", { name: /^Pulpit\.?$/, level: 1 })).toBeVisible();
+    await page.getByRole("button", { name: "Zapisz układ", exact: true }).click();
+    await expect.poll(async () => {
+      const response = await page.request.get("/api/v1/preferences/dashboard");
+      const { value } = await response.json();
+      return value?.visibleWidgets;
+    }).toEqual([]);
+
+    const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
+    if (await menu.isVisible()) await menu.click();
+    await page.getByRole("button", { name: "Wyloguj się", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Zaloguj się", exact: true })).toBeVisible();
+    await login(page, "editor-two");
+    await page.evaluate(() => { window.location.hash = "#dashboard"; });
+    await expect(page.locator("[data-widget]")).toHaveCount(6);
+    await expect(page.getByRole("region", { name: "Migracja ustawień: Pulpit" })).toHaveCount(0);
+
+    const accountBBeforeSave = await page.request.get("/api/v1/preferences/dashboard");
+    expect(await accountBBeforeSave.json()).toMatchObject({
+      version: 0,
+      value: null,
+    });
+    await page.getByRole("button", { name: "Edytuj układ", exact: true }).click();
+    await page.getByRole("button", { name: "Zapisz układ", exact: true }).click();
+    await expect.poll(async () => {
+      const response = await page.request.get("/api/v1/preferences/dashboard");
+      const { version, value } = await response.json();
+      return [version, value?.visibleWidgets?.length];
+    }).toEqual([1, 6]);
+
+    const accountA = await accountAPage.request.get("/api/v1/preferences/dashboard");
+    expect((await accountA.json()).value.visibleWidgets).toEqual([]);
+  } finally {
+    await secondContext.close();
+  }
+});
+
+for (const initialRead of ["failed", "cancelled"] as const) {
+  test(`dashboard migration stays with its first account after a ${initialRead} initial read`, async ({ page }) => {
+    const widgets = ["metrics", "map", "activity", "vehicles", "utilization", "trips"];
+    await page.addInitScript((ids) => {
+      if (sessionStorage.getItem("migration-fixture-seeded")) return;
+      localStorage.setItem("fleet-flow.dashboard.v2", JSON.stringify({
+        theme: "light",
+        accent: "#1479e8",
+        material: "glass",
+        visibleWidgets: [],
+        layouts: {
+          dashboard: {
+            desktop: ids.map((i, index) => ({ i, x: 0, y: index * 4, w: 12, h: 4 })),
+            compact: ids.map((i, index) => ({ i, x: 0, y: index * 4, w: 1, h: 4 })),
+          },
+        },
+      }));
+      sessionStorage.setItem("migration-fixture-seeded", "true");
+    }, widgets);
+
+    let firstReadSeen = false;
+    let releaseRead = () => {};
+    const heldRead = new Promise<void>((resolve) => { releaseRead = resolve; });
+    await page.route("**/api/v1/preferences/dashboard", async (route) => {
+      if (route.request().method() !== "GET" || firstReadSeen) {
+        await route.continue();
+        return;
+      }
+      firstReadSeen = true;
+      if (initialRead === "failed") {
+        await route.fulfill({
+          status: 503,
+          json: { error: { code: "UNAVAILABLE", message: "Testowy błąd odczytu ustawień." } },
+        });
+      } else {
+        await heldRead;
+        await route.abort();
+      }
+    });
+
+    const loginWithoutReload = async (role: string) => {
+      await page.getByLabel("Login", { exact: true }).fill(`e2e-${role}`);
+      await page.getByLabel("Hasło", { exact: true }).fill("synthetic-e2e-password");
+      await page.getByRole("button", { name: "Zaloguj się", exact: true }).click();
+      await expect(page.getByRole("button", { name: "Zaloguj się", exact: true })).toHaveCount(0);
+    };
+    const logout = async () => {
+      const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
+      if (await menu.isVisible()) await menu.click();
+      await page.getByRole("button", { name: "Wyloguj się", exact: true }).click();
+      await expect(page.getByRole("button", { name: "Zaloguj się", exact: true })).toBeVisible();
+    };
+
+    try {
+      await login(page);
+      await expect.poll(() => firstReadSeen).toBe(true);
+      await page.evaluate(() => { window.location.hash = "#dashboard"; });
+      if (initialRead === "failed") {
+        await expect(page.getByRole("alert").filter({ hasText: "Nie udało się pobrać danych. Spróbuj ponownie." })).toBeVisible();
+      }
+      await logout();
+      releaseRead();
+      await loginWithoutReload("editor-two");
+      await page.evaluate(() => { window.location.hash = "#dashboard"; });
+      await expect(page.getByText("Pobieranie zapisanych ustawień: Pulpit…")).toHaveCount(0);
+      await expect(page.locator("[data-widget]")).toHaveCount(6);
+      const migration = page.getByRole("region", { name: "Migracja ustawień: Pulpit" });
+      await expect(migration).toHaveCount(0);
+      expect(await (await page.request.get("/api/v1/preferences/dashboard")).json()).toMatchObject({
+        version: 0,
+        value: null,
+      });
+      await page.getByRole("button", { name: "Edytuj układ", exact: true }).click();
+      await page.getByRole("button", { name: "Zapisz układ", exact: true }).click();
+      await expect.poll(async () => {
+        const { value } = await (await page.request.get("/api/v1/preferences/dashboard")).json();
+        return value?.visibleWidgets?.length;
+      }).toBe(6);
+
+      await logout();
+      await loginWithoutReload("editor");
+      await expect(migration).toBeVisible();
+      await migration.getByRole("button", { name: "Przenieś z tej przeglądarki", exact: true }).click();
+      await expect.poll(async () => {
+        const { value } = await (await page.request.get("/api/v1/preferences/dashboard")).json();
+        return value?.visibleWidgets;
+      }).toEqual([]);
+      await page.screenshot({ path: test.info().outputPath(`migration-${initialRead}-owner.png`) });
+    } finally {
+      releaseRead();
+    }
+  });
+}
+
 test("local dashboard settings require explicit migration and cannot replace account settings", async ({ page, browser }) => {
   const widgets = ["metrics", "map", "activity", "vehicles", "utilization", "trips"];
   const localSettings = {
@@ -137,11 +337,16 @@ test("local dashboard settings require explicit migration and cannot replace acc
     },
   };
   await page.addInitScript(({ key, value }) => {
+    if (sessionStorage.getItem("migration-reload-seeded")) return;
     localStorage.setItem(key, JSON.stringify(value));
+    sessionStorage.setItem("migration-reload-seeded", "true");
   }, { key: "fleet-flow.dashboard.v2", value: localSettings });
   await login(page);
   await page.evaluate(() => { window.location.hash = "#dashboard"; });
   const migration = page.getByRole("region", { name: "Migracja ustawień: Pulpit" });
+  await expect(migration).toBeVisible();
+  await page.reload();
+  await page.evaluate(() => { window.location.hash = "#dashboard"; });
   await expect(migration).toBeVisible();
   await page.evaluate(() => { window.location.hash = "#dashboard"; });
   await expect(page.getByRole("button", { name: "Edytuj układ", exact: true })).toBeDisabled();
@@ -269,6 +474,106 @@ test("cold unavailable source shows a recoverable error instead of an empty flee
   expect((await page.request.get("/api/v1/fleet/vehicles")).status()).toBe(503);
   await expect(page.getByText("Oczekiwanie na pierwszy odczyt WEBFLEET.").first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toHaveCount(0);
+});
+
+test("vehicle details recover from an initial 503 without signing in again", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", error => pageErrors.push(error.message));
+  const detailPath = `**/api/v1/fleet/vehicles/${vehicle}`;
+  await page.route(detailPath, route => route.fulfill({
+    status: 503,
+    contentType: "application/json",
+    body: JSON.stringify({ error: { code: "DATABASE_UNAVAILABLE" } }),
+  }));
+  await login(page);
+  await page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ }).click();
+  const dialog = page.getByRole("dialog");
+  const alert = dialog.getByRole("alert");
+  await expect(alert).toContainText("Baza danych jest chwilowo niedostępna.");
+  await expect(alert.getByRole("button", { name: "Spróbuj ponownie" })).toBeVisible();
+  await expect(dialog.getByRole("status")).toHaveCount(0);
+  await page.unroute(detailPath);
+  await alert.getByRole("button", { name: "Spróbuj ponownie" }).click();
+  await expect(dialog.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+  await expect(dialog.getByRole("tab", { name: "Pojazd", exact: true })).toBeVisible();
+  expect(pageErrors).toEqual([]);
+});
+
+test("detail refresh failure warns and preserves an unsaved trip draft", async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(new Date());
+  const pageErrors: string[] = [];
+  page.on("pageerror", error => pageErrors.push(error.message));
+  const detailPath = `**/api/v1/fleet/vehicles/${vehicle}`;
+  await login(page);
+  await page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+  await dialog.getByRole("tab", { name: "Podróże", exact: true }).click();
+  await dialog.getByRole("list", { name: "Przejazdy pojazdu", exact: true }).getByRole("button").first().click();
+  const form = dialog.getByRole("form", { name: "Cel i opis przejazdu", exact: true });
+  const draft = `Szkic po błędzie odświeżania ${Date.now()}`;
+  await form.getByLabel(/Cel przejazdu/).fill(draft);
+  await page.route(detailPath, route => route.fulfill({
+    status: 503,
+    contentType: "application/json",
+    body: JSON.stringify({ error: { code: "DATABASE_UNAVAILABLE" } }),
+  }));
+  const failedRefresh = page.waitForResponse(response =>
+    new URL(response.url()).pathname === `/api/v1/fleet/vehicles/${vehicle}` &&
+    response.status() === 503,
+  );
+  await page.evaluate(() => window.dispatchEvent(new Event("online")));
+  await failedRefresh;
+  const alert = dialog.getByRole("alert");
+  await expect(alert).toContainText("Baza danych jest chwilowo niedostępna.");
+  await expect(form.getByLabel(/Cel przejazdu/)).toHaveValue(draft);
+  await page.unroute(detailPath);
+  await alert.getByRole("button", { name: "Spróbuj ponownie" }).click();
+  await expect(dialog.getByRole("alert")).toHaveCount(0);
+  await expect(form.getByLabel(/Cel przejazdu/)).toHaveValue(draft);
+  expect(pageErrors).toEqual([]);
+});
+
+test("missing vehicle details close the dialog without changing list state", async ({ page }) => {
+  const detailPath = `**/api/v1/fleet/vehicles/${vehicle}`;
+  await page.route(detailPath, route => route.fulfill({
+    status: 404,
+    contentType: "application/json",
+    body: JSON.stringify({ error: { code: "NOT_FOUND" } }),
+  }));
+  await login(page);
+  await page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+});
+
+test("unauthorized detail refresh removes private state and returns to login", async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(new Date());
+  const detailPath = `**/api/v1/fleet/vehicles/${vehicle}`;
+  await login(page);
+  await page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+  await dialog.getByRole("tab", { name: "Podróże", exact: true }).click();
+  await dialog.getByRole("list", { name: "Przejazdy pojazdu", exact: true }).getByRole("button").first().click();
+  const form = dialog.getByRole("form", { name: "Cel i opis przejazdu", exact: true });
+  await form.getByLabel(/Cel przejazdu/).fill("Prywatny szkic do usunięcia");
+  await page.route(detailPath, route => route.fulfill({
+    status: 401,
+    contentType: "application/json",
+    body: JSON.stringify({ error: { code: "UNAUTHENTICATED" } }),
+  }));
+  const unauthorizedRefresh = page.waitForResponse(response =>
+    new URL(response.url()).pathname === `/api/v1/fleet/vehicles/${vehicle}` &&
+    response.status() === 401,
+  );
+  await page.evaluate(() => window.dispatchEvent(new Event("online")));
+  await unauthorizedRefresh;
+  await expect(page.getByRole("button", { name: "Zaloguj się", exact: true })).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByLabel(/Cel przejazdu/)).toHaveCount(0);
 });
 
 test("invalidated session returns to login", async ({ page }) => {
@@ -464,6 +769,193 @@ test("switching accounts resets selected details, filters and the per-user page 
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
 
+test("SCRUM-20: pending and failed filters never display vehicles from the previous query", async ({ page }) => {
+  await login(page);
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+  let release!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  await page.route("**/api/v1/fleet/vehicles?**", async route => {
+    if (new URL(route.request().url()).searchParams.get("q") !== "no-such-synthetic-vehicle")
+      return route.continue();
+    await held;
+    await route.fulfill({ status: 503, contentType: "application/json",
+      body: JSON.stringify({ error: { code: "TEMPORARY_FAILURE", message: "Nie udało się pobrać wyników testowych." } }) });
+  });
+  try {
+    const pending = page.waitForRequest(request => new URL(request.url()).searchParams.get("q") === "no-such-synthetic-vehicle");
+    await page.getByRole("searchbox", { name: "Szukaj pojazdu" }).fill("no-such-synthetic-vehicle");
+    await pending;
+    await expect(page.getByRole("heading", { name: "Pobieranie pojazdów…", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toHaveCount(0);
+  } finally {
+    release();
+  }
+  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toHaveCount(0);
+  await page.unroute("**/api/v1/fleet/vehicles?**");
+  await page.getByRole("button", { name: "Ponów", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Brak pasujących pojazdów", exact: true })).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await page.getByRole("button", { name: "Wyczyść filtry", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+});
+
+test("SCRUM-20: pending and failed sorting never displays results from the previous order", async ({ page }) => {
+  await login(page);
+  const vehicle = page.getByRole("heading", { name: "Pojazd E2E", exact: true });
+  await expect(vehicle).toBeVisible();
+  let release!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  await page.route("**/api/v1/fleet/vehicles?**", async route => {
+    if (new URL(route.request().url()).searchParams.get("sort") !== "name-desc")
+      return route.continue();
+    await held;
+    await route.fulfill({ status: 503, contentType: "application/json",
+      body: JSON.stringify({ error: { code: "TEMPORARY_FAILURE", message: "Sortowanie testowe niedostępne." } }) });
+  });
+  try {
+    const pending = page.waitForRequest(request => new URL(request.url()).searchParams.get("sort") === "name-desc");
+    await page.getByRole("combobox", { name: "Sortowanie pojazdów", exact: true }).selectOption("name-desc");
+    await pending;
+    await expect(page.getByRole("heading", { name: "Pobieranie pojazdów…", exact: true })).toBeVisible();
+    await expect(vehicle).toHaveCount(0);
+  } finally {
+    release();
+  }
+  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(vehicle).toHaveCount(0);
+  await page.unroute("**/api/v1/fleet/vehicles?**");
+  await page.getByRole("button", { name: "Ponów", exact: true }).click();
+  await expect(vehicle).toBeVisible();
+});
+
+test("SCRUM-20: failed pagination hides the previous page and lets the user return", async ({ page }) => {
+  await login(page);
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+  const data = await (await page.request.get("/api/v1/fleet/vehicles")).json();
+  await page.route("**/api/v1/fleet/vehicles?**", async route => {
+    if (new URL(route.request().url()).searchParams.get("page") === "2")
+      return route.fulfill({ status: 503, contentType: "application/json",
+        body: JSON.stringify({ error: { code: "TEMPORARY_FAILURE", message: "Strona testowa niedostępna." } }) });
+    // A synthetic multi-page response, confined to this browser test.
+    await route.fulfill({ json: { ...data, total: 26, page_size: 10 } });
+  });
+  await page.getByRole("combobox", { name: "Elementów na stronę: pojazdy", exact: true }).selectOption("10");
+  await page.getByRole("button", { name: "Następna strona: pojazdy", exact: true }).click();
+  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toHaveCount(0);
+  await expect(page.getByLabel("Strona 2 z 3", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Poprzednia strona: pojazdy", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+});
+
+test("SCRUM-20: search, status, selection and reset are shared with the map list", async ({ page }) => {
+  await login(page);
+  await page.getByRole("searchbox", { name: "Szukaj pojazdu" }).fill("TEST E2E");
+  await page.getByRole("combobox", { name: "Status pojazdu", exact: true }).selectOption("stopped");
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Na mapie", exact: true }).click();
+  const list = page.locator(".vehicle-sidebar");
+  await expect(list.getByRole("searchbox", { name: "Szukaj pojazdu" })).toHaveValue("TEST E2E");
+  await expect(list.getByRole("combobox", { name: "Status pojazdu", exact: true })).toHaveValue("stopped");
+  const vehicle = list.getByRole("button", { name: /Pojazd E2E/ });
+  await expect(vehicle).toHaveAttribute("aria-pressed", "true");
+  await expect(vehicle).not.toContainText("Prędkość");
+  await expect(vehicle).toContainText("Przebieg · 1234,5 km");
+  await expect(page.getByText("Mapa czeka na konfigurację", { exact: true })).toBeVisible();
+  await page.screenshot({ path: test.info().outputPath("scrum20-active-filters.png"), fullPage: true });
+  await page.goto("/#settings");
+  await page.getByRole("button", { name: "Ciemny", exact: true }).click();
+  await page.goto("/#map");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(vehicle).toHaveAttribute("aria-pressed", "true");
+  await expect.poll(() => list.locator(".vehicle-cards").evaluate(element =>
+    element.clientHeight >= (element.firstElementChild?.getBoundingClientRect().height ?? 0),
+  )).toBe(true);
+  await page.screenshot({ path: test.info().outputPath("scrum20-active-filters-dark.png"), fullPage: true });
+  await list.getByRole("button", { name: "Wyczyść filtry", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(list.getByRole("searchbox", { name: "Szukaj pojazdu" })).toHaveValue("");
+  await expect(list.getByRole("searchbox", { name: "Szukaj pojazdu" })).toBeFocused();
+  await expect(list.getByRole("combobox", { name: "Status pojazdu", exact: true })).toHaveValue("");
+  await expect(vehicle).toHaveAttribute("aria-pressed", "false");
+  await expect.poll(async () => {
+    const response = await page.request.get("/api/v1/preferences/vehicles");
+    const { value } = await response.json();
+    return value?.filters;
+  }).toEqual({ q: "", status: "" });
+  await list.getByRole("combobox", { name: "Status pojazdu", exact: true }).selectOption("moving");
+  await expect(list.getByRole("heading", { name: "Brak wyników", exact: true })).toBeVisible();
+  await list.getByRole("button", { name: "Wyczyść filtry", exact: true }).click();
+  await expect(vehicle).toBeVisible();
+  await page.screenshot({ path: test.info().outputPath("scrum20-shared-filters.png") });
+});
+
+test("SCRUM-20: a background failure keeps matching cached results with an explicit warning", async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(new Date());
+  await login(page);
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+  await page.route("**/api/v1/fleet/vehicles?**", route => route.fulfill({
+    status: 503, contentType: "application/json",
+    body: JSON.stringify({ error: { code: "TEMPORARY_FAILURE", message: "Niedostępność testowa." } }),
+  }));
+  await page.clock.fastForward(60_000);
+  await expect(page.getByRole("alert")).toContainText("Wyświetlamy ostatni poprawny odczyt:");
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+});
+
+test("SCRUM-20: changing filters offline shows an error and resumes automatically online", async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(new Date());
+  let requests = 0;
+  page.on("request", request => {
+    if (new URL(request.url()).pathname === "/api/v1/fleet/vehicles") requests++;
+  });
+  await login(page);
+  const vehicle = page.getByRole("heading", { name: "Pojazd E2E", exact: true });
+  await expect(vehicle).toBeVisible();
+  const beforeOffline = requests;
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: false });
+    window.dispatchEvent(new Event("offline"));
+  });
+  await expect(page.getByRole("alert")).toContainText("Wyświetlamy ostatni poprawny odczyt:");
+  await expect(vehicle).toBeVisible();
+  await page.screenshot({ path: test.info().outputPath("scrum20-offline-cache.png"), fullPage: true });
+  await page.getByRole("searchbox", { name: "Szukaj pojazdu" }).fill("no-such-synthetic-vehicle");
+  await page.clock.fastForward(1000);
+  await expect(page.getByRole("alert")).toContainText("Brak połączenia z siecią");
+  await expect(page.getByRole("heading", { name: "Pobieranie pojazdów…", exact: true })).toHaveCount(0);
+  await expect(vehicle).toHaveCount(0);
+  expect(requests).toBe(beforeOffline);
+  await page.screenshot({ path: test.info().outputPath("scrum20-offline-filter.png"), fullPage: true });
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: true });
+    window.dispatchEvent(new Event("online"));
+  });
+  await expect(page.getByRole("heading", { name: "Brak pasujących pojazdów", exact: true })).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await page.getByRole("button", { name: "Wyczyść filtry", exact: true }).click();
+  await expect(vehicle).toBeVisible();
+  await expect(page.getByRole("searchbox", { name: "Szukaj pojazdu" })).toBeFocused();
+});
+
+test("SCRUM-20: mounting the fleet while offline reports the pause instead of loading forever", async ({ page }) => {
+  await login(page);
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: false });
+  });
+  await page.reload();
+  await expect(page.getByRole("alert")).toContainText("Brak połączenia z siecią");
+  await expect(page.getByRole("heading", { name: "Pobieranie pojazdów…", exact: true })).toHaveCount(0);
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: true });
+    window.dispatchEvent(new Event("online"));
+  });
+  await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+});
 for (const transport of ["BroadcastChannel", "storage"]) {
   test(`password reset removes private drafts in other tabs without polling (${transport})`, async ({ page, context }) => {
     if (transport === "storage") {
