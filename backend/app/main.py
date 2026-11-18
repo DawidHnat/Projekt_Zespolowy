@@ -30,6 +30,7 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
         worker = None
         if settings.sync_enabled:
             webfleet = WebfleetSettings.from_environment(load_environment())
+            app.state.webfleet_settings = webfleet
             worker = asyncio.create_task(
                 sync_worker(engine, webfleet, settings.sync_interval_seconds)
             )
@@ -46,6 +47,7 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
     app.state.settings = settings
     app.state.engine = engine
     app.state.sessions = make_sessions(engine)
+    app.state.webfleet_settings = None
     app.add_middleware(
         CORSMiddleware,
         allow_origins=list(settings.origins),
