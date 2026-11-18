@@ -263,6 +263,15 @@ table.vehicle-table {
   display: block;
   isolation: isolate;
 }
+.map-load-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+}
 .live-map .mapbox-container {
   position: absolute;
   inset: 0;

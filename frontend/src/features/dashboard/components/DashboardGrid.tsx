@@ -3,6 +3,7 @@ import {
   cloneElement,
   memo,
   useCallback,
+  useEffect,
   useId,
   useMemo,
   useState,
@@ -253,6 +254,23 @@ export function DashboardGrid({
     },
     [gesturePaint.stop, apply],
   );
+  useEffect(() => {
+    if (!interacting) return;
+    const finish = () => {
+      gesturePaint.stop();
+      setInteracting(false);
+    };
+    window.addEventListener("mouseup", finish);
+    window.addEventListener("pointerup", finish);
+    window.addEventListener("pointercancel", finish);
+    window.addEventListener("blur", finish);
+    return () => {
+      window.removeEventListener("mouseup", finish);
+      window.removeEventListener("pointerup", finish);
+      window.removeEventListener("pointercancel", finish);
+      window.removeEventListener("blur", finish);
+    };
+  }, [interacting, gesturePaint.stop]);
   const previewDrag = useCallback<NonNullable<GridLayoutProps["onDrag"]>>(
     (next, _old, item, placeholder) => {
       // RGL creates its placeholder before moving/compacting the item. Project the
