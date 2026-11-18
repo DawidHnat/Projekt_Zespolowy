@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { execFileSync } from "node:child_process";
 import { test, expect, type Page } from "@playwright/test";
 
@@ -6,6 +7,13 @@ const vehicle = "11111111-1111-4111-8111-111111111111";
 
 function sourceState(value: "ok" | "degraded" | "unavailable") {
   execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", "source-state", value], {
+    cwd: "../backend", env: { ...process.env, PYTHONPATH: ".", FLEET_FLOW_E2E: "true" },
+    stdio: "pipe",
+  });
+}
+
+function measurementState(value: "moving" | "stopped" | "offline" | "unknown") {
+  execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", "measurement-state", value], {
     cwd: "../backend", env: { ...process.env, PYTHONPATH: ".", FLEET_FLOW_E2E: "true" },
     stdio: "pipe",
   });
@@ -1016,5 +1024,140 @@ for (const transport of ["BroadcastChannel", "storage"]) {
     await expect(reopened.getByLabel(/Cel przejazdu/)).toHaveAttribute("readonly", "");
     await expect(reopened.getByLabel(/Cel przejazdu/)).not.toHaveValue("Prywatny szkic edytora");
     await expect(other.getByRole("button", { name: "Zapisz cel i opis", exact: true })).toHaveCount(0);
+  });
+}
+
+async function accessible(page: Page, state: string) {
+  const result = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  const findings = result.violations.map(item => ({
+    id: item.id, impact: item.impact,
+    targets: item.nodes.map(node => node.target),
+  }));
+  expect(findings, `axe: ${state}`).toEqual([]);
+}
+
+for (const theme of ["light", "dark"]) {
+  test(`axe ${theme}: login, list, map fallback, details, annotation and error`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.addInitScript(value => {
+      localStorage.setItem("fleet-flow.dashboard.v2", JSON.stringify({ theme: value }));
+    }, theme);
+    await page.goto("/#vehicles");
+    await expect(page.getByLabel("Login", { exact: true })).toBeVisible();
+    await accessible(page, "login");
+    await page.getByLabel("Login", { exact: true }).fill("e2e-editor");
+    await page.getByLabel("Hasło", { exact: true }).fill("synthetic-wrong-password");
+    await page.getByRole("button", { name: "Zaloguj się", exact: true }).click();
+    await expect(page.getByRole("alert")).toBeVisible();
+    await accessible(page, "login error");
+    await login(page);
+    await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+    await accessible(page, "vehicle list: stopped");
+    for (const status of ["moving", "offline", "unknown"] as const) {
+      measurementState(status);
+      await page.reload();
+      await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+      await accessible(page, `vehicle list: ${status}`);
+    }
+    measurementState("stopped");
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+    await page.goto("/#map");
+    await expect(page.getByText("Mapa czeka na konfigurację").first()).toBeVisible();
+    await accessible(page, "map fallback");
+    await page.goto("/#vehicles");
+    await page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await accessible(page, "vehicle details dialog");
+    await page.getByRole("dialog").getByRole("tab", { name: "Podróże", exact: true }).click();
+    await page.getByRole("dialog").getByRole("list", { name: "Przejazdy pojazdu", exact: true }).getByRole("button").first().click();
+    const form = page.getByRole("form", { name: "Cel i opis przejazdu", exact: true });
+    await expect(form).toBeVisible();
+    await accessible(page, "annotation editor");
+    await form.getByLabel(/Cel przejazdu/).fill("Syntetyczny błąd dostępności");
+    await page.route(`**/api/v1/trips/${trip}/annotation`, route => route.fulfill({
+      status: 503, contentType: "application/json", body: JSON.stringify({ error: { code: "UNAVAILABLE" } }),
+    }));
+    await form.getByRole("button", { name: "Zapisz cel i opis", exact: true }).click();
+    await expect(form.getByRole("alert")).toBeVisible();
+    await accessible(page, "save error with retained draft");
+    await page.screenshot({ path: test.info().outputPath(`axe-${theme}-error.png`) });
+  });
+}
+
+test("keyboard opens details, traps focus, switches tabs and returns focus on Escape", async ({ page }) => {
+  await login(page);
+  const opener = page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ });
+  await opener.focus();
+  await page.keyboard.press("Enter");
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Zamknij szczegóły pojazdu" })).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  expect(await dialog.evaluate(element => element.contains(document.activeElement))).toBe(true);
+  await page.keyboard.press("Tab");
+  expect(await dialog.evaluate(element => element.contains(document.activeElement))).toBe(true);
+  const vehicleTab = dialog.getByRole("tab", { name: "Pojazd", exact: true });
+  await vehicleTab.focus();
+  await page.keyboard.press("End");
+  await expect(dialog.getByRole("tab", { name: "Podróże", exact: true })).toBeFocused();
+  await expect(dialog.getByRole("tab", { name: "Podróże", exact: true })).toHaveAttribute("aria-selected", "true");
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+  await expect(opener).toBeFocused();
+  await page.keyboard.press("Space");
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("tab", { name: "Pojazd", exact: true }).focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(dialog.getByRole("tab", { name: "Kierowca", exact: true })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(opener).toBeFocused();
+});
+
+for (const theme of ["light", "dark"]) {
+  test(`planned modules and local-only data ${theme}`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.addInitScript(value => {
+      localStorage.setItem("fleet-flow.dashboard.v2", JSON.stringify({ theme: value }));
+    }, theme);
+    await login(page);
+    const openMenu = async () => {
+      const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
+      if (await menu.isVisible()) await menu.click();
+    };
+    for (const title of ["Serwis", "Ewidencja przebiegu", "Kierowcy", "Karty paliwowe", "Alerty"]) {
+      await openMenu();
+      const link = page.getByRole("navigation", { name: "Sekcje aplikacji" })
+        .getByRole("link", { name: `${title} Planowane`, exact: true });
+      await link.focus();
+      await expect(link).toBeFocused();
+      await page.keyboard.press("Enter");
+      await expect(page.getByRole("heading", { name: new RegExp(`^${title}\\.?$`), level: 1 })).toBeVisible();
+      await expect(page.locator(".planned-page").getByText("Planowane", { exact: true })).toBeVisible();
+      await accessible(page, `planned ${title}`);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    }
+    await openMenu();
+    await page.getByRole("link", { name: "Ustawienia", exact: true }).click();
+    await expect(page.getByText(/Wygląd, tło i układ Mapy zapisują się tylko w tej przeglądarce/)).toBeVisible();
+    await page.getByRole("navigation", { name: "Kategorie ustawień" }).getByRole("button", { name: /^Tło(?: |$)/ }).click();
+    await page.getByRole("button", { name: "Własne", exact: true }).click();
+    await expect(page.getByText(/Tylko na tym urządzeniu i w tej przeglądarce\. Nie wysyłamy zdjęcia/)).toBeVisible();
+    await accessible(page, "local background and settings");
+    await page.screenshot({ path: test.info().outputPath(`local-settings-${theme}.png`) });
+    await openMenu();
+    await page.getByRole("navigation", { name: "Sekcje aplikacji" }).getByRole("link", { name: "Pojazdy", exact: true }).click();
+    const opener = page.getByRole("button", { name: "Zdjęcie: Pojazd E2E", exact: true });
+    await opener.focus();
+    await page.keyboard.press("Enter");
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByText(/Tylko na tym urządzeniu i w tej przeglądarce, dla Twojego konta/)).toBeVisible();
+    await accessible(page, "local vehicle photo");
+    await page.screenshot({ path: test.info().outputPath(`local-photo-${theme}.png`) });
+    await page.keyboard.press("Escape");
+    await expect(dialog).not.toBeVisible();
+    await expect(opener).toBeFocused();
   });
 }

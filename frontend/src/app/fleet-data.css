@@ -362,3 +362,7 @@ table.vehicle-table {
   min-height: 0;
   box-shadow: var(--shadow-card);
 }
+
+.map-canvas .empty-state p {
+  color: var(--wallpaper-muted);
+}

@@ -9,6 +9,7 @@ from sqlalchemy import delete
 from app.core.database import make_engine, make_sessions
 from app.core.settings import Settings
 from app.modules.auth.models import PasswordReset, User
+from app.modules.auth.policies import ROLES
 from app.modules.auth.service import find_user, password_hasher, revoke_sessions
 
 
@@ -17,7 +18,7 @@ def main():
     parser.add_argument("operation", choices=["create-user", "set-password", "set-email"])
     parser.add_argument("username")
     parser.add_argument("--name")
-    parser.add_argument("--role", choices=["admin", "editor", "viewer"], default="viewer")
+    parser.add_argument("--role", choices=ROLES, default="viewer")
     parser.add_argument("--email")
     args = parser.parse_args()
     email = None
