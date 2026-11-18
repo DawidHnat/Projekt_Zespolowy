@@ -1,85 +1,68 @@
 # Polecenia dla agentów — domknięcie oddań 3.2 i 4.2
 
-**Aktualizacja 18.11.2026:** numeracja źródłowa to 3.2/4.2. Najpierw przeczytać [bieżącą macierz](COURSE_READINESS.md) i najnowsze komentarze SCRUM-141. Macierze AC/DoD już istnieją, expiry FF-QA-031 i opisany test Offline są PASS; nie zaczynać ich dokumentacji od zera. #98 jest już na main, ale pełny review auth nadal otwarty. S2 wymaga poprawek i odbioru draftu #99 oraz retestów SCRUM-144/145/146. Poniższe przekazanie z 16.11 zachowano z tymi aktualizacjami.
-
-Stan przygotowania 16.11.2026, [SCRUM-143](https://fleet-flow.atlassian.net/browse/SCRUM-143). Polecenia należy przekazać agentom działającym na komputerach i kontach odpowiednich osób. Nie potwierdzają wykonania pracy przez te osoby. Wybór kandydatów: S1 SCRUM-16, S2 SCRUM-91; wszystkie ich AC pozostają wymagane.
-
-## Marcel
-
-```text
-Repozytorium: https://github.com/DawidHnat/Projekt_Zespolowy
-Jira: https://fleet-flow.atlassian.net/browse/
-Cel zespołu: rzetelnie domknąć zadanie 3.2 (S1/review/PR) oraz 4.2 (S2/bramy jakości/S3).
-
-Przeczytaj AGENTS.md, README, CONTRIBUTING, DEFINITION_OF_DONE.md i aktualne opisy/komentarze wskazanych zgłoszeń. Pobierz aktualny main; zachowaj lokalne zmiany i użyj osobnego worktree, jeśli trzeba. Nie pracuj na zapamiętanym SHA. Zmiany tylko przez gałąź z kluczem Jiry, Conventional Commits i PR z niezależnym review. Przed merge sprawdź wszystkie nowe tematy commitów dokładnym wzorcem z zadania; poprawny tytuł PR przy zwykłym merge nie poprawia tematów jego commitów. Nie zatwierdzaj własnego kodu, nie obchodź ochrony i nie włączaj automerge. Nie zmieniaj historii main ani autorstwa.
-
-Raportuj rzeczywiste SHA, datę, środowisko, wykonawcę i PASS/FAIL/BLOCKED. Oddziel testy wykonane lokalnie od CI i od wyników innych osób. Jeśli wykonawcą był agent, napisz to wprost. Nie publikuj sekretów, haseł, tokenów ani danych klientów. Dane syntetyczne tylko w izolacji testowej. Żywy WEBFLEET i rzeczywista wysyłka SMTP wymagają osobnego uzgodnienia. Nie zmieniaj typów zadań ani historii sprintów dla statystyki.
-
-Twoja rola: niezależny odbiór QA dwóch rzeczywistych Story. Priorytet SCRUM-141: SCRUM-16 z S1 i SCRUM-91 z S2. Używaj istniejącego SCRUM-56 oraz SCRUM-91; pełny odbiór listy/mapy SCRUM-23 to osobny zakres i nie musi blokować wyboru tych Story.
-
-1. Ustal z wyników review Dawida i przekazania Nazarewicza aktualne, wdrożone SHA. Potwierdź po fetch zgodność strony HTTP z origin/main i HTTPS readiness 200/ok. Starszy raport 76efec1 zachowaj jako historyczny dowód, a nowe wyniki podpisz nowym SHA. PR #94 jest już scalony.
-2. SCRUM-16 — odbierz wszystkie cztery AC: brak sesji nie daje odczytu ani modyfikacji floty w UI/API; poprawne dane aktywnego konta otwierają pulpit, błędne dają ogólny komunikat; logout unieważnia sesję, expiry wymaga logowania; VPS ma HTTPS, cookie HttpOnly/Secure, hasła są hashowane, sekrety poza Git. Potwierdź także brak prywatnego widoku/szkicu w drugiej karcie bez F5 i odpowiednie późniejsze poprawki auth. Chroniony odczyt i zapis badaj na syntetycznych danych, bez naruszania danych floty.
-3. Użyj wyłącznie uzgodnionych kont testowych. Nie zmieniaj hasła współdzielonego QA, sesji innych osób ani zegara produkcji. Kontrolowane expiry/reset i awarie sprawdzaj w izolacji. SMTP pozostaje osobnym SCRUM-44; brak rzeczywistej wysyłki nie jest wynikiem PASS, ale nie rozszerza czterech AC SCRUM-16.
-4. SCRUM-91 — PR #93 jest scalony i ma Approved Dawida. Odbierz wszystkie AC w dwóch niezależnych kontekstach przeglądarki i z drugim syntetycznym kontem: backendowy zapis/odtworzenie układu i rozmiarów Pulpitu/Pojazdów, filtrów/sortowania; Zapisz/Anuluj/Przywróć domyślne; ochrona niezapisanego szkicu; konflikt wersji z jawnym Reload/Overwrite; błąd zapisu bez fałszywego sukcesu; świadomy import localStorage bez nadpisania nowszego konta; izolacja kont i modułów. Oddzielne karty współdzielące to samo localStorage nie zastępują dwóch niezależnych kontekstów.
-5. Wykorzystaj istniejące testy, aktualne CI PostgreSQL i wyniki UI. Nie przepisuj starych liczników jako nowych. Każdy przypadek zapisuj: oczekiwany/faktyczny rezultat, PASS/FAIL/BLOCKED, data, SHA, środowisko, dowód. Błąd → powiązany Bug oraz retest poprawki na końcowym SHA.
-6. W SCRUM-141 uzupełnij osobne macierze dla S1 i S2: wszystkie AC i 12 warunków DEFINITION_OF_DONE.md. Powiąż rzeczywiste review, końcowe CI, merge, wdrożenie, kontrolę wersji oraz dowód restore/rollback od Dawida, jeśli dotyczy. Status Gotowe rodzica nie jest dowodem. Gotowe pliki macierzy są w pakiecie oddania; pola niewykonane pozostają BLOCKED.
-7. Jeżeli zakres SCRUM-16 spełnia pełny DoD, potwierdź to jednoznacznie także wtedy, gdy szerszy SCRUM-56 nadal ma otwarty osobny zakres resetu SMTP. Nie zmieniaj AC żadnego zadania i nie zamykaj całego SCRUM-56 tylko dlatego, że odebrano logowanie. Analogicznie rozlicz SCRUM-91.
-8. Przekaż Jakubowi Czai dwie decyzje odbioru z linkami i SHA, gotowe do wykorzystania na Review. Nie twórz protokołu nieodbytego spotkania ani nie uruchamiaj Sprintu 3. Własne PR-y, np. #96, wymagają review innej osoby; po połączeniu z #95 kalendarzowy fixture musi działać także z docelową konfiguracją E2E.
-
-Zakończ tabelą: Story S1 — PASS/BLOCKED i braki; Story S2 — PASS/BLOCKED i braki; szerszy SCRUM-56 — co pozostaje osobno. Tylko rzeczywiście wykonane dowody mogą dostać PASS.
-```
+Stan 18.11.2026, [SCRUM-143](https://fleet-flow.atlassian.net/browse/SCRUM-143).
+Poniższe teksty są gotowe do przekazania agentom właściwych osób; ich przygotowanie
+nie oznacza wykonania pracy przez te osoby. Najpierw Dawid i Nazarewicz,
+następnie końcowy odbiór Marcela; rzeczywiste Review/retro prowadzi PO po odbiorze.
 
 ## Dawid
 
 ```text
 Repozytorium: https://github.com/DawidHnat/Projekt_Zespolowy
-Jira: https://fleet-flow.atlassian.net/browse/
-Cel zespołu: rzetelnie domknąć zadanie 3.2 (S1/review/PR) oraz 4.2 (S2/bramy jakości/S3).
+Cel: domknąć swój zakres do oddań Cursora 3.2 (S1) i 4.2 (S2).
+Przeczytaj AGENTS.md, README, CONTRIBUTING, DEFINITION_OF_DONE.md oraz aktualne opisy i najnowsze komentarze wskazanych zadań. Zachowaj lokalne zmiany; pracuj na bieżącym main lub istniejącej gałęzi właściwego PR. Wyniki zapisuj z wykonawcą, datą, SHA, środowiskiem i PASS/FAIL/BLOCKED. Agent opisuje własne wykonanie wprost; nie przypisuj go człowiekowi.
+Decyzja PO z 18.11: dawne niezgodne tematy commitów, nazwy gałęzi i kontakt z prowadzącym pomijamy w dalszej pracy. Zachowaj nowe commity poprawne, nie przepisuj historii. Bez automerge, żywego WEBFLEET/SMTP, sekretów i danych klientów. Dane testowe wyłącznie w izolacji. Nie twórz kolejnych zgłoszeń dla już istniejących zakresów.
 
-Przeczytaj AGENTS.md, README, CONTRIBUTING, DEFINITION_OF_DONE.md i aktualne opisy/komentarze wskazanych zgłoszeń. Pobierz aktualny main; zachowaj lokalne zmiany i użyj osobnego worktree, jeśli trzeba. Nie pracuj na zapamiętanym SHA. Zmiany tylko przez gałąź z kluczem Jiry, Conventional Commits i PR z niezależnym review. Przed merge sprawdź wszystkie nowe tematy commitów dokładnym wzorcem z zadania; poprawny tytuł PR przy zwykłym merge nie poprawia tematów jego commitów. Nie zatwierdzaj własnego kodu, nie obchodź ochrony i nie włączaj automerge. Nie zmieniaj historii main ani autorstwa.
+Działasz dla Dawida Hnata — właściciela repozytorium i niezależnego reviewera. Wykonaj pracę i zapisz dowody, zamiast kończyć na planie.
 
-Raportuj rzeczywiste SHA, datę, środowisko, wykonawcę i PASS/FAIL/BLOCKED. Oddziel testy wykonane lokalnie od CI i od wyników innych osób. Jeśli wykonawcą był agent, napisz to wprost. Nie publikuj sekretów, haseł, tokenów ani danych klientów. Dane syntetyczne tylko w izolacji testowej. Żywy WEBFLEET i rzeczywista wysyłka SMTP wymagają osobnego uzgodnienia. Nie zmieniaj typów zadań ani historii sprintów dla statystyki.
+1. PR #99 (SCRUM-91/144/145/146): sprawdź aktualny head i CI. Jakub Czaja dołożył 7f5aca0: właściciel lokalnej migracji powstaje przed GET; błąd/przerwanie odczytu A nie udostępnia importu B. Naprawiono też nawigację testu do Pulpitu i mobilne menu. Lokalnie: 55 testów frontendu, build, 193 backendowe z PostgreSQL i 84 E2E PASS; nowe regresje wcześniej 4/4 FAIL. Przejrzyj CAŁY końcowy diff, w tym Origin, wielkie liczby i izolację kont, i wykonaj rzeczywiste niezależne review. Przy poprawkach wymagane nowe CI.
+2. Dawne Changes requested jczaja51 dotyczy 1aecb98. Autor dodatkowych poprawek nie zatwierdza własnego nowego kodu. Po Twoim niezależnym review rozlicz stare uwagi i nieaktualny stan review zgodnie z ochroną GitHub, z uzasadnieniem. Scalaj dopiero po spełnieniu wszystkich bramek, bez obejścia ochrony. Odbiór całej Story pozostaje u QA/PO.
+3. SCRUM-140: konto jczaja51 nie ma admin/maintain. Na swoim koncie właściciela dodaj osobno wymagane Lint i Backend (3.13), pozostawiając Required CI oraz wszystkie dotychczasowe reguły, w tym aktualność gałęzi, niezależne zatwierdzenie i ochronę administratorów. Nie wymagaj deploy/smoke dla PR. Zapisz odczyt branches/main lub rules/branches/main i sprawdź blokadę czerwonych dowodów #77/#78; NIE SCALAJ #24/#77/#78.
+4. SCRUM-16/56/141: wykonaj końcowy całościowy review bieżącego kodu logowania, sesji, logout/expiry, autoryzacji API/UI, cookie, Origin oraz czyszczenia stanu między kartami. Uwzględnij istniejące dowody expiry 2/2 i macierz ASVS; sam dokument ASVS nie zamyka review. Nie rozszerzaj czterech AC logowania o żywe doręczenie SMTP z osobnego SCRUM-44. Potwierdzone nowe błędy napraw przez właściwy PR.
+5. Sprawdź lokalny dowód odtworzenia docs/qa/SCRUM-91-restore-20261118.md z PR #99: PostgreSQL 17.11, schema 0007, rollback przez 0006 do 0005, upgrade i restore odzyskują użytkownika oraz obie preferencje z wersjami/datami. Wykonawca to agent Jakuba Czai. Oceń przydatność do DoD i zapisz swój wynik; jeśli dowód wymaga uzupełnienia, wykonaj je wyłącznie w izolacji. Nie deklaruj na tej podstawie backupu off-site SCRUM-84.
+6. Przejrzyj także bieżący PR #97 z dokumentacją oddania; nowe SHA wymaga Twojego review. Scal sprawdzone PR-y w kolejności pozwalającej rozwiązać ewentualne konflikty dokumentacji, poczekaj na deploy/smoke ostatniego main i potwierdź SHA HTTP + readiness HTTPS. Przekaż Marcelowi ostateczny SHA do odbioru.
+7. Zapisz rezultat w SCRUM-140, SCRUM-56 i SCRUM-141: wymagane checki, wynik review auth/PR, ocena restore, ostatni main-run i wdrożenie. Oddziel wykonane od oczekujących. Nie potwierdzaj za zespół spotkań Review/retro.
 
-Twoja rola: właściciel repozytorium i niezależny reviewer. Priorytety: SCRUM-140, review auth dla SCRUM-16/56/141, dowód odtworzenia dla wybranych Story.
+Wynik końcowy: linki i jednoznaczna lista pozostałych blokad.
+```
 
-1. SCRUM-140: zweryfikuj zalogowane konto i uprawnienia. Obecny odczyt wymaga tylko Required CI. Dodaj jako osobne wymagane checki Lint i Backend (3.13), zachowując Required CI, aktualność gałęzi, niezależne approval i wszystkie pozostałe zabezpieczenia, w tym egzekwowanie wobec administratorów. Zachowaj nazwy jobów. Nie zastępuj całej ochrony uproszczonym zestawem ustawień.
-2. Zapisz rzeczywisty wynik jednego z poleceń w klonie zespołu:
-   gh api 'repos/{owner}/{repo}/branches/main' --jq '.protection.required_status_checks.contexts[]'
-   albo dla rulesetu:
-   gh api 'repos/{owner}/{repo}/rules/branches/main' --jq '.[] | select(.type == "required_status_checks") | .parameters.required_status_checks[].context'
-   Wynik ma zawierać wymagany job testów i Lint; nie wymagaj Post-deploy smoke dla PR, bo deployment PR jest pomijany. Potwierdź blokadę celowych dowodów #77/#78. Nigdy nie scalaj #24/#77/#78.
-3. Potwierdź w SCRUM-140 rzeczywistą datę/godzinę i strefę włączenia ochrony na podstawie dostępnego zdarzenia lub własnego wiarygodnego zapisu. Jeśli nie można ustalić godziny, opisz ograniczenie. Nie wybieraj daty dla uzyskania zera. Przekaż wynik do SCRUM-143.
-4. Wykonaj niezależny review aktualnej implementacji SCRUM-16: logowanie, ogólne błędy, limit prób, sesje/logout/expiry, chronione UI/API, cookie i Origin/CSRF oraz czyszczenie widoku między kartami. Przejrzyj kod backendu i frontendu, nie tylko dokument. Zapisz zakres, SHA, pliki, wynik i blokady w SCRUM-56 oraz SCRUM-141. Nie dopisuj pozornego historycznego Approved do #10. PR #94 jest już scalony i nie zastępuje pełnego review auth.
-5. Zbadaj timeout test_postgres_login_with_old_password_cannot_outlive_reset opisany w SCRUM-56. Zweryfikuj hipotezę snapshotu pg_stat_activity i synchronizację obserwatora. Nie osłabiaj asercji, nie pomijaj testu i nie ukrywaj problemu samym retry lub większym timeoutem. Potrzebna poprawka → osobny PR z cudzym review.
-6. Dla DoD wybranych SCRUM-16 i SCRUM-91 sprawdź istniejący dowód restore/rollback zmian schematu. SCRUM-91 dostarczono w PR #93, z migracją preferencji. Jeśli dowodu brakuje, wykonaj właściwą próbę w izolowanym PostgreSQL na danych syntetycznych, bez zmian produkcyjnej bazy i konfiguracji VPS. Zapisz procedurę, SHA i wynik. Nie deklaruj off-site backupu SCRUM-84 na podstawie tej próby.
-7. Uruchom wymagane kontrole backendu przy poprawkach: ruff check ., ruff format --check ., pytest. Zbierz końcowe CI; nie uznawaj testów pominiętych z braku PostgreSQL za pełny PASS.
-8. Przekaż Marcelowi sprawdzone SHA i zakres retestu. Uzupełnij istniejące SCRUM-140/56/141, bez tworzenia duplikatów. Przejrzyj także gotowy PR aktualizujący pakiet SCRUM-143, jeśli review zostało Ci zlecone.
+## Marcel
 
-Ważne: rzeczywista dostawa SMTP jest osobnym SCRUM-44, poza czterema AC SCRUM-16. Nie blokuj odbioru samego logowania nieuzgodnioną wysyłką, ale nie przedstawiaj jej jako wykonanej. Historyczny test Conventional Commits daje obecnie 3 w szerokim zakresie od 20.10 — dwa tematy z #93 i jeden z #54. Ani nowy commit, ani zmiana tytułu zamkniętego PR nie naprawia tego wyniku; rozliczenie z prowadzącym prowadzi Jakub w SCRUM-143.
+```text
+Repozytorium: https://github.com/DawidHnat/Projekt_Zespolowy
+Cel: domknąć swój zakres do oddań Cursora 3.2 (S1) i 4.2 (S2).
+Przeczytaj AGENTS.md, README, CONTRIBUTING, DEFINITION_OF_DONE.md oraz aktualne opisy i najnowsze komentarze wskazanych zadań. Zachowaj lokalne zmiany; pracuj na bieżącym main lub istniejącej gałęzi właściwego PR. Wyniki zapisuj z wykonawcą, datą, SHA, środowiskiem i PASS/FAIL/BLOCKED. Agent opisuje własne wykonanie wprost; nie przypisuj go człowiekowi.
+Decyzja PO z 18.11: dawne niezgodne tematy commitów, nazwy gałęzi i kontakt z prowadzącym pomijamy w dalszej pracy. Zachowaj nowe commity poprawne, nie przepisuj historii. Bez automerge, żywego WEBFLEET/SMTP, sekretów i danych klientów. Dane testowe wyłącznie w izolacji. Nie twórz kolejnych zgłoszeń dla już istniejących zakresów.
 
-Zakończ konkretnym podsumowaniem: wymagane checki + data ochrony, wynik review auth, wynik odtworzenia, linki PR/CI/Jira i dokładnie co blokuje odbiór. Nie zamykaj cudzych zakresów na podstawie samego CI.
+Działasz dla Marcela Głowackiego — niezależnego QA. Priorytet SCRUM-141: pełny odbiór SCRUM-16 z S1 i SCRUM-91 z S2.
+
+1. Najpierw sprawdź, że poprawki PR #99 są scalone po niezależnym review i CI oraz wdrożone. Odbiór wydania wykonuj na pełnym SHA odpowiadającym HTTP data-build-sha i ostatniemu zielonemu main-run, z HTTPS readiness 200. Jeśli jeszcze czeka review/merge, nie odbieraj starego main jako poprawionego; przygotuj warunki i sprawdź dostęp do testów.
+2. Użyj istniejących macierzy AC + 12 DoD z komentarzy 10254/10255 w SCRUM-141. Kontrolowane expiry FF-QA-031 jest już 2/2 PASS; Offline ma potwierdzony komunikat i zachowany szkic. Uwzględnij te dowody i ich SHA, nie przepisuj ich jako nowych prób ani nie oznaczaj jako niewykonanych.
+3. SCRUM-16: zamknij brakujące próby cookie HttpOnly/Secure na końcowym HTTPS, Origin, odmowy starej sesji po logout i odpowiednie retesty. Powiąż pełny code review Dawida, dokumentację/odtworzenie i decyzję PO. Odbierz wszystkie cztery AC logowania. Szerszy SCRUM-56 i żywy SMTP z SCRUM-44 mogą pozostać otwarte osobno.
+4. SCRUM-91: wykonaj procedurę A–E z docs/qa/SCRUM-91.md na dwóch niezależnych kontekstach tego samego konta oraz drugim uzgodnionym koncie. Sprawdź Pulpit/Pojazdy, rozmiary, filtry/sort/limit, Zapisz/Anuluj/Reset, konflikt i obie decyzje, Offline z późniejszym odczytem wartości/wersji API, migrację i izolację A→B. Dodano wariant pierwszego GET A z błędem lub przerwaniem: B nie dostaje importu A, a powrót na A pozwala na jego jawną migrację.
+5. Potwierdź retest SCRUM-144/145/146 na finalnym wydaniu. Użyj istniejących testów API dla Origin i dużych liczb; bez rzeczywistych tokenów w raportach. Lokalne 84/84 E2E Jakuba Czai jest dowodem wykonawcy, nie Twoim nowym ręcznym testem.
+6. Testy syntetyczne wykonuj w dedykowanej bazie fleet_flow_test_e2e. Na wspólnym serwerze korzystaj tylko z zatwierdzonych kont bez danych klientów; nie twórz tam fikcyjnych rekordów ani nie zmieniaj haseł współdzielonych kont. Przy braku dostępu wykonaj możliwy zakres w izolacji i opisz dokładny brak.
+7. Zapisz pełne dwie decyzje odbioru w SCRUM-141 oraz wynik w SCRUM-56/SCRUM-91 i zgłoszeniach błędów. Każde kryterium: wykonawca, data, SHA, środowisko, wynik i dowód. Gdy wszystkie warunki spełniono, napisz to jednoznacznie; gdy brakuje jednego, wskaż konkretnie którego.
+
+Wynik końcowy: S1 PASS/BLOCKED + braki; S2 PASS/BLOCKED + braki; osobny pozostały zakres SMTP. Nie wpisuj nieodbytego Review/retro i nie uruchamiaj S3.
 ```
 
 ## Jakub Nazarewicz
 
 ```text
 Repozytorium: https://github.com/DawidHnat/Projekt_Zespolowy
-Jira: https://fleet-flow.atlassian.net/browse/
-Cel zespołu: rzetelnie domknąć zadanie 3.2 (S1/review/PR) oraz 4.2 (S2/bramy jakości/S3).
+Cel: domknąć swój zakres do oddań Cursora 3.2 (S1) i 4.2 (S2).
+Przeczytaj AGENTS.md, README, CONTRIBUTING, DEFINITION_OF_DONE.md oraz aktualne opisy i najnowsze komentarze wskazanych zadań. Zachowaj lokalne zmiany; pracuj na bieżącym main lub istniejącej gałęzi właściwego PR. Wyniki zapisuj z wykonawcą, datą, SHA, środowiskiem i PASS/FAIL/BLOCKED. Agent opisuje własne wykonanie wprost; nie przypisuj go człowiekowi.
+Decyzja PO z 18.11: dawne niezgodne tematy commitów, nazwy gałęzi i kontakt z prowadzącym pomijamy w dalszej pracy. Zachowaj nowe commity poprawne, nie przepisuj historii. Bez automerge, żywego WEBFLEET/SMTP, sekretów i danych klientów. Dane testowe wyłącznie w izolacji. Nie twórz kolejnych zgłoszeń dla już istniejących zakresów.
 
-Przeczytaj AGENTS.md, README, CONTRIBUTING, DEFINITION_OF_DONE.md i aktualne opisy/komentarze wskazanych zgłoszeń. Pobierz aktualny main; zachowaj lokalne zmiany i użyj osobnego worktree, jeśli trzeba. Nie pracuj na zapamiętanym SHA. Zmiany tylko przez gałąź z kluczem Jiry, Conventional Commits i PR z niezależnym review. Przed merge sprawdź wszystkie nowe tematy commitów dokładnym wzorcem z zadania; poprawny tytuł PR przy zwykłym merge nie poprawia tematów jego commitów. Nie zatwierdzaj własnego kodu, nie obchodź ochrony i nie włączaj automerge. Nie zmieniaj historii main ani autorstwa.
+Działasz dla Jakuba Nazarewicza — właściciela SCRUM-91 i pierwotnego autora PR #99.
 
-Raportuj rzeczywiste SHA, datę, środowisko, wykonawcę i PASS/FAIL/BLOCKED. Oddziel testy wykonane lokalnie od CI i od wyników innych osób. Jeśli wykonawcą był agent, napisz to wprost. Nie publikuj sekretów, haseł, tokenów ani danych klientów. Dane syntetyczne tylko w izolacji testowej. Żywy WEBFLEET i rzeczywista wysyłka SMTP wymagają osobnego uzgodnienia. Nie zmieniaj typów zadań ani historii sprintów dla statystyki.
+1. Pobierz aktualny PR #99, zamiast wracać do 1aecb98. Jakub Czaja dołożył commit 7f5aca0 i połączył main: właściciel importu jest wiązany przed GET, dodano 4 regresje błędu/przerwania A→B z powrotem do A, naprawiono przejście z Ustawień na Pulpit i logout mobile w teście. Lokalne wyniki: 55 testów frontendu, build, 193 backendowe z PostgreSQL i 84 E2E PASS; PR jest gotowy do review Dawida. Nie implementuj tych samych poprawek drugi raz.
+2. Sprawdź bieżące CI i kompletność czterech AC SCRUM-91. Jeśli CI lub niezależny QA ujawni nową konkretną usterkę, popraw ten zakres na tej samej gałęzi, zachowując nowe poprawki Jakuba i oryginalne autorstwo. Frontend: npm test, npm run build i zachowanie w przeglądarce; backend: Ruff/format/pytest z PostgreSQL. Nie zwiększaj timeoutów dla ukrycia błędu i nie pomijaj testów.
+3. Dopnij autorskie przekazanie w SCRUM-91: aktualny head/CI, link do niezależnego review Dawida, docs/qa/SCRUM-91.md i raport restore. Po merge podaj faktyczny main SHA i wdrożenie. Współpracuj z Dawidem w kolejności merge #99/#97; nie odbieraj ani nie zatwierdzaj własnego kodu.
+4. Zapewnij Marcelowi powtarzalne warunki testu dwóch kontekstów i dwóch syntetycznych kont w izolacji. Jeśli serwer wymaga zatwierdzonych kont, ustal to bez publikowania haseł lub tworzenia fikcyjnych danych produktu. Nie zastępuj niezależnego QA własnym PASS.
+5. Przygotuj krótki pokaz po odbiorze: zapisz układ/filtry w jednej przeglądarce → odtwórz w drugiej → pokaż Anuluj i konflikt. Zapis spotkania wykonuje PO po rzeczywistym Review.
+6. SCRUM-129 pozostaje istniejącym wybitym oknem do zaplanowania w aktywnym S3 (frontend/vite.config.ts i VehicleMap.tsx). Do tych oddań nie trzeba teraz optymalizować całego bundla.
 
-Twoja rola: developer Jakub Nazarewicz. Priorytetem do oddania 4.2 jest pełny, niezależnie odebrany SCRUM-91, obecnie Testowanie w Sprincie 2. To Story preferencji konta dostarczona przez PR #93; nie myl jej z PR #91 dotyczącym wdrożeń.
-
-1. Sprawdź aktualne AC SCRUM-91 oraz stan main po scaleniu #93. Nie przepisuj gotowej funkcji. Przygotuj przekazanie do QA z linkiem do aktualnego Approved Dawida, CI ostatniego head #93 i bieżącego wdrożenia. Dawny zapis sugerujący review własnego kodu jest nieaktualny: review wykonuje Czaja albo Hnat, QA Marcel.
-2. Udokumentuj powtarzalną procedurę dla Marcela: dwa niezależne konteksty/urządzenia tego samego konta, drugie konto do izolacji, backendowe preferencje Pulpitu/Pojazdów, rozmiary, sortowanie i filtry, zapis/anulowanie/reset, konflikt wersji, awaria zapisu i świadoma migracja localStorage. Wskaż endpointy i istniejące testy; bez sekretów ani kont klientów w raportach.
-3. Sprawdź kompletność rzeczywistej implementacji każdego AC. Jeśli coś nie działa albo QA zgłosi błąd, popraw tylko ten zakres na nowej gałęzi z kluczem SCRUM-91 i przez PR z niezależnym review. Nie dopisuj funkcji spoza AC. Po zmianie UI przeczytaj DESIGN_SYSTEM, uruchom npm test i npm run build oraz sprawdź desktop/mobile w przeglądarce. Po zmianie backendu uruchom Ruff/format/pytest według AGENTS.md. Nie ukrywaj błędów podnoszeniem timeoutów lub pomijaniem testów.
-4. Przekaż Dawidowi informacje o migracji preferencji i wymaganym dowodzie odtworzenia, a Marcelowi dokładne SHA i instrukcję retestu. W SCRUM-91 i SCRUM-141 zapisz wykonane kontrole oraz ograniczenia. Sam własny test autora nie jest niezależnym QA.
-5. Po pełnym odbiorze przygotuj prosty pokaz na Review S2 według potrzeby użytkownika: zapisuję widok → loguję się w drugiej przeglądarce → dostaję ten sam widok; następnie konflikt i odzyskanie po błędzie. Faktyczny pokaz i feedback zapisuje PO po spotkaniu.
-6. Potwierdź przygotowanie SCRUM-129 jako istniejącego „wybitego okna” w planowanym S3: frontend/vite.config.ts oraz frontend/src/features/fleet/components/VehicleMap.tsx, powtarzalne ostrzeżenie o dużym bundlu. Do oddania 4.2 trzeba zaplanować to zadanie w aktywnym S3; nie trzeba kończyć całego S3 ani wykonywać teraz tej optymalizacji. Nie podnoś limitu ostrzeżeń dla ukrycia problemu.
-7. Dla kolejnych commitów bezwzględnie stosuj Conventional Commits. Dwa istniejące tematy #93 są niezgodne; zachowaj chronioną historię i przekaż fakt do SCRUM-143 zamiast próbować „naprawić” main amend/rebase/force-push. Nowa poprawna wiadomość nie usuwa starych commitów.
-
-Nie zatwierdzaj własnego PR ani nie zamykaj SCRUM-91 przed niezależnym QA i pełnym DoD. Nie uruchamiaj Sprintu 3 ani nie deklaruj odbytego Review/retro. Zakończ linkami do dowodów, instrukcją QA i listą pozostałych blokad.
+Wynik końcowy: aktualne przekazanie, linki PR/CI/QA i wyłącznie rzeczywiste pozostałe blokady.
 ```

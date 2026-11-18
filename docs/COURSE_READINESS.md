@@ -1,7 +1,8 @@
 # Gotowość do oddania zadań 3.2 i 4.2
 
 Stan odczytu: **18.11.2026**, [SCRUM-143](https://fleet-flow.atlassian.net/browse/SCRUM-143).
-**Oba oddania pozostają niekompletne.** Wystarczą odebrane przyrosty i wymagane dowody;
+**Oba oddania pozostają niekompletne.**
+Decyzja PO z 18.11: historyczne tematy commitów i nazwy gałęzi są poza dalszą pracą; nie kontaktujemy się w tej sprawie z prowadzącym. Zachowujemy rzeczywiste wyniki jako znane niezgodności. Wystarczą odebrane przyrosty i wymagane dowody;
 nie trzeba kończyć całego produktu ani Sprintu 3.
 
 ## Numeracja sprawdzona w kursie
@@ -40,12 +41,12 @@ pakiety z 12 i 16 listopada mogą jeszcze mieć dawną nazwę; nie są bieżąc�
 
 | Zadanie / właściciel | Wykonane i pozostały krok |
 | --- | --- |
-| [SCRUM-140](https://fleet-flow.atlassian.net/browse/SCRUM-140), Dawid | Wymagany nadal tylko `Required CI`; ruleset nie zwrócił dodatkowych kontekstów. Dodać osobno wymagane `Lint` i `Backend (3.13)`, zachować zabezpieczenia i przedstawić nowy odczyt. Potwierdzić rzeczywistą datę ochrony. |
+| [SCRUM-140](https://fleet-flow.atlassian.net/browse/SCRUM-140), Dawid | Wymagany nadal tylko `Required CI`; ruleset nie zwrócił dodatkowych kontekstów. Dodać osobno wymagane `Lint` i `Backend (3.13)`, zachować zabezpieczenia i przedstawić nowy odczyt. Dawne ustalanie daty dla rozliczenia historii pominięto decyzją PO. |
 | [SCRUM-141 / S1](https://fleet-flow.atlassian.net/browse/SCRUM-141?focusedCommentId=10254), Dawid i Marcel, decyzja PO | Kandydat SCRUM-16 ma macierz 4 AC + 12 DoD. Kontrolowane expiry FF-QA-031: 2/2 PASS desktop/mobile. Pozostają całościowy niezależny review auth, końcowe cookie/Origin i odpowiednie retesty, wymagane dowody odtworzenia, pełny odbiór i decyzja PO. SMTP live jest osobnym SCRUM-44, poza czterema AC logowania. |
-| [SCRUM-141 / S2](https://fleet-flow.atlassian.net/browse/SCRUM-141?focusedCommentId=10255), Nazarewicz, Dawid i Marcel, decyzja PO | SCRUM-91 nadal Testowanie. Poprawki SCRUM-144/145/146 są w otwartym [draft #99](https://github.com/DawidHnat/Projekt_Zespolowy/pull/99). Potrzebne ukończenie PR, CI, cudze review, merge/wdrożenie, retest dwóch kont i kontekstów, migracji i regresji oraz restore/rollback migracji 0006. |
+| [SCRUM-141 / S2](https://fleet-flow.atlassian.net/browse/SCRUM-141?focusedCommentId=10255), Nazarewicz, Dawid i Marcel, decyzja PO | SCRUM-91 nadal Testowanie. Poprawki SCRUM-144/145/146 są w [#99](https://github.com/DawidHnat/Projekt_Zespolowy/pull/99), gotowym do ponownego review Dawida: head `7f5aca0` zawiera obie uwagi poprzedniego review i 4 nowe regresje. Lokalnie 55 testów frontendu, 193 backendowe z PostgreSQL oraz 84 E2E PASS; build i Ruff PASS. [CI 44308507367](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44308507367) ostatniego head jest do końcowego potwierdzenia. Pozostają niezależny review, merge/wdrożenie i końcowy QA Marcela. [Lokalna próba odtworzenia](https://github.com/DawidHnat/Projekt_Zespolowy/blob/fix/SCRUM-91-preference-isolation/docs/qa/SCRUM-91-restore-20261118.md) już PASS; Dawid ocenia zakres dowodu w DoD. |
 | [Aktualizacja QA S2](https://fleet-flow.atlassian.net/browse/SCRUM-141?focusedCommentId=10287), Marcel | Offline z błędem i ochroną szkicu już PASS w opisanym zakresie. Brak osobnego potwierdzenia niezmienionej wartości backendu; nie daje to PASS całego AC3 ani Story. Nie powtarzać starego stwierdzenia, że próby Offline w ogóle nie wykonano. |
 | [SCRUM-142](https://fleet-flow.atlassian.net/browse/SCRUM-142), PO i zespół | Po pełnym odbiorze S2 przeprowadzić Review/retro, zapisać datę, uczestników, feedback, ocenę działań S1 i nowe uzgodnione działanie. Rozliczyć S2 i uruchomić istniejący S3. Brak nowego potwierdzenia spotkań. |
-| [SCRUM-143](https://fleet-flow.atlassian.net/browse/SCRUM-143), PO | Rozliczyć historyczne wyjątki z prowadzącym, dokończyć review/merge dokumentacji i po ostatnim wdrożeniu odświeżyć wyniki. |
+| [SCRUM-143](https://fleet-flow.atlassian.net/browse/SCRUM-143), PO | Dokończyć review/merge dokumentacji i po ostatnim wdrożeniu odświeżyć wyniki. Dawne wyjątki Git pomijamy w dalszych działaniach decyzją PO. |
 
 ## Historia Git
 
@@ -61,7 +62,7 @@ Dokładny wzorzec w szerokim zakresie od `2026-10-20T00:00:00+02:00` nadal zwrac
 Dwa tematy pochodzą z [#93](https://github.com/DawidHnat/Projekt_Zespolowy/pull/93),
 jeden z [#54](https://github.com/DawidHnat/Projekt_Zespolowy/pull/54).
 Gałęzie bez klucza: #1/#2 `codex/azure-dev-server`, #54 `jczaja51-patch-1`.
-Potrzebne potwierdzenie daty i jawna decyzja prowadzącego o wyjątkach.
+Decyzja PO z 18.11: bez dalszego audytu tych wyjątków, ustalania daty dla tej kontroli ani kontaktu z prowadzącym. Wynik pozostaje niezgodny z wymaganiem kursowym; nie oznaczamy go jako PASS.
 Nowy commit lub tytuł PR nie usuwa dawnych tematów; historii main nie przepisujemy.
 
 ## Sprinty i kolejność
@@ -73,8 +74,8 @@ działanie retro, Czaja) i SCRUM-129 (wybite okno, Nazarewicz:
 Nie trzeba kończyć tych zadań do 4.2; muszą należeć do rzeczywiście aktywnego S3,
 a działanie ma wynikać z uzgodnionej retrospektywy.
 
-Najpierw zachować kompletny datowany pakiet **3.2** z aktywnym S2, pełnym DoD S1
-i rozliczeniem Git. Następnie odebrać Story S2, przeprowadzić Review/retro,
+Najpierw zachować datowany pakiet **3.2** z aktywnym S2, pełnym DoD S1
+i rzeczywistymi wynikami Git; historyczne niezgodności pomijamy w dalszych pracach decyzją PO. Następnie odebrać Story S2, przeprowadzić Review/retro,
 rozliczyć S2 i uruchomić istniejący S3. Potem zebrać oddzielny komplet **4.2**.
 Każdy oddaje osobno pod własnym kontem; szkic nie zastępuje spotkań.
 
