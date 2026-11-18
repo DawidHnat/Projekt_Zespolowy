@@ -1,15 +1,16 @@
 # Review Sprintu 2 — scenariusz i karta protokołu
 
 **Spotkanie i pełne DoD Story jeszcze niepotwierdzone.** PO potwierdził ten
-stan 12.11.2026. Przygotowanie techniczne: SCRUM-127; odbiór: SCRUM-141;
+stan 12.11.2026; do 16.11 nie przekazano nowego potwierdzenia spotkań. Przygotowanie techniczne: SCRUM-127; odbiór: SCRUM-141;
 organizacja spotkań i start S3: [SCRUM-142](https://fleet-flow.atlassian.net/browse/SCRUM-142).
 Serwer: <https://fleet-flow.pl/>, wersja HTTP: <http://57.129.179.53/>.
 
 ## Przed spotkaniem
 
 1. PO wybiera **całą Story faktycznie należącą do Sprintu 2**. Odczyt Jiry
-   12.11 wskazuje SCRUM-84 (backup poza VPS) i SCRUM-91 (preferencje między
-   urządzeniami), obie Do zrobienia. SCRUM-38/45/46 i SCRUM-127 są Zadaniami.
+   16.11 wskazuje SCRUM-84 (backup poza VPS, Do zrobienia) i SCRUM-91
+   (preferencje między urządzeniami, już Testowanie po merge #93).
+   Do najbliższego odbioru przygotowujemy SCRUM-91 bez zmiany jego AC. SCRUM-38/45/46 i SCRUM-127 są Zadaniami.
    Nie zmieniamy typów ani historii sprintów dla statystyki.
 2. W SCRUM-141 zebrać wszystkie AC i 12 warunków [DoD](../DEFINITION_OF_DONE.md):
    wykonawca, data, SHA, środowisko, link oraz PASS/FAIL/BLOCKED. Developer
@@ -49,3 +50,7 @@ Po Review zespół uzupełnia [retro S2](retro/sprint-2.md): co dobrze/źle,
 stan działań S1, nowe uzgodnione działanie i właściciel. PO rozlicza otwarte
 prace, kończy S2 i rozpoczyna istniejący S3 z celem i SCRUM-128/129.
 [Instrukcja oddania](SPRINT_2_SUBMISSION.md) pozostaje szkicem do tego czasu.
+
+## Przekazanie do odbioru 16.11
+
+[Polecenia dla agentów](COURSE_AGENT_HANDOFFS.md) rozdzielają review auth i ochronę (Dawid), niezależne QA S1/S2 (Marcel) oraz przekazanie preferencji (Nazarewicz). Rzeczywisty pokaz SCRUM-91 następuje po pełnym DoD; karta protokołu powyżej pozostaje niewypełniona do spotkania.
