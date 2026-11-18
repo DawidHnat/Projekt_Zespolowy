@@ -10,6 +10,7 @@ export function useCardResize(
     x: number;
     y: number;
     start: CardSize;
+    saved: CardSize;
     next: CardSize;
   } | null>(null);
   const frame = useRef(0);
@@ -36,15 +37,21 @@ export function useCardResize(
           x: e.clientX,
           y: e.clientY,
           start: { width: bounds.width, height: size.height },
+          saved: size,
           next: size,
         };
       },
       onPointerMove: (e: PointerEvent<HTMLButtonElement>) => {
         const current = gesture.current;
         if (!current) return;
+        const dx = e.clientX - current.x;
+        const dy = e.clientY - current.y;
+        // A narrow viewport can clamp the rendered width below the saved one.
+        // Preserve an untouched axis, including small pointer jitter. A deliberate
+        // horizontal resize still starts at the visible edge of the card.
         current.next = normalizeCardSize({
-          width: current.start.width + e.clientX - current.x,
-          height: current.start.height + e.clientY - current.y,
+          width: Math.abs(dx) < 5 ? current.saved.width : current.start.width + dx,
+          height: Math.abs(dy) < 5 ? current.saved.height : current.start.height + dy,
         });
         if (!frame.current)
           frame.current = requestAnimationFrame(() => {

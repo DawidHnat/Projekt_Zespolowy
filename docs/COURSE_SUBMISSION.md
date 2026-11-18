@@ -1,5 +1,10 @@
 # Backlog, prototyp i pipeline — odbiór zadania
 
+Ten dokument dotyczy wcześniejszego zadania o backlogu, prototypie i pipeline.
+Aktualne wymagania **Przeglądu Sprintu i PR (4.1)** oraz **bram jakości
+Sprintu 2 (4.2)** mają osobną [macierz gotowości](COURSE_READINESS.md),
+z dowodami, brakami i właścicielami na 12.11.2026.
+
 Stan sprawdzony 23 października 2026; daty Sprintu 1 zaktualizowano
 i ponownie odczytano w Jirze 24 października 2026. Dowody wdrożenia trzeba
 odświeżyć po ostatnim scaleniu, również po scaleniu zmian samej dokumentacji.

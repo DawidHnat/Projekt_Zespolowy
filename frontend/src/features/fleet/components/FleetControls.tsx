@@ -18,12 +18,14 @@ export function FleetFilters() {
           placeholder="Nazwa lub rejestracja…"
           maxLength={100}
           value={f.q}
+          disabled={f.preferencesLoading}
           onChange={(e) => f.setQ(e.target.value)}
         />
       </label>
       <select
         aria-label="Status pojazdu"
         value={f.status}
+        disabled={f.preferencesLoading}
         onChange={(e) => f.setStatus(e.target.value as VehicleStatus | "")}
       >
         <option value="">Wszystkie statusy</option>
@@ -34,10 +36,14 @@ export function FleetFilters() {
         ))}
       </select>
       {(f.q || f.status) && (
-        <button className="button button-secondary fleet-clear-filters" onClick={() => {
-          f.clearFilters();
-          search.current?.focus();
-        }}>
+        <button
+          className="button button-secondary fleet-clear-filters"
+          disabled={f.preferencesLoading}
+          onClick={() => {
+            f.clearFilters();
+            search.current?.focus();
+          }}
+        >
           <X size={14} aria-hidden="true" /> Wyczyść filtry
         </button>
       )}
@@ -51,7 +57,7 @@ export function FleetPagination() {
       page={f.page}
       pageSize={f.pageSize}
       total={f.total}
-      loading={f.loading}
+      loading={f.loading || f.preferencesLoading}
       label="pojazdy"
       onPage={f.setPage}
       onPageSize={f.setPageSize}

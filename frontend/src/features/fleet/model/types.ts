@@ -8,6 +8,8 @@ export type Vehicle = {
   // Optional display fields for the next API increment; absent values stay unknown.
   make?: string | null;
   model?: string | null;
+  year?: number | null;
+  vin?: string | null;
   position_address?: string | null;
   status: VehicleStatus;
   driver: { id: string; display_name: string } | null;
@@ -65,12 +67,12 @@ export function fleetPollInterval(value: string | undefined) {
     milliseconds >= 10000 &&
     milliseconds <= 86400000
     ? milliseconds
-    : 60000;
+    : 10000;
 }
 export const statusLabels: Record<VehicleStatus, string> = {
   moving: "W ruchu",
   stopped: "Postój",
-  offline: "Dane nieaktualne",
+  offline: "Ostatni znany stan",
   unknown: "Brak pomiaru",
 };
 export function positionTime(value: string | null) {
@@ -95,6 +97,16 @@ export function updateTime(value: string | null) {
         timeZone: "Europe/Warsaw",
       }).format(new Date(value))
     : "Brak udanej synchronizacji";
+}
+export function positionAge(value: string | null, now = Date.now()) {
+  const time = value ? Date.parse(value) : NaN;
+  if (!Number.isFinite(time)) return "Brak czasu pozycji";
+  const age = now - time;
+  if (age < 0) return "Czas pozycji w przyszłości";
+  if (age < 60000) return "Pozycja przed chwilą";
+  if (age < 3600000) return `Pozycja sprzed ${Math.floor(age / 60000)} min`;
+  if (age < 86400000) return `Pozycja sprzed ${Math.floor(age / 3600000)} godz.`;
+  return `Pozycja · ${updateTime(value)}`;
 }
 export function positionCoordinates(
   latitude: number | null,

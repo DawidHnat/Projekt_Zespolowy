@@ -9,7 +9,8 @@ import {
 } from "lucide-react";
 import { useFleet } from "../model/FleetProvider";
 import { useVehiclePreferences } from "../model/VehiclePreferences";
-import { positionTime, statusLabels, type Vehicle } from "../model/types";
+import { statusLabels, type Vehicle } from "../model/types";
+import { VehiclePositionTime } from "./VehiclePositionTime";
 import { useCardResize } from "./useCardResize";
 import { VehiclePhoto } from "./VehiclePhoto";
 import { FleetFilters, FleetPagination } from "./FleetControls";
@@ -86,7 +87,7 @@ const VehicleCard = memo(function VehicleCard({
           </div>
         </dl>
         <small className="vehicle-tile-time">
-          {positionTime(v.position_at)}
+          <VehiclePositionTime value={v.position_at} />
           {v.latitude === null && " · Brak GPS"}
         </small>
         <footer>
@@ -162,6 +163,7 @@ export function VehicleCardsPage() {
   const p = useVehiclePreferences();
   const [sizing, setSizing] = useState(false);
   const [photo, setPhoto] = useState<Vehicle | null>(null);
+  const vehicles = f.list?.items ?? [];
   return (
     <section
       className="vehicle-gallery"
@@ -170,6 +172,24 @@ export function VehicleCardsPage() {
     >
       <div className="vehicle-gallery-toolbar widget">
         <FleetFilters />
+        <label className="vehicle-sort">
+          Sortowanie
+          <select
+            aria-label="Sortowanie pojazdów"
+            value={p.sort}
+            disabled={p.cloud.loading || p.cloud.migrationAvailable}
+            onChange={(event) => {
+              p.updateSort(event.target.value as typeof p.sort);
+              f.setPage(1);
+            }}
+          >
+            <option value="name-asc">Nazwa rosnąco</option>
+            <option value="name-desc">Nazwa malejąco</option>
+            <option value="status">Status</option>
+            <option value="odometer-asc">Przebieg rosnąco</option>
+            <option value="odometer-desc">Przebieg malejąco</option>
+          </select>
+        </label>
         <FleetNotice />
         <div className="vehicle-gallery-hint">
           <span>
@@ -199,7 +219,7 @@ export function VehicleCardsPage() {
         />
       ) : (
         <div className="vehicle-gallery-grid">
-          {f.list.items.map((v) => (
+          {vehicles.map((v) => (
             <VehicleCard
               key={v.id}
               vehicle={v}

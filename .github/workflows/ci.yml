@@ -1,3 +1,4 @@
+
 name: CI
 
 on:
@@ -13,6 +14,29 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+      - run: python -m pip install -r backend/requirements-dev.txt
+      - run: ruff check .
+        working-directory: backend
+      - run: ruff format --check .
+        working-directory: backend
+      - name: Test post-deployment verifier without network
+        run: python -m unittest discover -s tools -p 'test_verify_deployment.py' -v
+      - name: Test release staleness validator without network
+        run: python -m unittest discover -s tools -p 'test_validate_release.py' -v
+
   frontend:
     name: Frontend build
     runs-on: ubuntu-latest
@@ -89,8 +113,6 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements*.txt
       - run: python -m pip install -r requirements-dev.txt
-      - run: ruff check .
-      - run: ruff format --check .
       - run: pytest
       - name: Test sprint evidence collector without network
         working-directory: .
@@ -155,10 +177,35 @@ jobs:
           path: frontend/test-results/
           retention-days: 7
 
+
+  docs-links:
+    name: Markdown links
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Install Markdown checker dependencies
+        run: python -m pip install -r scripts/requirements-markdown-links.txt
+
+      - name: Test Markdown link checker
+        run: python -m unittest discover -s tests -p "test_markdown_links*.py" -v
+
+      - name: Check Markdown links
+        run: python scripts/check_markdown_links.py
+
+
   required:
     name: Required CI
     if: always()
-    needs: [frontend, backend, container, e2e]
+    needs: [frontend, backend, container, e2e, lint, docs-links]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
@@ -168,12 +215,19 @@ jobs:
           BACKEND_RESULT: ${{ needs.backend.result }}
           CONTAINER_RESULT: ${{ needs.container.result }}
           E2E_RESULT: ${{ needs.e2e.result }}
-        run: test "$FRONTEND_RESULT" = success && test "$BACKEND_RESULT" = success && test "$CONTAINER_RESULT" = success && test "$E2E_RESULT" = success
-
+          LINT_RESULT: ${{ needs.lint.result }}
+          DOCS_LINKS_RESULT: ${{ needs.docs-links.result }}
+        run: |
+          test "$FRONTEND_RESULT" = success &&
+          test "$BACKEND_RESULT" = success &&
+          test "$CONTAINER_RESULT" = success &&
+          test "$E2E_RESULT" = success &&
+          test "$LINT_RESULT" = success &&
+          test "$DOCS_LINKS_RESULT" = success
   deploy:
     name: Deploy development server
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [required]
+    needs: [required, frontend, backend, e2e, lint]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: development
@@ -200,12 +254,21 @@ jobs:
             echo '::error::Configure DEV_SSH_PRIVATE_KEY, DEV_SSH_KNOWN_HOSTS and DEV_RUNTIME_ENV.'
             exit 1
           }
+          latest_main=$(git ls-remote \
+            https://github.com/DawidHnat/Projekt_Zespolowy.git refs/heads/main | awk '{print $1}')
+          if [[ -n "$latest_main" && "$GITHUB_SHA" != "$latest_main" ]]; then
+            echo "::error::Próba wdrożenia $GITHUB_SHA; main ma $latest_main."
+            exit 1
+          fi
           [[ "$DEPLOY_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
           umask 077
           staging=$(mktemp -d "$RUNNER_TEMP/fleet-flow.XXXXXX")
           trap 'rm -rf -- "$staging"' EXIT
           mkdir "$staging/release"
           tar -xzf release.tgz -C "$staging/release"
+          for file in frontend/dist/index.html frontend/dist/status.html backend/app/main.py infra/deploy/compose.yml; do
+            test -s "$staging/release/$file" || { echo "::error::Release artifact missing $file"; exit 1; }
+          done
           printf '%s\n' "$DEPLOY_KEY" > "$staging/key"
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$staging/known_hosts"
           printf '%s\n' "$RUNTIME_ENV" > "$staging/release/runtime.env"
@@ -226,3 +289,21 @@ jobs:
             "$DEPLOY_USER@$DEPLOY_HOST" "deploy $GITHUB_SHA" < "$staging/upload.tgz"
           curl --fail --silent --show-error --max-time 20 "http://$DEPLOY_HOST/" \
             | grep -F "data-build-sha=\"${GITHUB_SHA:0:7}\""
+
+  smoke:
+    name: Post-deploy smoke
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      STATUS_ORIGIN: http://${{ vars.DEV_HOST || '57.129.179.53' }}
+      APP_ORIGIN: ${{ vars.DEV_PUBLIC_URL || 'https://fleet-flow.pl' }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Verify deployed SHA and API readiness
+        run: python tools/verify_deployment.py --sha "$GITHUB_SHA" --status-origin "$STATUS_ORIGIN" --app-origin "$APP_ORIGIN"

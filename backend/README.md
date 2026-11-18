@@ -149,6 +149,29 @@ zaufanych proxy; przed wystawieniem zdalnie wymagane są HTTPS i Secure cookie.
 Reset e-mail jest osobnym przyrostem SCRUM-44 opisanym poniżej.
 Administrator może także ustawić hasło lokalnym poleceniem powyżej.
 
+## Profil i bezpieczeństwo konta — SCRUM-49 (pierwszy przyrost)
+
+- `GET /api/v1/auth/profile`: własna nazwa, login, e-mail lub `null` i rola;
+  wymaga sesji, nie udostępnia edycji roli/statusu.
+- `POST /api/v1/auth/password/change`: `current_password`, `new_password`.
+  Nowe hasło ma 12–1024 znaki i musi być inne. Wymaga sesji oraz Origin;
+  dostępne także dla viewer. Limit prób: 5/15 min na konto, 10/15 min na IP.
+  Błędne obecne hasło daje 400 bez wylogowania. Błędy walidacji nie odbijają
+  haseł. Udana zmiana usuwa wszystkie stare sesje i tokeny resetu; bieżąca
+  przeglądarka otrzymuje nowy losowy token HttpOnly/SameSite=Strict/Secure w HTTPS.
+- `POST /api/v1/auth/sessions/logout-all`: unieważnia wszystkie sesje własnego
+  konta, także bieżącą, i usuwa cookie. Kolejny odczyt wymaga logowania.
+
+Operacje oraz logowanie blokują rekord User w PostgreSQL. Po uzyskaniu blokady
+zmiana hasła/wylogowanie ponownie sprawdzają ważność sesji, aby drugie żądanie
+ze starym tokenem nie ominęło unieważnienia. Nie potrzeba nowej migracji.
+
+Powiadomienie o zmianie hasła trafia wyłącznie na przypisany adres, gdy jest
+skonfigurowane SMTP. Nie zawiera haseł ani linku resetu. Jest zadaniem w tle,
+bez gwarancji trwałego doręczenia; awaria SMTP nie cofa udanej zmiany hasła.
+Zmiana adresu i jego potwierdzanie pozostają poza tym przyrostem. Testy używają
+atrap SMTP, a rzeczywista wysyłka wymaga osobnego uzgodnienia.
+
 ## Synchronizacja pojazdów — SCRUM-15
 
 `SYNC_ENABLED=true` w lokalnym `.env` włącza jeden wspólny odczyt. `SYNC_INTERVAL_SECONDS`
@@ -160,6 +183,12 @@ PostgreSQL advisory lock i zapis czasu próby chronią limit także przy kilku
 procesach. Nie uruchamiaj równolegle diagnostyki w pętli. Awaria zachowuje dane
 ostatniego sukcesu; brak kompletnego raportu nie dezaktywuje pojazdów. Import
 aktualizuje wyłącznie pola pojazdu/pomiaru — nigdy ręcznych kierowców/przypisań.
+Synchronizator ponawia timeout, błąd połączenia, limit źródła i błędy HTTP 408,
+425 oraz 5xx maksymalnie do trzech prób na każdy raport (dwie ponowne próby),
+z co najmniej 10 s przerwy wymaganej przez raport i z uwzględnieniem `Retry-After`
+do 60 s. Adapter i diagnostyka pozostają bez automatycznych ponowień. Po
+wyczerpaniu prób API nadal udostępnia ostatni zapisany cache ze statusem źródła
+`degraded` i czasem ostatniego sukcesu.
 Historia przejazdów nie jest jeszcze synchronizowana. Jej import, postoje
 i harmonogram należą do SCRUM-24; adnotacje są kolejnym przyrostem.
 
@@ -167,11 +196,31 @@ i harmonogram należą do SCRUM-24; adnotacje są kolejnym przyrostem.
 
 Po zalogowaniu: `/api/v1/fleet/vehicles`, `/fleet/map`, `/fleet/summary` oraz
 `/fleet/vehicles/{UUID}` (wspólny prefiks `/api/v1`). Lista i mapa obsługują `q`
-i `status`; lista dodatkowo `page`/`page_size`. Mapa zwraca GeoJSON i obejmuje
+i `status`; lista dodatkowo `page`, `page_size` i `sort` (`name-asc`, `name-desc`,
+`status`, `odometer-asc`, `odometer-desc`). Sortowanie odbywa się przed
+paginacją. Mapa zwraca GeoJSON i obejmuje
 pasujące pozycje z całej listy, niezależnie od jej bieżącej strony. Pojazdy bez
-GPS pozostają na liście. Dane stare i brakujące mają jawne oznaczenia; prędkość
-pozostaje `null` do potwierdzenia jednostki. Publiczne API nie zwraca UID źródła.
+GPS pozostają na liście. Prędkość świeżego, poprawnego pomiaru jest podawana
+w `speed_kmh` (km/h, 0–300); brak, stary/przyszły pomiar, niedostępne źródło
+lub niepotwierdzony GPS oznaczają `null`, bez zastępowania braku zerem.
+[Kontrolne potwierdzenie jednostki](../docs/qa/SCRUM-14-speed-unit.md).
+Publiczne API nie zwraca UID źródła.
 `/docs` pokazuje aktualny OpenAPI; plan kolejnych operacji jest w contracts/.
+
+## Preferencje konta — SCRUM-91
+
+`GET` i `PUT /api/v1/preferences/dashboard` oraz `/api/v1/preferences/vehicles`
+wymagają sesji. Każdy moduł ma osobny rekord dla użytkownika. Odpowiedź zawiera
+`module`, `version`, `value` i `updated_at`; zapis przyjmuje
+`{"version": <odczytana wersja>, "value": <ustawienia>}`. Zmiana zapisanej już
+wersji wymaga bieżącej wartości `version`; niezgodność zwraca `409
+VERSION_CONFLICT`, bez cichego nadpisania. Wartości są walidowane według modułu.
+
+Pulpit przechowuje widoczne widgety i układy desktop/compact. Pojazdy przechowują
+układ kafelków, sortowanie, filtry wyszukiwania/statusu i limit strony. Migracja
+`0006` tworzy tabelę `account_preferences`. Import zastanych ustawień
+`localStorage` wykonuje się dopiero po wyborze użytkownika i wyłącznie przy
+wersji 0, więc nie zastępuje istniejących preferencji konta.
 
 ## Reset hasła przez e-mail — SCRUM-44
 

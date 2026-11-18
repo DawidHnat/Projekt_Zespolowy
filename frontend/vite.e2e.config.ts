@@ -10,4 +10,10 @@ export default mergeConfig(base, defineConfig({
     strictPort: true,
     proxy: { "/api": { target: "http://127.0.0.1:58000", changeOrigin: false } },
   },
+  preview: {
+    host: "127.0.0.1",
+    port: 54173,
+    strictPort: true,
+    proxy: { "/api": { target: "http://127.0.0.1:58000", changeOrigin: false } },
+  },
 }));

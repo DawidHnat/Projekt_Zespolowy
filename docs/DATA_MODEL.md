@@ -18,6 +18,7 @@ opis operacji nie oznacza jej implementacji.
 | DailyDistance | Vehicle + polska data pomiaru; dystans i granice obserwacji | dolna granica dystansu z kolejnych pomiarów, nie pełna historia dnia (SCRUM-31) |
 | Alert | UUID, Rule, Vehicle, czas zdarzenia, klucz deduplikacji | wynik reguły; odczyt osobno per User w AlertReceipt |
 | User / Session | UUID / hash losowego tokenu sesji, termin ważności | lokalne konta aplikacji, niezależne od Driver i WEBFLEET |
+| AccountPreference | `(User, module)`, wersja, JSON, czas zmiany | układ i widoki danego użytkownika (SCRUM-91) |
 | SyncState | klucz konta źródła, próba/sukces, bezpieczny kod błędu | koordynacja odpytywania i stan pamięci podręcznej |
 
 UID dostawcy pozostaje wewnętrzny; API pokazuje UUID aplikacji. Zmiana nazwy,
@@ -33,9 +34,10 @@ User oznacza osobę korzystającą z aplikacji, Driver — ręcznie opisany wpis
   jakości nie są traktowane jako aktualny punkt. `(0, 0)` nie jest brakiem danych.
 - Licznik: km, maksymalnie jeden znak dziesiętny; snapshot WEBFLEET ma jednostkę
   100 m. Dystans przejazdu: km z konwersji metrów; czas trwania: sekundy.
-- Prędkość: `speed_kmh` lub `null`. Jednostka pola snapshotu nie została
-  potwierdzona w SCRUM-14, dlatego pierwszy przyrost zwraca `null`.
-  Jednostki raportu tras nie przenosimy automatycznie na snapshot.
+- Prędkość: `speed_kmh` w km/h (0–300) lub `null`. Jednostkę snapshotu
+  potwierdzono [kontrolnym porównaniem tego samego zdarzenia](qa/SCRUM-14-speed-unit.md)
+  18.11.2026; wartość źródłowa nie wymaga przeliczenia. Brak, stary/przyszły
+  pomiar, błąd źródła lub niepotwierdzony GPS dają `null`; zero pozostaje zerem.
 - Daty: ISO 8601 z UTC (`Z` lub `+00:00`), świadome strefy w bazie. Przeglądarka
   prezentuje `Europe/Warsaw`. Przedziały raportów są półotwarte `[from, to)`.
   Formularz lokalnych dat przelicza obie granice osobno, również przy zmianie DST.
@@ -52,7 +54,9 @@ User oznacza osobę korzystającą z aplikacji, Driver — ręcznie opisany wpis
 ## Zasady HTTP
 
 Prefiks `/api/v1`. Paginacja: `page` od 1, `page_size` 1–100, domyślnie 25;
-`total` po filtrach. Sortowanie listy po nazwie i UUID jest stabilne. `q` szuka
+`total` po filtrach. Lista Pojazdów obsługuje sortowanie przed paginacją:
+`name-asc`, `name-desc`, `status`, `odometer-asc` i `odometer-desc`, ze stabilnym
+rozstrzygnięciem po nazwie/UUID. `q` szuka
 w nazwie, rejestracji i numerze, maksymalnie 100 znaków; `status` jest enumem.
 Mapa pobiera te same filtry, wszystkie pasujące pozycje (bez paginacji listy).
 Źródło nie jest odpytywane na żądanie przeglądarki. Wspólny worker synchronizuje
@@ -65,6 +69,11 @@ Brak publicznej rejestracji. Błędy: `{ "error": { "code": "...", "message":
 "..." } }`, bez treści odpowiedzi dostawcy, SQL, sekretów czy stack trace.
 400/422 — walidacja, 401 — brak sesji, 403 — rola/Origin, 404 — brak rekordu,
 409 — konflikt wersji, 429 — limit, 503 — niedostępna zależność.
+
+Preferencje konta mają osobne moduły `dashboard` i `vehicles` pod
+`/api/v1/preferences/{module}`. PUT wymaga odczytanej wersji i atomowo odrzuca
+przestarzały zapis kodem 409. Migracja istniejącego stanu przeglądarki wymaga
+jawnego wyboru i działa tylko wtedy, gdy konto nie ma jeszcze preferencji.
 
 SCRUM-26 dodaje tabelę `trips`, odczyt zapisanych przejazdów oraz osobną tabelę
 `trip_annotations` na cel i opis. Brak notatki ma w API wersję 1; pierwszy zapis

@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from math import isfinite
 
 from sqlalchemy import select
 
@@ -22,10 +23,10 @@ def source_payload(session, source):
     }
 
 
-def serialize_vehicle(vehicle, measurement, driver, now, stale_seconds):
+def serialize_vehicle(vehicle, measurement, driver, now, stale_seconds, source_degraded=False):
     time = aware(measurement.position_at) if measurement and measurement.position_at else None
     age = (now - time).total_seconds() if time else None
-    stale = age is None or age > stale_seconds or age < -300
+    stale = source_degraded or age is None or age > stale_seconds or age < -300
     status = "unknown"
     if measurement:
         if stale:
@@ -46,6 +47,10 @@ def serialize_vehicle(vehicle, measurement, driver, now, stale_seconds):
         "number": vehicle.number,
         "license_plate": vehicle.license_plate,
         "vehicle_type": vehicle.vehicle_type,
+        "make": vehicle.make,
+        "model": vehicle.model,
+        "year": vehicle.year,
+        "vin": vehicle.vin,
         "status": status,
         "driver": {"id": str(driver.id), "display_name": driver.display_name} if driver else None,
         "latitude": measurement.latitude if located else None,
@@ -53,16 +58,24 @@ def serialize_vehicle(vehicle, measurement, driver, now, stale_seconds):
         "position_at": timestamp(time),
         "received_at": timestamp(measurement.received_at) if measurement else None,
         "is_stale": stale,
+        "position_address": measurement.position_address if measurement else None,
         "odometer_km": float(measurement.odometer_km)
         if measurement and measurement.odometer_km is not None
         else None,
-        "speed_kmh": None,  # Snapshot units remain unconfirmed in SCRUM-14.
+        "speed_kmh": float(measurement.speed_kmh)
+        if located
+        and not stale
+        and age >= 0
+        and measurement.speed_kmh is not None
+        and isfinite(measurement.speed_kmh)
+        and 0 <= measurement.speed_kmh <= 300
+        else None,
         "ignition_on": measurement.ignition_on if measurement else None,
         "standing_still": measurement.standing_still if measurement else None,
     }
 
 
-def fleet_rows(session, source, stale_seconds, q="", status=None):
+def fleet_rows(session, source, stale_seconds, q="", status=None, *, source_degraded=False):
     statement = (
         select(Vehicle, Measurement, Driver)
         .outerjoin(Measurement, Measurement.vehicle_id == Vehicle.id)
@@ -75,7 +88,7 @@ def fleet_rows(session, source, stale_seconds, q="", status=None):
     records = session.execute(statement).all()
     if len(records) > 10000:
         raise ApiError(503, "FLEET_TOO_LARGE", "Flota wymaga dodatkowej konfiguracji stronicowania")
-    items = [serialize_vehicle(*row, now, stale_seconds) for row in records]
+    items = [serialize_vehicle(*row, now, stale_seconds, source_degraded) for row in records]
     needle = q.strip().casefold()
     return [
         item
@@ -85,7 +98,29 @@ def fleet_rows(session, source, stale_seconds, q="", status=None):
             not needle
             or any(
                 needle in (item[field] or "").casefold()
-                for field in ("name", "number", "license_plate")
+                for field in ("name", "number", "license_plate", "make", "model", "vin")
             )
         )
     ]
+
+
+def sort_fleet_rows(items, sort):
+    def name_key(item):
+        return item["name"].casefold(), item["id"]
+
+    if sort == "name-desc":
+        by_id = sorted(items, key=lambda item: item["id"])
+        return sorted(by_id, key=lambda item: item["name"].casefold(), reverse=True)
+    if sort == "status":
+        order = {"moving": 0, "stopped": 1, "offline": 2, "unknown": 3}
+        return sorted(items, key=lambda item: (order[item["status"]], *name_key(item)))
+    if sort in ("odometer-asc", "odometer-desc"):
+        descending = sort == "odometer-desc"
+
+        def odometer_key(item):
+            odometer = item["odometer_km"]
+            value = -(odometer or 0) if descending else (odometer or 0)
+            return odometer is None, value, *name_key(item)
+
+        return sorted(items, key=odometer_key)
+    return sorted(items, key=name_key)

@@ -3,7 +3,7 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapPin, Scan, X } from "lucide-react";
 import { useFleet } from "../model/FleetProvider";
-import { boundsForFeatures, validFeatures } from "../model/map-model";
+import { boundsForFeatures, mapEmptyState, validFeatures } from "../model/map-model";
 import { statusLabels } from "../model/types";
 import { LayoutEditingContext } from "../../../shared/components/LayoutEditingContext";
 import { EmptyState } from "../../../shared/components/EmptyState";
@@ -33,6 +33,12 @@ export default function VehicleMap() {
   const [mapSize, setMapSize] = useState({ width: 0, height: 0 });
   const fitted = useRef(false);
   const features = validFeatures(fleet.map);
+  const emptyState = mapEmptyState(
+    fleet.map,
+    fleet.loading,
+    fleet.error,
+    Boolean(fleet.q.trim() || fleet.status),
+  );
   useEffect(() => {
     fitted.current = false;
   }, [fleet.q, fleet.status]);
@@ -203,17 +209,40 @@ export default function VehicleMap() {
           />
         </div>
       )}
-      {!failure && !features.length && ready && (
-        <div className="map-zero" role="status">
-          Brak pozycji GPS dla wybranych filtrów.
+      {!failure && emptyState && !editing && !fleet.selectedId && (
+        <div className="map-status" role="status">
+          <MapPin size={18} aria-hidden="true" />
+          <div>
+            <strong>{emptyState.title}</strong>
+            <p>{emptyState.description}</p>
+            {emptyState.action === "retry" && (
+              <button className="button button-secondary" onClick={fleet.refresh}>
+                Spróbuj ponownie
+              </button>
+            )}
+            {emptyState.action === "clear" && (
+              <button
+                className="button button-secondary"
+                onClick={() => {
+                  fleet.setQ("");
+                  fleet.setStatus("");
+                }}
+              >
+                Wyczyść filtry
+              </button>
+            )}
+          </div>
         </div>
       )}
       <span className="map-note">
         {editing
           ? "Chwyć mapę, aby przesunąć kafelek"
-          : `${features.length} pozycji · ${fleet.map?.total ?? 0} pojazdów`}
+          : fleet.map
+            ? `${features.length} pozycji · ${fleet.map.total} pojazdów`
+            : "Oczekiwanie na dane floty"}
       </span>
-      <button
+      {!!features.length && (
+        <button
         className="map-fit button button-secondary"
         aria-label="Pokaż całą flotę na mapie"
         disabled={editing || !ready || !features.length}
@@ -231,7 +260,8 @@ export default function VehicleMap() {
       >
         <Scan size={15} />
         <span>Cała flota</span>
-      </button>
+        </button>
+      )}
       {fleet.selectedId && !editing && !overlap.length && (
         <VehicleMapPreview
           vehicle={fleet.selected}

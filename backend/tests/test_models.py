@@ -44,6 +44,35 @@ def test_invalid_odometer_is_unknown(value):
     assert ObjectSnapshot.from_record({"objectuid": "test", "odometer": value}).odometer_km is None
 
 
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        (0, Decimal("0.0")),
+        ("0", Decimal("0.0")),
+        ("12345", Decimal("1234.5")),
+        ("99999999999999", Decimal("9999999999999.9")),
+    ],
+)
+def test_valid_odometer_quantized_to_single_decimal_digit(raw, expected):
+    snapshot = ObjectSnapshot.from_record({"objectuid": "test", "odometer": raw})
+    assert snapshot.odometer_km == expected
+
+
+@pytest.mark.parametrize(
+    "overflow_value",
+    [
+        100_000_000_000_000,
+        1_000_000_000_000_000,
+        "1e15",
+        "1e100",
+        Decimal("1e100"),
+    ],
+)
+def test_odometer_exceeding_numeric_14_1_raises_value_error(overflow_value):
+    with pytest.raises(ValueError, match="Numeric\\(14,1\\)"):
+        ObjectSnapshot.from_record({"objectuid": "test", "odometer": overflow_value})
+
+
 @pytest.mark.parametrize("value", [91_000_000, -91_000_000, 0.5, "NaN", "broken"])
 def test_invalid_latitude_is_not_drawn_on_a_map(value):
     assert (
@@ -66,3 +95,29 @@ def test_naive_time_does_not_assume_the_servers_timezone():
 def test_missing_stable_id_is_not_replaced_with_mutable_object_number():
     with pytest.raises(ValueError, match="objectuid"):
         ObjectSnapshot.from_record({"objectno": "test"})
+
+
+def test_speed_and_position_address_are_parsed_and_validated():
+    record = {
+        "objectuid": "fictional-unit-test",
+        "speed": "55.0",
+        "postext": "  Gdańsk, ul. Długa 1  ",
+    }
+    snapshot = ObjectSnapshot.from_record(record)
+    assert snapshot.speed_kmh == Decimal("55.0")
+    assert snapshot.position_address == "Gdańsk, ul. Długa 1"
+
+
+@pytest.mark.parametrize("value", ["NaN", "Infinity", "broken", -1, 301, True, ""])
+def test_invalid_speed_stays_unknown_and_is_not_filled_with_zeros(value):
+    assert ObjectSnapshot.from_record({"objectuid": "test", "speed": value}).speed_kmh is None
+
+
+def test_missing_speed_stays_none():
+    assert ObjectSnapshot.from_record({"objectuid": "test"}).speed_kmh is None
+
+
+@pytest.mark.parametrize("value", [None, "", "   ", 123])
+def test_empty_or_invalid_address_is_none(value):
+    snapshot = ObjectSnapshot.from_record({"objectuid": "test", "postext": value})
+    assert snapshot.position_address is None
