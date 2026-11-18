@@ -28,6 +28,8 @@ export function FleetNotice() {
   return f.list ? (
     <p className="fleet-update" role="status">
       Ostatnia synchronizacja: {lastSuccess}.
+      {f.list.items.some(vehicle => vehicle.is_stale) &&
+        " Synchronizacja działa; przy pojazdach pokazujemy wiek ich ostatniej pozycji GPS."}
     </p>
   ) : null;
 }
