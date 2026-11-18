@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_session
 from app.core.errors import ApiError
 from app.modules.auth.models import LoginSession, User
+from app.modules.auth.policies import can_authenticate, can_edit
 
 COOKIE_NAME = "fleet_flow_session"
 password_hasher = PasswordHash.recommended()
@@ -42,7 +43,7 @@ def current_user(request: Request, session: Annotated[Session, Depends(get_sessi
     if not login or aware(login.expires_at) <= now_utc():
         raise ApiError(401, "UNAUTHENTICATED", "Sesja wygasła — zaloguj się ponownie")
     user = session.get(User, login.user_id)
-    if not user or not user.active or user.role not in ("admin", "editor", "viewer"):
+    if not user or not user.active or not can_authenticate(user.role):
         raise ApiError(401, "UNAUTHENTICATED", "Konto jest niedostępne")
     return user
 
@@ -50,7 +51,7 @@ def current_user(request: Request, session: Annotated[Session, Depends(get_sessi
 def editor(
     user: Annotated[User, Depends(current_user)], _: Annotated[None, Depends(check_origin)]
 ) -> User:
-    if user.role not in ("admin", "editor"):
+    if not can_edit(user.role):
         raise ApiError(403, "FORBIDDEN", "Ta operacja wymaga uprawnień do edycji")
     return user
 
