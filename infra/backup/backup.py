@@ -7,6 +7,7 @@ import json
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -261,8 +262,16 @@ def restore_check(state, snapshot):
         mark_success(state, "restore", snapshot=identity)
 
 
+def interrupt_operation(_signal, _frame):
+    # Let finally blocks remove plaintext and the detached restore container.
+    # Repeated stop requests must not interrupt that cleanup.
+    signal.signal(signal.SIGTERM, signal.SIG_IGN)
+    raise BackupError("operation_interrupted")
+
+
 def main():
     os.umask(0o077)
+    previous_sigterm = signal.signal(signal.SIGTERM, interrupt_operation)
     try:
         if len(sys.argv) < 2 or sys.argv[1] not in ("backup", "restore-check") or len(sys.argv) > 3:
             raise BackupError("usage_backup_or_restore_check")
@@ -285,6 +294,8 @@ def main():
             '{"event":"backup_operation_failed","code":"unexpected_error"}',
             file=sys.stderr,
         )
+    finally:
+        signal.signal(signal.SIGTERM, previous_sigterm)
     return 1
 
 

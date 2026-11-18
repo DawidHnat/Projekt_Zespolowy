@@ -4,6 +4,9 @@ import importlib.util
 import json
 import os
 import subprocess
+import sys
+import textwrap
+import time
 from pathlib import Path
 from uuid import uuid4
 
@@ -122,6 +125,82 @@ def test_restore_failure_cleans_container_and_does_not_mark_success(tmp_path, mo
         backup.restore_check(tmp_path, "latest")
     assert calls[-1][:3] == ["docker", "rm", "-f"]
     assert not (tmp_path / "last-restore.json").exists()
+
+
+@pytest.mark.parametrize("operation", ["backup", "restore-check"])
+def test_sigterm_cleans_plaintext_and_releases_operation_lock(tmp_path, operation):
+    state = tmp_path / "state"
+    ready = tmp_path / "ready"
+    script = textwrap.dedent(
+        """
+        import importlib.util
+        import os
+        import signal
+        import sys
+        from pathlib import Path
+
+        source, state, operation, ready = sys.argv[1:]
+        state, ready = Path(state), Path(ready)
+        spec = importlib.util.spec_from_file_location("backup", source)
+        backup = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(backup)
+        os.environ["FLEET_FLOW_BACKUP_STATE"] = str(state)
+        backup.validate_repository = lambda: None
+        backup.compose_command = lambda: (["synthetic-dump"], "a" * 40)
+
+        def wait_for_stop():
+            ready.write_text("ready")
+            signal.pause()
+            raise RuntimeError("operation continued after interruption")
+
+        def run(args, *, output=None):
+            if args[0] == "synthetic-dump":
+                output.write(b"synthetic-plaintext")
+                output.flush()
+                wait_for_stop()
+            elif args[:3] == ["docker", "run", "-d"]:
+                (state / "container-running").touch()
+            elif args[:3] == ["docker", "rm", "-f"]:
+                (state / "container-running").unlink()
+            return b""
+
+        def download(snapshot, target):
+            dump = target / "synthetic.dump"
+            dump.write_bytes(b"synthetic-plaintext")
+            return dump, "a" * 64
+
+        backup.run = run
+        backup.download = download
+        backup.subprocess.run = lambda *args, **kwargs: wait_for_stop()
+        sys.argv = [source, operation]
+        sys.exit(backup.main())
+        """
+    )
+    process = subprocess.Popen(
+        [sys.executable, "-c", script, spec.origin, str(state), operation, str(ready)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    try:
+        deadline = time.monotonic() + 10
+        while not ready.exists() and process.poll() is None and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert ready.exists(), "Synthetic operation did not reach its interruption point"
+        process.terminate()
+        stdout, stderr = process.communicate(timeout=10)
+        assert process.returncode == 1
+        assert stdout == b""
+        assert json.loads(stderr)["code"] == "operation_interrupted"
+        assert not (state / "container-running").exists()
+        assert not list(state.rglob("*.dump"))
+        assert not (state / "payload").exists()
+        assert not list(state.glob("last-*.json"))
+        with backup.locked_state(state):
+            pass
+    finally:
+        if process.poll() is None:
+            process.kill()
+            process.communicate(timeout=5)
 
 
 @pytest.mark.skipif(

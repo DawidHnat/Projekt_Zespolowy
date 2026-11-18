@@ -75,6 +75,8 @@ nadpisywania działającej bazy. Zmierz rzeczywiste RPO/RTO i sprawdź relacje d
 
 Nieudane polecenie kończy się kodem 1 i bezpiecznym kodem błędu w journalu.
 Nie wypisuje URL storage, stderr dostawcy, danych bazy ani zmiennych środowiska.
+SIGTERM kończy operację kodem `operation_interrupted` po sprzątnięciu tymczasowego
+dumpu i kontenera restore. Przerwanie nie odświeża znacznika sukcesu.
 `/var/lib/fleet-flow-backup/last-backup.json` i `last-restore.json` są atomowymi
 znacznikami **ostatniego pełnego sukcesu**; awaria ich nie odświeża. Podłącz
 monitoring systemd failed oraz alarm wieku backupu >7 h i restore >32 dni.
