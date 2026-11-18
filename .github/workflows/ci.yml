@@ -197,11 +197,16 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+      - name: Validate the expiring prose false positive
+        run: |
+          python3 -m unittest discover -s tools -p test_gitleaks_false_positives.py -v
+          python3 tools/gitleaks_false_positives.py > "$RUNNER_TEMP/gitleaks.ignore"
       - name: Scan repository history with full secret redaction and no network
         run: |
-          docker run --rm --network none -v "$PWD:/repo:ro" -w /repo \
+          docker run --rm --network none -v "$PWD:/repo:ro" \
+            -v "$RUNNER_TEMP/gitleaks.ignore:/gitleaks.ignore:ro" -w /repo \
             ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f \
-            git --redact=100 --no-banner --log-opts=HEAD
+            git --redact=100 --no-banner --log-opts=HEAD --gitleaks-ignore-path=/gitleaks.ignore
 
   e2e:
     name: Critical browser flows

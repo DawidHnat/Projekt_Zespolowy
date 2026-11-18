@@ -97,7 +97,29 @@ nie jest to uzasadnienie dla wyłączenia kontroli.
 4. Nie dodawaj `continue-on-error`, globalnego ignore, `--ignore-unfixed`,
    `nosemgrep`, szerokich allowlist ani omijania Required CI.
 
-Na tej gałęzi nie wprowadzono wyjątków. Nieznany stan zabezpieczenia to BLOCKED.
+### Wyjątek tekstowy do niezależnego review — 18.11.2026
+
+Właściciel: Jakub Czaja; zadanie: SCRUM-133; proponowany odbiór: reviewer
+bezpieczeństwa PR #101 (Dawid Hnat). Wyjątek jest częścią tego PR i nadal
+wymaga niezależnego review; nie jest zatwierdzeniem odbioru ASVS.
+
+Gitleaks `generic-api-key` błędnie interpretuje polskie „zapisuj:” oraz
+„oczekiwany/faktyczny” w instrukcji dokumentowania wyników QA jako klucz.
+To zwykła proza, bez poświadczenia i bez dostępu do jakiejkolwiek usługi.
+Przypięty skaner odtwarza dokładnie jedno znalezisko:
+
+`aee868abdc2979681fa1e113698e1bd4d473ebf0:docs/COURSE_AGENT_HANDOFFS.md:generic-api-key:22`
+
+Wykluczenie dotyczy wyłącznie tego fingerprintu (commit, plik, reguła, linia),
+nie całego pliku ani reguły. Zmiana aktualnego tekstu nie usuwa znaleziska
+z historii. Generator `tools/gitleaks_false_positives.py` przerywa CI od
+**18.12.2026, 00:00 UTC**. Wtedy wymagane jest ponowne review albo usunięcie
+wyjątku po poprawieniu detekcji w przypiętej wersji Gitleaks. Właściciel śledzi
+usunięcie wyjątku w SCRUM-133. Cała historia HEAD i pozostałe reguły nadal są
+skanowane, z pełną redakcją i bez sieci. Kontrolny syntetyczny sekret poza
+repozytorium służy do sprawdzenia, że inny fingerprint nadal blokuje skan.
+
+Nieznany stan zabezpieczenia to BLOCKED.
 
 ## Read-back main i pozostałe warunki odbioru
 
