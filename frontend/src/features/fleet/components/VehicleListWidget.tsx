@@ -25,9 +25,12 @@ export function VehicleListWidget({
       : isFiltered
         ? "Brak wyników"
         : "Flota jest pusta";
-  const emptyDescription = f.error || (isFiltered
-    ? "Nie znaleziono pojazdów dla wybranych filtrów."
-    : "Nie ma jeszcze pojazdów do wyświetlenia.");
+  const emptyDescription = f.loading
+    ? "Pobieramy dane dla wybranych filtrów."
+    : f.error ? "Twoje filtry zostały zachowane. Możesz ponowić pobieranie."
+      : (isFiltered
+      ? "Zmień wyszukiwanie, status lub wyczyść filtry."
+      : "Nie ma jeszcze pojazdów do wyświetlenia.");
   return (
     <WidgetFrame
       title="Pojazdy"
