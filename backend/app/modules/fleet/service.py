@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from math import isfinite
 
 from sqlalchemy import case, false, func, or_, select
 
@@ -109,7 +110,14 @@ def serialize_vehicle(vehicle, measurement, driver, now, stale_seconds, source_d
         "odometer_km": float(measurement.odometer_km)
         if measurement and measurement.odometer_km is not None
         else None,
-        "speed_kmh": None,  # Snapshot units remain unconfirmed in SCRUM-14.
+        "speed_kmh": float(measurement.speed_kmh)
+        if located
+        and not stale
+        and age >= 0
+        and measurement.speed_kmh is not None
+        and isfinite(measurement.speed_kmh)
+        and 0 <= measurement.speed_kmh <= 300
+        else None,
         "ignition_on": measurement.ignition_on if measurement else None,
         "standing_still": measurement.standing_still if measurement else None,
     }

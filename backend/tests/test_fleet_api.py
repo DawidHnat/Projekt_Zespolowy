@@ -170,7 +170,7 @@ def test_vehicle_card_patch_telemetry_and_stale_address(logged_in):
         session.commit()
 
     detail = client.get(f"/api/v1/fleet/vehicles/{vehicle_id}").json()
-    assert detail["speed_kmh"] is None
+    assert detail["speed_kmh"] == 60.0
     assert detail["position_address"] == "Gdańsk, Targ Węglowy"
     assert detail["is_stale"] is False
 
@@ -184,6 +184,7 @@ def test_vehicle_card_patch_telemetry_and_stale_address(logged_in):
     assert detail_stale["position_address"] == "Gdańsk, Targ Węglowy"
     assert detail_stale["is_stale"] is True
     assert detail_stale["status"] == "offline"
+    assert detail_stale["speed_kmh"] is None
 
     path = f"/api/v1/fleet/vehicles/{vehicle_id}"
 

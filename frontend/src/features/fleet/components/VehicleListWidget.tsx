@@ -6,10 +6,10 @@ import { useFleet } from "../model/FleetProvider";
 import {
   measurementLabel,
   positionCoordinates,
-  positionTime,
   statusLabels,
 } from "../model/types";
 import { FleetNotice } from "./FleetNotice";
+import { VehiclePositionTime } from "./VehiclePositionTime";
 import { FleetFilters, FleetPagination } from "./FleetControls";
 export function VehicleListWidget({
   variant = "table",
@@ -67,10 +67,17 @@ export function VehicleListWidget({
                   {positionCoordinates(v.latitude, v.longitude)}
                 </small>
                 <small className="vehicle-card-measurements">
-                  <span>Prędkość · {measurementLabel(v.speed_kmh, "km/h", 0)}</span>
+                  {!v.is_stale &&
+                    v.speed_kmh !== null &&
+                    Number.isFinite(v.speed_kmh) &&
+                    v.speed_kmh >= 0 && (
+                    <span>Prędkość · {measurementLabel(v.speed_kmh, "km/h", 0)}</span>
+                  )}
                   <span>Przebieg · {measurementLabel(v.odometer_km, "km")}</span>
                 </small>
-                <small className="vehicle-card-time">{positionTime(v.position_at)}</small>
+                <small className="vehicle-card-time">
+                  <VehiclePositionTime value={v.position_at} />
+                </small>
               </button>
             ))}
           </div>
@@ -85,7 +92,7 @@ export function VehicleListWidget({
                   <th>Kierowca</th>
                   <th>Prędkość</th>
                   <th>Przebieg</th>
-                  <th>Pomiar · czas polski</th>
+                  <th>Pozycja GPS</th>
                 </tr>
               </thead>
               <tbody>
@@ -113,9 +120,13 @@ export function VehicleListWidget({
                       </span>
                     </td>
                     <td title={driverNames(v)}>{driverLabel(v)}</td>
-                    <td>{measurementLabel(v.speed_kmh, "km/h", 0)}</td>
+                    <td>
+                      {measurementLabel(v.is_stale ? null : v.speed_kmh, "km/h", 0)}
+                    </td>
                     <td>{measurementLabel(v.odometer_km, "km")}</td>
-                    <td>{positionTime(v.position_at)}</td>
+                    <td>
+                      <VehiclePositionTime value={v.position_at} />
+                    </td>
                   </tr>
                 ))}
               </tbody>

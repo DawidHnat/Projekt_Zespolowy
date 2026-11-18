@@ -3,7 +3,8 @@ import { useEffect, useId, useRef } from "react";
 import { VehiclePhoto } from "./VehiclePhoto";
 import { useVehiclePreferences } from "../model/VehiclePreferences";
 import { vehiclePreview } from "../model/vehicle-preview";
-import { positionTime, statusLabels, type Vehicle } from "../model/types";
+import { statusLabels, type Vehicle } from "../model/types";
+import { VehiclePositionTime } from "./VehiclePositionTime";
 
 export function VehicleMapPreview({
   vehicle,
@@ -58,10 +59,10 @@ export function VehicleMapPreview({
             <span className={`vehicle-status status-${vehicle.status}`}>
               {statusLabels[vehicle.status]}
             </span>
-            {info.moving && (
+            {info.speed !== null && (
               <span className="map-preview-speed">
                 <Gauge size={15} aria-hidden="true" />
-                {info.speed === null ? "Brak odczytu prędkości" : `${info.speed} km/h`}
+                {info.speed} km/h
               </span>
             )}
           </div>
@@ -73,9 +74,9 @@ export function VehicleMapPreview({
             </div>
           </div>
           <footer className="map-preview-footer">
-            <span title="Czas pomiaru · czas polski">
+            <span>
               <Clock3 size={13} aria-hidden="true" />
-              <span>{vehicle.position_at && "Pomiar · "}{positionTime(vehicle.position_at)}</span>
+              <VehiclePositionTime value={vehicle.position_at} />
             </span>
             <button className="button button-secondary" onClick={onDetails}>
               Szczegóły <ArrowUpRight size={15} aria-hidden="true" />

@@ -640,6 +640,24 @@ test("multiple manual drivers are represented without an arbitrary primary drive
   expect((await search.json()).total).toBe(2);
   await page.goto("/#dashboard");
   await expect(page.getByRole("cell", { name: "2 kierowców", exact: true })).toBeVisible();
+  // Preserve both sides of the integration: multiple drivers and protection
+  // against a cached stale speed being presented as a current measurement.
+  await page.route("**/api/v1/fleet/vehicles?**", async route => {
+    const response = await route.fetch();
+    const data = await response.json();
+    await route.fulfill({ response, json: {
+      ...data,
+      items: data.items.map((item: Record<string, unknown>) => ({
+        ...item, is_stale: true, status: "offline", speed_kmh: 88,
+      })),
+    } });
+  });
+  await page.reload();
+  const row = page.locator(".vehicle-table tbody tr").filter({ hasText: "Pojazd E2E" });
+  await expect(row.getByRole("cell", { name: "2 kierowców", exact: true }))
+    .toHaveAttribute("title", "Kierowca E2E A, Kierowca E2E B");
+  await expect(row.getByRole("cell", { name: "Brak danych", exact: true })).toBeVisible();
+  await expect(row).not.toContainText("88 km/h");
   await page.screenshot({ path: test.info().outputPath("multiple-drivers.png") });
 });
 for (const theme of ["light", "dark"]) {
