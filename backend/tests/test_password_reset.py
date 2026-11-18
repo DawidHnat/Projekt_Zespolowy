@@ -282,15 +282,20 @@ def test_postgres_login_with_old_password_cannot_outlive_reset(monkeypatch):
             )
             # Release reset only once the concurrent login is waiting on its transaction.
             with app.state.engine.connect() as connection:
-                deadline = monotonic() + 10
+                deadline = monotonic() + 5
                 while not connection.scalar(
                     text(
                         "SELECT EXISTS (SELECT FROM pg_stat_activity "
                         "WHERE datname = current_database() "
+                        "AND pid <> pg_backend_pid() "
+                        "AND wait_event_type = 'Lock' "
+                        "AND query LIKE '%FROM users%FOR UPDATE%' "
                         "AND cardinality(pg_blocking_pids(pid)) > 0)"
                     )
                 ):
                     assert monotonic() < deadline
+                    connection.execute(text("SELECT pg_stat_clear_snapshot()"))
+                    connection.commit()
                     sleep(0.02)
         finally:
             finish_reset.set()
