@@ -27,6 +27,18 @@ def account_key(account: str) -> str:
     return hashlib.sha256(account.strip().lower().encode()).hexdigest()
 
 
+def source_lock_id(source: str) -> int:
+    return int.from_bytes(bytes.fromhex(source)[:8], signed=True)
+
+
+def minimum_sync_interval(interval: int) -> int:
+    return max(
+        interval,
+        REQUEST_INTERVALS["showVehicleReportExtern"],
+        REQUEST_INTERVALS["showObjectReportExtern"],
+    )
+
+
 class RetryTracker:
     def __init__(self, sleep_fn=asyncio.sleep):
         self.sleep_fn = sleep_fn
@@ -156,13 +168,9 @@ def sync_once(
 ):
     supplied_now = now is not None
     now = aware(now) if supplied_now else datetime.now(UTC)
-    minimum_interval = max(
-        sync_interval_seconds,
-        REQUEST_INTERVALS["showVehicleReportExtern"],
-        REQUEST_INTERVALS["showObjectReportExtern"],
-    )
+    minimum_interval = minimum_sync_interval(sync_interval_seconds)
     source = account_key(settings.account)
-    lock_id = int.from_bytes(bytes.fromhex(source)[:8], signed=True)
+    lock_id = source_lock_id(source)
     with engine.connect() as connection:
         locked = connection.execute(
             text("SELECT pg_try_advisory_lock(:key)"), {"key": lock_id}

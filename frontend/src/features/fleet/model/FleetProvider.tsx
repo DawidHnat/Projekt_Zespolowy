@@ -12,6 +12,7 @@ import { useAuth } from "../../auth/AuthProvider";
 import { normalizePageSize } from "../../../shared/components/pagination-model";
 import { fleetPollInterval } from "./types";
 import { useVehiclePreferences } from "./VehiclePreferences";
+import { useSourceRefresh } from "./useSourceRefresh";
 import type {
   FleetMap,
   Summary,
@@ -46,6 +47,7 @@ type FleetState = {
   inspect: (id: string) => void;
   closeDetails: () => void;
   refresh: () => void;
+  sourceRefresh: ReturnType<typeof useSourceRefresh>;
 };
 const Context = createContext<FleetState | null>(null);
 export function FleetProvider({ children }: { children: ReactNode }) {
@@ -76,6 +78,11 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const listPoll = useRef<ReturnType<typeof startPolling> | null>(null);
   const detailPoll = useRef<ReturnType<typeof startPolling> | null>(null);
+  const refresh = () => {
+    listPoll.current?.refresh();
+    detailPoll.current?.refresh();
+  };
+  const sourceRefresh = useSourceRefresh(refresh, fleetPollIntervalMs);
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQ(q), 250);
     return () => clearTimeout(timer);
@@ -203,10 +210,8 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
           setDetailsOpen(true);
         },
         closeDetails: () => setDetailsOpen(false),
-        refresh: () => {
-          listPoll.current?.refresh();
-          detailPoll.current?.refresh();
-        },
+        refresh,
+        sourceRefresh,
       }}
     >
       {children}

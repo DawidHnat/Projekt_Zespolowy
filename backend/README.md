@@ -207,6 +207,30 @@ lub niepotwierdzony GPS oznaczają `null`, bez zastępowania braku zerem.
 Publiczne API nie zwraca UID źródła.
 `/docs` pokazuje aktualny OpenAPI; plan kolejnych operacji jest w contracts/.
 
+## Ręczne odświeżanie floty — SCRUM-150
+
+`GET /api/v1/fleet/refresh` zwraca `enabled`, `running`, `server_time`,
+`next_allowed_at` i `retry_after_seconds`. Działa też przed pierwszym odczytem
+floty. Wymaga zalogowania; odpowiedzi nie są cache'owane w przeglądarce.
+
+`POST /api/v1/fleet/refresh` wymaga również zaufanego `Origin`. Może go użyć
+każda zalogowana rola, w tym viewer: operacja odczytuje źródło i aktualizuje
+wspólny cache, nie zmienia danych u dostawcy. Używa tego samego `sync_once`,
+blokady konta i stanu limitera co automatyczny worker. Domyślny odstęp wynosi
+60 s według `SYNC_INTERVAL_SECONDS`; backoff dostawcy może go wydłużyć.
+Kliknięcia z innych kart/użytkowników nie omijają tego odstępu.
+
+Odpowiedź HTTP 200 zawiera metadane dostępności oraz wynik polecenia:
+`updated`, `cooldown`, `busy`, `failed` lub `disabled`. To wynik próby,
+nie obietnica nowego pomiaru GPS. Dla `cooldown`/`busy`/`disabled` nie ma nowego
+odczytu dostawcy. Niespodziewany błąd zwraca bezpieczne 503. Przycisk nie włącza
+źródła: wymaga istniejącego `SYNC_ENABLED=true` i konfiguracji backendu.
+
+Status trwającej synchronizacji pochodzi z odczytu `pg_locks`, bez zajmowania
+blokady, która mogłaby opóźnić workera. Sposób identyfikacji klucza bigint:
+[dokumentacja PostgreSQL](https://www.postgresql.org/docs/17/view-pg-locks.html).
+[Scenariusze i wyniki weryfikacji](../docs/qa/SCRUM-150.md).
+
 ## Preferencje konta — SCRUM-91
 
 `GET` i `PUT /api/v1/preferences/dashboard` oraz `/api/v1/preferences/vehicles`
