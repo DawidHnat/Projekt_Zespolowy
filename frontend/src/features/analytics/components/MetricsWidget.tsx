@@ -8,6 +8,7 @@ import {
 import { WidgetFrame } from "../../../shared/components/WidgetFrame";
 
 import { useFleet } from "../../fleet/model/FleetProvider";
+import { statusLabels } from "../../fleet/model/types";
 
 const metrics = [
   { label: "Pojazdy we flocie", icon: Truck, tone: "accent", field: "total" },
@@ -24,7 +25,7 @@ const metrics = [
     field: "stopped",
   },
   {
-    label: "Dane nieaktualne",
+    label: statusLabels.offline,
     icon: BellRing,
     tone: "danger",
     field: "offline",
