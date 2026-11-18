@@ -1,4 +1,6 @@
-# Polecenia dla agentów — domknięcie oddań 4.1 i 4.2
+# Polecenia dla agentów — domknięcie oddań 3.2 i 4.2
+
+**Aktualizacja 18.11.2026:** numeracja źródłowa to 3.2/4.2. Najpierw przeczytać [bieżącą macierz](COURSE_READINESS.md) i najnowsze komentarze SCRUM-141. Macierze AC/DoD już istnieją, expiry FF-QA-031 i opisany test Offline są PASS; nie zaczynać ich dokumentacji od zera. #98 jest już na main, ale pełny review auth nadal otwarty. S2 wymaga poprawek i odbioru draftu #99 oraz retestów SCRUM-144/145/146. Poniższe przekazanie z 16.11 zachowano z tymi aktualizacjami.
 
 Stan przygotowania 16.11.2026, [SCRUM-143](https://fleet-flow.atlassian.net/browse/SCRUM-143). Polecenia należy przekazać agentom działającym na komputerach i kontach odpowiednich osób. Nie potwierdzają wykonania pracy przez te osoby. Wybór kandydatów: S1 SCRUM-16, S2 SCRUM-91; wszystkie ich AC pozostają wymagane.
 
@@ -7,7 +9,7 @@ Stan przygotowania 16.11.2026, [SCRUM-143](https://fleet-flow.atlassian.net/brow
 ```text
 Repozytorium: https://github.com/DawidHnat/Projekt_Zespolowy
 Jira: https://fleet-flow.atlassian.net/browse/
-Cel zespołu: rzetelnie domknąć zadanie 4.1 (S1/review/PR) oraz 4.2 (S2/bramy jakości/S3).
+Cel zespołu: rzetelnie domknąć zadanie 3.2 (S1/review/PR) oraz 4.2 (S2/bramy jakości/S3).
 
 Przeczytaj AGENTS.md, README, CONTRIBUTING, DEFINITION_OF_DONE.md i aktualne opisy/komentarze wskazanych zgłoszeń. Pobierz aktualny main; zachowaj lokalne zmiany i użyj osobnego worktree, jeśli trzeba. Nie pracuj na zapamiętanym SHA. Zmiany tylko przez gałąź z kluczem Jiry, Conventional Commits i PR z niezależnym review. Przed merge sprawdź wszystkie nowe tematy commitów dokładnym wzorcem z zadania; poprawny tytuł PR przy zwykłym merge nie poprawia tematów jego commitów. Nie zatwierdzaj własnego kodu, nie obchodź ochrony i nie włączaj automerge. Nie zmieniaj historii main ani autorstwa.
 
@@ -32,7 +34,7 @@ Zakończ tabelą: Story S1 — PASS/BLOCKED i braki; Story S2 — PASS/BLOCKED i
 ```text
 Repozytorium: https://github.com/DawidHnat/Projekt_Zespolowy
 Jira: https://fleet-flow.atlassian.net/browse/
-Cel zespołu: rzetelnie domknąć zadanie 4.1 (S1/review/PR) oraz 4.2 (S2/bramy jakości/S3).
+Cel zespołu: rzetelnie domknąć zadanie 3.2 (S1/review/PR) oraz 4.2 (S2/bramy jakości/S3).
 
 Przeczytaj AGENTS.md, README, CONTRIBUTING, DEFINITION_OF_DONE.md i aktualne opisy/komentarze wskazanych zgłoszeń. Pobierz aktualny main; zachowaj lokalne zmiany i użyj osobnego worktree, jeśli trzeba. Nie pracuj na zapamiętanym SHA. Zmiany tylko przez gałąź z kluczem Jiry, Conventional Commits i PR z niezależnym review. Przed merge sprawdź wszystkie nowe tematy commitów dokładnym wzorcem z zadania; poprawny tytuł PR przy zwykłym merge nie poprawia tematów jego commitów. Nie zatwierdzaj własnego kodu, nie obchodź ochrony i nie włączaj automerge. Nie zmieniaj historii main ani autorstwa.
 
@@ -63,7 +65,7 @@ Zakończ konkretnym podsumowaniem: wymagane checki + data ochrony, wynik review 
 ```text
 Repozytorium: https://github.com/DawidHnat/Projekt_Zespolowy
 Jira: https://fleet-flow.atlassian.net/browse/
-Cel zespołu: rzetelnie domknąć zadanie 4.1 (S1/review/PR) oraz 4.2 (S2/bramy jakości/S3).
+Cel zespołu: rzetelnie domknąć zadanie 3.2 (S1/review/PR) oraz 4.2 (S2/bramy jakości/S3).
 
 Przeczytaj AGENTS.md, README, CONTRIBUTING, DEFINITION_OF_DONE.md i aktualne opisy/komentarze wskazanych zgłoszeń. Pobierz aktualny main; zachowaj lokalne zmiany i użyj osobnego worktree, jeśli trzeba. Nie pracuj na zapamiętanym SHA. Zmiany tylko przez gałąź z kluczem Jiry, Conventional Commits i PR z niezależnym review. Przed merge sprawdź wszystkie nowe tematy commitów dokładnym wzorcem z zadania; poprawny tytuł PR przy zwykłym merge nie poprawia tematów jego commitów. Nie zatwierdzaj własnego kodu, nie obchodź ochrony i nie włączaj automerge. Nie zmieniaj historii main ani autorstwa.
 

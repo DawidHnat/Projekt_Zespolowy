@@ -1,4 +1,6 @@
-# Przegląd Sprintu i Pull Requesty — oddanie 4.1
+# Przegląd Sprintu i Pull Requesty — oddanie 3.2
+
+**Aktualizacja 18.11.2026:** numeracja potwierdzona w Cursorze: zadania **3.2 i 4.2**, lekcja 4.1 jest teorią. Main i serwer `132fefc`, [run 44176327656](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44176327656) — 10/10 jobów success łącznie z deploy/smoke. Filtr zwraca 88 scalonych PR, wszystkie z kluczem w opisie. Wymagany nadal tylko `Required CI`, a szeroki audyt commitów daje **3**. [Aktualna macierz](COURSE_READINESS.md) uwzględnia zakończone expiry i Offline oraz otwarte poprawki #99, pełne DoD i spotkania. Poniższe odczyty z 12/16.11 są historyczne.
 
 **Aktualizacja 16.11.2026:** aktualny odczyt main i serwera `c0544d1`, [run 43948005790](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/43948005790) success łącznie z deploy/smoke. Filtr zwraca 86 scalonych PR. Ochrona nadal wymaga tylko `Required CI`; kontrola Conventional Commits w szerokim zakresie od 20.10 zwraca **3** (#93 dwa tematy, #54 jeden), bez potwierdzonej dokładnej daty ochrony. SCRUM-91 jest w Testowaniu po #93. Pełne DoD obu wybranych Story, rzeczywiste Review/retro S2 i start S3 pozostają do potwierdzenia. [Bieżąca macierz i właściciele](COURSE_READINESS.md), [polecenia dla agentów](COURSE_AGENT_HANDOFFS.md).
 
