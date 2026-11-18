@@ -84,3 +84,19 @@ Formularz porównawczy jest wyłącznie lokalnym fixture QA, poza Git.
 Nie dodano go do produktu ani nie użyto rekordów floty. Wynik autora
 nie zastępuje niezależnego review i QA. CI ostatniego commita i jego SHA
 są dostępne w sekcji Checks PR #62; odbiór na produkcji następuje po merge.
+## SCRUM-77 — testy regresyjne kalendarza
+
+Testy: frontend/e2e/date-picker.spec.ts
+
+Uruchamianie z katalogu frontend:
+- npx playwright test e2e/date-picker.spec.ts --reporter=line
+- npm test
+- npm run build
+
+Zakres: Enter, Spacja, Escape, fokus, nadrzędne okno pojazdu,
+skróty dat, min/max, disabled, wybór dnia i kontrolowane onChange.
+
+Fixture: frontend/e2e/fixtures/date-picker.html
+Stałe daty: 15–20.10.2026.
+Testy desktop/mobile, strefa Europe/Warsaw.
+Bez rzeczywistych danych floty i zewnętrznych integracji.
