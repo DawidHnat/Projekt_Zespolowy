@@ -9,7 +9,8 @@ import {
 } from "lucide-react";
 import { useFleet } from "../model/FleetProvider";
 import { useVehiclePreferences } from "../model/VehiclePreferences";
-import { positionTime, statusLabels, type Vehicle } from "../model/types";
+import { statusLabels, type Vehicle } from "../model/types";
+import { VehiclePositionTime } from "./VehiclePositionTime";
 import { useCardResize } from "./useCardResize";
 import { VehiclePhoto } from "./VehiclePhoto";
 import { FleetFilters, FleetPagination } from "./FleetControls";
@@ -86,7 +87,7 @@ const VehicleCard = memo(function VehicleCard({
           </div>
         </dl>
         <small className="vehicle-tile-time">
-          {positionTime(v.position_at)}
+          <VehiclePositionTime value={v.position_at} />
           {v.latitude === null && " · Brak GPS"}
         </small>
         <footer>
@@ -211,9 +212,13 @@ export function VehicleCardsPage() {
         <EmptyState
           icon={CarFront}
           title={
-            f.loading ? "Pobieranie pojazdów…" : "Brak pasujących pojazdów"
+            f.loading ? "Pobieranie pojazdów…"
+              : f.error ? "Lista chwilowo niedostępna"
+                : "Brak pasujących pojazdów"
           }
-          description={f.error || "Zmień filtry lub poczekaj na dane floty."}
+          description={f.loading ? "Pobieramy dane dla wybranych filtrów."
+            : f.error ? "Twoje filtry zostały zachowane. Możesz ponowić pobieranie."
+              : "Zmień filtry lub poczekaj na dane floty."}
         />
       ) : (
         <div className="vehicle-gallery-grid">

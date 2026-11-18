@@ -187,13 +187,19 @@ export function VehicleDetailsDialog() {
               <X size={20} aria-hidden="true" />
             </button>
           </header>
-          {vehicle ? (
-            <VehicleDetailsContent key={vehicle.id} vehicle={vehicle} unsaved={unsaved} onUnsaved={setUnsaved} mayLeave={mayLeave} />
-          ) : (
-            <div className="vehicle-details-loading" role="status">
-              {fleet.error ? <><p>{fleet.error}</p><button className="button button-secondary" onClick={fleet.refresh}>Spróbuj ponownie</button></> : "Pobieranie danych pojazdu…"}
+          {fleet.detailsError && (
+            <div className="fleet-notice vehicle-details-error" role="alert">
+              <span>{fleet.detailsError}</span>
+              <button type="button" onClick={fleet.retryDetails}>Spróbuj ponownie</button>
             </div>
           )}
+          {vehicle ? (
+            <VehicleDetailsContent key={vehicle.id} vehicle={vehicle} unsaved={unsaved} onUnsaved={setUnsaved} mayLeave={mayLeave} />
+          ) : fleet.detailsLoading ? (
+            <div className="vehicle-details-loading" role="status">
+              Pobieranie danych pojazdu…
+            </div>
+          ) : null}
         </>
       )}
     </dialog>
