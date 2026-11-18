@@ -275,6 +275,54 @@ test("drivers: full many-vehicle count, assignment pages, close history, add and
   ).toContainText("z 21");
 });
 
+test("drivers: closing a profile preserves focus on the next filter", async ({ page }) => {
+  fixture("drivers-case");
+  await login(page, "viewer");
+  const search = page.getByRole("searchbox", { name: "Szukaj kierowcy", exact: true });
+  await search.fill("Pojazd E2E");
+  await expect(page.getByRole("navigation", { name: "Strony: Kierowcy" })).toContainText("1–2 z 2");
+  await page.getByRole("button", { name: "Anna Test00", exact: true }).click();
+  await expect(page.getByRole("dialog").getByRole("heading", { name: "Anna Test00", exact: true })).toBeFocused();
+  // A delayed frame must not move focus after the user starts another action.
+  await page.clock.install();
+  await page.clock.pauseAt(new Date());
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await search.fill("");
+  await expect(search).toBeFocused();
+  await page.clock.runFor(1000);
+  await expect(search).toBeFocused();
+  await expect(search).toHaveValue("");
+  await expect(page.getByRole("navigation", { name: "Strony: Kierowcy" })).toContainText("1–25 z 26");
+});
+
+test("drivers: an offline mount reports the pause and recovers online", async ({ page }) => {
+  fixture("drivers-case");
+  await login(page, "viewer");
+  const directory = page.getByRole("region", { name: "Kartoteka kierowców", exact: true });
+  await expect(directory.getByRole("navigation", { name: "Strony: Kierowcy" })).toContainText("1–25 z 26");
+  let requests = 0;
+  page.on("request", request => {
+    if (new URL(request.url()).pathname === "/api/v1/drivers/search") requests++;
+  });
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: false });
+  });
+  await page.reload();
+  await expect(directory.getByRole("alert")).toContainText("Brak połączenia z siecią");
+  await expect(directory).toHaveAttribute("aria-busy", "false");
+  await expect(directory.getByText("Pobieranie kierowców…", { exact: true })).toHaveCount(0);
+  expect(requests).toBe(0);
+  await page.screenshot({ path: test.info().outputPath("drivers-offline-mount.png"), fullPage: true });
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: true });
+    window.dispatchEvent(new Event("online"));
+  });
+  await expect(directory.getByRole("navigation", { name: "Strony: Kierowcy" })).toContainText("1–25 z 26");
+  await expect(directory.getByRole("alert")).toHaveCount(0);
+  expect(requests).toBeGreaterThan(0);
+});
+
 test("drivers: contact and vehicle searches, summary scope, pagination and viewer policy", async ({
   page,
 }) => {
@@ -332,9 +380,11 @@ test("drivers: contact and vehicle searches, summary scope, pagination and viewe
     ).status(),
   ).toBe(403);
   await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await page
     .getByRole("searchbox", { name: "Szukaj kierowcy", exact: true })
     .fill("");
+  await expect(page.getByRole("searchbox", { name: "Szukaj kierowcy", exact: true })).toHaveValue("");
   await page
     .getByRole("combobox", { name: "Filtr kategorii kierowców", exact: true })
     .selectOption("missing");

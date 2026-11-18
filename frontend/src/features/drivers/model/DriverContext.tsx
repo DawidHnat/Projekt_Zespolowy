@@ -83,6 +83,12 @@ function useDriverData(customOrder: string[]) {
     setError(null);
   }, [body]);
   useEffect(() => {
+    const environment = browserPollingEnvironment();
+    const pause = () => {
+      setLoading(false);
+      if (!navigator.onLine)
+        setError("Brak połączenia z siecią. Pobieranie wznowi się po odzyskaniu połączenia.");
+    };
     const poll = startPolling(
       async (signal) => {
         setLoading(true);
@@ -109,9 +115,10 @@ function useDriverData(customOrder: string[]) {
           if (!signal.aborted) setLoading(false);
         }
       },
-      browserPollingEnvironment(),
-      () => setLoading(false),
+      environment,
+      pause,
     );
+    if (!environment.available()) pause();
     polling.current = poll;
     return () => poll.dispose();
   }, [body, page]);

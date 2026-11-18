@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Users } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
 import {
@@ -96,12 +96,16 @@ function DriverWorkspace({ preferences: p }: { preferences: Preferences }) {
     opener.current = document.activeElement as HTMLElement;
     setPanel({ id, mode });
   };
+  useLayoutEffect(() => {
+    if (panel || !opener.current) return;
+    const target = opener.current.isConnected
+      ? opener.current
+      : document.getElementById("main-content");
+    opener.current = null;
+    target?.focus({ preventScroll: true });
+  }, [panel]);
   const close = useCallback(() => {
     setPanel(null);
-    requestAnimationFrame(() => {
-      if (opener.current?.isConnected) opener.current.focus();
-      else document.getElementById("main-content")?.focus();
-    });
   }, []);
   const toggle = (id: string) => {
     setScope("selected");
