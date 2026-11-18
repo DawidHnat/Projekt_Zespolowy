@@ -25,7 +25,7 @@ CATEGORIES = (
 )
 Name = Annotated[str, Field(min_length=1, max_length=100)]
 Version = Annotated[int, Field(strict=True, ge=1, le=2147483646)]
-DriverSort = Literal["name_asc", "name_desc", "vehicles_asc", "vehicles_desc"]
+DriverSort = Literal["name_asc", "name_desc", "vehicles_asc", "vehicles_desc", "custom"]
 
 
 class DriverSearch(BaseModel):
@@ -34,10 +34,19 @@ class DriverSearch(BaseModel):
     active: bool | None = Field(default=None, strict=True)
     assigned: bool | None = Field(default=None, strict=True)
     category: str | None = None
+    missing_categories: bool | None = Field(default=None, strict=True)
     vehicle_id: UUID | None = None
     sort: DriverSort = "name_asc"
     page: int = Field(default=1, strict=True, ge=1)
     page_size: int = Field(default=25, strict=True, ge=1, le=100)
+    custom_order: list[UUID] = Field(default_factory=list, max_length=2000)
+
+    @field_validator("custom_order")
+    @classmethod
+    def unique_order(cls, value):
+        if len(value) != len(set(value)):
+            raise ValueError("Repeated driver in custom order")
+        return value
 
 
 class DriverFields(BaseModel):
@@ -63,10 +72,7 @@ class DriverFields(BaseModel):
         if info.field_name == "phone":
             if not value:
                 return None
-            if (
-                not re.fullmatch(r"[+0-9(). \-]+", value)
-                or not 7 <= sum(c.isdigit() for c in value) <= 20
-            ):
+            if not re.fullmatch(r"\+?[0-9]{7,20}", re.sub(r"[(). \-]", "", value)):
                 raise ValueError("Invalid phone")
         return value
 

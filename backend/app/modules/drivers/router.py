@@ -3,7 +3,7 @@ from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Request
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -41,7 +41,7 @@ UserDep = Annotated[User, Depends(current_user)]
 EditorDep = Annotated[User, Depends(editor)]
 Page = Annotated[int, Query(ge=1)]
 PageSize = Annotated[int, Query(ge=1, le=100)]
-Sort = Literal["name_asc", "name_desc", "vehicles_asc", "vehicles_desc"]
+Sort = Literal["name_asc", "name_desc", "vehicles_asc", "vehicles_desc", "custom"]
 
 
 def source_for(request):
@@ -67,10 +67,11 @@ def summary(
     assigned: bool | None = None,
     category: str | None = None,
     vehicle_id: UUID | None = None,
+    missing_categories: bool | None = None,
 ):
     source = source_for(request)
     query = profile_filters(
-        profile_query(source), source, q, active, assigned, category, vehicle_id
+        profile_query(source), source, q, active, assigned, category, vehicle_id, missing_categories
     )
     scope = query.subquery()
     active_count = func.count().filter(scope.c.active.is_(True))
@@ -105,10 +106,12 @@ def drivers(
     page: Page = 1,
     page_size: PageSize = 25,
     vehicle_id: UUID | None = None,
+    missing_categories: bool | None = None,
+    custom_order: Annotated[list[UUID] | None, Query(max_length=2000)] = None,
 ):
     source = source_for(request)
     query = profile_filters(
-        profile_query(source), source, q, active, assigned, category, vehicle_id
+        profile_query(source), source, q, active, assigned, category, vehicle_id, missing_categories
     )
     total = session.scalar(select(func.count()).select_from(query.subquery()))
     name = func.lower(func.coalesce(Driver.last_name, Driver.display_name))
@@ -127,6 +130,17 @@ def drivers(
             Driver.id,
         )
     )
+    if sort == "custom":
+        order = (name, first, Driver.id)
+        if custom_order:
+            order = (
+                case(
+                    {identity: index for index, identity in enumerate(custom_order)},
+                    value=Driver.id,
+                    else_=len(custom_order),
+                ),
+                *order,
+            )
     rows = session.execute(
         query.order_by(*order).offset((page - 1) * page_size).limit(page_size)
     ).all()
@@ -151,6 +165,7 @@ def search_drivers(body: DriverSearch, request: Request, session: SessionDep, us
         assigned=body.assigned,
         category=body.category,
         vehicle_id=body.vehicle_id,
+        missing_categories=body.missing_categories,
     )
     return result
 
