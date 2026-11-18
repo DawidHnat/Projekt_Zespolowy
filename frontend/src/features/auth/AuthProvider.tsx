@@ -10,12 +10,7 @@ import {
 import { advanceSessionVersion, api, onSessionExpired } from "../../shared/api/client";
 import { listenForSessionChanges } from "./session-changes";
 
-type User = {
-  id: string;
-  username: string;
-  display_name: string;
-  role: string;
-};
+import type { User } from "../../shared/api/generated/contracts";
 type AuthState = {
   user: User | null;
   loading: boolean;

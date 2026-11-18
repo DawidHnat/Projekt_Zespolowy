@@ -34,9 +34,10 @@ User oznacza osobę korzystającą z aplikacji, Driver — ręcznie opisany wpis
   jakości nie są traktowane jako aktualny punkt. `(0, 0)` nie jest brakiem danych.
 - Licznik: km, maksymalnie jeden znak dziesiętny; snapshot WEBFLEET ma jednostkę
   100 m. Dystans przejazdu: km z konwersji metrów; czas trwania: sekundy.
-- Prędkość: `speed_kmh` lub `null`. Jednostka pola snapshotu nie została
-  potwierdzona w SCRUM-14, dlatego pierwszy przyrost zwraca `null`.
-  Jednostki raportu tras nie przenosimy automatycznie na snapshot.
+- Prędkość: `speed_kmh` w km/h (0–300) lub `null`. Jednostkę snapshotu
+  potwierdzono [kontrolnym porównaniem tego samego zdarzenia](qa/SCRUM-14-speed-unit.md)
+  18.11.2026; wartość źródłowa nie wymaga przeliczenia. Brak, stary/przyszły
+  pomiar, błąd źródła lub niepotwierdzony GPS dają `null`; zero pozostaje zerem.
 - Daty: ISO 8601 z UTC (`Z` lub `+00:00`), świadome strefy w bazie. Przeglądarka
   prezentuje `Europe/Warsaw`. Przedziały raportów są półotwarte `[from, to)`.
   Formularz lokalnych dat przelicza obie granice osobno, również przy zmianie DST.
@@ -118,3 +119,12 @@ własny odczyt. Pozostałe moduły tego projektu modelu zachowują swój status.
 Reset hasła jest osobnym przyrostem po potwierdzeniu SMTP: jednorazowy token
 przechowywany jako hash, krótki termin ważności, neutralne odpowiedzi, limit
 wysyłki i unieważnienie sesji. Obecna diagnostyka SMTP nie wysyła wiadomości.
+
+## Automatyczna weryfikacja — SCRUM-108
+
+`contracts/api-design.json` pozostaje jedynym źródłem. Jego `$defs` i referencje
+odpowiedzi generują typy frontendu oraz walidują realne syntetyczne odpowiedzi API.
+`implementation_status` oddziela działające operacje od przyszłych propozycji.
+Generator `tools/generate_api_types.py --check` i pytest kontraktu są częścią
+Required CI. Status proposed-for-review i wymagany odbiór SCRUM-36 pozostają
+w mocy; procedurę aktualizacji/migracji opisuje `docs/qa/SCRUM-108.md`.
