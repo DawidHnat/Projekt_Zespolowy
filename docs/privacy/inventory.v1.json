@@ -1,10 +1,10 @@
 {
   "document": "SCRUM-112",
-  "version": 2,
+  "version": 3,
   "recorded_on": "2026-10-29",
   "author": "Jakub Czaja (przygotowanie techniczne)",
   "scope": "Inwentarz kodu i rejestr brakujących decyzji. Nie jest inwentaryzacją rekordów ani dowodem wdrożenia VPS.",
-  "policy_approval": "NONE; decyzje prywatności wymagają SCRUM-113. BLOCKED oznacza brak decyzji dla przetwarzania/aktywacji, nie brak wykonania technicznego spisu.",
+  "policy_approval": "0 kompletnych APPROVED P01–P18; częściowe ustalenia właściciela, celu, odbiorców i końca użyczenia przekazane przez Jakuba 19.11.2026. Brak konsultacji i pełnych procedur pozostaje jawny.",
   "snapshots": {
     "main": {
       "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
@@ -2592,17 +2592,23 @@
       "id": "P01",
       "title": "Wskazać administratora, dostawców i uprawnionych zatwierdzających",
       "coordination_owner": "Jakub Czaja",
-      "decision_owner_role": "Administrator danych — tożsamość do potwierdzenia; koordynuje Jakub Czaja",
+      "decision_owner_role": "Właściciel firmy wskazany w lokalnym rejestrze; koordynator Jakub Czaja",
       "decision_owner_person": null,
       "status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "approved_by": null,
       "approved_at": null,
       "evidence_needed": "Nazwa podmiotu/rola każdej usługi, osoba zatwierdzająca, umowy, lokalizacje, podwykonawcy i zakres uprawnień. Nie wywodzić ich z hosta lub nazwy produktu.",
       "followup": "SCRUM-113",
       "decision_due_on": null,
-      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym",
+      "updated_on": "2026-11-19",
+      "reported_fact": "Tożsamość podmiotu i właściciela przekazana lokalnie; koordynator Jakub Czaja. Według relacji PO zgoda właściciela jest ustna.",
+      "remaining": "Pozostają role dostawców, umowy i zakres umocowania dla poszczególnych decyzji; dane podmiotu poza Git/Jira.",
+      "reporter": "Jakub Czaja / PO",
+      "reported_fact_status": "POTWIERDZONA_RELACJA_PO; nie pełne APPROVED",
+      "identity_record_status": "DECLARED_BY_JAKUB_RESTRICTED_RECORD"
     },
     {
       "id": "P02",
@@ -2611,14 +2617,19 @@
       "decision_owner_role": "Administrator danych z właściwą konsultacją DPO/prawną",
       "decision_owner_person": null,
       "status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "approved_by": null,
       "approved_at": null,
       "evidence_needed": "Wiersze D01–D22; uzasadnione minimalne pola i zakazane dodatkowe użycia. Inwentarz techniczny nie wybiera podstawy ani nie ustanawia zgody.",
       "followup": "SCRUM-113",
       "decision_due_on": null,
-      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym",
+      "updated_on": "2026-11-19",
+      "reported_fact": "Wyłącznie projekt zespołowy, rzeczywiste dane jednej firmy/API, pokaz prowadzącemu.",
+      "remaining": "Nie podano podstawy i minimalnego zakresu każdej kategorii D01–D22 ani wyniku konsultacji; publiczne udostępnienie nieustalone.",
+      "reporter": "Jakub Czaja / PO",
+      "reported_fact_status": "POTWIERDZONA_RELACJA_PO; nie pełne APPROVED"
     },
     {
       "id": "P03",
@@ -2627,14 +2638,19 @@
       "decision_owner_role": "Administrator danych i PO; technicznie Dawid Hnat",
       "decision_owner_person": null,
       "status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "approved_by": null,
       "approved_at": null,
       "evidence_needed": "Role biznesowe, admin IT, zakres pojazdów/historii/dokumentów/eksportu oraz odcięcie sesji; mapowanie do obecnych admin/editor/viewer.",
       "followup": "SCRUM-113 / SCRUM-48",
       "decision_due_on": null,
-      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym",
+      "updated_on": "2026-11-19",
+      "reported_fact": "Dostęp całej czwórki za zgodą właściciela według relacji Jakuba.",
+      "remaining": "Nie potwierdzono szczegółowej macierzy admin/editor/viewer, eksportu, historii i administracji IT.",
+      "reporter": "Jakub Czaja / PO",
+      "reported_fact_status": "POTWIERDZONA_RELACJA_PO; nie pełne APPROVED"
     },
     {
       "id": "P04",
@@ -2643,14 +2659,19 @@
       "decision_owner_role": "Administrator danych; technicznie Dawid Hnat",
       "decision_owner_person": null,
       "status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "approved_by": null,
       "approved_at": null,
       "evidence_needed": "Osobno baza, kopie, pliki, logi i przeglądarka; okres/zdarzenie wygaśnięcia, blokada, wyjątki i dowód zatwierdzenia. Brak liczby nie uruchamia usuwania.",
       "followup": "SCRUM-113 → SCRUM-109",
       "decision_due_on": null,
-      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym",
+      "updated_on": "2026-11-19",
+      "reported_fact": "Użyczenie do końca lutego 2027 r.; następnie usunięcie wszystkich danych projektu.",
+      "remaining": "Wymaga doprecyzowania okresów/wyjątków per kategoria, logów i kopii oraz technicznego wykonania; nie uruchomiono czyszczenia.",
+      "reporter": "Jakub Czaja / PO",
+      "reported_fact_status": "POTWIERDZONA_RELACJA_PO; nie pełne APPROVED"
     },
     {
       "id": "P05",
@@ -2675,14 +2696,19 @@
       "decision_owner_role": "Administrator danych; wykonuje operator po zatwierdzeniu",
       "decision_owner_person": null,
       "status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "approved_by": null,
       "approved_at": null,
       "evidence_needed": "Rozróżnić archiwizację/wyczyszczenie pola/usunięcie, wyjątki i pliki; trwały minimalny ślad oraz sposób ponownego zastosowania po restore.",
       "followup": "SCRUM-113 → SCRUM-109/111/84",
       "decision_due_on": null,
-      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym",
+      "updated_on": "2026-11-19",
+      "reported_fact": "Po zakończeniu projektu wszystkie zgromadzone dla niego dane mają zostać usunięte: VPS, eksporty i kopie lokalne.",
+      "remaining": "Plan nie jest dowodem usunięcia; procedury, wyjątki i ponowne zastosowanie po restore pozostają otwarte.",
+      "reporter": "Jakub Czaja / PO",
+      "reported_fact_status": "POTWIERDZONA_RELACJA_PO; nie pełne APPROVED"
     },
     {
       "id": "P07",
@@ -2691,14 +2717,19 @@
       "decision_owner_role": "PO i administrator danych; projektuje Dawid Hnat",
       "decision_owner_person": null,
       "status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "approved_by": null,
       "approved_at": null,
       "evidence_needed": "Hash konta WEBFLEET nie przypisuje User do organizacji. Wymagania izolacji, operatorzy i użycie wspólnej przeglądarki przed rozszerzeniem.",
       "followup": "SCRUM-113 / SCRUM-48",
       "decision_due_on": null,
-      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym",
+      "updated_on": "2026-11-19",
+      "reported_fact": "Jedna firma i jedno API; brak planu rozbudowy wielofirmowej. Dostęp czterech użytkowników tej firmy do celów projektu.",
+      "remaining": "Odrębne pozostałe warunki danych i procedur nadal otwarte; nie wdraża to wielofirmowości.",
+      "reporter": "Jakub Czaja / PO",
+      "reported_fact_status": "POTWIERDZONA_RELACJA_PO; nie pełne APPROVED"
     },
     {
       "id": "P08",
@@ -2739,14 +2770,19 @@
       "decision_owner_role": "Właściwy DPO/prawnik i administrator danych — do wskazania w SCRUM-113",
       "decision_owner_person": null,
       "status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "approved_by": null,
       "approved_at": null,
       "evidence_needed": "Zakres GPS, historii, skali, dostępu i zastosowań; uzasadniony wynik screeningu i dalsze działania. Ten dokument nie rozstrzyga wyniku.",
       "followup": "SCRUM-113",
       "decision_due_on": null,
-      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym",
+      "updated_on": "2026-11-19",
+      "reported_fact": "Jakub jednoznacznie potwierdził: nie było konsultacji DPO/prawnej.",
+      "remaining": "Brak konsultującego i udokumentowanego wyniku screeningu wymaganego przez AC SCRUM-94/113.",
+      "reporter": "Jakub Czaja / PO",
+      "reported_fact_status": "POTWIERDZONA_RELACJA_PO; nie pełne APPROVED"
     },
     {
       "id": "P11",
@@ -2794,7 +2830,8 @@
       "evidence_needed": "Niezależność konta/dostawcy, koszt, klucz poza VPS, retencja, RPO/RTO, restore poza VPS i dowody. Użytkownik odłożył wybór storage.",
       "followup": "SCRUM-84 / SCRUM-113",
       "decision_due_on": null,
-      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym",
+      "operational_scope_status": "DEFERRED → SCRUM-84 / końcowy S5; bez ponawiania decyzji storage/RPO/RTO"
     },
     {
       "id": "P14",
@@ -2819,14 +2856,19 @@
       "decision_owner_role": "PO i administrator danych; implementacja frontend",
       "decision_owner_person": null,
       "status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "approved_by": null,
       "approved_at": null,
       "evidence_needed": "Klucze i zakres konta, wspólne tło, zachowane nazwy plików i bitmapy, instrukcja usunięcia danych witryny; logout nie jest wymazaniem urządzenia.",
       "followup": "SCRUM-113 / SCRUM-91",
       "decision_due_on": null,
-      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym"
+      "due_status": "BLOCKED — termin ustali koordynator z właściwym zatwierdzającym",
+      "updated_on": "2026-11-19",
+      "reported_fact": "Plan usunięcia wszystkich danych projektu obejmuje również lokalne kopie zespołu.",
+      "remaining": "Nie potwierdzono procedury usunięcia magazynów przeglądarki i dowodu wykonania; logout nadal nie wymazuje urządzenia.",
+      "reporter": "Jakub Czaja / PO",
+      "reported_fact_status": "POTWIERDZONA_RELACJA_PO; nie pełne APPROVED"
     },
     {
       "id": "P16",
@@ -2973,5 +3015,43 @@
       }
     },
     "policy_decisions_changed": false
+  },
+  "operating_context": {
+    "recorded_on": "2026-11-19",
+    "reported_by": "Jakub Czaja / PO",
+    "source": "Bezpośrednie odpowiedzi PO, pola 1–6; pełny zapis z danymi firmy przechowywany lokalnie poza Git/Jira.",
+    "data": "Rzeczywiste dane jednej firmy, jedno API WEBFLEET; wyłącznie projekt zespołowy.",
+    "owner_identity": "Firma i jej właściciel wskazani w lokalnym rejestrze; dane identyfikujące nie są publikowane.",
+    "coordinator": "Jakub Czaja — odpowiada za projekt i zarządza tym obszarem w firmie według własnej deklaracji.",
+    "permission": "Według relacji Jakuba: zgoda ustna właściciela z 2 października; rok 2026 przyjęty z kontekstu projektu.",
+    "access": [
+      "Jakub Czaja",
+      "Dawid Hnat",
+      "Jakub Nazarewicz",
+      "Marcel Głowacki"
+    ],
+    "presentation": "Pokaz prowadzącemu dozwolony według relacji PO; upublicznianie rzeczywistych danych nieustalone.",
+    "use_until": "Koniec lutego 2027 r.; rok przyjęty z kontekstu semestru.",
+    "after_project": "Projekt nie będzie kontynuowany; wszystkie dane zgromadzone dla projektu mają zostać usunięte (VPS, eksporty i kopie lokalne). To plan, nie wykonane usunięcie.",
+    "consultation": "PO potwierdził brak konsultacji DPO/prawnej; wynik screeningu DPIA nieprzedstawiony.",
+    "supersedes": "Wcześniejsze założenie wyłącznie syntetycznego demo; nie zmienia syntetycznych danych izolowanych testów.",
+    "verification": "Relacja PO, bez odczytu rekordów VPS, audytu faktycznego przetwarzania lub podpisu konsultującego."
+  },
+  "decision_refresh": {
+    "date": "2026-11-19",
+    "executor": "agent Codex na polecenie Jakuba Czai",
+    "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+    "environment": "odpowiedzi PO i lokalny zapis; bez rekordów klientów",
+    "updated_decisions": [
+      "P01",
+      "P02",
+      "P03",
+      "P04",
+      "P06",
+      "P07",
+      "P10",
+      "P15"
+    ],
+    "result": "PASS zapisu przekazanych ustaleń; BLOCKED pełnego odbioru 94/113"
   }
 }

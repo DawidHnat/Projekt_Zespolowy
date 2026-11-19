@@ -1,6 +1,6 @@
 # SCRUM-94 — przegląd prywatności i pakiet decyzji
 
-Wersja 2, **19.11.2026**. Wykonawca: **agent Codex na polecenie Jakuba Czai**.
+Wersja 3, **19.11.2026**; uzupełnienie odpowiedziami PO z pól 1–6. Wykonawca: **agent Codex na polecenie Jakuba Czai**.
 Kod `cb634da0ece8cd93424bfc16a5185cf817a0cbb1`; środowisko: izolowany checkout,
 statyczne porównanie wszystkich modeli/pól; bez rekordów klientów i zmian VPS.
 **PASS części technicznej; BLOCKED pełnego odbioru 94/113** do decyzji
@@ -8,15 +8,19 @@ właściwego administratora i wymaganego screeningu.
 
 [Krótki arkusz zatwierdzeń](SCRUM-113-decision-sheet.md) jest jednym miejscem
 z następnymi decyzjami. Źródłem pozostaje [istniejący JSON](inventory.v1.json)
-(wersja treści 2, historyczna nazwa pliku), 22 kategorie D01–D22, 11 przepływów,
-6 grup dostawców i **18 decyzji P01–P18: wszystkie BLOCKED**. Nie zmieniono
-pól zatwierdzeń i nie utworzono konkurencyjnego inwentarza.
+(wersja treści 3, historyczna nazwa pliku), 22 kategorie D01–D22, 11 przepływów,
+6 grup dostawców i **18 decyzji P01–P18: 0 kompletnych APPROVED**. Częściowe
+ustalenia P01/02/03/04/06/07/10/15 są w `reported_fact`; nie wpisano cudzych
+podpisów i nie utworzono konkurencyjnego inwentarza.
 
-PO potwierdził 19.11: projekt dla **jednej firmy/przedsiębiorcy i jednego API
-WEBFLEET**, bez rozbudowy dla innych firm. [ADR](../adr/SCRUM-94-data-isolation.md)
-odpowiada temu zakresowi. To decyzja produktowa; nie wskazuje administratora
-ani nie jest zgodą na przetwarzanie danych rzeczywistej firmy. Ostatnia
-wyraźna deklaracja demonstracji syntetycznej pozostaje odrębna od audytu VPS.
+PO doprecyzował 19.11: projekt używa **rzeczywistych danych jednej firmy i jednego
+API WEBFLEET** za ustną zgodą właściciela, wyłącznie projektowo, z dostępem
+czwórki i pokazem prowadzącemu. Podmiot i właściciel wskazani lokalnie poza
+Git/Jira. Użyczenie do końca lutego 2027 r., potem koniec projektu i plan
+usunięcia jego danych. **Nie było konsultacji DPO/prawnej.** To koryguje
+wcześniejsze założenie syntetycznego demo; testy pozostają syntetyczne.
+[ADR](../adr/SCRUM-94-data-isolation.md) i arkusz rozróżniają potwierdzone
+ustalenia od nieprzekazanych procedur i wyniku screeningu; nie jest to audyt VPS.
 
 ## Rzeczywiste różnice po integracjach
 
@@ -38,18 +42,19 @@ odnosi się do podanego wyżej SHA. Porównano **15 tabel**, bez usuniętych pó
 
 | AC | Dowód / wykonawca / data | Status |
 | --- | --- | --- |
-| Cele, kategorie, przepływy, pola i podmioty | Agent 19.11: istniejący spis zaktualizowany, `technical_refresh` w JSON; administrator/procesorzy i dopuszczalny cel wymagają P01/P02 | PASS techniczny, BLOCKED decyzje |
-| Zatwierdzona retencja/dostęp/prywatność/procedury | P01–P18 zachowane; nazwany następny krok w arkuszu 113; brak rzeczywistych akceptacji | BLOCKED — Jakub Czaja uzyskuje wskazanie i decyzje administratora |
-| Udokumentowany screening DPIA | Materiał wejściowy poniżej; nie otrzymano wyniku ani nazwiska konsultującego | BLOCKED — Jakub Czaja wskazuje właściwego DPO/prawnika, administrator odbiera wynik |
-| ADR organizacji i informowanie | PO 19.11 potwierdza jedną firmę/źródło; administrator P01/P07 i informowanie P09 niezatwierdzone | PASS zakres produktu, BLOCKED akceptacja danych |
+| Cele, kategorie, przepływy, pola i podmioty | Agent 19.11: istniejący spis zaktualizowany, `technical_refresh` w JSON; właściciel i cel przekazani przez PO, pozostałe role dostawców/minimalne pola wymagają P01/P02 | PASS techniczny, BLOCKED decyzje |
+| Zatwierdzona retencja/dostęp/prywatność/procedury | Częściowe ustalenia odbiorców, końca użyczenia i usunięcia zapisane; pozostałe procedury/wyjątki otwarte | BLOCKED — Jakub koordynuje pozostałe decyzje właściciela |
+| Udokumentowany screening DPIA | PO potwierdził brak konsultacji; materiał wejściowy poniżej, brak wyniku i konsultującego | BLOCKED — Jakub Czaja wskazuje właściwego DPO/prawnika, administrator odbiera wynik |
+| ADR organizacji i informowanie | PO 19.11 potwierdza jedną firmę/źródło i wskazał właściciela lokalnie; pozostałe P01/P07 i informowanie P09 otwarte | PASS zakres produktu, BLOCKED akceptacja danych |
 
 ## Materiał techniczny do screeningu DPIA
 
 DPIA to ocena skutków przetwarzania dla ochrony danych: służy ocenie ryzyka
 dla osób i potrzebnych zabezpieczeń przy określonym sposobie użycia.
 Wymóg udokumentowanego screeningu jest zapisany w kryterium 3 SCRUM-94.
-Arkusz poniżej przygotowuje wejście do przyszłej oceny rzeczywistej floty;
-nie wymaga wymyślania danych firmy na potrzeby demonstracji syntetycznej.
+Arkusz poniżej przygotowuje wejście do oceny rzeczywistej floty zgłoszonej
+przez PO. Tożsamość właściciela zapisano lokalnie; pozostałego kontekstu
+i wyniku konsultacji nie uzupełnia agent z domysłu.
 
 [UODO — kiedy przeprowadzić ocenę skutków](https://uodo.gov.pl/pl/598/3617)
 opisuje ocenę przed przetwarzaniem, kryteria ryzyka i znaczenie kontekstu.
