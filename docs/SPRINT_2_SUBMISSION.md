@@ -1,150 +1,30 @@
 # Przegląd Sprintu 2 i bramy jakości — oddanie 4.2
 
-**Decyzja PO — 18.11.2026:** dawnych tematów commitów i nazw gałęzi dalej nie wyjaśniamy ani nie kierujemy do prowadzącego. Zachowujemy surowe wyniki jako znane niezgodności; wcześniejsze instrukcje kontaktu są historyczne. Dalsza praca: poprawki, wymagane checki, pełne odbiory i spotkania.
+Wykonawca zbierania: **agent Codex na polecenie Jakuba Czai**, 19.11.2026.
+Pełne surowe dowody i aktualne braki: [macierz](COURSE_READINESS.md) oraz
+[techniczne JSON](course/2026-11-19/technical-evidence.json). Nie jest to
+potwierdzenie cudzego QA ani pozwolenie na wysłanie niekompletnej odpowiedzi.
 
-**Aktualizacja 18.11.2026:** numeracja potwierdzona w Cursorze: zadania **3.2 i 4.2**, lekcja 4.1 jest teorią. Main i serwer `132fefc`, [run 44176327656](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44176327656) — 10/10 jobów success łącznie z deploy/smoke. Filtr zwraca 88 scalonych PR, wszystkie z kluczem w opisie. Wymagany nadal tylko `Required CI`, a szeroki audyt commitów daje **3**. [Aktualna macierz](COURSE_READINESS.md) uwzględnia zakończone expiry i Offline oraz otwarte poprawki #99, pełne DoD i spotkania. Poniższe odczyty z 12/16.11 są historyczne.
+**BLOCKED: S3 id=4 jest nadal future.** Potwierdzone przez PO spotkania
+Review/retro S2 odbyły się 18.11, cała czwórka; aktualny zapis jest w #123
+do review/main. Zakres pokazu i ocena efektu 65 uzupełnione relacją PO; SHA pokazu nieustalone.
+Nowe działanie z 19.11: Jakub codziennie sprawdza kolejkę i przypomina reviewerom.
+[Pełne odbiory 16/91](qa/SCRUM-141-current.md) mają własne kryteria.
 
-**Aktualizacja 16.11.2026:** aktualny odczyt main i serwera `c0544d1`, [run 43948005790](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/43948005790) success łącznie z deploy/smoke. Filtr zwraca 86 scalonych PR. Ochrona nadal wymaga tylko `Required CI`; kontrola Conventional Commits w szerokim zakresie od 20.10 zwraca **3** (#93 dwa tematy, #54 jeden), bez potwierdzonej dokładnej daty ochrony. SCRUM-91 jest w Testowaniu po #93. Pełne DoD obu wybranych Story, rzeczywiste Review/retro S2 i start S3 pozostają do potwierdzenia. [Bieżąca macierz i właściciele](COURSE_READINESS.md), [polecenia dla agentów](COURSE_AGENT_HANDOFFS.md).
+Technika już sprawdzona: main/HTTP/HTTPS cb634da, readiness 200/ok,
+run 44386951054 10/10 SUCCESS; Required CI, Backend (3.13), Lint są wymagane.
+Prawdziwe needs odczytano z workflow, nie wpisano z planu:
+required → frontend/backend/container/e2e/lint/docs-links;
+deploy → required/frontend/backend/e2e/lint; smoke → deploy.
+Przy dostarczeniu #101 ponownie odczytać jego poszerzone zależności skanerów.
 
-Dalsze odczyty oznaczone datą 12.11 są zachowanymi historycznymi przykładami. Do odpowiedzi używać świeżych wyników po ostatnim wdrożeniu.
+Celowe dowody NIE DO SCALENIA:
+- [#77 / lint, 42815387118](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/42815387118): Lint i Required CI failure; deploy/smoke skipped.
+- [#78 / test, 42815401269](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/42815401269): **Frontend build** failure na npm test (1 != 2), Required CI failure; backendy i Lint success, deploy/smoke skipped. Nie opisujemy go jako czerwonego backendu.
 
-Stan **12.11.2026**. Technika SCRUM-127 jest na main po
-[PR #76](https://github.com/DawidHnat/Projekt_Zespolowy/pull/76).
-**Kompletne oddanie nadal czeka na osobne wymagane checki, pełne DoD Story,
-Review/retro S2 i start S3.** [Macierz i zadania](COURSE_READINESS.md).
-PO potwierdził 12.11, że spotkania i pełny odbiór S2 jeszcze się nie odbyły.
-
-## 1. Bieżący serwer
-
-```bash
-git fetch && curl -s http://57.129.179.53/ | grep -c "$(git rev-parse --short=7 origin/main)"
-```
-
-12.11: `origin/main=2b3f2ba`, wynik **1**. Aplikacja:
-<https://fleet-flow.pl/>; HTTPS readiness HTTP 200, `{"status":"ok"}`.
-Wynik odświeżyć po ostatnim merge i wdrożeniu.
-
-## 2. Wymagane checki i czerwony lint
-
-```bash
-gh api 'repos/{owner}/{repo}/branches/main' --jq '.protection.required_status_checks.contexts[]'
-# Alternatywa dla repo z rulesetem:
-gh api 'repos/{owner}/{repo}/rules/branches/main' --jq '.[] | select(.type == "required_status_checks") | .parameters.required_status_checks[].context'
-```
-
-Rzeczywisty odczyt 12.11:
-
-```text
-Required CI
-```
-
-To **jeszcze nie spełnia** wymagania dwóch osobnych wymaganych checków.
-Dawid dodaje `Backend (3.13)` oraz `Lint` w
-[SCRUM-140](https://fleet-flow.atlassian.net/browse/SCRUM-140), zachowując
-`Required CI`, pozostałe zabezpieczenia i nazwy jobów.
-
-Dowód lintu: [PR #77 — NIE SCALAĆ](https://github.com/DawidHnat/Projekt_Zespolowy/pull/77),
-run [42815387118](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/42815387118).
-
-```bash
-gh run view 42815387118 --json jobs --jq '.jobs[] | "\(.name) \(.conclusion)"'
-```
-
-Końcowe wyniki: `Lint failure`, `Required CI failure`, pozostałe testy/buildy
-success, `Deploy development server skipped`, `Post-deploy smoke skipped`.
-Celowe F401 dotyczy nieużytego importu `math`.
-
-## 3. Testy przed wdrożeniem i smoke
-
-Wycinek `.github/workflows/ci.yml` z aktualnego main:
-
-```yaml
-deploy:
-  name: Deploy development server
-  if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-  needs: [required, frontend, backend, e2e, lint]
-# dalsze kroki wdrażają artefakt tego samego SHA
-smoke:
-  name: Post-deploy smoke
-  needs: [deploy]
-# weryfikator wymaga SHA danego runu, HTTP/HTTPS i gotowości API
-```
-
-Do odpowiedzi wyciąć rzeczywisty blok z wyniku:
-
-```bash
-git show origin/main:.github/workflows/ci.yml
-gh run list --branch main --event push --limit 1
-gh run view 43105067278 --json jobs --jq '.jobs[] | "\(.name) \(.conclusion)"'
-gh run view 43105067278 --log | grep 'PASS deployed SHA'
-```
-
-Ostatni run odczytany 12.11: **43105067278**, SHA `2b3f2ba`:
-
-```text
-Lint success
-Backend image success
-Critical browser flows success
-Backend (3.13) success
-Backend (3.12) success
-Frontend build success
-Required CI success
-Deploy development server success
-Post-deploy smoke success
-```
-
-Linia logu:
-
-```text
-PASS deployed SHA 2b3f2ba: HTTP status, HTTPS application, API readiness
-```
-
-Po nowym pushu wybrać nowe ID z `gh run list`, a nie kopiować historycznego.
-Test smoke dotyczy SHA swojego runu; dodatkowy fetch/grep dotyczy najnowszego main.
-
-Dowód czerwonego testu: [PR #78 — NIE SCALAĆ](https://github.com/DawidHnat/Projekt_Zespolowy/pull/78),
-run [42815401269](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/42815401269).
-
-```bash
-gh run view 42815401269 --json jobs --jq '.jobs[] | "\(.name) \(.conclusion)"'
-```
-
-`Frontend build failure` nastąpił na **npm test**, celowe `1 !== 2`.
-`Lint`, oba backendy, obraz i browser flows mają success; `Required CI failure`,
-`Deploy development server skipped`, `Post-deploy smoke skipped`.
-PR #24 to dawny błąd składni/budowy, a nie zastępstwo dowodu czerwonego testu.
-
-## 4. DoD i przyrost
-
-[DEFINITION_OF_DONE.md](../DEFINITION_OF_DONE.md) oznacza wykonawcę przy każdym
-warunku. Pipeline wykonuje testy, lint i smoke; człowiek odbiera kryteria,
-scenariusze UI, dokumentację i zakres. Macierz nie jest wynikiem QA.
-
-[SCRUM-141](https://fleet-flow.atlassian.net/browse/SCRUM-141) zbiera pełne
-DoD rzeczywistej Story z S2. Aktualni kandydaci to SCRUM-84 i SCRUM-91;
-wybór PO musi odpowiadać rzeczywiście wykonanej i odebranej funkcji.
-Zielone bramy SCRUM-127 ani sam dashboard SCRUM-38 nie są całą Story S2.
-
-## 5. Retro i Sprint 3
-
-[Retro S2](retro/sprint-2.md) jest materiałem do spotkania. Po rzeczywistej
-retrospektywie dopisać datę, uczestników, ocenę działań S1 i uzgodnione nowe
-działanie z właścicielem. [SCRUM-142](https://fleet-flow.atlassian.net/browse/SCRUM-142)
-prowadzi Review/retro, rozliczenie S2 i start istniejącego S3.
-
-Odczyt Jiry 12.11: **FF Sprint 3 - dane i konta**, id 4, **future**, plan
-19.11–02.12. W zadaniu wymagany jest sprint aktywny — tego kroku jeszcze nie wykonano.
-Cel zapisany w Jirze:
-
-> Dostarczyć ręcznych kierowców, kartotekę i dokumenty pojazdu, historię oraz cele/ewidencję MVP, ręczne auta i archiwizację. Równolegle konta/profil/reset i wspólny dziennik zmian oraz monitoring. Najpierw wspólne kontrakty i API, potem UI i odbiór integracji. Historia wymaga działającej synchronizacji; pliki uzgodnionego magazynu i kopii. Rzeczywista wysyłka SMTP tylko po osobnym poleceniu. Po tym sprincie sprawdzić pozostałe godziny względem pojemności do końca roku. Założenie PO: 10–15 h/osobę/tydzień, z review i QA; dostępność i pozostały wysiłek potwierdzają wykonawcy. SP są istniejącą wyceną pełnego zakresu, nie pozostałymi godzinami. Nie sumować punktów rodzica i podzadań.
-
-Zgłoszenia już w planowanym S3:
-
-- [SCRUM-128](https://fleet-flow.atlassian.net/browse/SCRUM-128): działanie retro,
-  Jakub Czaja — wybór jednej Story i pomiar kolejki review. Propozycję zatwierdza zespół.
-- [SCRUM-129](https://fleet-flow.atlassian.net/browse/SCRUM-129): wybite okno,
-  Jakub Nazarewicz — duży bundle, `frontend/vite.config.ts` i
-  `frontend/src/features/fleet/components/VehicleMap.tsx`.
-
-Do odpowiedzi linkować pliki **na main**, po ich review/merge i uzupełnieniu
-rzeczywistych ustaleń. Każdy członek oddaje osobno; szkic nie zastępuje protokołu.
+Po kompletnym 3.2 i warunkach rozliczenia S2: zamknąć istniejący id=3,
+uruchomić istniejący S3 id=4 z nazwą/celem oraz 128/129. Zachować prawdziwą
+historię przeniesień administracyjnych; nie tworzyć duplikatu ani antydatować.
+Po ostatnim merge poczekać na CI/deploy/smoke, świeży fetch i zgodny SHA,
+powiązać DoD i rzeczywiste retro na main. Dopiero wtedy finalne 4.2 i Done
+142/143. Każdy przesyła własną odpowiedź osobno; S3 nie trzeba dziś kończyć.
