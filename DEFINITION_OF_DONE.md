@@ -7,7 +7,7 @@ Zielone CI i scalenie części zadania nie zastępują odbioru całej historyjki
 | --- | --- | --- |
 | Kryteria akceptacji historyjki są spełnione, a QA zapisało wynik odbioru. | Lista kryteriów i wynik QA w zgłoszeniu Jira. | **człowiek** — Marcel Głowacki (QA) odbiera wszystkie kryteria na SHA wydania; Jakub Czaja (PO) potwierdza zakres przed Done. |
 | Zmiana trafiła do `main` przez PR z zatwierdzeniem innego developera. | PR ma co najmniej jedno aktualne **Approved** i stan **Merged**. | **reguła ochrony** — istniejąca ochrona `main`: PR i approval innego developera; reviewer (Dawid Hnat lub Jakub Nazarewicz) sprawdza ostatnią zmianę. Właściciel potwierdza egzekwowanie reguły. |
-| Obowiązkowe CI przeszło dla ostatniej wersji PR. | Wszystkie wymagane kontrole w sekcji Checks są zielone; zatwierdzenie starszego commita nie wystarcza. | **reguła ochrony** — `main`, wymagany `Required CI`; **pipeline** — `Required CI` odrzuca failure/skipped zależności. Planowane dodatkowe wymagane checki: `Backend (3.13)` i `Lint`; ich aktywację potwierdza odczyt API, nie ten dokument. |
+| Obowiązkowe CI przeszło dla ostatniej wersji PR. | Wszystkie wymagane kontrole w sekcji Checks są zielone; zatwierdzenie starszego commita nie wystarcza. | **reguła ochrony** — `main`, wymagane `Required CI`, `Backend (3.13)` i `Lint`; **pipeline** — `Required CI` odrzuca failure/skipped zależności. Odczyt API 19.11.2026 potwierdził wszystkie trzy konteksty; dowód SCRUM-140/10320 i docs/COURSE_READINESS.md. |
 | Frontend przechodzi testy i budowę. | `npm --prefix frontend test && npm --prefix frontend run build` kończy się kodem `0`. | **pipeline** — `Frontend build`, przy każdym PR i pushu do main: npm test, typecheck i build. |
 | Backend przechodzi kontrole kodu i testy bez żywych integracji. | W aktywnym środowisku Pythona: `cd backend && ruff check . && ruff format --check . && pytest` kończy się kodem `0`; CI dostarcza osobną bazę testową. | **pipeline** — `Backend (3.12)`, `Backend (3.13)` i `Lint`: pytest z izolowaną bazą, Ruff check i format --check; bez żywego WEBFLEET/SMTP. |
 | Aplikacja działa na wspólnym serwerze deweloperskim. | Widok aplikacji otwiera się pod udokumentowanym adresem serwera; logowanie i dane floty są dostępne przez HTTPS. | **człowiek** — Marcel Głowacki po wdrożeniu sprawdza scenariusz Story przez HTTPS na uprawnionym koncie; Jakub Czaja pokazuje go na Review. |
@@ -35,13 +35,12 @@ samej instrukcji konfiguracji.
 
 ## Bramy jakości Sprintu 2
 
-Stan 18.11.2026: `Lint` i `Post-deploy smoke` są na main po PR #76
-(SCRUM-127). Run `44176327656` dla `132fefc` potwierdza sukces testów,
-lintu, wdrożenia i smoke; nie potwierdza pełnego odbioru Story przez człowieka.
-Zachowujemy nazwy wszystkich dotychczasowych jobów. `Post-deploy smoke`
-nie jest wymaganym checkiem PR: dla PR deployment i smoke są pomijane.
-Ochrona nadal wymaga tylko `Required CI`. Właściciel dodaje osobno wymagane
-`Backend (3.13)` i `Lint` w SCRUM-140, zachowując dotychczasowe zabezpieczenia.
+Odczyt 19.11.2026: `Lint` i `Post-deploy smoke` są na main, a ochrona wymaga
+`Required CI`, `Backend (3.13)` i `Lint`. Rozszerzenie już wykonano w SCRUM-140
+(dowód właściciela 10320); nie jest kolejną otwartą pracą. Run `44386951054`
+dla `cb634da` ma wszystkie 10 jobów SUCCESS, w tym deploy/smoke.
+Nie potwierdza to pełnego odbioru Story przez człowieka. `Post-deploy smoke`
+nie jest wymaganym checkiem PR, bo dla PR deploy/smoke są pomijane.
 [Bieżące dowody i braki oddania](docs/COURSE_READINESS.md).
 
 ## SCRUM-101 — bezpieczeństwo przyrostu (ASVS 5.0.0)

@@ -6,6 +6,14 @@ Jakub Nazarewicz jest autorem, nie reviewerem własnej zmiany. Dawid Hnat lub
 Jakub Czaja wykonuje review. Ten dokument opisuje powtarzalny test; sam w sobie
 nie jest wynikiem QA.
 
+## Uznany dowód restore — aktualizacja 19.11.2026
+
+Dawid Hnat ocenił próbę autora z 18.11 jako operator **PASS** dla DoD 16/91:
+[SCRUM-141/10324](https://fleet-flow.atlassian.net/browse/SCRUM-141?focusedCommentId=10324)
+i [10345](https://fleet-flow.atlassian.net/browse/SCRUM-141?focusedCommentId=10345).
+Nie powtarzamy jej jako niewykonanej i nie wymagamy odłożonego off-site 84.
+Końcowy niezależny QA poniższych AC nadal ma własny zakres i SHA.
+
 ## Warunki i dowody wydania
 
 1. Użyj wyłącznie kont testowych zatwierdzonych dla środowiska. Nie zapisuj
