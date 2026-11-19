@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { execFileSync } from "node:child_process";
 import { test, expect, type Page } from "@playwright/test";
 
@@ -6,6 +7,13 @@ const vehicle = "11111111-1111-4111-8111-111111111111";
 
 function sourceState(value: "ok" | "degraded" | "unavailable") {
   execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", "source-state", value], {
+    cwd: "../backend", env: { ...process.env, PYTHONPATH: ".", FLEET_FLOW_E2E: "true" },
+    stdio: "pipe",
+  });
+}
+
+function measurementState(value: "moving" | "stopped" | "offline" | "unknown") {
+  execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", "measurement-state", value], {
     cwd: "../backend", env: { ...process.env, PYTHONPATH: ".", FLEET_FLOW_E2E: "true" },
     stdio: "pipe",
   });
@@ -123,6 +131,205 @@ test("account preferences sync between independent browsers and resolve concurre
   }
 });
 
+test("dashboard preferences stay isolated when switching accounts in one browser", async ({ page, browser }) => {
+  const widgets = ["metrics", "map", "activity", "vehicles", "utilization", "trips"];
+  const localSettings = {
+    theme: "light",
+    accent: "#1479e8",
+    material: "glass",
+    visibleWidgets: [],
+    layouts: {
+      dashboard: {
+        desktop: widgets.map((i, index) => ({ i, x: 0, y: index * 4, w: 12, h: 4 })),
+        compact: widgets.map((i, index) => ({ i, x: 0, y: index * 4, w: 1, h: 4 })),
+      },
+    },
+  };
+  await page.addInitScript((value) => {
+    localStorage.setItem("fleet-flow.dashboard.v2", JSON.stringify(value));
+  }, localSettings);
+  await login(page);
+  await page.evaluate(() => { window.location.hash = "#dashboard"; });
+  const migration = page.getByRole("region", { name: "Migracja ustawień: Pulpit" });
+  await expect(migration).toBeVisible();
+  await migration.getByRole("button", {
+    name: "Przenieś z tej przeglądarki",
+    exact: true,
+  }).click();
+  await expect.poll(async () => {
+    const response = await page.request.get("/api/v1/preferences/dashboard");
+    const { value } = await response.json();
+    return value?.visibleWidgets;
+  }).toEqual([]);
+
+  const secondContext = await browser.newContext({
+    baseURL: "http://127.0.0.1:54173",
+    locale: "pl-PL",
+    timezoneId: "Europe/Warsaw",
+    viewport: test.info().project.name === "mobile"
+      ? { width: 390, height: 844 }
+      : { width: 1440, height: 1000 },
+    ...(test.info().project.name === "mobile"
+      ? { isMobile: true, hasTouch: true }
+      : {}),
+  });
+  try {
+    await secondContext.route("**/*", (route) => {
+      const url = new URL(route.request().url());
+      return url.hostname === "127.0.0.1" ? route.continue() : route.abort();
+    });
+    const accountAPage = await secondContext.newPage();
+    await login(accountAPage);
+
+    await page.evaluate(() => { window.location.hash = "#dashboard"; });
+    await page.getByRole("button", { name: "Edytuj układ", exact: true }).click();
+    await page.getByRole("button", { name: "Wybierz widgety", exact: true }).click();
+    for (const widget of [
+      "Przegląd floty",
+      "Mapa floty",
+      "Alerty i aktywność",
+      "Pojazdy",
+      "Wykorzystanie floty",
+      "Ostatnie przejazdy",
+    ]) {
+      const checkbox = page.getByRole("checkbox", {
+        name: `Pokaż moduł: ${widget}`,
+        exact: true,
+      });
+      if (await checkbox.isChecked()) await checkbox.uncheck();
+    }
+    await page.evaluate(() => { window.location.hash = "#dashboard"; });
+    await expect(page.getByRole("heading", { name: /^Pulpit\.?$/, level: 1 })).toBeVisible();
+    await page.getByRole("button", { name: "Zapisz układ", exact: true }).click();
+    await expect.poll(async () => {
+      const response = await page.request.get("/api/v1/preferences/dashboard");
+      const { value } = await response.json();
+      return value?.visibleWidgets;
+    }).toEqual([]);
+
+    const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
+    if (await menu.isVisible()) await menu.click();
+    await page.getByRole("button", { name: "Wyloguj się", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Zaloguj się", exact: true })).toBeVisible();
+    await login(page, "editor-two");
+    await page.evaluate(() => { window.location.hash = "#dashboard"; });
+    await expect(page.locator("[data-widget]")).toHaveCount(6);
+    await expect(page.getByRole("region", { name: "Migracja ustawień: Pulpit" })).toHaveCount(0);
+
+    const accountBBeforeSave = await page.request.get("/api/v1/preferences/dashboard");
+    expect(await accountBBeforeSave.json()).toMatchObject({
+      version: 0,
+      value: null,
+    });
+    await page.getByRole("button", { name: "Edytuj układ", exact: true }).click();
+    await page.getByRole("button", { name: "Zapisz układ", exact: true }).click();
+    await expect.poll(async () => {
+      const response = await page.request.get("/api/v1/preferences/dashboard");
+      const { version, value } = await response.json();
+      return [version, value?.visibleWidgets?.length];
+    }).toEqual([1, 6]);
+
+    const accountA = await accountAPage.request.get("/api/v1/preferences/dashboard");
+    expect((await accountA.json()).value.visibleWidgets).toEqual([]);
+  } finally {
+    await secondContext.close();
+  }
+});
+
+for (const initialRead of ["failed", "cancelled"] as const) {
+  test(`dashboard migration stays with its first account after a ${initialRead} initial read`, async ({ page }) => {
+    const widgets = ["metrics", "map", "activity", "vehicles", "utilization", "trips"];
+    await page.addInitScript((ids) => {
+      if (sessionStorage.getItem("migration-fixture-seeded")) return;
+      localStorage.setItem("fleet-flow.dashboard.v2", JSON.stringify({
+        theme: "light",
+        accent: "#1479e8",
+        material: "glass",
+        visibleWidgets: [],
+        layouts: {
+          dashboard: {
+            desktop: ids.map((i, index) => ({ i, x: 0, y: index * 4, w: 12, h: 4 })),
+            compact: ids.map((i, index) => ({ i, x: 0, y: index * 4, w: 1, h: 4 })),
+          },
+        },
+      }));
+      sessionStorage.setItem("migration-fixture-seeded", "true");
+    }, widgets);
+
+    let firstReadSeen = false;
+    let releaseRead = () => {};
+    const heldRead = new Promise<void>((resolve) => { releaseRead = resolve; });
+    await page.route("**/api/v1/preferences/dashboard", async (route) => {
+      if (route.request().method() !== "GET" || firstReadSeen) {
+        await route.continue();
+        return;
+      }
+      firstReadSeen = true;
+      if (initialRead === "failed") {
+        await route.fulfill({
+          status: 503,
+          json: { error: { code: "UNAVAILABLE", message: "Testowy błąd odczytu ustawień." } },
+        });
+      } else {
+        await heldRead;
+        await route.abort();
+      }
+    });
+
+    const loginWithoutReload = async (role: string) => {
+      await page.getByLabel("Login", { exact: true }).fill(`e2e-${role}`);
+      await page.getByLabel("Hasło", { exact: true }).fill("synthetic-e2e-password");
+      await page.getByRole("button", { name: "Zaloguj się", exact: true }).click();
+      await expect(page.getByRole("button", { name: "Zaloguj się", exact: true })).toHaveCount(0);
+    };
+    const logout = async () => {
+      const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
+      if (await menu.isVisible()) await menu.click();
+      await page.getByRole("button", { name: "Wyloguj się", exact: true }).click();
+      await expect(page.getByRole("button", { name: "Zaloguj się", exact: true })).toBeVisible();
+    };
+
+    try {
+      await login(page);
+      await expect.poll(() => firstReadSeen).toBe(true);
+      await page.evaluate(() => { window.location.hash = "#dashboard"; });
+      if (initialRead === "failed") {
+        await expect(page.getByRole("alert").filter({ hasText: "Nie udało się pobrać danych. Spróbuj ponownie." })).toBeVisible();
+      }
+      await logout();
+      releaseRead();
+      await loginWithoutReload("editor-two");
+      await page.evaluate(() => { window.location.hash = "#dashboard"; });
+      await expect(page.getByText("Pobieranie zapisanych ustawień: Pulpit…")).toHaveCount(0);
+      await expect(page.locator("[data-widget]")).toHaveCount(6);
+      const migration = page.getByRole("region", { name: "Migracja ustawień: Pulpit" });
+      await expect(migration).toHaveCount(0);
+      expect(await (await page.request.get("/api/v1/preferences/dashboard")).json()).toMatchObject({
+        version: 0,
+        value: null,
+      });
+      await page.getByRole("button", { name: "Edytuj układ", exact: true }).click();
+      await page.getByRole("button", { name: "Zapisz układ", exact: true }).click();
+      await expect.poll(async () => {
+        const { value } = await (await page.request.get("/api/v1/preferences/dashboard")).json();
+        return value?.visibleWidgets?.length;
+      }).toBe(6);
+
+      await logout();
+      await loginWithoutReload("editor");
+      await expect(migration).toBeVisible();
+      await migration.getByRole("button", { name: "Przenieś z tej przeglądarki", exact: true }).click();
+      await expect.poll(async () => {
+        const { value } = await (await page.request.get("/api/v1/preferences/dashboard")).json();
+        return value?.visibleWidgets;
+      }).toEqual([]);
+      await page.screenshot({ path: test.info().outputPath(`migration-${initialRead}-owner.png`) });
+    } finally {
+      releaseRead();
+    }
+  });
+}
+
 test("local dashboard settings require explicit migration and cannot replace account settings", async ({ page, browser }) => {
   const widgets = ["metrics", "map", "activity", "vehicles", "utilization", "trips"];
   const localSettings = {
@@ -138,11 +345,16 @@ test("local dashboard settings require explicit migration and cannot replace acc
     },
   };
   await page.addInitScript(({ key, value }) => {
+    if (sessionStorage.getItem("migration-reload-seeded")) return;
     localStorage.setItem(key, JSON.stringify(value));
+    sessionStorage.setItem("migration-reload-seeded", "true");
   }, { key: "fleet-flow.dashboard.v2", value: localSettings });
   await login(page);
   await page.evaluate(() => { window.location.hash = "#dashboard"; });
   const migration = page.getByRole("region", { name: "Migracja ustawień: Pulpit" });
+  await expect(migration).toBeVisible();
+  await page.reload();
+  await page.evaluate(() => { window.location.hash = "#dashboard"; });
   await expect(migration).toBeVisible();
   await page.evaluate(() => { window.location.hash = "#dashboard"; });
   await expect(page.getByRole("button", { name: "Edytuj układ", exact: true })).toBeDisabled();
@@ -812,5 +1024,140 @@ for (const transport of ["BroadcastChannel", "storage"]) {
     await expect(reopened.getByLabel(/Cel przejazdu/)).toHaveAttribute("readonly", "");
     await expect(reopened.getByLabel(/Cel przejazdu/)).not.toHaveValue("Prywatny szkic edytora");
     await expect(other.getByRole("button", { name: "Zapisz cel i opis", exact: true })).toHaveCount(0);
+  });
+}
+
+async function accessible(page: Page, state: string) {
+  const result = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  const findings = result.violations.map(item => ({
+    id: item.id, impact: item.impact,
+    targets: item.nodes.map(node => node.target),
+  }));
+  expect(findings, `axe: ${state}`).toEqual([]);
+}
+
+for (const theme of ["light", "dark"]) {
+  test(`axe ${theme}: login, list, map fallback, details, annotation and error`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.addInitScript(value => {
+      localStorage.setItem("fleet-flow.dashboard.v2", JSON.stringify({ theme: value }));
+    }, theme);
+    await page.goto("/#vehicles");
+    await expect(page.getByLabel("Login", { exact: true })).toBeVisible();
+    await accessible(page, "login");
+    await page.getByLabel("Login", { exact: true }).fill("e2e-editor");
+    await page.getByLabel("Hasło", { exact: true }).fill("synthetic-wrong-password");
+    await page.getByRole("button", { name: "Zaloguj się", exact: true }).click();
+    await expect(page.getByRole("alert")).toBeVisible();
+    await accessible(page, "login error");
+    await login(page);
+    await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+    await accessible(page, "vehicle list: stopped");
+    for (const status of ["moving", "offline", "unknown"] as const) {
+      measurementState(status);
+      await page.reload();
+      await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+      await accessible(page, `vehicle list: ${status}`);
+    }
+    measurementState("stopped");
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
+    await page.goto("/#map");
+    await expect(page.getByText("Mapa czeka na konfigurację").first()).toBeVisible();
+    await accessible(page, "map fallback");
+    await page.goto("/#vehicles");
+    await page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await accessible(page, "vehicle details dialog");
+    await page.getByRole("dialog").getByRole("tab", { name: "Podróże", exact: true }).click();
+    await page.getByRole("dialog").getByRole("list", { name: "Przejazdy pojazdu", exact: true }).getByRole("button").first().click();
+    const form = page.getByRole("form", { name: "Cel i opis przejazdu", exact: true });
+    await expect(form).toBeVisible();
+    await accessible(page, "annotation editor");
+    await form.getByLabel(/Cel przejazdu/).fill("Syntetyczny błąd dostępności");
+    await page.route(`**/api/v1/trips/${trip}/annotation`, route => route.fulfill({
+      status: 503, contentType: "application/json", body: JSON.stringify({ error: { code: "UNAVAILABLE" } }),
+    }));
+    await form.getByRole("button", { name: "Zapisz cel i opis", exact: true }).click();
+    await expect(form.getByRole("alert")).toBeVisible();
+    await accessible(page, "save error with retained draft");
+    await page.screenshot({ path: test.info().outputPath(`axe-${theme}-error.png`) });
+  });
+}
+
+test("keyboard opens details, traps focus, switches tabs and returns focus on Escape", async ({ page }) => {
+  await login(page);
+  const opener = page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ });
+  await opener.focus();
+  await page.keyboard.press("Enter");
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Zamknij szczegóły pojazdu" })).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  expect(await dialog.evaluate(element => element.contains(document.activeElement))).toBe(true);
+  await page.keyboard.press("Tab");
+  expect(await dialog.evaluate(element => element.contains(document.activeElement))).toBe(true);
+  const vehicleTab = dialog.getByRole("tab", { name: "Pojazd", exact: true });
+  await vehicleTab.focus();
+  await page.keyboard.press("End");
+  await expect(dialog.getByRole("tab", { name: "Podróże", exact: true })).toBeFocused();
+  await expect(dialog.getByRole("tab", { name: "Podróże", exact: true })).toHaveAttribute("aria-selected", "true");
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+  await expect(opener).toBeFocused();
+  await page.keyboard.press("Space");
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("tab", { name: "Pojazd", exact: true }).focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(dialog.getByRole("tab", { name: "Kierowca", exact: true })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(opener).toBeFocused();
+});
+
+for (const theme of ["light", "dark"]) {
+  test(`planned modules and local-only data ${theme}`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.addInitScript(value => {
+      localStorage.setItem("fleet-flow.dashboard.v2", JSON.stringify({ theme: value }));
+    }, theme);
+    await login(page);
+    const openMenu = async () => {
+      const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
+      if (await menu.isVisible()) await menu.click();
+    };
+    for (const title of ["Serwis", "Ewidencja przebiegu", "Kierowcy", "Karty paliwowe", "Alerty"]) {
+      await openMenu();
+      const link = page.getByRole("navigation", { name: "Sekcje aplikacji" })
+        .getByRole("link", { name: `${title} Planowane`, exact: true });
+      await link.focus();
+      await expect(link).toBeFocused();
+      await page.keyboard.press("Enter");
+      await expect(page.getByRole("heading", { name: new RegExp(`^${title}\\.?$`), level: 1 })).toBeVisible();
+      await expect(page.locator(".planned-page").getByText("Planowane", { exact: true })).toBeVisible();
+      await accessible(page, `planned ${title}`);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    }
+    await openMenu();
+    await page.getByRole("link", { name: "Ustawienia", exact: true }).click();
+    await expect(page.getByText(/Wygląd, tło i układ Mapy zapisują się tylko w tej przeglądarce/)).toBeVisible();
+    await page.getByRole("navigation", { name: "Kategorie ustawień" }).getByRole("button", { name: /^Tło(?: |$)/ }).click();
+    await page.getByRole("button", { name: "Własne", exact: true }).click();
+    await expect(page.getByText(/Tylko na tym urządzeniu i w tej przeglądarce\. Nie wysyłamy zdjęcia/)).toBeVisible();
+    await accessible(page, "local background and settings");
+    await page.screenshot({ path: test.info().outputPath(`local-settings-${theme}.png`) });
+    await openMenu();
+    await page.getByRole("navigation", { name: "Sekcje aplikacji" }).getByRole("link", { name: "Pojazdy", exact: true }).click();
+    const opener = page.getByRole("button", { name: "Zdjęcie: Pojazd E2E", exact: true });
+    await opener.focus();
+    await page.keyboard.press("Enter");
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByText(/Tylko na tym urządzeniu i w tej przeglądarce, dla Twojego konta/)).toBeVisible();
+    await accessible(page, "local vehicle photo");
+    await page.screenshot({ path: test.info().outputPath(`local-photo-${theme}.png`) });
+    await page.keyboard.press("Escape");
+    await expect(dialog).not.toBeVisible();
+    await expect(opener).toBeFocused();
   });
 }

@@ -15,10 +15,10 @@ wpisywania kolorów w komponentach. Motyw zmienia `data-theme` elementu
 | `--background` | `#f3f7fb` | `#0b121e` | tło aplikacji |
 | `--surface` | `#ffffff` | `#131e2e` | karty i panel |
 | `--text` | `#192a42` | `#e7eef8` | główna treść |
-| `--muted` | `#63758a` | `#a1b1c6` | opisy |
+| `--muted` | `#596b80` | `#a1b1c6` | opisy |
 | `--border` | `#e3ebf3` | `#253247` | podziały i obramowania |
 | `--accent` | `#1479e8` domyślnie | kolor użytkownika | aktywne elementy |
-| `--success` | `#138c76` | jaśniejszy turkus | stan poprawny |
+| `--success` | `#10725f` | jaśniejszy turkus | stan poprawny |
 
 `--accent-on` wybiera czarny lub biały tekst zgodnie z luminancją akcentu.
 Nie używaj akcentu jako jedynego znaczenia błędu lub sukcesu. Status ma też
@@ -116,7 +116,8 @@ samą instancją; stan daty nie jest zapisywany w preferencjach wyglądu.
 `fleet-flow.dashboard.v2`; odczyt starszego klucza v1 zachowuje motyw,
 akcent i widoczność. Wygląd, tło i układ Mapy pozostają lokalne. Widoczność
 modułów oraz układ Pulpitu są dodatkowo zapisywane w backendowym module
-`dashboard` dla zalogowanego konta przez `shared/api/account-preferences.ts`.
+`dashboard` dla zalogowanego konta przez `shared/api/account-preferences.ts`;
+zapis lokalny jest kopią roboczą i nie może przejść na inne konto.
 SCRUM-91 wymaga jawnego wyboru przy migracji starego localStorage na puste konto;
 import używa wersji 0 i nie nadpisuje istniejących preferencji. Zapis ma kontrolę
 wersji, konflikt z wyborem ponownego wczytania lub świadomego zapisu oraz jawny
@@ -130,6 +131,14 @@ Ukrycie wszystkich modułów jest dozwolone; można je ponownie włączyć.
 Ewidencja przebiegu, Kierowcy, Karty paliwowe, Alerty i Ustawienia. Nowa strona ma trwałe
 ID, polski tytuł, ikonę i opis. `WorkspacePage` zapewnia wspólny pusty widok
 sekcji planowanych. Logikę tych funkcji dodajemy w osobnych zadaniach.
+Nawigacja pobiera oznaczenie „Planowane” z obecności `placeholder` w rejestrze;
+to samo oznaczenie jest na stronie sekcji. Po implementacji usuń `placeholder`
+i podłącz rzeczywisty widok. Nie zmieniaj przy tym trwałego ID sekcji.
+Ustawienia, galeria pojazdów i dodawanie zdjęć jawnie informują o zapisie
+tylko na urządzeniu i w danej przeglądarce. Układ Pulpitu i Pojazdów zapisuje się
+na koncie; komunikaty muszą odróżniać te dwa zakresy. Zdjęcia pojazdów są dodatkowo
+rozdzielone według konta, a preferencje dashboardu i jego tło należą do
+przeglądarki. Nie obiecuj synchronizacji zdjęć, tła ani układu Mapy między urządzeniami.
 
 Rejestr stron jest niezależny od `SectionId` i grup zapisanych w preferencjach układu.
 Stare grupy `fleet`, `trips`, `analytics` pozostają w modelu, aby zachować
@@ -175,13 +184,14 @@ Pionowy gest na zwężonym ekranie nie zapisuje szerokości ograniczonej przez C
 Ruch mniejszy niż 5 px traktujemy jako drżenie wskaźnika; celowy ruch poziomy
 rozpoczyna zmianę szerokości od widocznej krawędzi kafelka.
 
-`VehiclePreferencesProvider` udostępnia zdjęcia i niezależny szkic rozmiarów.
+`VehiclePreferencesProvider` udostępnia preferencje konta, zdjęcia i niezależny szkic rozmiarów.
 Moduł konta `vehicles` przechowuje w backendzie układ kafelków, sortowanie,
 filtry i limit strony. Odczyt oraz wersjonowany zapis są izolowane według konta
 i modułu; nie nadpisują otwartego szkicu. Starszy localStorage
-`fleet-flow.vehicles.v2.<user-id>` jest źródłem jawnej migracji i lokalną kopią
-układu. IndexedDB `fleet-flow.vehicle-photos.v1` nadal przechowuje wyłącznie
-lokalne zdjęcia dla danego konta. Wylogowanie zwalnia URL-e
+`fleet-flow.vehicles.v2.<user-id>` oraz `fleet-flow.list-page-size.v1.<user-id>`
+są źródłem jawnej migracji i lokalną kopią układu. IndexedDB
+`fleet-flow.vehicle-photos.v1` nadal przechowuje wyłącznie lokalne zdjęcia
+i nie są one współdzielone z kontem. Wylogowanie zwalnia URL-e
 obiektowe; podmiana i usunięcie zdjęcia też je zwalniają. Upload zapisuje się
 od razu, niezależnie od Zapisz/Anuluj układu. Brak zapisu ma jawny stan sesji.
 
@@ -215,8 +225,8 @@ wyników. `pagination-model.ts` ogranicza wartości zgodnie z limitem API.
 
 `FleetProvider` dzieli limit między galerią, tabelą i listą Mapy. Zmiana limitu
 wraca na stronę 1. Limit jest zapisany z preferencjami konta w module
-`vehicles`; dawny klucz `fleet-flow.list-page-size.v1.<user-id>` uczestniczy
-w jawnej migracji lokalnych ustawień. Awaria zapisu konta jest komunikowana.
+`vehicles`; dawny klucz `fleet-flow.list-page-size.v1.<user-id>` służy
+wyłącznie jako kandydat do jawnej migracji lokalnych ustawień. Awaria zapisu konta jest komunikowana.
 Filtrowanie i mapowanie floty pozostają niezależne od stronicowania listy.
 `useWidgetMinimums` uwzględnia footer i pierwszy rekord, a dla pustej listy
 mierzy komunikat zamiast rozciągniętego kontenera, aby uniknąć pętli wzrostu.
@@ -399,3 +409,12 @@ względny ponownie podąża za aktualną datą; nie odmontowuje formularza w tra
 Natywne pole daty ma opis i ograniczenie do dzisiaj. Puste stany pozostają
 jednoznaczne do czasu podłączenia rzeczywistej historii; nie pokazuj
 przykładowych tras jako danych floty.
+
+### Kontrast i fokus panelu (SCRUM-107)
+
+Stopka wersji oraz opisy fallbacku mapy używają `--wallpaper-muted`, aby zachować
+kontrast nad jasnym tłem. Panel pojazdu stosuje ten sam token dla opisów nad szkłem.
+Aktywna zakładka ma tekst `--text` i podkreślenie `--accent`; jej czytelność nie
+zależy od wybranego koloru akcentu. Jasny motyw używa ciemniejszych tokenów tekstowych: muted #596b80, success #10725f, warning #8f570b oraz danger #b83e57.
+Dialog zawija Tab/Shift+Tab między widocznymi kontrolkami, a Escape zachowuje
+potwierdzenie niezapisanego szkicu i przywraca fokus do otwarcia.

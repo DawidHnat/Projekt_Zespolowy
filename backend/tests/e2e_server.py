@@ -57,17 +57,21 @@ def seed(engine):
         hour=10, minute=0, second=0, microsecond=0
     )
     with Session(engine) as session:
-        known = {"e2e-editor", "e2e-viewer"}
+        known = {"e2e-editor", "e2e-viewer", "e2e-editor-two"}
         if any(username not in known for username in session.scalars(select(User.username))):
             raise RuntimeError("E2E database contains non-fixture users")
-        for role in ("editor", "viewer"):
-            username = f"e2e-{role}"
+        fixtures = (
+            ("e2e-editor", "Test editor", "editor"),
+            ("e2e-viewer", "Test viewer", "viewer"),
+            ("e2e-editor-two", "Test editor two", "editor"),
+        )
+        for username, display_name, role in fixtures:
             user = session.scalar(select(User).where(User.username == username))
             if not user:
                 session.add(
                     User(
                         username=username,
-                        display_name=f"Test {role}",
+                        display_name=display_name,
                         role=role,
                         password_hash=password_hasher.hash("synthetic-e2e-password"),
                     )
@@ -126,11 +130,30 @@ def main():
             session.execute(delete(LoginSession))
             session.execute(delete(AccountPreference))
             for user in session.scalars(
-                select(User).where(User.username.in_(("e2e-editor", "e2e-viewer")))
+                select(User).where(
+                    User.username.in_(("e2e-editor", "e2e-viewer", "e2e-editor-two"))
+                )
             ):
                 user.password_hash = password_hasher.hash("synthetic-e2e-password")
+            measurement = session.get(Measurement, VEHICLE)
+            measurement.position_at = measurement.received_at = datetime.now(UTC)
+            measurement.standing_still = True
             session.commit()
         source_state(engine, "ok")
+        engine.dispose()
+        return
+    if len(sys.argv) == 3 and sys.argv[1] == "measurement-state":
+        if sys.argv[2] not in ("moving", "stopped", "offline", "unknown"):
+            raise RuntimeError("Invalid synthetic measurement state")
+        with Session(engine) as session:
+            measurement = session.get(Measurement, VEHICLE)
+            now = datetime.now(UTC)
+            measurement.position_at = now - timedelta(hours=1) if sys.argv[2] == "offline" else now
+            measurement.received_at = now
+            measurement.standing_still = (
+                None if sys.argv[2] == "unknown" else sys.argv[2] != "moving"
+            )
+            session.commit()
         engine.dispose()
         return
     if len(sys.argv) == 3 and sys.argv[1] == "source-state":

@@ -8,7 +8,26 @@ jobów bezpieczeństwa; nie zmieniano reguł ochrony repozytorium.
 Wyniki z 28.10 poniżej są historyczne. Nowe CI, review i QA tej integracji
 pozostają warunkami dostarczenia. Nie aktywowano usług na VPS.
 
-## Bieżąca blokada integracji — 17.11.2026
+## Aktualny odbiór integracji — 19.11.2026
+
+Wykonawca odczytu: agent Codex na polecenie Jakuba Czai (`jczaja51`).
+Sprawdzony head `56ae2ad0e5090c8fc617b3ed0a37106fc74867c5`,
+[run 44381150055](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44381150055):
+Dependency security (npm/pip), Source security (Semgrep), Secret security
+(Gitleaks), Backend image (Trivy), testy i Required CI **PASS**. Deploy/smoke
+PR są prawidłowo SKIPPED. Dawne ostrzeżenie npm poniżej nie jest bieżącą
+blokadą; nie dodano wyjątku CVE ani obniżenia progów.
+
+19.11 dołączono aktualny `main` `cb634da0ece8cd93424bfc16a5185cf817a0cbb1`
+bez konfliktów. Zachowano kod sesji, preferencji i synchronizacji, migracje
+0008/0009, test prawdziwego Caddy, wszystkie skanery oraz ochronę wdrożenia.
+Nowy head wymaga własnego CI i niezależnego review Dawida Hnata; dawne
+zatwierdzenia PR #101 mają stan DISMISSED. Wyjątek tekstowy Gitleaks opisany
+niżej nadal wymaga tego review. Odbiór rollout/rollback obrazu oraz QA są
+**BLOCKED do rzeczywistego wykonania**. Ten zapis nie deklaruje merge ani
+wdrożenia na VPS.
+
+## Historyczna blokada npm — 17.11.2026
 
 Run [44177076297](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44177076297)
 na `5d01cf2`: Python audit, Semgrep, Gitleaks, Trivy, testy i build PASS.
@@ -17,12 +36,12 @@ Vite/tinyglobby/fdir/plugin-react. Required CI prawidłowo FAIL, deploy SKIPPED.
 [GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf)
 (CVE-2026-112366), odczyt 17.11, obejmuje <=4.0.7 i wskazuje brak poprawionej
 wersji. Nie wykonano sugerowanego przez npm przymusowego downgrade Vite.
-Nie dodano ignorowania CVE ani obniżenia progu. PR pozostaje draftem.
+Nie dodano ignorowania CVE ani obniżenia progu. W tym historycznym odczycie PR był draftem.
 
 Właściciel SCRUM-95 (Dawid) wraz z PO musi odebrać bezpieczną poprawkę
 zależności albo osobno przejrzeć precyzyjny, datowany wyjątek zgodnie
 z zasadami poniżej. Taki wyjątek nie został uzgodniony ani wprowadzony.
-Ta blokada uniemożliwia uznanie integracji SCRUM-133 za ukończoną.
+Była to blokada w odczycie 17.11; aktualny wynik i pozostałe bramki są powyżej.
 
 ## Zakres i progi
 

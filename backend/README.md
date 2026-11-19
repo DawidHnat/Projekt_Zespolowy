@@ -174,6 +174,13 @@ atrap SMTP, a rzeczywista wysyłka wymaga osobnego uzgodnienia.
 
 ## Synchronizacja pojazdów — SCRUM-15
 
+Operator ma `python -m app.sync_control once` (pojedynczy **żywy import**, tylko
+po wyraźnym uzgodnieniu) oraz `python -m app.sync_control status` (odczyt cache,
+bez wywołania dostawcy). Status zwraca niezerowy kod przy braku/awarii lub wieku
+ostatniego sukcesu ponad 180 s. Procedura VPS i wymagane dowody:
+[SCRUM-64](../docs/qa/SCRUM-64.md). Nieoczekiwane błędy workera mają stały kod
+zdarzenia i losowe event_id; log nie zawiera wyjątku, SQL ani telemetryki.
+
 `SYNC_ENABLED=true` w lokalnym `.env` włącza jeden wspólny odczyt. `SYNC_INTERVAL_SECONDS`
 ustawia częstotliwość (domyślnie 60 s, minimum 10 s zgodnie z limitem źródła),
 a `STALE_SECONDS` próg nieaktualności pomiaru (domyślnie 900 s). Obie wartości
@@ -292,3 +299,14 @@ Reguły i alerty są ograniczone do bieżącego konta źródła. Formularze i li
 frontendzie pozostają SCRUM-32; odbiór zespołowy alertów jest w SCRUM-33.
 
 Przypadki testowe i instrukcja sprawdzenia: [QA SCRUM-31](../docs/qa/SCRUM-31.md).
+
+## Dokumentacja API i role (SCRUM-103)
+
+Swagger `/docs`, ReDoc `/redoc` i `/openapi.json` są domyślnie dostępne przy
+lokalnych CORS_ORIGINS. Zdalny origin wyłącza je; jawne włączenie docs dla
+zdalnego originu jest odrzucane. `API_DOCS_ENABLED=false` wyłącza docs także
+lokalnie. Testy kontraktu nadal używają schematu wewnętrznie.
+
+Role `admin`, `editor`, `viewer` mają constraint bazy. Migracja nie poprawia
+nieznanych ról za operatora i nie zmienia istniejących uprawnień.
+[Sprawdzenie danych, rollout i rollback](../docs/security/SCRUM-103.md).
