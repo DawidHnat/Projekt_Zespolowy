@@ -2720,5 +2720,23 @@
     "https_sha": "cb634da",
     "readiness": "HTTP 200 / status ok",
     "scope": "publiczne strony wersji i readiness, nie odbiór zalogowanej funkcji"
+  },
+  "follow_up": {
+    "audited_on": "2026-11-19",
+    "source": "GitHub PR, CI i ancestry oraz odczyt statusu Jira",
+    "main": "70a38db96b5b007ad3b74d5c5d29dc61f9b77a69",
+    "backup": {
+      "pr": 105,
+      "head": "90f8832805d92252026df56319296d22c6fe3446",
+      "merged_at": "2026-11-19T19:22:27Z",
+      "merge_commit": "70a38db96b5b007ad3b74d5c5d29dc61f9b77a69",
+      "delivery_status": "DELIVERED_TO_MAIN",
+      "pr_ci_run": 44595612322,
+      "pr_ci_conclusion": "SUCCESS",
+      "operational_acceptance": "DEFERRED_TO_SPRINT_5",
+      "operational_issue": "SCRUM-84"
+    },
+    "scrum_133_jira_status": "Gotowe",
+    "integration_prs_still_open": [101, 110]
   }
 }

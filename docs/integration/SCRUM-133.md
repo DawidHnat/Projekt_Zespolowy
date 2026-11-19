@@ -1,16 +1,16 @@
 # SCRUM-133 — bieżący rejestr integracji
 
-Odczyt **19.11.2026**, agent Codex na polecenie **Jakuba Czai (jczaja51)**. Main `cb634da0ece8cd93424bfc16a5185cf817a0cbb1`. Środowisko: izolowany checkout, GitHub/Jira oraz publiczne HTTP/HTTPS/readiness; bez rekordów floty.
+Bazowy odczyt **19.11.2026**, agent Codex na polecenie **Jakuba Czai (jczaja51)**. Main `cb634da0ece8cd93424bfc16a5185cf817a0cbb1`. Środowisko: izolowany checkout, GitHub/Jira oraz publiczne HTTP/HTTPS/readiness; bez rekordów floty.
 
-**Stan: BLOCKED — #101 i #110 oczekują aktualnego niezależnego review.** Backup #35/#105: **DEFERRED → SCRUM-84 / końcowy S5 (id 37)** decyzją PO z 19.11; nie jest warunkiem bieżącego zamknięcia 133. Nie oznacza to dostarczenia backupu.
+**Stan integracji: #101 i #110 pozostają otwarte i wymagają niezależnego review.** Jira pokazuje już **Gotowe** dla SCRUM-133. Wieczorny odczyt potwierdził obecność narzędzi backupu w `main` (`70a38db`) po scaleniu #105 o 20:22 czasu polskiego. Uruchomienie backupu off-site i odbiór SCRUM-84 pozostają odłożone do Sprintu 5 (id 37). [PR #105](https://github.com/DawidHnat/Projekt_Zespolowy/pull/105)
 
-Źródłem szczegółów jest [istniejący JSON dowodów](SCRUM-133-evidence.json): pełne SHA, dawne bazy i commity, aktualne stany plików/ancestry, review, CI, wdrożenie i QA. Wyniki 17.11 zachowano jako historyczne. Różnica pliku nie dowodzi braku zachowania. Nie kopiowano całych dawnych head.
+JSON dowodów zawiera stany z bazowego odczytu oraz `follow_up` ze scaleniem #105. Dotychczasowe wyniki CI, wdrożenia i QA zachowują daty oraz SHA sprawdzonych wersji. [JSON dowodów](SCRUM-133-evidence.json)
 
 ## Wszystkie 12 zakresów i dodatkowy #79
 
 | Źródło / Jira | Integracja / head | Dostarczenie | Dowód zachowania i pozostały odbiór |
 | --- | --- | --- | --- |
-| [#35](https://github.com/DawidHnat/Projekt_Zespolowy/pull/35) / [SCRUM-84](https://fleet-flow.atlassian.net/browse/SCRUM-84) | [#105](https://github.com/DawidHnat/Projekt_Zespolowy/pull/105) / `dc9e231` | DEFERRED | Off-site narzędzia/timery nie są dostarczone; zakres odłożony do S5, bez deklaracji PASS. |
+| [#35](https://github.com/DawidHnat/Projekt_Zespolowy/pull/35) / [SCRUM-84](https://fleet-flow.atlassian.net/browse/SCRUM-84) | [#105](https://github.com/DawidHnat/Projekt_Zespolowy/pull/105) / `90f8832` | DELIVERED_TO_MAIN | Narzędzia i timery w `main` od `70a38db`. CI PR przeszło. Uruchomienie storage i timerów oraz operacyjny odbiór pozostają w Sprint 5. |
 | [#36](https://github.com/DawidHnat/Projekt_Zespolowy/pull/36) / [SCRUM-64](https://fleet-flow.atlassian.net/browse/SCRUM-64) | [#107](https://github.com/DawidHnat/Projekt_Zespolowy/pull/107) / `f794b8d` | DELIVERED_TO_MAIN | app/sync_control.py oraz bezpieczne zdarzenia workera są w main przez #107. Odbiór kontrolowanego live SCRUM-64 jest odrębny. |
 | [#38](https://github.com/DawidHnat/Projekt_Zespolowy/pull/38) / [SCRUM-97](https://fleet-flow.atlassian.net/browse/SCRUM-97) | [#103](https://github.com/DawidHnat/Projekt_Zespolowy/pull/103) / `b897dc6` | DELIVERED_TO_MAIN | Paginacja SQL, prywatne indeksy wyszukiwania i migracja 0008 są w main przez #103. Zachowano speed_kmh w serializacji. |
 | [#40](https://github.com/DawidHnat/Projekt_Zespolowy/pull/40) / [SCRUM-95](https://fleet-flow.atlassian.net/browse/SCRUM-95) | [#101](https://github.com/DawidHnat/Projekt_Zespolowy/pull/101) / `a8476ac` | PENDING | Skany są w #101/a8476ac, ale nie w main. Pełny aktualny CI 44487974169 PASS; wymagane nowe review Dawida i rollout/rollback obrazu. |
@@ -26,6 +26,8 @@ Odczyt **19.11.2026**, agent Codex na polecenie **Jakuba Czai (jczaja51)**. Main
 #79 jest **DELIVERED_TO_MAIN przez #53**: merge `a739d68` jest przodkiem main. Własnego nieistniejącego Approved #79 nie dopisano; dowód review ścieżki #53 pozostaje w GitHub.
 
 ## Jedna kolejka: #101 → #110
+
+Poniższe SHA i wyniki opisują bazowy odczyt. Wyniki nowych commitów są w kartach Checks obu PR-ów.
 
 1. **#101, `a8476ac`**: dołączono aktualny main bez konfliktów. [CI 44487974169](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44487974169): wszystkie wymagane testy i skanery PASS, deploy/smoke PR SKIPPED. Logi potwierdzają faktyczne npm/pip, Semgrep, Gitleaks i Trivy; ostrzeżenie npm z 17.11 jest historyczne. Lokalnie agent 19.11: Ruff check/format PASS, 255 pytest PostgreSQL PASS, 58 npm test/build PASS, generator kontraktów i 3 testy wyjątku tekstowego PASS. Progi i ochrona zachowane. **Dawid Hnat** ma wykonać aktualne review całego head, w tym istniejącego ograniczonego fingerprintu Gitleaks i rollout/rollback obrazu. Stare reviews są DISMISSED. Dopiero po komplecie bramek zwykły merge, deploy i smoke.
 2. **#110, `be609d7`**: pozostawiono bez aktualizacji do czasu dostarczenia #101. [CI 44414413143](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44414413143) PASS dla obecnego head. Diff zawiera API/UI ręcznych kierowców, kategorie/przypisania, alerty #109 i UI #111. `0010_manual_drivers` następuje po 0009; waliduje legacy i blokuje stratny downgrade. Po #101: aktualizacja wyłącznie tego PR, testy/CI i nowe niezależne review Dawida/Nazarewicza; obecne reviews DISMISSED. QA: **Marcel**, [SCRUM-54](https://fleet-flow.atlassian.net/browse/SCRUM-54) i [SCRUM-33](https://fleet-flow.atlassian.net/browse/SCRUM-33). Operator odbiera migrację/rollback; merge nie zamyka całych Story.
