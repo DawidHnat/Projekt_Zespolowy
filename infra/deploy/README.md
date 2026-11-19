@@ -8,6 +8,10 @@ Synchronizacja WEBFLEET domyślnie pozostaje wyłączona. Compose respektuje
 [Runbook SCRUM-64](../../docs/qa/SCRUM-64.md) opisuje canary, pomiar aktualności
 i rollback. Kod nie stanowi potwierdzenia uruchomienia źródła na VPS.
 
+Cykliczny szyfrowany backup poza VPS i izolowane sprawdzenie odtworzenia opisuje
+[SCRUM-84](../backup/README.md). Wymaga osobnej konfiguracji storage i aktywacji
+timerów; lokalny dump przy deployu nie zastępuje tej kopii.
+
 20 października 2026 przetestowano na VPS wydanie `e30cadd` z PR #23 pod
 `https://vps-9171bf52.vps.ovh.net/`. Przeszły także ponowne wdrożenie, kopia
 zmigrowanej bazy i próba jej odtworzenia. Trzy sekrety Actions są zapisane,
