@@ -1,0 +1,263 @@
+{
+  "executor": "agent Codex na polecenie Jakuba Czai (jczaja51)",
+  "date": "2026-11-19T09:53:26.683527+01:00",
+  "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+  "environment": "GitHub CI/Linux/PostgreSQL/Chromium; publiczne HTTP/HTTPS/readiness; izolowany checkout",
+  "state": "BLOCKED pełne oddania; zapis przed przełączeniem sprintów",
+  "main_run": {
+    "conclusion": "success",
+    "createdAt": "2026-11-18T20:03:29Z",
+    "databaseId": 44386951054,
+    "headSha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+    "status": "completed",
+    "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054"
+  },
+  "main_jobs": [
+    {
+      "name": "Lint",
+      "conclusion": "success",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054/job/135093989817"
+    },
+    {
+      "name": "Backend (3.12)",
+      "conclusion": "success",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054/job/135093990122"
+    },
+    {
+      "name": "Frontend build",
+      "conclusion": "success",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054/job/135093990135"
+    },
+    {
+      "name": "Backend (3.13)",
+      "conclusion": "success",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054/job/135093990233"
+    },
+    {
+      "name": "Markdown links",
+      "conclusion": "success",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054/job/135093990359"
+    },
+    {
+      "name": "Backend image",
+      "conclusion": "success",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054/job/135093990360"
+    },
+    {
+      "name": "Critical browser flows",
+      "conclusion": "success",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054/job/135093990410"
+    },
+    {
+      "name": "Required CI",
+      "conclusion": "success",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054/job/135098389239"
+    },
+    {
+      "name": "Deploy development server",
+      "conclusion": "success",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054/job/135098460624"
+    },
+    {
+      "name": "Post-deploy smoke",
+      "conclusion": "success",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054/job/135098718756"
+    }
+  ],
+  "deployment": "PASS deployed SHA cb634da: HTTP status, HTTPS application, API readiness",
+  "required_checks": [
+    "Required CI",
+    "Backend (3.13)",
+    "Lint"
+  ],
+  "workflow_needs": {
+    "required": [
+      "frontend",
+      "backend",
+      "container",
+      "e2e",
+      "lint",
+      "docs-links"
+    ],
+    "deploy": [
+      "required",
+      "frontend",
+      "backend",
+      "e2e",
+      "lint"
+    ],
+    "smoke": [
+      "deploy"
+    ]
+  },
+  "tutorial_filter": {
+    "limit": 100,
+    "rows": 100,
+    "all_merged_in_wider_inventory": 108,
+    "all_key_in_body_true": true,
+    "raw": "#117 feat/SCRUM-150-refresh-utilization author=jczaja51 reviewers=mglowacki0 key_in_body=true\n#116 fix/SCRUM-56-postgres-reset-lock-observer author=DawidHnat reviewers=jczaja51,mglowacki0 key_in_body=true\n#115 fix/SCRUM-22-vehicle-speed-kmh author=jczaja51 reviewers=DawidHnat key_in_body=true\n#114 test/SCRUM-101-roles author=mglowacki0 reviewers=DawidHnat,jczaja51 key_in_body=true\n#113 docs/SCRUM-101-asvs-qa-update author=mglowacki0 reviewers=DawidHnat,jczaja51 key_in_body=true\n#112 docs/SCRUM-133-integration-register author=jczaja51 reviewers=DawidHnat,mglowacki0 key_in_body=true\n#111 feat/SCRUM-133-drivers-ui-integration author=jczaja51 reviewers= key_in_body=true\n#109 feat/SCRUM-133-alerts-integration author=jczaja51 reviewers= key_in_body=true\n#108 fix/SCRUM-133-planned-ux-integration author=jczaja51 reviewers=jnazarewiczs key_in_body=true\n#107 fix/SCRUM-133-sync-integration author=jczaja51 reviewers=DawidHnat,mglowacki0 key_in_body=true\n#106 test/SCRUM-133-accessibility-integration author=jczaja51 reviewers=DawidHnat,jnazarewiczs,mglowacki0 key_in_body=true\n#104 fix/SCRUM-133-roles-integration author=jczaja51 reviewers=DawidHnat,mglowacki0 key_in_body=true\n#103 perf/SCRUM-133-sql-integration author=jczaja51 reviewers=DawidHnat,mglowacki0 key_in_body=true\n#102 test/SCRUM-133-contract-integration author=jczaja51 reviewers=DawidHnat,jnazarewiczs,mglowacki0 key_in_body=true\n#100 fix/SCRUM-133-edge-integration author=jczaja51 reviewers=DawidHnat key_in_body=true\n#99 fix/SCRUM-91-preference-isolation author=jnazarewiczs reviewers=DawidHnat,jczaja51,mglowacki0 key_in_body=true\n#98 docs/SCRUM-101-asvs-l2 author=mglowacki0 reviewers=jczaja51 key_in_body=true\n#97 codex/SCRUM-143-submission-pack-20261116 author=jczaja51 reviewers=DawidHnat,mglowacki0 key_in_body=true\n#96 test/SCRUM-77-datepicker author=mglowacki0 reviewers=DawidHnat,jczaja51 key_in_body=true\n#95 fix/SCRUM-139-map-chunk-recovery author=jnazarewiczs reviewers=DawidHnat,jczaja51 key_in_body=true\n#94 test/SCRUM-56-playwright-clock-fix author=mglowacki0 reviewers=DawidHnat,jczaja51 key_in_body=true\n#93 feat/SCRUM-91-sync-preferences author=jnazarewiczs reviewers=DawidHnat key_in_body=true\n#92 feat/SCRUM-98-details-retry author=jnazarewiczs reviewers=DawidHnat key_in_body=true\n#91 fix/SCRUM-137-reject-stale-deployments author=DawidHnat reviewers=jczaja51 key_in_body=true\n#90 codex/SCRUM-143-course-readiness author=jczaja51 reviewers=DawidHnat key_in_body=true\n#89 fix/SCRUM-136-input-boundary-validation author=DawidHnat reviewers=jczaja51 key_in_body=true\n#88 fix/SCRUM-131-invalid-odometer-sync-status author=DawidHnat reviewers=jczaja51 key_in_body=true\n#87 codex/SCRUM-127-evidence-readiness author=jczaja51 reviewers=DawidHnat key_in_body=true\n#86 codex/SCRUM-138-update-certifi author=jczaja51 reviewers=DawidHnat key_in_body=true\n#85 codex/SCRUM-134-session-boundaries author=jczaja51 reviewers=DawidHnat key_in_body=true\n#84 codex/SCRUM-44-reset-all-tabs author=jczaja51 reviewers=DawidHnat key_in_body=true\n#83 feat/SCRUM-51-reczna-kartoteka-i-biezace-pomiary author=DawidHnat reviewers=jczaja51 key_in_body=true\n#82 fix/SCRUM-130-cross-tab-session author=jczaja51 reviewers=DawidHnat key_in_body=true\n#81 fix/SCRUM-44-serialize-login-reset author=jczaja51 reviewers=DawidHnat key_in_body=true\n#80 docs/SCRUM-14-potwierdzenie-mapowania-i-zakonczenie-spike author=DawidHnat reviewers=jczaja51 key_in_body=true\n#79 fix/SCRUM-78-deploy-package author=jczaja51 reviewers= key_in_body=true\n#76 codex/SCRUM-127-quality-gates author=jczaja51 reviewers=DawidHnat key_in_body=true\n#75 fix/SCRUM-26-midnight-draft author=jczaja51 reviewers=DawidHnat key_in_body=true\n#74 docs/SCRUM-94-privacy-review author=jczaja51 reviewers=DawidHnat key_in_body=true\n#73 docs/SCRUM-65-review-evidence author=jczaja51 reviewers=DawidHnat key_in_body=true\n#72 test/SCRUM-46-bulk-layout-regression author=jczaja51 reviewers=DawidHnat key_in_body=true\n#71 fix/SCRUM-45-personalization-review author=jczaja51 reviewers=DawidHnat,mglowacki0 key_in_body=true\n#70 fix/SCRUM-38-responsive-dashboard author=jczaja51 reviewers=DawidHnat key_in_body=true\n#69 feat/SCRUM-20-live-fleet-list author=jczaja51 reviewers=DawidHnat,mglowacki0 key_in_body=true\n#68 codex/SCRUM-56-auth-qa-handoff author=jczaja51 reviewers=DawidHnat key_in_body=true\n#67 fix/SCRUM-22-map-source-state author=jczaja51 reviewers=DawidHnat,mglowacki0 key_in_body=true\n#66 feat/SCRUM-22-odswiezanie-cache-10s author=DawidHnat reviewers=jczaja51 key_in_body=true\n#65 feat/SCRUM-15-biezace-dane-webfleet-pr author=DawidHnat reviewers=jczaja51 key_in_body=true\n#64 docs/SCRUM-35-szkice-przeplywow author=jnazarewiczs reviewers=jczaja51 key_in_body=true\n#63 codex/SCRUM-3-review-confirmation author=jczaja51 reviewers=mglowacki0 key_in_body=true\n#62 codex/SCRUM-66-date-shortcut-buttons author=jczaja51 reviewers=jnazarewiczs key_in_body=true\n#61 feat/SCRUM-5-lista-mapa-floty author=jnazarewiczs reviewers=jczaja51 key_in_body=true\n#60 docs/SCRUM-18-mvp-release-protocol author=DawidHnat reviewers=jczaja51 key_in_body=true\n#59 docs/SCRUM-102-sso-mfa-decision author=jczaja51 reviewers=mglowacki0 key_in_body=true\n#58 docs/SCRUM-94-privacy-data-inventory author=jczaja51 reviewers=mglowacki0 key_in_body=true\n#57 fix/SCRUM-38-vehicle-table-overflow author=jczaja51 reviewers=mglowacki0 key_in_body=true\n#56 fix/SCRUM-64-persistent-integrations author=jczaja51 reviewers=jnazarewiczs,mglowacki0 key_in_body=true\n#55 infra/SCRUM-67-domain author=jczaja51 reviewers=jnazarewiczs key_in_body=true\n#54 jczaja51-patch-1 author=jczaja51 reviewers=DawidHnat key_in_body=true\n#53 test/SCRUM-78-markdown-links author=mglowacki0 reviewers=jczaja51 key_in_body=true\n#52 docs/SCRUM-112-data-inventory author=jczaja51 reviewers=mglowacki0 key_in_body=true\n#51 feat/SCRUM-53-drivers-ui author=jczaja51 reviewers= key_in_body=true\n#50 feat/SCRUM-52-manual-drivers author=jczaja51 reviewers= key_in_body=true\n#49 feat/SCRUM-32-alerts-ui author=jczaja51 reviewers= key_in_body=true\n#48 fix/SCRUM-103-role-docs-hardening author=jczaja51 reviewers= key_in_body=true\n#47 fix/SCRUM-105-planned-local-ux author=jczaja51 reviewers= key_in_body=true\n#45 test/SCRUM-108-api-contracts author=jczaja51 reviewers= key_in_body=true\n#44 fix/SCRUM-96-http-proxy author=jczaja51 reviewers= key_in_body=true\n#43 test/SCRUM-107-accessibility author=jczaja51 reviewers= key_in_body=true\n#40 chore/SCRUM-95-security-gates author=jczaja51 reviewers= key_in_body=true\n#39 fix/SCRUM-98-visible-polling author=jczaja51 reviewers= key_in_body=true\n#38 perf/SCRUM-97-sql-fleet author=jczaja51 reviewers= key_in_body=true\n#37 test/SCRUM-83-critical-e2e author=jczaja51 reviewers= key_in_body=true\n#36 fix/SCRUM-64-controlled-sync author=jczaja51 reviewers= key_in_body=true\n#35 infra/SCRUM-84-offsite-backup author=jczaja51 reviewers= key_in_body=true\n#34 docs/SCRUM-2-product-priorities author=jczaja51 reviewers=DawidHnat key_in_body=true\n#33 feat/SCRUM-66-themed-date-picker author=jczaja51 reviewers=DawidHnat key_in_body=true\n#32 docs/SCRUM-3-sprint-review-retro author=jczaja51 reviewers=mglowacki0 key_in_body=true\n#31 feat/SCRUM-49-profile-security author=jczaja51 reviewers=DawidHnat,mglowacki0 key_in_body=true\n#30 feat/SCRUM-26-trip-annotations author=jczaja51 reviewers=mglowacki0 key_in_body=true\n#29 docs/SCRUM-34-scrum-workflow author=jczaja51 reviewers=mglowacki0 key_in_body=true\n#28 docs/SCRUM-37-qa-plan author=mglowacki0 reviewers=jczaja51 key_in_body=true\n#27 docs/SCRUM-1-sprint-start-2026-10-24 author=jczaja51 reviewers=DawidHnat key_in_body=true\n#26 docs/SCRUM-5-prototype-glass author=jczaja51 reviewers=DawidHnat key_in_body=true\n#25 docs/SCRUM-5-sprint1-prototype author=jczaja51 reviewers=DawidHnat key_in_body=true\n#23 feat/SCRUM-18-continuous-delivery author=jczaja51 reviewers= key_in_body=true\n#22 docs/SCRUM-34-definition-of-done author=jczaja51 reviewers=DawidHnat key_in_body=true\n#21 chore/SCRUM-12-team-ssh-keys author=jczaja51 reviewers= key_in_body=true\n#20 feat/SCRUM-31-distance-alerts author=jczaja51 reviewers= key_in_body=true\n#19 chore/SCRUM-13-post-merge-docs author=jczaja51 reviewers= key_in_body=true\n#18 feat/SCRUM-25-vehicle-detail-shell author=jczaja51 reviewers= key_in_body=true\n#17 feat/SCRUM-46-bulk-vehicle-layout author=jczaja51 reviewers= key_in_body=true\n#16 feat/SCRUM-45-vehicle-personalization author=jczaja51 reviewers= key_in_body=true\n#15 feat/SCRUM-44-password-reset author=jczaja51 reviewers= key_in_body=true\n#14 feat/SCRUM-21-live-map author=jczaja51 reviewers= key_in_body=true\n#13 feat/SCRUM-20-live-fleet-list author=jczaja51 reviewers= key_in_body=true\n#12 feat/SCRUM-19-fleet-api author=jczaja51 reviewers= key_in_body=true\n#11 feat/SCRUM-15-vehicle-sync author=jczaja51 reviewers= key_in_body=true\n#10 feat/SCRUM-16-session-auth author=jczaja51 reviewers= key_in_body=true\n#9 feat/SCRUM-39-backend-foundation author=jczaja51 reviewers= key_in_body=true"
+  },
+  "personal_proofs": [
+    {
+      "name": "Jakub Czaja",
+      "login": "jczaja51",
+      "own_pr": 55,
+      "own_head": "9cff7e92cad1f36e1303f5bfc24f42ffe2863abe",
+      "own_merge": "c6d34b5b7df64f466ce65b3d5a015b20b5442963",
+      "reviewed_pr": 28,
+      "reviewed_author": "mglowacki0",
+      "approved_head": "5a4a5e68fd6ef39c0813dd7227611fa8066a80bd",
+      "approved_at": "2026-10-26T20:54:33Z"
+    },
+    {
+      "name": "Dawid Hnat",
+      "login": "DawidHnat",
+      "own_pr": 60,
+      "own_head": "cbd861c34e507b98c461f2883ca73a8b94831f68",
+      "own_merge": "e8bab1798da8b073b7d03a51d7572cb14fd06295",
+      "reviewed_pr": 22,
+      "reviewed_author": "jczaja51",
+      "approved_head": "e736bd1e1e543c083c170ff199441d926aa3a42b",
+      "approved_at": "2026-10-20T19:31:31Z"
+    },
+    {
+      "name": "Jakub Nazarewicz",
+      "login": "jnazarewiczs",
+      "own_pr": 61,
+      "own_head": "81ffe1eb6a13a35f860531863dd8677f0d1af879",
+      "own_merge": "e2c78f7da902723ca79c7f1639ae4b13972f65ba",
+      "reviewed_pr": 55,
+      "reviewed_author": "jczaja51",
+      "approved_head": "9cff7e92cad1f36e1303f5bfc24f42ffe2863abe",
+      "approved_at": "2026-11-06T17:46:48Z"
+    },
+    {
+      "name": "Marcel Głowacki",
+      "login": "mglowacki0",
+      "own_pr": 28,
+      "own_head": "5a4a5e68fd6ef39c0813dd7227611fa8066a80bd",
+      "own_merge": "4ce144e3e988106059acdbb6cd01ae9baa3beee4",
+      "reviewed_pr": 29,
+      "reviewed_author": "jczaja51",
+      "approved_head": "d0fc9c7c9121cc29c1b4022692eb83d250a79ade",
+      "approved_at": "2026-11-06T17:31:16Z"
+    }
+  ],
+  "conflict": {
+    "pr": 62,
+    "head": "f646c82d1e0b35188cfe8d16ab1b9220860a61a7",
+    "merged": "cec455520653b8b86e36a3299e008eb1cae807f5",
+    "reviewer": "jnazarewiczs",
+    "run": 42271127635,
+    "file": "frontend/src/features/trips/components/TripDayPicker.tsx",
+    "resolution": "zachowano type=button oraz disabled po wcześniejszym #30"
+  },
+  "negative_runs": {
+    "lint-negative": {
+      "sha": "c2e71e2c14f7cfd32108dc8927e6e32ed092052c",
+      "conclusion": "failure",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/42815387118",
+      "jobs": [
+        {
+          "name": "Critical browser flows",
+          "conclusion": "success"
+        },
+        {
+          "name": "Backend (3.12)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Lint",
+          "conclusion": "failure"
+        },
+        {
+          "name": "Frontend build",
+          "conclusion": "success"
+        },
+        {
+          "name": "Backend image",
+          "conclusion": "success"
+        },
+        {
+          "name": "Backend (3.13)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Required CI",
+          "conclusion": "failure"
+        },
+        {
+          "name": "Deploy development server",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Post-deploy smoke",
+          "conclusion": "skipped"
+        }
+      ]
+    },
+    "test-negative": {
+      "sha": "cc2d9b6cb59a1326cdfc6f4ea0436bc126a9f523",
+      "conclusion": "failure",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/42815401269",
+      "jobs": [
+        {
+          "name": "Critical browser flows",
+          "conclusion": "success"
+        },
+        {
+          "name": "Lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "Backend (3.13)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Backend image",
+          "conclusion": "success"
+        },
+        {
+          "name": "Frontend build",
+          "conclusion": "failure"
+        },
+        {
+          "name": "Backend (3.12)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Required CI",
+          "conclusion": "failure"
+        },
+        {
+          "name": "Deploy development server",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Post-deploy smoke",
+          "conclusion": "skipped"
+        }
+      ]
+    }
+  },
+  "sprint_state": {
+    "s2": {
+      "id": 3,
+      "name": "FF Sprint 2 - podstawa i QA",
+      "state": "active"
+    },
+    "s3": {
+      "id": 4,
+      "name": "FF Sprint 3 - dane i konta",
+      "state": "future"
+    },
+    "84": {
+      "id": 37,
+      "name": "FF Sprint 5 - import i odbior",
+      "issue_status": "Do zrobienia",
+      "state": "future"
+    }
+  },
+  "known_exceptions": "Znane 3 tematy a2f4d61/1293999/2bffba9 i dawne nazwy gałęzi zachowane z wcześniejszego audytu; zgodnie z PO 18.11 nie wykonywano ponownej kontroli dat/tematów/nazw ani kontaktu z prowadzącym.",
+  "acceptance": "16/91 mają Gotowe administracyjne, pełny QA i DoD nadal BLOCKED; review auth i ocena restore są już PASS w SCRUM-141/10324/10345."
+}

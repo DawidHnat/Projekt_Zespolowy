@@ -14,6 +14,7 @@ async function login(page: Page) {
   await page.getByLabel("Hasło", { exact: true }).fill("synthetic-e2e-password");
   await page.getByRole("button", { name: "Zaloguj się", exact: true }).click();
   await expect(page.locator("[data-widget]")).toHaveCount(6);
+  await expect(page.getByRole("button", { name: "Edytuj układ", exact: true })).toBeEnabled();
   await page.evaluate(() => document.fonts.ready);
 }
 
@@ -173,7 +174,22 @@ test("SCRUM-38: desktop and compact edits persist independently and cancel resto
     expect(saved.layouts.dashboard[profile].find((item: { i: string }) => item.i === "map").h)
       .toBe(original.layouts.dashboard[profile].find((item: { i: string }) => item.i === "map").h + 0.5);
   expect(saved.layouts.map).toEqual(original.layouts.map);
-  await page.reload();
+  // Reload renders a valid default layout before the account GET completes.
+  // Hold that response so this check also covers a slow network deterministically.
+  let releasePreferences!: () => void;
+  const preferencesGate = new Promise<void>(resolve => { releasePreferences = resolve; });
+  await page.route("**/api/v1/preferences/dashboard", async route => {
+    await preferencesGate;
+    await route.continue();
+  }, { times: 1 });
+  try {
+    await page.reload();
+    await expect(page.getByText("Pobieranie zapisanych ustawień: Pulpit…", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Edytuj układ", exact: true })).toBeDisabled();
+  } finally {
+    releasePreferences();
+  }
+  await expect(page.getByRole("button", { name: "Edytuj układ", exact: true })).toBeEnabled();
   await expect.poll(() => layoutProblems(page)).toEqual([]);
   expect(await preferences(page)).toEqual(saved);
   await page.getByRole("button", { name: "Edytuj układ", exact: true }).click();
