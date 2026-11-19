@@ -5,14 +5,30 @@
 Godziny i miejsce: nieustalone. Zapis: **agent Codex na polecenie Jakuba Czai**;
 agent nie uczestniczył w spotkaniu.
 [Źródło potwierdzenia, SCRUM-142/10347](https://fleet-flow.atlassian.net/browse/SCRUM-142?focusedCommentId=10347).
+[Uzupełniony zakres pokazu i ocena retro](https://fleet-flow.atlassian.net/browse/SCRUM-142?focusedCommentId=10365).
 
 | Element protokołu | Rzeczywiście przekazany wynik | Ocena dowodu |
 | --- | --- | --- |
 | Data / obecność | 18.11.2026, cała czwórka | PASS potwierdzenia PO |
 | Przyrost / feedback | PO: przyrost jest w porządku, ale na razie mało widoczny na stronie; Story trzeba jak najszybciej odebrać | PASS zapisu feedbacku; bez domniemania pełnego odbioru |
-| Pokazana Story / SHA / scenariusze | Nie podano konkretnej pokazanej Story, SHA i wyników demonstracji | BLOCKED uzupełnienie PO / QA |
+| Pokaz / SHA / scenariusze | PO opisał pokaz mapy, szczegółów i zdjęć pojazdów, ustawień/stylów, kafelków i zapisu, aktualizacji/statusów, login/logout i wyszukiwania modułów; szczegóły poniżej. SHA i adres pokazu nieustalone | PASS relacji o zakresie; nie pełny protokół AC/DoD |
 | Priorytet | Dokończyć bieżący S2 i rozpocząć istniejący S3 z przygotowanymi odpowiedziami 3.2/4.2 | PASS decyzji PO; wykonanie zależy od kryteriów |
 | Zakres / dostępność S3 | PO 19.11 potwierdził zakres oraz stabilną dostępność dla istniejącego planu, w tym 128/129 | PASS potwierdzenia PO, bez cudzych indywidualnych podpisów |
+
+## Faktycznie pokazany zakres — relacja PO uzupełniona 19.11
+
+Na Review 18.11 zespół obejrzał całą mapę z przybliżaniem/oddalaniem,
+wybierał pojazdy i otwierał szczegóły, ustawiał zdjęcia i sprawdzał ich
+prezentację na mapie. Przejrzano ustawienia, style i personalizację,
+odświeżanie danych, statusy i aktualność synchronizacji, logowanie/wylogowanie,
+wyszukiwanie modułów oraz personalizację kafelków wszystkich modułów i zapis.
+
+Mapowanie opisu przez agenta: SCRUM-5/21 (mapa), 16 (auth), 38 (dashboard),
+45 (zdjęcia/personalizacja), częściowo 46/91 (układ i zapis), 15 (synchronizacja).
+PO nie podał numerów Story. **SHA i dokładne środowisko pokazu nieustalone.**
+Nie dopisujemy synchronizacji dwóch urządzeń, izolacji kont, pełnych regresji
+46 ani kontrolowanego live 64, których relacja nie potwierdza. Zakres pokazu
+nie zastępuje pełnego AC/DoD ani podpisu końcowego QA.
 
 ## Krótki pokaz SCRUM-91 po odbiorze
 
@@ -56,10 +72,10 @@ S2 id=3 **active**, S3 id=4 **future**; nie tworzono sprintów ani nie przenoszo
 | SCRUM-21 | Jakub Nazarewicz | Odbiór markerów/wyboru/podglądu i zakresu danych; Safari wyłączone z obowiązkowego zakresu decyzją PO 19.11, bez PASS niewykonanego testu |
 | SCRUM-23 | Marcel Głowacki | Brakujące scenariusze kontrolowanych markerów/nowych pól i adekwatny odbiór synchronizacji po 64 |
 | SCRUM-40 | Marcel Głowacki | Końcowy niezależny odbiór układu/personalizacji i izolacji kont; wykorzystać wspólne scenariusze 46 |
-| SCRUM-46 | Jakub Czaja | Brakujący zakres z #72 jest w PR #120; 58 unit/build i 6/6 E2E PASS, niezależny review/CI/main oczekują |
+| SCRUM-46 | Jakub Czaja | Brakujący zakres z #72 jest w PR #120; 58 unit/build i 6/6 E2E PASS, niezależny review/main oczekują |
 | SCRUM-64 | Dawid Hnat | Własny kontrolowany live: pierwszy odczyt/cykle/API/UI/restart i QA; kopie/rollback SCRUM-18, bez wymagania zakończonego 84 |
-| SCRUM-65 | Jakub Czaja | Aktualny pomiar i dowody procesu, pełny DoD jednej Story w 141 oraz rzeczywista ocena efektu działania |
-| SCRUM-94 | Jakub Czaja | Techniczny arkusz w #121; zatwierdzający dane i screening 113 nadal BLOCKED |
+| SCRUM-65 | Jakub Czaja | Pomiar i ocena retro zapisane, nowe działanie Jakuba z 19.11; pozostają pełny DoD jednej Story w 141 i review/main dokumentacji |
+| SCRUM-94 | Jakub Czaja | Arkusz #121 uzupełniony danymi PO; właściciel wskazany lokalnie, brak konsultacji i pełnych procedur 113 |
 | SCRUM-101 | Marcel Głowacki | Własne AC bezpieczeństwa i otwarte pozycje ASVS; review auth jest już dowodem, nie nowym brakiem |
 | SCRUM-133 | Jakub Czaja | Aktualny review #101 → merge/deploy/smoke; potem #110 z nowym review i właściwym QA 54/33 |
 | SCRUM-141 | Marcel Głowacki | Pełne AC/12 DoD 16/91 i końcowy niezależny QA, zachowując wykonany review/restore |
