@@ -1,2 +1,2 @@
 # Keep the isolated application's package installer patched before dependency audit.
-pip==26.2.2
+pip==26.3
