@@ -148,7 +148,7 @@ function usePreferences(scope: string) {
   }, [scope, initial.exists]);
 
   const writeValue = (
-    value: VehicleModulePreferences,
+    getValue: () => VehicleModulePreferences,
     expectedVersion?: number,
   ): Promise<boolean> => {
     const task = saveQueue.current.then(async () => {
@@ -164,7 +164,7 @@ function usePreferences(scope: string) {
         const result = await writeAccountPreference(
           "vehicles",
           expectedVersion ?? revision.current,
-          value,
+          getValue(),
         );
         revision.current = result.version;
         conflictRef.current = null;
@@ -200,11 +200,12 @@ function usePreferences(scope: string) {
     return task;
   };
 
-  const scheduleWrite = (value: VehicleModulePreferences) => {
+  const scheduleWrite = () => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
       saveTimer.current = null;
-      void writeValue(value);
+      // A layout save already in the queue can update preferences before this write runs.
+      void writeValue(() => savedRef.current);
     }, 500);
   };
 
@@ -213,12 +214,12 @@ function usePreferences(scope: string) {
     const next = { ...savedRef.current, ...patch };
     savedRef.current = next;
     setSaved(next);
-    scheduleWrite(next);
+    scheduleWrite();
   };
 
   const chooseMigration = async (importLocal: boolean) => {
     const next = importLocal ? initial.value : defaults();
-    if (await writeValue(next, 0)) {
+    if (await writeValue(() => next, 0)) {
       savedRef.current = next;
       setSaved(next);
     }
@@ -238,11 +239,9 @@ function usePreferences(scope: string) {
       return;
     }
     const layoutDraft = draft;
-    const next = {
-      ...savedRef.current,
-      ...(layoutDraft ? { layout: normalizeLayoutConfig(layoutDraft) } : {}),
-    };
-    if (await writeValue(next, conflict.version)) {
+    const layout = layoutDraft ? normalizeLayoutConfig(layoutDraft) : savedRef.current.layout;
+    if (await writeValue(() => ({ ...savedRef.current, layout }), conflict.version)) {
+      const next = { ...savedRef.current, layout };
       savedRef.current = next;
       setSaved(next);
       setDraft((current) => current === layoutDraft ? null : current);
@@ -418,11 +417,12 @@ function usePreferences(scope: string) {
     save: async (overwrite = false) => {
       if (!draft) return false;
       const layoutDraft = draft;
-      const next = { ...savedRef.current, layout: normalizeLayoutConfig(layoutDraft) };
+      const layout = normalizeLayoutConfig(layoutDraft);
       if (!await writeValue(
-        next,
+        () => ({ ...savedRef.current, layout }),
         overwrite ? conflictRef.current?.version : undefined,
       )) return false;
+      const next = { ...savedRef.current, layout };
       try {
         localStorage.setItem(storageKey, JSON.stringify(next.layout));
         localStorage.setItem(`fleet-flow.list-page-size.v1.${scope}`, String(next.pageSize));
