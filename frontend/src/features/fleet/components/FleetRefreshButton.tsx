@@ -35,17 +35,18 @@ export function FleetRefreshButton({ compact = false }: { compact?: boolean }) {
     : "Sprawdź najnowsze pozycje i prędkości floty";
   const badge = remaining < 100 ? remaining : remaining < 3600
     ? `${Math.ceil(remaining / 60)}m` : `${Math.ceil(remaining / 3600)}h`;
+  const label = running ? "Odświeżanie…" : refresh.state && !refresh.state.enabled
+    ? "Wyłączone" : remaining ? `Za ${remaining} s` : "Odśwież";
   return (
     <button type="button"
       className={`button button-secondary fleet-refresh-button ${compact ? "fleet-refresh-compact" : ""}`}
-      aria-label={`${compact ? "Odśwież dane pojazdu" : "Odśwież dane floty"}. ${reason}`}
+      aria-label={`${compact ? "Odśwież dane pojazdu" : "Odśwież dane floty"}. ${!compact && label !== "Odśwież" ? `${label}. ` : ""}${reason}`}
       aria-disabled={Boolean(disabled)}
       title={reason}
       onClick={() => void refresh.run()}
     >
       <RefreshCw size={15} aria-hidden="true" className={running ? "fleet-refresh-spinning" : undefined} />
-      {!compact && <span>{running ? "Odświeżanie…" : refresh.state && !refresh.state.enabled
-        ? "Wyłączone" : remaining ? `Za ${remaining} s` : "Odśwież"}</span>}
+      {!compact && <span>{label}</span>}
       {compact && !running && remaining > 0 && <span className="fleet-refresh-count" aria-hidden="true">{badge}</span>}
     </button>
   );
