@@ -11,6 +11,14 @@ const next = (page: Page) => page.getByRole("button", { name: "Następna strona:
 const previous = (page: Page) => page.getByRole("button", { name: "Poprzednia strona: pojazdy", exact: true });
 const range = (page: Page) => page.getByRole("navigation", { name: "Strony: pojazdy", exact: true }).locator(".list-range");
 const search = (page: Page) => page.getByRole("searchbox", { name: "Szukaj pojazdu", exact: true });
+const storedWidth = async (page: Page, n: number, width: number) =>
+  expect.poll(() => card(page, n).evaluate(element => element.style.width)).toBe(`${width}px`);
+
+async function savedPreferences(page: Page) {
+  const response = await page.request.get("/api/v1/preferences/vehicles");
+  expect(response.ok()).toBeTruthy();
+  return (await response.json()).value;
+}
 
 async function login(page: Page, role = "editor") {
   await page.goto("/#vehicles");
@@ -67,7 +75,12 @@ async function fleet(page: Page, legacy = false) {
     }));
   }, { userId: user.id, first: id(1), second: id(11) });
   await page.reload();
+  if (legacy) {
+    await page.getByRole("button", { name: "Przenieś z tej przeglądarki", exact: true }).click();
+    await expect.poll(async () => (await savedPreferences(page))?.layout?.sizes?.[id(1)]).toEqual({ width: 400, height: 500 });
+  }
   await expect(card(page, 1)).toBeVisible();
+  await expect(search(page)).toBeEnabled();
   return { key, add, mapRequests };
 }
 
@@ -79,7 +92,6 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("SCRUM-46: selection spans pages and filters, one-axis edits preserve heights and migration keeps photos", async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
   const fixture = await fleet(page, true);
   await expect(card(page, 1)).toHaveCSS("height", "500px");
   await card(page, 1).getByRole("button", { name: `Zdjęcie: ${name(1)}`, exact: true }).click();
@@ -105,28 +117,40 @@ test("SCRUM-46: selection spans pages and filters, one-axis edits preserve heigh
   for (let n = 0; n < 12; n++) await width.press("ArrowRight");
   await page.screenshot({ path: test.info().outputPath("bulk-mixed-sizes.png") });
   await dialog.getByRole("button", { name: "Gotowe", exact: true }).click();
-  await expect(card(page, 11)).toHaveCSS("width", "400px");
+  await storedWidth(page, 11, 400);
   await expect(card(page, 11)).toHaveCSS("height", "600px");
   await previous(page).click();
   await expect(card(page, 1)).toHaveCSS("height", "500px");
+  await sizePicker(page).selectOption("custom");
+  await dialog.getByRole("slider", { name: "Wysokość kafelka", exact: true }).press("End");
+  await dialog.getByRole("button", { name: "Gotowe", exact: true }).click();
+  await expect(card(page, 1)).toHaveCSS("height", "720px");
+  await storedWidth(page, 1, 400);
+  await next(page).click();
+  await expect(card(page, 11)).toHaveCSS("height", "720px");
+  await storedWidth(page, 11, 400);
   await search(page).fill(name(26));
   await expect(card(page, 26)).toBeVisible();
   await expect(page.getByRole("button", { name: "Zaznaczone 2", exact: true })).toBeVisible();
   await sizePicker(page).selectOption("Duże");
-  await expect(card(page, 26)).toHaveCSS("width", "320px");
+  await storedWidth(page, 26, 320);
   await page.getByRole("button", { name: "Zapisz układ", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Edytuj układ", exact: true })).toBeVisible();
   const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), fixture.key);
   expect(saved.version).toBe(2);
   expect(saved.sizes[id(1)]).toEqual({ width: 480, height: 500 });
   expect(saved.sizes[id(11)]).toEqual({ width: 480, height: 500 });
   expect(saved.defaultSize).toEqual({ width: 320, height: 440 });
+  expect((await savedPreferences(page)).layout).toEqual(saved);
+  await search(page).fill("");
+  await expect.poll(async () => (await savedPreferences(page)).filters.q).toBe("");
   await page.reload();
-  await expect(card(page, 1)).toHaveCSS("width", "480px");
+  await storedWidth(page, 1, 480);
+  expect(await card(page, 1).evaluate(element => element.getBoundingClientRect().right)).toBeLessThanOrEqual((await page.viewportSize())!.width);
   await expect(card(page, 1).getByRole("img", { name: `Zdjęcie: ${name(1)}`, exact: true })).toBeVisible();
 });
 
 test("SCRUM-46: all scope includes filtered, unloaded and future vehicles; cancel restores sizes", async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
   const fixture = await fleet(page);
   await pageSize(page).selectOption("10");
   await search(page).fill(name(1));
@@ -136,7 +160,7 @@ test("SCRUM-46: all scope includes filtered, unloaded and future vehicles; cance
   await sizePicker(page).selectOption("Duże");
   await search(page).fill("");
   await next(page).click();
-  await expect(card(page, 11)).toHaveCSS("width", "480px");
+  await storedWidth(page, 11, 480);
   await page.getByRole("button", { name: "Anuluj", exact: true }).click();
   await expect(card(page, 11)).toHaveCSS("width", "320px");
   await search(page).fill(name(26));
@@ -145,8 +169,10 @@ test("SCRUM-46: all scope includes filtered, unloaded and future vehicles; cance
   await page.getByRole("button", { name: "Wszystkie pojazdy", exact: true }).click();
   await sizePicker(page).selectOption("Małe");
   await page.getByRole("button", { name: "Zapisz układ", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Edytuj układ", exact: true })).toBeVisible();
   fixture.add();
   await page.reload();
+  await search(page).fill("");
   await pageSize(page).selectOption("100");
   await expect(page.getByRole("article")).toHaveCount(27);
   await expect(card(page, 27)).toHaveCSS("width", "280px");
@@ -156,7 +182,7 @@ test("SCRUM-46: all scope includes filtered, unloaded and future vehicles; cance
   expect(saved.sizes).toEqual({});
 });
 
-test("SCRUM-46: page size is shared, resets page one, preserves full map data and is account-local", async ({ page }) => {
+test("SCRUM-46: page size is shared, resets page one, preserves full map data and is account-isolated", async ({ page }) => {
   const fixture = await fleet(page);
   await pageSize(page).selectOption("10");
   await expect(range(page)).toHaveText("1–10 z 26");
@@ -185,8 +211,13 @@ test("SCRUM-46: page size is shared, resets page one, preserves full map data an
   await expect(range(page)).toHaveText("0–0 z 0");
   await expect(next(page)).toBeDisabled();
   await expect(previous(page)).toBeDisabled();
+  await search(page).fill(name(26));
+  await expect(range(page)).toHaveText("1–1 z 1");
+  await expect(next(page)).toBeDisabled();
+  await expect(previous(page)).toBeDisabled();
   await search(page).fill("");
   await pageSize(page).selectOption("100");
+  await expect.poll(async () => (await savedPreferences(page))?.pageSize).toBe(100);
   await logout(page);
   await login(page, "viewer");
   await expect(pageSize(page)).toHaveValue("25");

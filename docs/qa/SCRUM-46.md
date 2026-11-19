@@ -1,64 +1,60 @@
-# SCRUM-46 — edycja zbiorowa i paginacja
+# SCRUM-46 — edycja zbiorowa i wspólna paginacja
 
-Weryfikacja 10.11.2026. Podstawa jest scalona w PR #17. Ten przyrost dodaje
-regresję przeglądarkową i dowody odbioru; nie zmienia logiki produktu.
-Gałąź oparto na PR #71 (SCRUM-45), ponieważ wspólny narożnik wymaga opisanej
-tam poprawki zachowania szerokości na telefonie. Najpierw należy odebrać
-i scalić #71, następnie przestawić bazę tego PR na `main` i sprawdzić CI.
+Odbiór techniczny **19.11.2026**, wykonawca: **agent Codex na polecenie
+Jakuba Czai (jczaja51)**. Baza: `cb634da0ece8cd93424bfc16a5185cf817a0cbb1`.
+Core #17 jest w main. #72 / `2877897` scalono tylko do gałęzi pośredniej:
+sprawdzono brak jego testu, instrukcji i dopisku README w obecnym main.
+Przeniesiono wyłącznie te trzy pliki przez cherry-pick z pochodzeniem;
+**kod produktu bez zmian**. Zachowano autorstwo Jakuba Czai.
 
-## Sprawdzone kryteria
+Test z 10.11 dostosowano do obecnych backendowych preferencji konta:
+świadomy import v1, oczekiwanie na zakończony zapis API, zachowany filtr
+po reload i rzeczywisty profil 390 px (bez powiększania go w teście).
 
-1. Zaznaczenie checkboxem z klawiatury i kliknięciem karty działa. Wybór
-   dwóch pojazdów z różnych stron pozostaje po zmianie strony i filtra.
-2. Wspólny suwak szerokości wyrównuje szerokości, zachowując różne wysokości
-   500 i 600 px. Preset Duże wyrównuje oba wymiary. Niezaznaczony pojazd
-   widoczny pod aktywnym filtrem pozostaje bez zmian.
-3. Wszystkie pojazdy obejmuje również karty poza stroną i filtrem.
-   Anuluj przywraca poprzednie rozmiary. Po zapisie nowy, wcześniej
-   niezaładowany pojazd otrzymuje zapisany rozmiar domyślny całej floty.
-4. Migracja v1 zachowuje indywidualne wymiary. Zapis v2 i odświeżenie
-   zachowują nowe rozmiary oraz wcześniej dodane lokalne zdjęcie.
-5. Limity 10/25/50/100 działają, zmiana limitu wraca na stronę 1, zakres
-   nie przekracza liczby wyników. Pusty wynik ma 0–0 i nieaktywne strzałki.
-6. Galeria, tabela i lista przy mapie dzielą limit. Preferencja jest lokalna
-   dla konta: drugie konto ma własny limit, powrót właściciela go przywraca.
-   Żądania danych mapy nie otrzymują parametrów `page` ani `page_size`.
+## Wykonane scenariusze
 
-## Walidacja autora i granice sprawdzenia
+Środowisko: macOS, Python 3.13, jednorazowy PostgreSQL 17 na localhost,
+lokalny FastAPI oraz zbudowany frontend; Playwright Chromium desktop
+1440×1000 i mobile 390×844. Dane i konta wyłącznie syntetyczne.
 
-- `npm test`: 50/50 PASS; typecheck/build PASS.
-- Nowy zestaw SCRUM-46: 6/6 PASS (3 scenariusze × desktop/mobile).
-- Pełna regresja z bazą SCRUM-45: 42/42 PASS.
-- Testy logowania korzystają z lokalnego backendu i osobnej bazy E2E.
-  Flota 26/27 pojazdów to kontrolowane odpowiedzi API przechwytywane tylko
-  w kontekście testowej przeglądarki; żadne rekordy demonstracyjne nie są
-  dodawane do produktu ani rzeczywistej bazy. Połączenia zewnętrzne są blokowane.
-- Sprawdzono zachowanie interfejsu dla wielu stron i pełne, niepaginowane
-  żądania mapy. Nie jest to test backendowej paginacji na 26 rekordach ani
-  renderowania wszystkich znaczników przez żywy Mapbox. Kontrolowane
-  odpowiedzi odpowiadają typom obecnego API.
-- Modele testują migrację, granice rozmiarów, niemutowanie zapisu i poprawne
-  zakresy paginacji. Zrzuty dialogu mieszanych wymiarów i galerii są w
-  `frontend/test-results/`.
+| Zakres | Oczekiwany i zaobserwowany rezultat | Wynik |
+| --- | --- | --- |
+| Zaznaczenie i filtry | Checkbox klawiaturą oraz kliknięcie treści; trwałe ID 1/11 zachowane między stronami i pod filtrem 26 | PASS, oba profile |
+| Zaznaczone / obie osie / preset | Wspólna szerokość zachowuje różne wysokości 500/600; wspólna wysokość zachowuje szerokości; Duże zmienia oba wymiary, niezaznaczony 26 pozostaje bez zmian | PASS, oba profile |
+| Wszystkie | Operacja przy filtrze obejmuje stronę niewidoczną i nowy pojazd 27; Anuluj cofa szkic, Zapisz zachowuje wspólny default | PASS, oba profile |
+| Migracja i zdjęcie | Jawny import starego v1 zachowuje wymiary; zapis v2 jest zgodny z API konta; zdjęcie z IndexedDB nadal widoczne po reload | PASS, oba profile |
+| 10/25/50/100 | Wspólny limit galerii, tabeli i listy mapy; zmiana limitu wraca na stronę 1, zakresy poprawne, pusta lista 0–0 i pojedyncza 1–1 blokują strzałki | PASS, oba profile |
+| Mapa i konto | Dane GPS nie mają parametrów strony listy; inny użytkownik ma własny limit, ponowne logowanie przywraca zapis właściciela | PASS, oba profile |
+| Mały ekran i oględziny | Zapisana szerokość zachowana mimo ograniczenia CSS; karta nie wychodzi poza ekran; obejrzano zrzuty dialogu mieszanych rozmiarów i paginacji | PASS, 390 px i desktop |
 
-Nie znaleziono dodatkowej usterki produktu w tym zakresie. Pierwsza próba
-testu oczekiwała licznika mapy w konfiguracji bez tokenu; założenie testu
-poprawiono, nie zmieniając zachowania produktu.
+**Walidacja autora:** `npm test` **58/58 PASS**, `npm run build` **PASS**,
+3 scenariusze × 2 profile **6/6 PASS**, bez pominięć. Znane ostrzeżenie
+rozmiaru bundla Mapbox należy do SCRUM-129; nie wyciszano go.
+Źródło testów: `frontend/e2e/bulk-layout.spec.ts`.
 
-## Niezależny odbiór przed Gotowe
+Test loguje się do rzeczywistego lokalnego API i zapisuje preferencje
+w dedykowanej bazie E2E. Flota 26/27 jest kontrolowaną odpowiedzią API tylko
+w przeglądarce; nie wstawiono jej do produktu. Ruch zewnętrzny jest blokowany.
+Sprawdzono niepaginowane żądania mapy, **nie wykonano odbioru żywego renderera
+Mapbox ani backendowej paginacji 26 zapisanych pojazdów**.
 
-Review: Jakub Nazarewicz. QA: Marcel Głowacki / SCRUM-23.
+## Wspólny niezależny odbiór — bez dublowania 23/40
 
-1. Wybierz pojazdy na różnych stronach, zmień filtr i wyrównaj szerokość.
-   Różne wysokości oraz niezaznaczone pojazdy muszą pozostać bez zmian.
-2. Sprawdź presety, suwaki, klawiaturę i narożnik. Dla narożnika obowiązuje
-   także odbiór SCRUM-45, w tym fizyczny dotyk i zwężony ekran.
-3. Przy aktywnym filtrze wybierz Wszystkie pojazdy, zmień rozmiar, wyczyść
-   filtr i sprawdź inne strony. Sprawdź osobno Anuluj, Zapisz i odświeżenie.
-4. Zmień limit na dalszej stronie w galerii, tabeli i liście przy mapie.
-   Strona ma wrócić do 1, a mapa zachować wszystkie pasujące GPS, bez
-   ograniczenia do strony listy. Potwierdź to na docelowym backendzie i Mapbox.
-5. Sprawdź istniejące wymiary i zdjęcia po migracji oraz oddzielenie kont.
+Review kodu testów i dokumentacji: **Jakub Nazarewicz**.
+QA: **Marcel Głowacki**, wyniki tych samych scenariuszy w
+[SCRUM-23](https://fleet-flow.atlassian.net/browse/SCRUM-23) i
+[SCRUM-40](https://fleet-flow.atlassian.net/browse/SCRUM-40), stosownie do AC.
+Osobno pozostaje kontrolowany backend i rzeczywista mapa z pełnym zbiorem GPS.
+Autor testu nie podpisuje tego odbioru za QA.
 
-Przed zamknięciem wymagane są review i QA, zielone CI, scalenie w kolejności
-zależności i sprawdzenie wdrożonej wersji. Wynik autora nie zastępuje odbioru.
+W raporcie każdego wykonanego kroku zapisać wykonawcę, datę, SHA, środowisko,
+dowód oraz PASS/FAIL/BLOCKED. Zmiana samej dokumentacji nie wymaga powtórki
+wszystkich zaliczonych scenariuszy: porównać kod do testowanego SHA i zrobić
+potrzebny smoke/retest. Zamknięcie implementacji SCRUM-46 wymaga jej własnego
+zakresu, aktualnego niezależnego review i merge do main; szersza regresja
+produktu zachowuje własne zadania i nie staje się nowym zakresem 46.
+
+## Historia
+
+10.11: #72 / `2877897`, 50 unit, 42 pełne E2E (w tym 6 tego zakresu) PASS.
+To historyczna wersja i osobny wynik; liczb nie przypisano obecnemu SHA.
