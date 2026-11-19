@@ -1,6 +1,6 @@
 # SCRUM-65 — kolejka review i dowody usprawnienia
 
-Pomiar **2026-11-19T10:49:18+01:00**, wykonawca: **agent Codex na polecenie Jakuba Czai (jczaja51)**. Kontekst main `cb634da0ece8cd93424bfc16a5185cf817a0cbb1`; środowisko: odczyt GitHub reviews/comments i dowodów Jira. Wynik metryki: **PASS wykonania pomiaru**. Zadanie 65: **BLOCKED pełnego zakończenia** do pełnego DoD jednej Story i rzeczywistej oceny efektu.
+Pomiar **2026-11-19T10:56:27+01:00**, wykonawca: **agent Codex na polecenie Jakuba Czai (jczaja51)**. Kontekst main `cb634da0ece8cd93424bfc16a5185cf817a0cbb1`; środowisko: odczyt GitHub reviews/comments i dowodów Jira. Wynik metryki: **PASS wykonania pomiaru**. Zadanie 65: **BLOCKED pełnego zakończenia** do pełnego DoD jednej Story i rzeczywistej oceny efektu.
 
 ## Uzgodniony rytm i tabela całej czwórki
 
@@ -17,19 +17,20 @@ PO potwierdził 10.11 codzienny przegląd PR i pierwszą odpowiedź do 24 h w dn
 
 ## Aktualna zwykła kolejka
 
-Otwarte łącznie: **13**. Aktywne zwykłe PR: **9**; osobno **#105 DEFERRED → SCRUM-84/S5** oraz dowody **#24/#77/#78 (NIE SCALAĆ)**. Zwykłe PR bez pierwszego formalnego review: **7**, w tym ponad 24 h: **0**. Bez pierwszej odpowiedzi człowieka (komentarz albo review) ponad 24 h: **0**.
+Otwarte łącznie: **14**. Aktywne zwykłe PR: **10**; osobno **#105 DEFERRED → SCRUM-84/S5** oraz dowody **#24/#77/#78 (NIE SCALAĆ)**. Zwykłe PR bez pierwszego formalnego review: **8**, w tym ponad 24 h: **0**. Bez pierwszej odpowiedzi człowieka (komentarz albo review) ponad 24 h: **0**.
 
 | PR / head w chwili pomiaru | Właściciel | Niezależny reviewer | Czas do pierwszej odpowiedzi | Czas do pierwszego formalnego review | Co rzeczywiście czeka |
 | --- | --- | --- | --- | --- | --- |
 | [#101](https://github.com/DawidHnat/Projekt_Zespolowy/pull/101), `a8476ac` | jczaja51 | DawidHnat | 21.63 h | 21.63 h | nowe Approved po zmianie head; dawna pierwsza odpowiedź istnieje |
 | [#110](https://github.com/DawidHnat/Projekt_Zespolowy/pull/110), `be609d7` | jczaja51 | DawidHnat | 21.82 h | 21.82 h | nowe Approved po zmianie head; dawna pierwsza odpowiedź istnieje; następny dopiero po #101 |
-| [#118](https://github.com/DawidHnat/Projekt_Zespolowy/pull/118), `0295ad4` | jczaja51 | mglowacki0, DawidHnat | brak (11.10 h od otwarcia) | brak (11.10 h od otwarcia) | brak pierwszego review |
-| [#119](https://github.com/DawidHnat/Projekt_Zespolowy/pull/119), `ed1181f` | jczaja51 | mglowacki0, jnazarewiczs, DawidHnat | brak (3.07 h od otwarcia) | brak (3.07 h od otwarcia) | brak pierwszego review; dostępność reviewera odłożona przez PO, bez ponawiania prośby; poza warunkami S2 |
-| [#120](https://github.com/DawidHnat/Projekt_Zespolowy/pull/120), `746309d` | jczaja51 | mglowacki0, jnazarewiczs | brak (1.06 h od otwarcia) | brak (1.06 h od otwarcia) | brak pierwszego review |
-| [#121](https://github.com/DawidHnat/Projekt_Zespolowy/pull/121), `6357d17` | jczaja51 | mglowacki0, DawidHnat | brak (1.06 h od otwarcia) | brak (1.06 h od otwarcia) | brak pierwszego review |
-| [#122](https://github.com/DawidHnat/Projekt_Zespolowy/pull/122), `75fdbbb` | jczaja51 | mglowacki0, DawidHnat | brak (0.94 h od otwarcia) | brak (0.94 h od otwarcia) | brak pierwszego review |
-| [#123](https://github.com/DawidHnat/Projekt_Zespolowy/pull/123), `2121763` | jczaja51 | mglowacki0 | brak (0.93 h od otwarcia) | brak (0.93 h od otwarcia) | brak pierwszego review |
-| [#124](https://github.com/DawidHnat/Projekt_Zespolowy/pull/124), `ede00c9` | jczaja51 | mglowacki0, DawidHnat | brak (0.79 h od otwarcia) | brak (0.79 h od otwarcia) | brak pierwszego review |
+| [#118](https://github.com/DawidHnat/Projekt_Zespolowy/pull/118), `0295ad4` | jczaja51 | mglowacki0, DawidHnat | brak (11.22 h od otwarcia) | brak (11.22 h od otwarcia) | brak pierwszego review |
+| [#119](https://github.com/DawidHnat/Projekt_Zespolowy/pull/119), `ed1181f` | jczaja51 | mglowacki0, jnazarewiczs, DawidHnat | brak (3.19 h od otwarcia) | brak (3.19 h od otwarcia) | brak pierwszego review; dostępność reviewera odłożona przez PO, bez ponawiania prośby; poza warunkami S2 |
+| [#120](https://github.com/DawidHnat/Projekt_Zespolowy/pull/120), `746309d` | jczaja51 | mglowacki0, jnazarewiczs | brak (1.18 h od otwarcia) | brak (1.18 h od otwarcia) | brak pierwszego review |
+| [#121](https://github.com/DawidHnat/Projekt_Zespolowy/pull/121), `6357d17` | jczaja51 | mglowacki0, DawidHnat | brak (1.18 h od otwarcia) | brak (1.18 h od otwarcia) | brak pierwszego review |
+| [#122](https://github.com/DawidHnat/Projekt_Zespolowy/pull/122), `75fdbbb` | jczaja51 | mglowacki0, DawidHnat | brak (1.06 h od otwarcia) | brak (1.06 h od otwarcia) | brak pierwszego review |
+| [#123](https://github.com/DawidHnat/Projekt_Zespolowy/pull/123), `2121763` | jczaja51 | mglowacki0 | brak (1.05 h od otwarcia) | brak (1.05 h od otwarcia) | brak pierwszego review |
+| [#124](https://github.com/DawidHnat/Projekt_Zespolowy/pull/124), `ede00c9` | jczaja51 | mglowacki0, DawidHnat | brak (0.90 h od otwarcia) | brak (0.90 h od otwarcia) | brak pierwszego review |
+| [#125](https://github.com/DawidHnat/Projekt_Zespolowy/pull/125), `a5efcdc` | jczaja51 | mglowacki0 | brak (0.01 h od otwarcia) | brak (0.01 h od otwarcia) | brak pierwszego review |
 
 DISMISSED nie usuwa faktu, że pierwsza odpowiedź kiedyś nastąpiła; nie jest jednak aktualnym Approved. #101/#110 czekają na nowe zatwierdzenie zmienionego head, a nie na pierwsze review od zera. Właściciel PR nie może go zatwierdzić za reviewera. Prośba o dostępność dla #119/150 została już odrzucona przez PO; ten pomiar jej nie ponawia.
 
@@ -42,7 +43,7 @@ Metryki liczą nieautorskie formalne reviews oraz osobno komentarze człowieka. 
 | 10.11 — bazowy, przed połową sprintu | Zwykłe PR bez pierwszego formalnego review >24 h | 2 (#67/#68); 4/4 osób z własnym PR/review; 0/3 pełnych DoD Story S1 |
 | 16.11, komentarz 10228 | Nowy rzeczywisty odczyt kolejki | 0 zwykłych bez pierwszego review >24 h; #73 już dostarczony; nadal brak pełnego DoD jednej rozpoczętej Story |
 | Rekonstrukcja wykonana 16.11 dla 11.11 godz. 12:00 | Daty otwarcia/formalnych reviews, bez dowodu ówczesnego draft/ready | 7 zwykłych PR >24 h (#67–73). To **nie dowód pomiaru wykonanego 11.11**; terminowość AC4 pozostaje niepotwierdzona |
-| 2026-11-19T10:49:18+01:00 | Bieżący snapshot, bez przepisywania go na 11.11 | 0 bez pierwszego formalnego review >24 h; nowe Approved po zmianach head nadal potrzebne |
+| 2026-11-19T10:56:27+01:00 | Bieżący snapshot, bez przepisywania go na 11.11 | 0 bez pierwszego formalnego review >24 h; nowe Approved po zmianach head nadal potrzebne |
 
 ## Pełny DoD i rzeczywista retrospektywa
 
