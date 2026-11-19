@@ -5,6 +5,41 @@
   "examples": "synthetic-only",
   "operations": [
     {
+      "method": "GET",
+      "path": "/fleet/refresh",
+      "delivery": "first",
+      "request_example": {},
+      "response_example": {
+        "enabled": true,
+        "running": false,
+        "server_time": "2026-11-18T12:00:00+00:00",
+        "next_allowed_at": "2026-11-18T12:00:24+00:00",
+        "retry_after_seconds": 24
+      },
+      "error_example": {
+        "status": 401,
+        "body": { "error": { "code": "UNAUTHENTICATED", "message": "Syntetyczny przykład błędu" } }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/fleet/refresh",
+      "delivery": "first",
+      "request_example": {},
+      "response_example": {
+        "enabled": true,
+        "running": false,
+        "server_time": "2026-11-18T12:00:00+00:00",
+        "next_allowed_at": "2026-11-18T12:01:00+00:00",
+        "retry_after_seconds": 60,
+        "result": "updated"
+      },
+      "error_example": {
+        "status": 403,
+        "body": { "error": { "code": "FORBIDDEN", "message": "Syntetyczny przykład błędu" } }
+      }
+    },
+    {
       "method": "POST",
       "path": "/auth/login",
       "delivery": "first",
