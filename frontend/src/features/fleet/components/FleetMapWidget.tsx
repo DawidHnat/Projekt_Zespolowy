@@ -5,6 +5,7 @@ import { EmptyState } from "../../../shared/components/EmptyState";
 import { ErrorBoundary } from "../../../shared/components/ErrorBoundary";
 import { useFleet } from "../model/FleetProvider";
 import { updateTime } from "../model/types";
+import { FleetRefreshButton } from "./FleetRefreshButton";
 
 const VehicleMap = lazy(() => import("./VehicleMap"));
 
@@ -17,10 +18,16 @@ export function FleetMapWidget() {
       badge="Pozycje pojazdów"
       className="map-widget"
     >
-      <p className="fleet-update map-update-time" role="status">
-        Ostatnia udana synchronizacja:{" "}
-        {updateTime(fleet.list?.source.last_success_at ?? null)}.
-      </p>
+      <div className="fleet-map-toolbar">
+        <div>
+          <p className="fleet-update map-update-time">
+            Ostatnia udana synchronizacja:{" "}
+            {updateTime(fleet.list?.source.last_success_at ?? null)}.
+          </p>
+          <p className="fleet-refresh-feedback" role="status">{fleet.sourceRefresh.message}</p>
+        </div>
+        <FleetRefreshButton />
+      </div>
       <ErrorBoundary
         fallback={
           <div className="map-canvas map-load-fallback" role="alert">
