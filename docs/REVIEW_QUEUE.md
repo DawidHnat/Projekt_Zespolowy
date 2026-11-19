@@ -1,124 +1,56 @@
-# Review PR i odbiory DoD — SCRUM-65
+# SCRUM-65 — kolejka review i dowody usprawnienia
 
-Właściciel: Jakub Czaja (PO). [Zadanie](https://fleet-flow.atlassian.net/browse/SCRUM-65).
-Stan bazowy: **10.11.2026, 08:20 Europe/Warsaw**. To pomiar przed połową
-Sprintu 2, a nie zapis przyszłego spotkania ani wynik jego retrospektywy.
+Pomiar **2026-11-19T10:56:27+01:00**, wykonawca: **agent Codex na polecenie Jakuba Czai (jczaja51)**. Kontekst main `cb634da0ece8cd93424bfc16a5185cf817a0cbb1`; środowisko: odczyt GitHub reviews/comments i dowodów Jira. Wynik metryki: **PASS wykonania pomiaru**. Zadanie 65: **BLOCKED pełnego zakończenia** do pełnego DoD jednej Story i niezależnego review/main aktualizacji; ocenę retro uzupełniono poniżej.
 
-## Uzgodniony rytm
+## Uzgodniony rytm i tabela całej czwórki
 
-10.11 PO potwierdził, że zespół uzgodnił codzienny przegląd otwartych PR-ów
-i pierwszą odpowiedź do 24 godzin w dniach dostępności. Dokładnej godziny
-spotkania nie ustalono w tym zapisie. Dostępność i zgłaszanie nieobecności
-określa [kontrakt zespołu](../TEAM_CONTRACT.md).
+PO potwierdził 10.11 codzienny przegląd PR i pierwszą odpowiedź do 24 h w dniach dostępności. Dokument #73 ma niezależny Approved Dawida na `7db684c`, zielone CI 43481211119 i jest w main od 13.11. Nie jest nową blokadą. Dowód: [SCRUM-65/10228](https://fleet-flow.atlassian.net/browse/SCRUM-65?focusedCommentId=10228).
 
-1. PO przegląda kolejkę w każdym dniu pracy: właściciel, rzeczywisty klucz
-   Jiry w opisie i gałęzi, recenzent inny niż autor, aktualny head i CI.
-2. Recenzent zapisuje wynik: Approved, Changes requested albo komentarz
-   z konkretnym zakresem i następnym krokiem. Prośba o review nie jest review.
-   Autor odpowiada na uwagi na tej samej gałęzi; nowy head wymaga ponownej kontroli.
-3. Przed otwieraniem kolejnej Story domykamy rozpoczętą. QA zapisuje scenariusze,
-   wyniki PASS/FAIL/BLOCKED, wykonawcę, datę, środowisko i SHA. PO sprawdza
-   komplet [DoD](../DEFINITION_OF_DONE.md), nie tylko status rodzica.
-4. Po merge ręcznie przekazujemy przyrost do Testowania. Gotowe wymaga rzeczywistego odbioru
-   i zgodnego wdrożenia. Wyjątek PO jest jawnym wyjątkiem, nie pełnym DoD.
-5. Każdy zapisuje rzeczywisty czas analizy, implementacji, review i QA pod
-   własnym kontem w Jirze: start, czas i wynik. Status W toku nie jest stoperem.
-
-Reguły automatyczne PR → Weryfikacja i merge → Testowanie pozostają wyłączone
-do instalacji/autoryzacji repozytorium przez Dawida i testu rzeczywistego PR.
-Ręczna reguła zakończenia po QA i sprawdzeniu SHA/health była przetestowana
-09.11; nie wykonuje za ludzi review ani QA. Ten audyt nie zmienia reguł.
-
-## Rzeczywiste autorstwo i review
-
-Odczyt GitHuba obejmuje 72 PR-y, w tym 57 scalonych. Poniższe przykłady mają
-klucze Jiry w opisach i gałęziach. Wskazane Approved dotyczą końcowego head
-odpowiedniego PR-a. Każdy recenzent jest inną osobą niż autor.
-
-| Osoba / konto | Własny scalony PR | Review cudzego scalonego PR |
+| Osoba | Własny scalony PR / head | Review cudzego na końcowym head |
 | --- | --- | --- |
-| Jakub Czaja / jczaja51 | [#55 — SCRUM-67](https://github.com/DawidHnat/Projekt_Zespolowy/pull/55), 06.11 | [#28 — SCRUM-37](https://github.com/DawidHnat/Projekt_Zespolowy/pull/28), autor mglowacki0; Approved 26.10 |
-| Dawid Hnat / DawidHnat | [#60 — SCRUM-18](https://github.com/DawidHnat/Projekt_Zespolowy/pull/60), 06.11 | [#22 — SCRUM-34](https://github.com/DawidHnat/Projekt_Zespolowy/pull/22), autor jczaja51; Approved 20.10 |
-| Jakub Nazarewicz / jnazarewiczs | [#61 — SCRUM-5](https://github.com/DawidHnat/Projekt_Zespolowy/pull/61), 06.11 | [#55 — SCRUM-67](https://github.com/DawidHnat/Projekt_Zespolowy/pull/55), autor jczaja51; Approved 06.11 |
-| Marcel Głowacki / mglowacki0 | [#28 — SCRUM-37](https://github.com/DawidHnat/Projekt_Zespolowy/pull/28), 26.10 | [#29 — SCRUM-34](https://github.com/DawidHnat/Projekt_Zespolowy/pull/29), autor jczaja51; Approved 06.11 |
+| Jakub Czaja / jczaja51 | [#55](https://github.com/DawidHnat/Projekt_Zespolowy/pull/55), `9cff7e9` | Approved [#28](https://github.com/DawidHnat/Projekt_Zespolowy/pull/28), autor mglowacki0, `5a4a5e6` |
+| Dawid Hnat / DawidHnat | [#60](https://github.com/DawidHnat/Projekt_Zespolowy/pull/60), `cbd861c` | Approved [#22](https://github.com/DawidHnat/Projekt_Zespolowy/pull/22), autor jczaja51, `e736bd1` |
+| Jakub Nazarewicz / jnazarewiczs | [#61](https://github.com/DawidHnat/Projekt_Zespolowy/pull/61), `81ffe1e` | Approved [#55](https://github.com/DawidHnat/Projekt_Zespolowy/pull/55), autor jczaja51, `9cff7e9` |
+| Marcel Głowacki / mglowacki0 | [#28](https://github.com/DawidHnat/Projekt_Zespolowy/pull/28), `5a4a5e6` | Approved [#29](https://github.com/DawidHnat/Projekt_Zespolowy/pull/29), autor jczaja51, `d0fc9c7` |
 
-**4/4 osób spełnia warunek własnego scalonego PR i review cudzego.**
-Nie zmieniano autorstwa ani historii. To nie usuwa historycznych braków review
-innych PR-ów, braków QA ani niezgodnego commita z PR #54.
+**4/4 PASS** — autorstwo, merge i porównanie commit review z końcowym head sprawdzone 19.11. Bez przepisywania historii i cudzych podpisów.
 
-## Pomiar kolejki
+## Aktualna zwykła kolejka
 
-Metryka liczy formalne review osoby innej niż autor, według `reviews` GitHuba.
-Nie liczy próśb o review i nie udaje pomiaru pierwszego komentarza/odpowiedzi.
-Próg 24 h jest surowym czasem kalendarzowym od `createdAt`, bez korekty
-o nieobecności, weekendy i czas wyjścia z draftu. Służy do wskazania kolejki
-do sprawdzenia, nie stanowi samodzielnego dowodu naruszenia uzgodnionego rytmu.
+Otwarte łącznie: **14**. Aktywne zwykłe PR: **10**; osobno **#105 DEFERRED → SCRUM-84/S5** oraz dowody **#24/#77/#78 (NIE SCALAĆ)**. Zwykłe PR bez pierwszego formalnego review: **8**, w tym ponad 24 h: **0**. Bez pierwszej odpowiedzi człowieka (komentarz albo review) ponad 24 h: **0**.
 
-- Otwarte: **12**, w tym **1 draft** (#66).
-- Zwykłe PR-y bez pierwszego formalnego review: **6** (#67–72).
-- Zwykłe PR-y bez pierwszego review od ponad 24 h: **2** (#67, #68).
-- Wraz z osobno oznaczonym dowodem celowo czerwonego CI #24: **3** ponad 24 h.
-- #69–72 nie miały review, lecz od ich otwarcia upłynęło mniej niż 24 h.
+| PR / head w chwili pomiaru | Właściciel | Niezależny reviewer | Czas do pierwszej odpowiedzi | Czas do pierwszego formalnego review | Co rzeczywiście czeka |
+| --- | --- | --- | --- | --- | --- |
+| [#101](https://github.com/DawidHnat/Projekt_Zespolowy/pull/101), `a8476ac` | jczaja51 | DawidHnat | 21.63 h | 21.63 h | nowe Approved po zmianie head; dawna pierwsza odpowiedź istnieje |
+| [#110](https://github.com/DawidHnat/Projekt_Zespolowy/pull/110), `be609d7` | jczaja51 | DawidHnat | 21.82 h | 21.82 h | nowe Approved po zmianie head; dawna pierwsza odpowiedź istnieje; następny dopiero po #101 |
+| [#118](https://github.com/DawidHnat/Projekt_Zespolowy/pull/118), `0295ad4` | jczaja51 | mglowacki0, DawidHnat | brak (11.22 h od otwarcia) | brak (11.22 h od otwarcia) | brak pierwszego review |
+| [#119](https://github.com/DawidHnat/Projekt_Zespolowy/pull/119), `ed1181f` | jczaja51 | mglowacki0, jnazarewiczs, DawidHnat | brak (3.19 h od otwarcia) | brak (3.19 h od otwarcia) | brak pierwszego review; dostępność reviewera odłożona przez PO, bez ponawiania prośby; poza warunkami S2 |
+| [#120](https://github.com/DawidHnat/Projekt_Zespolowy/pull/120), `746309d` | jczaja51 | mglowacki0, jnazarewiczs | brak (1.18 h od otwarcia) | brak (1.18 h od otwarcia) | brak pierwszego review |
+| [#121](https://github.com/DawidHnat/Projekt_Zespolowy/pull/121), `6357d17` | jczaja51 | mglowacki0, DawidHnat | brak (1.18 h od otwarcia) | brak (1.18 h od otwarcia) | brak pierwszego review |
+| [#122](https://github.com/DawidHnat/Projekt_Zespolowy/pull/122), `75fdbbb` | jczaja51 | mglowacki0, DawidHnat | brak (1.06 h od otwarcia) | brak (1.06 h od otwarcia) | brak pierwszego review |
+| [#123](https://github.com/DawidHnat/Projekt_Zespolowy/pull/123), `2121763` | jczaja51 | mglowacki0 | brak (1.05 h od otwarcia) | brak (1.05 h od otwarcia) | brak pierwszego review |
+| [#124](https://github.com/DawidHnat/Projekt_Zespolowy/pull/124), `ede00c9` | jczaja51 | mglowacki0, DawidHnat | brak (0.90 h od otwarcia) | brak (0.90 h od otwarcia) | brak pierwszego review |
+| [#125](https://github.com/DawidHnat/Projekt_Zespolowy/pull/125), `a5efcdc` | jczaja51 | mglowacki0 | brak (0.01 h od otwarcia) | brak (0.01 h od otwarcia) | brak pierwszego review |
 
-| PR / zadanie | Stan przy pomiarze | Następny krok i właściciel |
+DISMISSED nie usuwa faktu, że pierwsza odpowiedź kiedyś nastąpiła; nie jest jednak aktualnym Approved. #101/#110 czekają na nowe zatwierdzenie zmienionego head, a nie na pierwsze review od zera. Właściciel PR nie może go zatwierdzić za reviewera. Prośba o dostępność dla #119/150 została już odrzucona przez PO; ten pomiar jej nie ponawia.
+
+Metryki liczą nieautorskie formalne reviews oraz osobno komentarze człowieka. Czas to surowe godziny kalendarzowe od createdAt, bez korekty o weekendy, draft/ready i indywidualną dostępność. Nie jest to samodzielny zarzut naruszenia uzgodnionego rytmu. Snapshot ma własną datę i head; późniejsza zmiana dokumentu nie antydatuje pomiaru.
+
+## Datowane wyniki i połowa sprintu
+
+| Kiedy naprawdę zebrano | Co mierzy | Wynik |
 | --- | --- | --- |
-| [#67 / SCRUM-22](https://github.com/DawidHnat/Projekt_Zespolowy/pull/67) | Brak review, ponad 24 h | Jakub Nazarewicz: review head 5392b69; potem QA Marcela |
-| [#68 / SCRUM-56](https://github.com/DawidHnat/Projekt_Zespolowy/pull/68) | Brak review, ponad 24 h | Dawid / Marcel: review b769217 i końcowy odbiór logowania; sam dokument nie zastąpi review auth |
-| [#69 / SCRUM-20](https://github.com/DawidHnat/Projekt_Zespolowy/pull/69) | Brak review, poniżej 24 h | Nazarewicz / Marcel: review aa5821b i QA filtrów/stanu offline |
-| [#70 / SCRUM-38](https://github.com/DawidHnat/Projekt_Zespolowy/pull/70) | Brak review, poniżej 24 h | Nazarewicz / Marcel: review 287e0bb i QA układu przy zmianie okna |
-| [#71 / SCRUM-45](https://github.com/DawidHnat/Projekt_Zespolowy/pull/71) | Brak review, poniżej 24 h | Nazarewicz / Marcel: review c4a0b35, QA mobilnych wymiarów i zdjęć |
-| [#72 / SCRUM-46](https://github.com/DawidHnat/Projekt_Zespolowy/pull/72) | Brak review, poniżej 24 h; baza #71 | Nazarewicz / Marcel: review 2877897; najpierw #71, potem baza main i ponowne CI |
-| [#31 / SCRUM-49](https://github.com/DawidHnat/Projekt_Zespolowy/pull/31) | Marcel Approved dla obecnego head | PO i QA: sprawdzić komplet kryteriów; approval nie oznacza automatycznie gotowości do merge |
-| [#52 / SCRUM-112](https://github.com/DawidHnat/Projekt_Zespolowy/pull/52) | Marcel Approved dla obecnego head | PO / Dawid: domknąć wymagane decyzje i zakres odbioru |
-| [#53 / SCRUM-78](https://github.com/DawidHnat/Projekt_Zespolowy/pull/53) | Changes requested | Marcel: poprawić wskazaną regresję deploy; potem ponowne review |
-| [#65 / SCRUM-15](https://github.com/DawidHnat/Projekt_Zespolowy/pull/65) | Changes requested | Dawid: poprawić limit źródła po ponowieniach, ponowne review |
-| [#66 / SCRUM-22](https://github.com/DawidHnat/Projekt_Zespolowy/pull/66) | Draft, Changes requested | Dawid: poprawić konfigurację domyślnej częstotliwości, potem ready/review |
-| [#24 / SCRUM-18](https://github.com/DawidHnat/Projekt_Zespolowy/pull/24) | Celowo czerwony dowód CI; bez review | Zachować jako dowód, nie scalać; wyłączony ze zwykłej kolejki |
+| 10.11 — bazowy, przed połową sprintu | Zwykłe PR bez pierwszego formalnego review >24 h | 2 (#67/#68); 4/4 osób z własnym PR/review; 0/3 pełnych DoD Story S1 |
+| 16.11, komentarz 10228 | Nowy rzeczywisty odczyt kolejki | 0 zwykłych bez pierwszego review >24 h; #73 już dostarczony; nadal brak pełnego DoD jednej rozpoczętej Story |
+| Rekonstrukcja wykonana 16.11 dla 11.11 godz. 12:00 | Daty otwarcia/formalnych reviews, bez dowodu ówczesnego draft/ready | 7 zwykłych PR >24 h (#67–73). To **nie dowód pomiaru wykonanego 11.11**; terminowość AC4 pozostaje niepotwierdzona |
+| 2026-11-19T10:56:27+01:00 | Bieżący snapshot, bez przepisywania go na 11.11 | 0 bez pierwszego formalnego review >24 h; nowe Approved po zmianach head nadal potrzebne |
 
-Wszyscy autorzy są wskazani przez GitHub; wszystkie otwarte PR-y mają klucz
-SCRUM w opisie i gałęzi. Każdy zwykły PR gotowy do review ma obecnie wskazanego
-recenzenta innego niż autor. Draft #66 czeka na poprawkę autora.
-Ten dokument nie jest wykonaniem review wymienionych zmian ani wysłaniem wiadomości.
+## Pełny DoD i rzeczywista retrospektywa
 
-## Pomiar pełnego DoD historyjek Sprintu 1
+[Uzupełniona ocena i nowe działanie PO — SCRUM-65/10363](https://fleet-flow.atlassian.net/browse/SCRUM-65?focusedCommentId=10363).
 
-Zakres pomiaru: trzy historyjki produktu prezentowane na Review Sprintu 1,
-nie wszystkie zadania techniczne ani liczniki statusów w zamkniętym sprincie.
-Odczyt 10.11: **0/3 z potwierdzonym kompletem dowodów DoD**. Wszystkie trzy
-rodzice mają administracyjny status Gotowe; poniższych braków nie usunięto
-przez samą zmianę statusu ani zamknięcie sprintu.
+[SCRUM-141](https://fleet-flow.atlassian.net/browse/SCRUM-141) zbiera obie pełne macierze 16/91. W zebranych dowodach **0/2 wybranych Story ma pełny końcowy odbiór**, mimo administracyjnego Gotowe. Review auth i ocena restore są już PASS w komentarzach 10324/10345. Następny krok **Marcela**: końcowe brakujące AC/DoD i podpis QA; **PO Jakub** potwierdza zakres. Nie trzeba kończyć wszystkich przyszłych regresji produktu.
 
-| Story | Dowody i brak do potwierdzenia pełnego DoD | Właściciel następnego kroku |
-| --- | --- | --- |
-| [SCRUM-16](https://fleet-flow.atlassian.net/browse/SCRUM-16) — logowanie | PR #10 scalony bez Approved. [SCRUM-56](https://fleet-flow.atlassian.net/browse/SCRUM-56) zawiera testy autora/agenta i częściowy raport Marcela; pozostają niezależny przegląd implementacji auth i końcowy QA, w tym izolowany FF-QA-031. Pakiet #68 jest otwarty. | Dawid: rzeczywisty przegląd auth. Marcel: końcowy odbiór na wskazanym SHA. PO: zebranie dowodów, bez dopisywania historycznego approval. |
-| [SCRUM-5](https://fleet-flow.atlassian.net/browse/SCRUM-5) — lista/mapa | #61 ma review i merge, lecz [SCRUM-23](https://fleet-flow.atlassian.net/browse/SCRUM-23) pozostaje W toku z częściowym odbiorem bez ustalonego SHA i scenariuszami BLOCKED. Otwarte poprawki listy/mapy/UI czekają na review/QA. | Nazarewicz: review wskazanych poprawek. Marcel: pełny retest kryteriów i raport SHA/PASS/FAIL/BLOCKED. |
-| [SCRUM-15](https://fleet-flow.atlassian.net/browse/SCRUM-15) — synchronizacja | [SCRUM-64](https://fleet-flow.atlassian.net/browse/SCRUM-64) nadal wymaga operacyjnego odbioru po backupie i odtworzeniu, canary, cykli oraz QA. #65 ma Changes requested. Historyczne #11/#36 nie mają zapisanych reviews. | Dawid: backup/recovery i usunięcie uwag #65, potem autoryzowany canary; Marcel: niezależny odbiór. Bez uruchamiania żywego źródła w tym audycie. |
+PO potwierdził 19.11, że Review i retro S2 odbyły się 18.11 z całą czwórką ([SCRUM-142/10347](https://fleet-flow.atlassian.net/browse/SCRUM-142?focusedCommentId=10347)). Następnie doprecyzował rzeczywistą ocenę działania na retro: **spotkania pomagały, lecz bez nich codzienne regularne sprawdzanie PR-ów nie odbywało się w pełni**. To relacja PO o retro 18.11, nie dzisiejsza statystyka przypisana wstecz. Aktualizacja rzeczywistych protokołów: [PR #123](https://github.com/DawidHnat/Projekt_Zespolowy/pull/123).
 
-Wspólne wdrożenie sprawdzono bez logowania i danych floty: po `git fetch origin`
-wersja strony HTTPS i strony HTTP serwera to **5b5fceb**, zgodna z `origin/main`;
-`https://fleet-flow.pl/api/health/ready` odpowiada `200`, `{"status":"ok"}`.
-To potwierdza wersję/gotowość, nie komplet QA powyższych Story.
-
-## Kolejny pomiar i zakończenie działania
-
-PO powtarza ten sam pomiar w połowie Sprintu 2 (około 11.11, w uzgodnionym
-dniu dostępności) i zapisuje datę, surową kolejkę oraz dowody DoD. Wynik z 10.11
-jest punktem odniesienia. Na retro Sprintu 2 zespół porównuje wyniki i decyduje,
-czy utrzymać rytm. Nie zapisano jeszcze, że te przyszłe czynności się odbyły.
-
-Ponowny odczyt GitHuba, bez zmieniania zdalnych danych:
-
-```bash
-gh pr list --repo DawidHnat/Projekt_Zespolowy --state all --limit 200 \
-  --json number,url,state,isDraft,createdAt,headRefName,headRefOid,author,reviews,reviewRequests,body
-```
-
-Należy sprawdzić, czy limit objął całość (w tym pomiarze 72 < 200), odrzucić
-własne review autora, osobno wykazać drafty i dowody testowe, a dla każdego
-Approved porównać `reviews[].commit.oid` z `headRefOid`. Obliczyć wiek PR-ów
-bez review względem zapisanego czasu pomiaru. Komentarze nie są objęte tą metryką.
-Stan historyjek i raportów QA czytamy w Jirze, nie wnioskujemy go z listy PR-ów.
-
-Do zamknięcia SCRUM-65 pozostają odbiór tej dokumentacji przez inną osobę,
-scalenie PR, doprowadzenie jednej rozpoczętej Story do pełnego DoD oraz
-pomiar w połowie sprintu. Ocena skuteczności wraca na retro Sprintu 2.
+**Nowa decyzja PO z 19.11:** Jakub Czaja **codziennie sprawdza kolejkę PR-ów i przypomina przypisanym reviewerom**. Właściciel: Jakub Czaja. Nie przypisujemy tej decyzji do retro 18.11 i nie uruchamiamy automatycznej wysyłki. Ocena i nowe działanie są zapisane. Do zakończenia 65 pozostają niezależny review/CI/main aktualizacji kolejki oraz pełny DoD jednej Story w 141. Dostępność i plan 128/129 PO potwierdził 19.11; nie wpisujemy tej decyzji wstecz jako szczegółowego wyniku spotkania 18.11.
