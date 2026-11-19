@@ -67,23 +67,24 @@ PASS; publiczny HTTP i HTTPS wskazują `cb634da`, readiness 200/status ok.
 Sprawdził agent Jakuba Czai 19.11, bez odczytu floty. Nie jest to SHA pokazu.
 S2 id=3 **active**, S3 id=4 **future**; nie tworzono sprintów ani nie przenoszono prac.
 
-| Otwarte w S2 (12) | Właściciel | Co pozostaje |
+| Pozycje z bazowego odczytu S2 (12) | Właściciel | Wynik i pozostały zakres |
 | --- | --- | --- |
 | SCRUM-21 | Jakub Nazarewicz | Odbiór markerów/wyboru/podglądu i zakresu danych; Safari wyłączone z obowiązkowego zakresu decyzją PO 19.11, bez PASS niewykonanego testu |
 | SCRUM-23 | Marcel Głowacki | Brakujące scenariusze kontrolowanych markerów/nowych pól i adekwatny odbiór synchronizacji po 64 |
 | SCRUM-40 | Marcel Głowacki | Końcowy niezależny odbiór układu/personalizacji i izolacji kont; wykorzystać wspólne scenariusze 46 |
-| SCRUM-46 | Jakub Czaja | Brakujący zakres z #72 jest w PR #120; 58 unit/build i 6/6 E2E PASS, niezależny review/main oczekują |
+| SCRUM-46 | Jakub Czaja | Regresja z #120 trafiła do `main`. #126 poprawia nadpisywanie zapisanego rozmiaru przez opóźniony zapis filtra. |
 | SCRUM-64 | Dawid Hnat | Własny kontrolowany live: pierwszy odczyt/cykle/API/UI/restart i QA; kopie/rollback SCRUM-18, bez wymagania zakończonego 84 |
 | SCRUM-65 | Jakub Czaja | Pomiar i ocena retro zapisane, nowe działanie Jakuba z 19.11; pozostają pełny DoD jednej Story w 141 i review/main dokumentacji |
 | SCRUM-94 | Jakub Czaja | Arkusz #121 uzupełniony danymi PO; właściciel wskazany lokalnie, brak konsultacji i pełnych procedur 113 |
 | SCRUM-101 | Marcel Głowacki | Własne AC bezpieczeństwa i otwarte pozycje ASVS; review auth jest już dowodem, nie nowym brakiem |
-| SCRUM-133 | Jakub Czaja | Aktualny review #101 → merge/deploy/smoke; potem #110 z nowym review i właściwym QA 54/33 |
+| SCRUM-133 | Jakub Czaja | Jira pokazuje Gotowe. #101 i #110 nadal oczekują dostarczenia do `main`, a odbiór kierowców i alertów pozostaje w QA 54/33. |
 | SCRUM-141 | Marcel Głowacki | Pełne AC/12 DoD 16/91 i końcowy niezależny QA, zachowując wykonany review/restore |
 | SCRUM-142 | Jakub Czaja | Uzupełnienie rzeczywistych wyników, PR/review/CI/main i późniejsze przełączenie S2→S3 |
 | SCRUM-143 | Jakub Czaja | Pakiet 3.2 przed zamknięciem S2; końcowy 4.2 po rzeczywistym starcie S3, dowody po ostatnim merge |
 
-**Osobno SCRUM-84: Do zrobienia, końcowy S5 id=37, Dawid Hnat.** #35/#105
-DEFERRED. Nie deklarujemy dostarczenia i nie wymagamy dziś storage/kosztu/RPO/RTO/recovery.
+**Osobno SCRUM-84: końcowy S5 id=37, Dawid Hnat.** Narzędzia backupu są w
+`main` od `70a38db`. Wybór storage, uruchomienie timerów i operacyjna próba
+odtworzenia pozostają w Sprint 5. [PR #105](https://github.com/DawidHnat/Projekt_Zespolowy/pull/105)
 #119/SCRUM-150 jest poza S2; nie jest dodatkowym warunkiem zamknięcia i nie
 ponawiamy odmówionej prośby o dostępność reviewera.
 

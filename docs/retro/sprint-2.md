@@ -5,7 +5,7 @@ Marcel Głowacki**. Potwierdził PO Jakub Czaja 19.11 w bieżącej rozmowie;
 godziny/miejsce nieustalone. Zapis: **agent Codex na polecenie PO**, nie uczestnik.
 [Dowód SCRUM-142/10347](https://fleet-flow.atlassian.net/browse/SCRUM-142?focusedCommentId=10347).
 [Uzupełnienie relacji PO 19.11](https://fleet-flow.atlassian.net/browse/SCRUM-142?focusedCommentId=10365).
-[Review i stan 12 otwartych prac S2](../SPRINT_2_REVIEW.md).
+[Review i zestawienie 12 prac S2](../SPRINT_2_REVIEW.md).
 
 ## Co poszło dobrze
 
