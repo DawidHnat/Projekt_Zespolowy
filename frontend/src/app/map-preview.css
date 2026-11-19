@@ -117,6 +117,9 @@
   padding: 7px 10px;
   font-size: 11px;
 }
+.map-preview-footer .fleet-refresh-button.fleet-refresh-compact {
+  padding: 7px;
+}
 .map-preview-loading {
   margin: 0;
   font-size: 11px;

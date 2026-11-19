@@ -12,6 +12,7 @@ import { useAuth } from "../../auth/AuthProvider";
 import { normalizePageSize } from "../../../shared/components/pagination-model";
 import { fleetPollInterval } from "./types";
 import { useVehiclePreferences } from "./VehiclePreferences";
+import { useSourceRefresh } from "./useSourceRefresh";
 import type {
   FleetMap,
   Summary,
@@ -51,6 +52,7 @@ type FleetState = {
   retryDetails: () => void;
   closeDetails: () => void;
   refresh: () => void;
+  sourceRefresh: ReturnType<typeof useSourceRefresh>;
 };
 const Context = createContext<FleetState | null>(null);
 type FleetSnapshot = {
@@ -103,6 +105,11 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
   const total = snapshot?.filterKey === filterKey ? snapshot.list.total : 0;
   const loading = preferences.cloud.loading || request?.key !== requestKey || request.loading;
   const error = request?.key === requestKey ? request.error : null;
+  const refresh = () => {
+    listPoll.current?.refresh();
+    detailPoll.current?.refresh();
+  };
+  const sourceRefresh = useSourceRefresh(refresh, fleetPollIntervalMs);
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQ(q.trim()), 250);
     return () => clearTimeout(timer);
@@ -307,10 +314,8 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
           detailPoll.current?.refresh();
         },
         closeDetails: () => setDetailsOpen(false),
-        refresh: () => {
-          listPoll.current?.refresh();
-          detailPoll.current?.refresh();
-        },
+        refresh,
+        sourceRefresh,
       }}
     >
       {children}
