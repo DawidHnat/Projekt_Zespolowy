@@ -1,14 +1,14 @@
 {
   "document": "SCRUM-112",
-  "version": 1,
+  "version": 2,
   "recorded_on": "2026-10-29",
   "author": "Jakub Czaja (przygotowanie techniczne)",
   "scope": "Inwentarz kodu i rejestr brakujących decyzji. Nie jest inwentaryzacją rekordów ani dowodem wdrożenia VPS.",
   "policy_approval": "NONE; decyzje prywatności wymagają SCRUM-113. BLOCKED oznacza brak decyzji dla przetwarzania/aktywacji, nie brak wykonania technicznego spisu.",
   "snapshots": {
     "main": {
-      "sha": "4ce144e3e988106059acdbb6cd01ae9baa3beee4",
-      "delivery": "scalony kod; nie dowód aktywnej wersji serwera"
+      "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+      "delivery": "kod w main; wdrożenie i rekordy wymagają osobnych dowodów"
     },
     "review_stack": {
       "sha": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
@@ -19,6 +19,15 @@
       "sha": "0408144b943bc7ad5e9e3d47ae4f0b5640c94b7e",
       "pr": 31,
       "delivery": "osobny otwarty PR, poza stosem PR #51"
+    },
+    "main_20261029": {
+      "sha": "4ce144e3e988106059acdbb6cd01ae9baa3beee4",
+      "delivery": "scalony kod; nie dowód aktywnej wersji serwera"
+    },
+    "pending_integration_110": {
+      "sha": "be609d7260191424d686f92b1f00c48c10cff5cf",
+      "pr": 110,
+      "delivery": "OPEN; alerty #109 i kierowcy #111 tylko w zależnościach; nie dostarczone do main"
     }
   },
   "schema_snapshots": {
@@ -41,8 +50,19 @@
           "number",
           "license_plate",
           "vehicle_type",
+          "make",
+          "model",
+          "year",
+          "vin",
           "active",
-          "driver_id"
+          "search_name",
+          "search_number",
+          "search_license_plate",
+          "search_make",
+          "search_model",
+          "search_vin",
+          "driver_id",
+          "locally_edited"
         ]
       },
       "measurements": {
@@ -56,7 +76,9 @@
           "standing_still",
           "gps_quality",
           "position_at",
-          "received_at"
+          "received_at",
+          "speed_kmh",
+          "position_address"
         ]
       },
       "sync_states": {
@@ -66,42 +88,6 @@
           "last_attempt_at",
           "last_success_at",
           "error_code"
-        ]
-      },
-      "users": {
-        "path": "backend/app/modules/auth/models.py",
-        "fields": [
-          "id",
-          "username",
-          "display_name",
-          "password_hash",
-          "role",
-          "active",
-          "email"
-        ]
-      },
-      "login_sessions": {
-        "path": "backend/app/modules/auth/models.py",
-        "fields": [
-          "token_hash",
-          "user_id",
-          "expires_at"
-        ]
-      },
-      "login_attempts": {
-        "path": "backend/app/modules/auth/models.py",
-        "fields": [
-          "key",
-          "window_start",
-          "attempts"
-        ]
-      },
-      "password_resets": {
-        "path": "backend/app/modules/auth/models.py",
-        "fields": [
-          "token_hash",
-          "user_id",
-          "expires_at"
         ]
       },
       "alert_rules": {
@@ -144,6 +130,74 @@
           "alert_id",
           "user_id",
           "read_at"
+        ]
+      },
+      "users": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "id",
+          "username",
+          "display_name",
+          "password_hash",
+          "role",
+          "active",
+          "email"
+        ]
+      },
+      "login_sessions": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "token_hash",
+          "user_id",
+          "expires_at"
+        ]
+      },
+      "login_attempts": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "key",
+          "window_start",
+          "attempts"
+        ]
+      },
+      "password_resets": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "token_hash",
+          "user_id",
+          "expires_at"
+        ]
+      },
+      "account_preferences": {
+        "path": "backend/app/modules/preferences/models.py",
+        "fields": [
+          "user_id",
+          "module",
+          "value",
+          "version",
+          "updated_at"
+        ]
+      },
+      "trips": {
+        "path": "backend/app/modules/trips/models.py",
+        "fields": [
+          "id",
+          "vehicle_id",
+          "external_uid",
+          "start_at",
+          "end_at",
+          "distance_km"
+        ]
+      },
+      "trip_annotations": {
+        "path": "backend/app/modules/trips/models.py",
+        "fields": [
+          "trip_id",
+          "purpose",
+          "description",
+          "version",
+          "updated_by",
+          "updated_at"
         ]
       }
     },
@@ -322,6 +376,329 @@
           "started_at",
           "ended_at",
           "recorded_at"
+        ]
+      }
+    },
+    "main_20261029": {
+      "drivers": {
+        "path": "backend/app/core/models.py",
+        "fields": [
+          "id",
+          "display_name",
+          "active"
+        ]
+      },
+      "vehicles": {
+        "path": "backend/app/core/models.py",
+        "fields": [
+          "id",
+          "source_account",
+          "external_uid",
+          "name",
+          "number",
+          "license_plate",
+          "vehicle_type",
+          "active",
+          "driver_id"
+        ]
+      },
+      "measurements": {
+        "path": "backend/app/core/models.py",
+        "fields": [
+          "vehicle_id",
+          "latitude",
+          "longitude",
+          "odometer_km",
+          "ignition_on",
+          "standing_still",
+          "gps_quality",
+          "position_at",
+          "received_at"
+        ]
+      },
+      "sync_states": {
+        "path": "backend/app/core/models.py",
+        "fields": [
+          "source_account",
+          "last_attempt_at",
+          "last_success_at",
+          "error_code"
+        ]
+      },
+      "users": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "id",
+          "username",
+          "display_name",
+          "password_hash",
+          "role",
+          "active",
+          "email"
+        ]
+      },
+      "login_sessions": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "token_hash",
+          "user_id",
+          "expires_at"
+        ]
+      },
+      "login_attempts": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "key",
+          "window_start",
+          "attempts"
+        ]
+      },
+      "password_resets": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "token_hash",
+          "user_id",
+          "expires_at"
+        ]
+      },
+      "alert_rules": {
+        "path": "backend/app/modules/analytics/models.py",
+        "fields": [
+          "id",
+          "source_account",
+          "type",
+          "threshold_km",
+          "vehicle_id",
+          "active"
+        ]
+      },
+      "alerts": {
+        "path": "backend/app/modules/analytics/models.py",
+        "fields": [
+          "id",
+          "rule_id",
+          "vehicle_id",
+          "event_day",
+          "occurred_at",
+          "created_at",
+          "threshold_km",
+          "distance_km"
+        ]
+      },
+      "daily_distances": {
+        "path": "backend/app/modules/analytics/models.py",
+        "fields": [
+          "vehicle_id",
+          "event_day",
+          "distance_km",
+          "first_observed_at",
+          "last_observed_at"
+        ]
+      },
+      "alert_receipts": {
+        "path": "backend/app/modules/analytics/models.py",
+        "fields": [
+          "alert_id",
+          "user_id",
+          "read_at"
+        ]
+      }
+    },
+    "pending_integration_110": {
+      "drivers": {
+        "path": "backend/app/core/models.py",
+        "fields": [
+          "id",
+          "display_name",
+          "active",
+          "source_account",
+          "first_name",
+          "last_name",
+          "identifier",
+          "identifier_key",
+          "phone",
+          "email",
+          "search_text",
+          "version"
+        ]
+      },
+      "vehicles": {
+        "path": "backend/app/core/models.py",
+        "fields": [
+          "id",
+          "source_account",
+          "external_uid",
+          "name",
+          "number",
+          "license_plate",
+          "vehicle_type",
+          "make",
+          "model",
+          "year",
+          "vin",
+          "active",
+          "search_name",
+          "search_number",
+          "search_license_plate",
+          "search_make",
+          "search_model",
+          "search_vin",
+          "driver_id",
+          "locally_edited"
+        ]
+      },
+      "measurements": {
+        "path": "backend/app/core/models.py",
+        "fields": [
+          "vehicle_id",
+          "latitude",
+          "longitude",
+          "odometer_km",
+          "ignition_on",
+          "standing_still",
+          "gps_quality",
+          "position_at",
+          "received_at",
+          "speed_kmh",
+          "position_address"
+        ]
+      },
+      "sync_states": {
+        "path": "backend/app/core/models.py",
+        "fields": [
+          "source_account",
+          "last_attempt_at",
+          "last_success_at",
+          "error_code"
+        ]
+      },
+      "alert_rules": {
+        "path": "backend/app/modules/analytics/models.py",
+        "fields": [
+          "id",
+          "source_account",
+          "type",
+          "threshold_km",
+          "vehicle_id",
+          "active"
+        ]
+      },
+      "alerts": {
+        "path": "backend/app/modules/analytics/models.py",
+        "fields": [
+          "id",
+          "rule_id",
+          "vehicle_id",
+          "event_day",
+          "occurred_at",
+          "created_at",
+          "threshold_km",
+          "distance_km"
+        ]
+      },
+      "daily_distances": {
+        "path": "backend/app/modules/analytics/models.py",
+        "fields": [
+          "vehicle_id",
+          "event_day",
+          "distance_km",
+          "first_observed_at",
+          "last_observed_at"
+        ]
+      },
+      "alert_receipts": {
+        "path": "backend/app/modules/analytics/models.py",
+        "fields": [
+          "alert_id",
+          "user_id",
+          "read_at"
+        ]
+      },
+      "users": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "id",
+          "username",
+          "display_name",
+          "password_hash",
+          "role",
+          "active",
+          "email"
+        ]
+      },
+      "login_sessions": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "token_hash",
+          "user_id",
+          "expires_at"
+        ]
+      },
+      "login_attempts": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "key",
+          "window_start",
+          "attempts"
+        ]
+      },
+      "password_resets": {
+        "path": "backend/app/modules/auth/models.py",
+        "fields": [
+          "token_hash",
+          "user_id",
+          "expires_at"
+        ]
+      },
+      "driver_categories": {
+        "path": "backend/app/modules/drivers/models.py",
+        "fields": [
+          "driver_id",
+          "category"
+        ]
+      },
+      "driver_assignments": {
+        "path": "backend/app/modules/drivers/models.py",
+        "fields": [
+          "id",
+          "driver_id",
+          "vehicle_id",
+          "active",
+          "started_at",
+          "ended_at",
+          "recorded_at"
+        ]
+      },
+      "account_preferences": {
+        "path": "backend/app/modules/preferences/models.py",
+        "fields": [
+          "user_id",
+          "module",
+          "value",
+          "version",
+          "updated_at"
+        ]
+      },
+      "trips": {
+        "path": "backend/app/modules/trips/models.py",
+        "fields": [
+          "id",
+          "vehicle_id",
+          "external_uid",
+          "start_at",
+          "end_at",
+          "distance_km"
+        ]
+      },
+      "trip_annotations": {
+        "path": "backend/app/modules/trips/models.py",
+        "fields": [
+          "trip_id",
+          "purpose",
+          "description",
+          "version",
+          "updated_by",
+          "updated_at"
         ]
       }
     }
@@ -586,40 +963,106 @@
       "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/0408144b943bc7ad5e9e3d47ae4f0b5640c94b7e/backend/app/modules/auth/profile.py"
     },
     "readme": {
-      "snapshot": "main",
+      "snapshot": "main_20261029",
       "sha": "4ce144e3e988106059acdbb6cd01ae9baa3beee4",
       "path": "README.md",
       "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/4ce144e3e988106059acdbb6cd01ae9baa3beee4/README.md"
     },
     "main-auth": {
-      "snapshot": "main",
+      "snapshot": "main_20261029",
       "sha": "4ce144e3e988106059acdbb6cd01ae9baa3beee4",
       "path": "backend/app/modules/auth/models.py",
       "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/4ce144e3e988106059acdbb6cd01ae9baa3beee4/backend/app/modules/auth/models.py"
     },
     "main-core": {
-      "snapshot": "main",
+      "snapshot": "main_20261029",
       "sha": "4ce144e3e988106059acdbb6cd01ae9baa3beee4",
       "path": "backend/app/core/models.py",
       "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/4ce144e3e988106059acdbb6cd01ae9baa3beee4/backend/app/core/models.py"
     },
     "main-analytics": {
-      "snapshot": "main",
+      "snapshot": "main_20261029",
       "sha": "4ce144e3e988106059acdbb6cd01ae9baa3beee4",
       "path": "backend/app/modules/analytics/models.py",
       "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/4ce144e3e988106059acdbb6cd01ae9baa3beee4/backend/app/modules/analytics/models.py"
     },
     "main-caddy": {
-      "snapshot": "main",
+      "snapshot": "main_20261029",
       "sha": "4ce144e3e988106059acdbb6cd01ae9baa3beee4",
       "path": "infra/deploy/Caddyfile",
       "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/4ce144e3e988106059acdbb6cd01ae9baa3beee4/infra/deploy/Caddyfile"
     },
     "main-deploy": {
-      "snapshot": "main",
+      "snapshot": "main_20261029",
       "sha": "4ce144e3e988106059acdbb6cd01ae9baa3beee4",
       "path": "infra/deploy/deploy.sh",
       "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/4ce144e3e988106059acdbb6cd01ae9baa3beee4/infra/deploy/deploy.sh"
+    },
+    "current-core": {
+      "snapshot": "main",
+      "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+      "path": "backend/app/core/models.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/cb634da0ece8cd93424bfc16a5185cf817a0cbb1/backend/app/core/models.py"
+    },
+    "current-fleet-api": {
+      "snapshot": "main",
+      "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+      "path": "backend/app/modules/fleet/router.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/cb634da0ece8cd93424bfc16a5185cf817a0cbb1/backend/app/modules/fleet/router.py"
+    },
+    "current-fleet-service": {
+      "snapshot": "main",
+      "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+      "path": "backend/app/modules/fleet/service.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/cb634da0ece8cd93424bfc16a5185cf817a0cbb1/backend/app/modules/fleet/service.py"
+    },
+    "current-sync": {
+      "snapshot": "main",
+      "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+      "path": "backend/app/modules/fleet/sync.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/cb634da0ece8cd93424bfc16a5185cf817a0cbb1/backend/app/modules/fleet/sync.py"
+    },
+    "current-sync-control": {
+      "snapshot": "main",
+      "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+      "path": "backend/app/sync_control.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/cb634da0ece8cd93424bfc16a5185cf817a0cbb1/backend/app/sync_control.py"
+    },
+    "current-auth": {
+      "snapshot": "main",
+      "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+      "path": "backend/app/modules/auth/models.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/cb634da0ece8cd93424bfc16a5185cf817a0cbb1/backend/app/modules/auth/models.py"
+    },
+    "current-preferences": {
+      "snapshot": "main",
+      "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+      "path": "backend/app/modules/preferences/models.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/cb634da0ece8cd93424bfc16a5185cf817a0cbb1/backend/app/modules/preferences/models.py"
+    },
+    "current-preferences-api": {
+      "snapshot": "main",
+      "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+      "path": "backend/app/modules/preferences/router.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/cb634da0ece8cd93424bfc16a5185cf817a0cbb1/backend/app/modules/preferences/router.py"
+    },
+    "current-vehicle-preferences": {
+      "snapshot": "main",
+      "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+      "path": "frontend/src/features/fleet/model/VehiclePreferences.tsx",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/cb634da0ece8cd93424bfc16a5185cf817a0cbb1/frontend/src/features/fleet/model/VehiclePreferences.tsx"
+    },
+    "current-dashboard-preferences": {
+      "snapshot": "main",
+      "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+      "path": "frontend/src/app/preferences.tsx",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/cb634da0ece8cd93424bfc16a5185cf817a0cbb1/frontend/src/app/preferences.tsx"
+    },
+    "current-trips": {
+      "snapshot": "main",
+      "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+      "path": "backend/app/modules/trips/models.py",
+      "url": "https://github.com/DawidHnat/Projekt_Zespolowy/blob/cb634da0ece8cd93424bfc16a5185cf817a0cbb1/backend/app/modules/trips/models.py"
     }
   },
   "datasets": [
@@ -832,7 +1275,7 @@
     {
       "id": "D06",
       "title": "Pojazdy i prywatne indeksy wyszukiwania",
-      "implementation": "MAIN + REVIEW_STACK",
+      "implementation": "MAIN (kartoteka i indeksy SQL dostarczone)",
       "fields": {
         "vehicles": [
           "id",
@@ -842,16 +1285,24 @@
           "number",
           "license_plate",
           "vehicle_type",
+          "make",
+          "model",
+          "year",
+          "vin",
           "active",
           "search_name",
           "search_number",
           "search_license_plate",
-          "driver_id"
+          "search_make",
+          "search_model",
+          "search_vin",
+          "driver_id",
+          "locally_edited"
         ]
       },
-      "origin": "WEBFLEET: allowlist raportu pojazdów; driver_id jest lokalną projekcją.",
+      "origin": "WEBFLEET dla allowlisty źródła oraz ręczna edycja chroniona locally_edited; driver_id pozostaje lokalną projekcją.",
       "technical_purpose": "Lista, identyfikacja auta, filtrowanie i powiązanie z pomiarami.",
-      "storage": "PostgreSQL; UUID/nazwa/rejestracja w API i DOM. search_* to pochodne prywatne dodane w PR #38.",
+      "storage": "PostgreSQL; dane kartoteki, VIN, marka/model/rok, flaga locally_edited i prywatne pochodne wyszukiwania. Odczyt przez API floty.",
       "current_access_and_recipients": "Wszyscy uwierzytelnieni w bieżącym źródle. Operator/backup widzi także wewnętrzne UID i hash konta źródła.",
       "current_lifecycle": "Synchronizacja aktualizuje dane; brak auta w kompletnym odczycie ustawia active=false, nie usuwa rekordu.",
       "minimum_scope_to_confirm": "Uzasadnić nazwę/numer/rejestrację/typ i kopie casefold; source_account/external_uid pozostają poza publicznym payloadem.",
@@ -868,15 +1319,19 @@
       "decision_owner_person": null,
       "technical_verification_owner": "Dawid Hnat",
       "policy_status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "evidence": [
         "main-core",
         "core",
         "sync",
         "fleet-api",
-        "fleet-service"
-      ]
+        "fleet-service",
+        "current-core",
+        "current-sync",
+        "current-fleet-api"
+      ],
+      "updated_on": "2026-11-19"
     },
     {
       "id": "D07",
@@ -892,10 +1347,9 @@
           "standing_still",
           "gps_quality",
           "position_at",
-          "received_at"
-        ],
-        "transient": [
-          "speed z allowlisty raportu źródła; API nie potwierdza jednostki i zwraca null"
+          "received_at",
+          "speed_kmh",
+          "position_address"
         ]
       },
       "origin": "WEBFLEET object report przez backend.",
@@ -903,7 +1357,7 @@
       "storage": "Jedna ostatnia próbka na pojazd w PostgreSQL; GeoJSON i szczegóły w pamięci/DOM przeglądarki.",
       "current_access_and_recipients": "Wszyscy uwierzytelnieni w źródle widzą GPS niezależnie od admin/editor/viewer; brak per-User zakresu pojazdów.",
       "current_lifecycle": "Nowy pomiar nadpisuje istniejący, stary nie cofa czasu. 15 min to próg świeżości, nie retencja. Brak próbek archiwalnych w tej tabeli; stare stany mogą istnieć w backupie/logach.",
-      "minimum_scope_to_confirm": "Zakres dokładności GPS, częstość odczytu, godziny użycia i role wymagają decyzji; hash source_account nie izoluje użytkowników tenantów.",
+      "minimum_scope_to_confirm": "Zakres dokładności GPS, częstość odczytu, godziny użycia i role wymagają decyzji; hash source_account nie izoluje użytkowników tenantów. Obejmuje również ostatni position_address i speed_kmh; znana jednostka prędkości nie zatwierdza celu jej użycia.",
       "policy_decisions": [
         "P01",
         "P02",
@@ -920,7 +1374,7 @@
       "decision_owner_person": null,
       "technical_verification_owner": "Dawid Hnat",
       "policy_status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "evidence": [
         "core",
@@ -928,13 +1382,16 @@
         "snapshot",
         "fleet-service",
         "fleet-api",
-        "map"
-      ]
+        "map",
+        "current-core",
+        "current-fleet-service"
+      ],
+      "updated_on": "2026-11-19"
     },
     {
       "id": "D08",
       "title": "Ręczna kartoteka kierowcy",
-      "implementation": "MAIN podstawowa; REVIEW_STACK rozszerzona",
+      "implementation": "MAIN podstawowa; rozszerzona kartoteka oczekuje w PR #110 (be609d7)",
       "fields": {
         "drivers": [
           "id",
@@ -971,7 +1428,7 @@
       "decision_owner_person": null,
       "technical_verification_owner": "Dawid Hnat",
       "policy_status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "evidence": [
         "main-core",
@@ -979,12 +1436,13 @@
         "drivers-api",
         "drivers-service",
         "driver-browser"
-      ]
+      ],
+      "updated_on": "2026-11-19"
     },
     {
       "id": "D09",
       "title": "Ręczne kategorie prawa jazdy",
-      "implementation": "REVIEW_STACK PR #50",
+      "implementation": "PENDING PR #110; #111 scalone tylko do zależności",
       "fields": {
         "driver_categories": [
           "driver_id",
@@ -1009,18 +1467,19 @@
       "decision_owner_person": null,
       "technical_verification_owner": "Dawid Hnat",
       "policy_status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "evidence": [
         "drivers",
         "drivers-api",
         "drivers-service"
-      ]
+      ],
+      "updated_on": "2026-11-19"
     },
     {
       "id": "D10",
       "title": "Historia przypisań kierowca–pojazd",
-      "implementation": "MAIN wskaźnik; REVIEW_STACK PR #50 historia",
+      "implementation": "MAIN wskaźnik driver_id; historia PENDING PR #110",
       "fields": {
         "driver_assignments": [
           "id",
@@ -1054,19 +1513,20 @@
       "decision_owner_person": null,
       "technical_verification_owner": "Dawid Hnat",
       "policy_status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "evidence": [
         "drivers",
         "drivers-api",
         "drivers-service",
         "core"
-      ]
+      ],
+      "updated_on": "2026-11-19"
     },
     {
       "id": "D11",
       "title": "Fakty zapisanych przejazdów",
-      "implementation": "REVIEW_STACK PR #30; importer SCRUM-24 PLANNED",
+      "implementation": "MAIN; importer historii SCRUM-24 osobno",
       "fields": {
         "trips": [
           "id",
@@ -1097,17 +1557,19 @@
       "decision_owner_person": null,
       "technical_verification_owner": "Dawid Hnat",
       "policy_status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "evidence": [
         "trips",
-        "trips-api"
-      ]
+        "trips-api",
+        "current-trips"
+      ],
+      "updated_on": "2026-11-19"
     },
     {
       "id": "D12",
       "title": "Cel/opis przejazdu i autor ostatniej edycji",
-      "implementation": "REVIEW_STACK PR #30",
+      "implementation": "MAIN; autor i data ostatniej edycji, bez pełnego audytu zmian",
       "fields": {
         "trip_annotations": [
           "trip_id",
@@ -1138,12 +1600,14 @@
       "decision_owner_person": null,
       "technical_verification_owner": "Dawid Hnat",
       "policy_status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "evidence": [
         "trips",
-        "trips-api"
-      ]
+        "trips-api",
+        "current-trips"
+      ],
+      "updated_on": "2026-11-19"
     },
     {
       "id": "D13",
@@ -1227,7 +1691,7 @@
     {
       "id": "D15",
       "title": "Alerty i potwierdzenia odczytu",
-      "implementation": "MAIN; UI w REVIEW_STACK PR #49",
+      "implementation": "MAIN API; UI alertów PENDING PR #110 przez #109",
       "fields": {
         "alerts": [
           "id",
@@ -1264,13 +1728,14 @@
       "decision_owner_person": null,
       "technical_verification_owner": "Dawid Hnat",
       "policy_status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "evidence": [
         "main-analytics",
         "analytics",
         "analytics-api"
-      ]
+      ],
+      "updated_on": "2026-11-19"
     },
     {
       "id": "D16",
@@ -1311,22 +1776,30 @@
     },
     {
       "id": "D17",
-      "title": "Lokalne preferencje i identyfikatory",
-      "implementation": "MAIN + REVIEW_STACK PR #51",
+      "title": "Preferencje konta oraz lokalne ustawienia i identyfikatory",
+      "implementation": "MAIN: moduły dashboard/vehicles; preferencje kierowców PENDING PR #110",
       "fields": {
         "browser": [
-          "fleet-flow.dashboard.v2 oraz legacyv1",
-          "fleet-flow.vehicles.v2.<user-id> oraz legacyv1",
+          "fleet-flow.dashboard.v2 i legacy v1",
+          "fleet-flow.dashboard.account-migration.v1 (kandydat świadomego importu)",
+          "fleet-flow.vehicles.v2.<user-id> i legacy v1",
           "fleet-flow.list-page-size.v1.<user-id>",
-          "fleet-flow.drivers.v1.<user-id> w PR51"
+          "fleet-flow.drivers.v1.<user-id> tylko w PR #110"
+        ],
+        "account_preferences": [
+          "user_id",
+          "module",
+          "value",
+          "version",
+          "updated_at"
         ]
       },
       "origin": "Wygląd i zapis układu użytkownika.",
       "technical_purpose": "Prezentacja: widoczność/rozmiary/UUID porządku/limit strony.",
-      "storage": "localStorage w danym origin/przeglądarce, część per konto; brak synchronizacji SCRUM-91.",
-      "current_access_and_recipients": "Kod tego samego origin i użytkownik urządzenia; klucze per konto to izolacja UI, nie szyfrowanie.",
-      "current_lifecycle": "Zapis do nadpisania/Reset/czyszczenia danych witryny; logout nie usuwa tych trwałych magazynów. Frazy/kontakt/formularz kierowcy nie są zapisywane w jego preferencjach.",
-      "minimum_scope_to_confirm": "Uzgodnić urządzenia współdzielone, domyślne dane i migrację SCRUM-91; zapisane filtry mogą w przyszłości zawierać dane osoby.",
+      "storage": "PostgreSQL account_preferences per user_id/module: JSON układu, identyfikatory widgetów/pojazdów, filtry, sortowanie i limit; dane obejmuje pg_dump. Wygląd/tło/obrazy nadal lokalne; kopia i migracja starszego localStorage.",
+      "current_access_and_recipients": "API udostępnia preferencje wyłącznie zalogowanemu właścicielowi; operator i kopie bazy mają techniczny dostęp. Lokalne magazyny dostępne kodowi tego origin i osobie używającej urządzenia.",
+      "current_lifecycle": "Wersjonowany zapis nadpisuje bieżącą wartość; brak zatwierdzonej retencji. Logout unieważnia sesję, nie usuwa trwałych preferencji ani obrazów. Import lokalny wymaga wyboru i wersji 0.",
+      "minimum_scope_to_confirm": "Cel i retencja zapisanych filtrów (mogą zawierać nazwę/rejestrację), kopie DB, urządzenia współdzielone, kasowanie po koncie i restore. Nie utożsamiać synchronizacji konta z zatwierdzeniem polityki.",
       "policy_decisions": [
         "P02",
         "P04",
@@ -1338,15 +1811,20 @@
       "decision_owner_person": null,
       "technical_verification_owner": "Dawid Hnat",
       "policy_status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "evidence": [
         "preferences",
         "preference-model",
         "vehicle-preferences",
         "fleet-browser",
-        "driver-preferences"
-      ]
+        "driver-preferences",
+        "current-preferences",
+        "current-preferences-api",
+        "current-vehicle-preferences",
+        "current-dashboard-preferences"
+      ],
+      "updated_on": "2026-11-19"
     },
     {
       "id": "D18",
@@ -1389,13 +1867,13 @@
     {
       "id": "D19",
       "title": "Logi, request URL i dane transportowe",
-      "implementation": "MAIN + REVIEW_STACK hardening",
+      "implementation": "MAIN bezpieczne zdarzenia synchronizacji; rozszerzenia logów dostawców niezweryfikowane",
       "fields": {
         "transport": [
-          "IP, URL/path/query i metadane żądania zależnie od loggera",
+          "IP, URL/path/query i metadane zależne od loggera",
           "kod statusu/błędu",
-          "sync event/code/event_id w PR36",
-          "znaczniki operacji backupu w PR35"
+          "sync event/code/event_id w main (#107)",
+          "narzędzia backupu #35/#105 DEFERRED do SCRUM-84/S5"
         ]
       },
       "origin": "Przeglądarka, reverse proxy, ASGI, integracje i narzędzia operatora.",
@@ -1416,7 +1894,7 @@
       "decision_owner_person": null,
       "technical_verification_owner": "Dawid Hnat",
       "policy_status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "evidence": [
         "docker",
@@ -1427,13 +1905,15 @@
         "sync",
         "backup",
         "driver-browser",
-        "drivers-api"
-      ]
+        "drivers-api",
+        "current-sync-control"
+      ],
+      "updated_on": "2026-11-19"
     },
     {
       "id": "D20",
       "title": "Kopie PostgreSQL, manifest i recovery",
-      "implementation": "MAIN kopia przed wydaniem; REVIEW_STACK PR #35 off-site",
+      "implementation": "MAIN kopia przed wydaniem; off-site #35/#105 DEFERRED → SCRUM-84/S5",
       "fields": {
         "copies": [
           "pełny pg_dump wszystkich istniejących tabel",
@@ -1461,14 +1941,15 @@
       "decision_owner_person": null,
       "technical_verification_owner": "Dawid Hnat",
       "policy_status": "BLOCKED",
-      "version": 1,
+      "version": 2,
       "recorded_on": "2026-10-29",
       "evidence": [
         "main-deploy",
         "deploy",
         "backup",
         "backup-guide"
-      ]
+      ],
+      "updated_on": "2026-11-19"
     },
     {
       "id": "D21",
@@ -1571,9 +2052,10 @@
         "D13",
         "D14",
         "D15",
-        "D16"
+        "D16",
+        "D17"
       ],
-      "note": "Sesja cookie i autoryzacja; Origin przy zapisach. Obecny odczyt obejmuje całe źródło. Runtime/tenant do potwierdzenia.",
+      "note": "Sesja cookie i autoryzacja; Origin przy zapisach. Obecny odczyt obejmuje całe źródło. Runtime/tenant do potwierdzenia. Wersja 2: preferencje dashboard/vehicles są zapisywane per konto/moduł do PostgreSQL; pola i filtry z D17 obejmują API oraz kopie DB.",
       "evidence": [
         "main",
         "auth-router",
@@ -1581,7 +2063,9 @@
         "drivers-api",
         "compose",
         "caddy",
-        "main-caddy"
+        "main-caddy",
+        "current-preferences-api",
+        "current-preferences"
       ],
       "version": 1,
       "coordination_owner": "Jakub Czaja",
@@ -1841,7 +2325,8 @@
         "D14",
         "D15",
         "D16",
-        "D20"
+        "D20",
+        "D17"
       ],
       "note": "Kopie zawierają pełną bazę; brak retencji lokalnych dumpów w deploy.sh. Tryb/stan realnego VPS nie zbadany.",
       "evidence": [
@@ -1893,7 +2378,8 @@
         "D15",
         "D16",
         "D20",
-        "D21"
+        "D21",
+        "D17"
       ],
       "note": "Kod w PR #35. Storage/koszt/klucz/aktywacja odłożone; brak objęcia IndexedDB i sekretów konfiguracji przez pg_dump.",
       "evidence": [
@@ -1924,7 +2410,8 @@
       ],
       "implementation": "REVIEW_STACK PR #35; bez aktywacji",
       "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
-      "decision_owner_person": null
+      "decision_owner_person": null,
+      "delivery_note_20261119": "Off-site backup/recovery #35/#105 odłożony decyzją PO do SCRUM-84/S5; nie dostarczony."
     },
     {
       "id": "F10",
@@ -1968,7 +2455,7 @@
         "D05",
         "D21"
       ],
-      "note": "Osobna gałąź PR #31: profil/zmiana hasła/logout-all i próba powiadomienia. Nie jest częścią main ani badanego stosu PR #51. Potwierdzenie nowego e-maila nadal planowane.",
+      "note": "Osobna gałąź PR #31: profil/zmiana hasła/logout-all i próba powiadomienia. Nie jest częścią main ani badanego stosu PR #51. Potwierdzenie nowego e-maila nadal planowane. Aktualizacja 19.11: kod profilu z #31 jest na main; to nie dowód wysłania lub odbioru rzeczywistej wiadomości.",
       "evidence": [
         "profile-pr31"
       ],
@@ -1988,7 +2475,7 @@
         "P15",
         "P18"
       ],
-      "implementation": "PROFILE_PR31; poza main i review_stack",
+      "implementation": "MAIN; żywa dostawa SMTP niepotwierdzona i osobno autoryzowana",
       "decision_owner_role": "Administrator danych / uprawniony właściciel wskazany w SCRUM-113",
       "decision_owner_person": null
     }
@@ -2408,7 +2895,83 @@
       "approved_by": "Jakub Czaja / PO",
       "decision": "Istotny postój: 5 minut jako konfigurowalna wartość początkowa w SCRUM-24.",
       "source": "Bezpośrednia odpowiedź użytkownika w czacie; importer SCRUM-24 pozostaje planowany."
+    },
+    {
+      "id": "PROD-03",
+      "status": "APPROVED",
+      "version": 1,
+      "approved_on": "2026-11-19",
+      "approved_by": "Jakub Czaja / PO",
+      "decision": "Projekt zespołowy: jedna instancja dla jednej firmy/przedsiębiorcy i jednego API WEBFLEET; bez rozbudowy dla innych firm.",
+      "source": "Bezpośrednia odpowiedź PO w bieżącej rozmowie; nie wskazuje administratora, nie zatwierdza danych rzeczywistych ani screeningu."
     }
   ],
-  "technical_inventory_status": "PREPARED_FOR_REVIEW"
+  "technical_inventory_status": "PREPARED_FOR_REVIEW",
+  "updated_on": "2026-11-19",
+  "technical_refresh": {
+    "executor": "agent Codex na polecenie Jakuba Czai (jczaja51)",
+    "date": "2026-11-19",
+    "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+    "environment": "izolowany checkout, statyczny odczyt modeli; bez rekordów bazy/VPS",
+    "status": "PASS porównania pól; niezależny review aktualizacji oczekuje",
+    "table_count": 15,
+    "delta_from_20261029": {
+      "account_preferences": {
+        "added": [
+          "module",
+          "updated_at",
+          "user_id",
+          "value",
+          "version"
+        ],
+        "removed": []
+      },
+      "measurements": {
+        "added": [
+          "position_address",
+          "speed_kmh"
+        ],
+        "removed": []
+      },
+      "trip_annotations": {
+        "added": [
+          "description",
+          "purpose",
+          "trip_id",
+          "updated_at",
+          "updated_by",
+          "version"
+        ],
+        "removed": []
+      },
+      "trips": {
+        "added": [
+          "distance_km",
+          "end_at",
+          "external_uid",
+          "id",
+          "start_at",
+          "vehicle_id"
+        ],
+        "removed": []
+      },
+      "vehicles": {
+        "added": [
+          "locally_edited",
+          "make",
+          "model",
+          "search_license_plate",
+          "search_make",
+          "search_model",
+          "search_name",
+          "search_number",
+          "search_vin",
+          "vin",
+          "year"
+        ],
+        "removed": []
+      }
+    },
+    "policy_decisions_changed": false
+  }
 }

@@ -16,7 +16,11 @@ administratora, okresów retencji i dopuszczenia jego rzeczywistych danych.
 rozróżnia to ustalenie od akceptacji polityki. Decyzje administratora P01/P07
 pozostają otwarte.
 
-## Kontekst
+## Potwierdzenie zakresu — 19.11.2026
+
+PO Jakub Czaja potwierdził w bieżącej rozmowie: projekt zespołowy dla jednego przedsiębiorcy/jednej firmy i jednego API WEBFLEET; nie planujemy rozbudowy dla innych firm. Jest to zatwierdzony zakres produktu. Nie wskazano administratora danych ani wyniku screeningu. Aktualny model `cb634da` nadal nie ma granicy tenantów; taka granica nie jest wymagana dla rozszerzenia, którego nie planujemy. Dwa konta QA sprawdzają izolację użytkowników tej samej firmy, nie obsługę wielu firm. [Aktualny arkusz](../privacy/SCRUM-113-decision-sheet.md).
+
+## Kontekst historyczny
 
 W `main` (`4ce144e`) istnieje jedno konto WEBFLEET w konfiguracji instancji.
 `context()` API wybiera flotę na podstawie konfiguracji serwera, a `User`
