@@ -1,0 +1,155 @@
+# SCRUM-95 — wymagane bramki bezpieczeństwa
+
+Integracja SCRUM-133, 17.11.2026: przywrócono własne commity PR #40
+`28d2481` i `8dbdeb6` na `main` `9dad2b2`. Zachowano osobne Lint,
+Markdown links, E2E, ochronę przed starym wdrożeniem, post-deploy smoke
+oraz konfigurację WEBFLEET. Required CI wymaga także wszystkich nowych
+jobów bezpieczeństwa; nie zmieniano reguł ochrony repozytorium.
+Wyniki z 28.10 poniżej są historyczne. Nowe CI, review i QA tej integracji
+pozostają warunkami dostarczenia. Nie aktywowano usług na VPS.
+
+## Aktualny odbiór integracji — 19.11.2026
+
+Wykonawca odczytu: agent Codex na polecenie Jakuba Czai (`jczaja51`).
+Sprawdzony head `56ae2ad0e5090c8fc617b3ed0a37106fc74867c5`,
+[run 44381150055](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44381150055):
+Dependency security (npm/pip), Source security (Semgrep), Secret security
+(Gitleaks), Backend image (Trivy), testy i Required CI **PASS**. Deploy/smoke
+PR są prawidłowo SKIPPED. Dawne ostrzeżenie npm poniżej nie jest bieżącą
+blokadą; nie dodano wyjątku CVE ani obniżenia progów.
+
+19.11 dołączono aktualny `main` `cb634da0ece8cd93424bfc16a5185cf817a0cbb1`
+bez konfliktów. Zachowano kod sesji, preferencji i synchronizacji, migracje
+0008/0009, test prawdziwego Caddy, wszystkie skanery oraz ochronę wdrożenia.
+Nowy head wymaga własnego CI i niezależnego review Dawida Hnata; dawne
+zatwierdzenia PR #101 mają stan DISMISSED. Wyjątek tekstowy Gitleaks opisany
+niżej nadal wymaga tego review. Odbiór rollout/rollback obrazu oraz QA są
+**BLOCKED do rzeczywistego wykonania**. Ten zapis nie deklaruje merge ani
+wdrożenia na VPS.
+
+## Historyczna blokada npm — 17.11.2026
+
+Run [44177076297](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44177076297)
+na `5d01cf2`: Python audit, Semgrep, Gitleaks, Trivy, testy i build PASS.
+Npm audit zwrócił High dla `picomatch` i jego łańcucha zależności
+Vite/tinyglobby/fdir/plugin-react. Required CI prawidłowo FAIL, deploy SKIPPED.
+[GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf)
+(CVE-2026-112366), odczyt 17.11, obejmuje <=4.0.7 i wskazuje brak poprawionej
+wersji. Nie wykonano sugerowanego przez npm przymusowego downgrade Vite.
+Nie dodano ignorowania CVE ani obniżenia progu. W tym historycznym odczycie PR był draftem.
+
+Właściciel SCRUM-95 (Dawid) wraz z PO musi odebrać bezpieczną poprawkę
+zależności albo osobno przejrzeć precyzyjny, datowany wyjątek zgodnie
+z zasadami poniżej. Taki wyjątek nie został uzgodniony ani wprowadzony.
+Była to blokada w odczycie 17.11; aktualny wynik i pozostałe bramki są powyżej.
+
+## Zakres i progi
+
+Required CI zależy od frontend, dwóch wersji backendu, obrazu, E2E oraz trzech
+jobów bezpieczeństwa. Niepowodzenie, anulowanie lub pominięcie któregokolwiek
+z nich daje czerwony Required CI. Nie zmieniono nazwy wymaganego checka.
+
+* Dependency security: pełny
+  `npm audit --audit-level=high` (także devDependencies) oraz pip-audit wszystkich
+  zainstalowanych zależności aplikacji i testów w osobnym venv. pip-audit blokuje
+  każdą znaną podatność; awaria skanera/źródła danych także zatrzymuje gate.
+* Source security: Semgrep CE lokalnie, osiem przeglądalnych reguł Python/TS/React
+  w `.github/security/semgrep.yml`: dynamiczny kod, shell, interpolowany SQL,
+  niebezpieczna deserializacja, wyłączone TLS i surowy HTML. ERROR blokuje.
+  `--strict` blokuje wadliwe reguły, `--disable-nosem` zapobiega cichej supresji.
+  To ograniczony zestaw reguł, nie kompletny audyt ASVS ani analiza między plikami.
+* Secret security: Gitleaks pełnej historii **HEAD**, bez sieci i z redakcją 100%.
+  Celowo nie używa `--all`: odrębna niescalana gałąź dowodowa ma zawierać atrapę
+  sekretu i nie może zatruwać wyników poprawnych gałęzi. Każde znalezisko blokuje.
+* Backend image: Trivy bada zbudowany obraz, bez uruchamiania aplikacji,
+  oraz IaC w infra (w tym nazwę backend.Dockerfile). Każde High/Critical blokuje,
+  również bez dostępnej poprawki. Skan IaC działa także po nieudanym skanie obrazu.
+
+Dependabot proponuje cotygodniowe aktualizacje npm, pip, narzędzi skanowania,
+Actions i obrazu. Aktualizacje wymagają takich samych PR/review/CI. Wszystkie
+Actions mają pełne SHA odczytane z oficjalnych repozytoriów 28.10.2026. Trivy
+0.76.1 i Gitleaks 8.30.1 mają przypięte digesty OCI; wersje pip-audit/Semgrep są
+w requirements narzędzi. Nie używa się tokena platformy Semgrep, zdalnych reguł,
+telemetrii, trace ani płatnego API. SCA pobiera publiczne dane pakietów/CVE.
+
+Pierwszy run CI potwierdził, że GitHub Dependency Graph jest wyłączony w tym
+repozytorium, więc natywna akcja dependency-review nie jest obsługiwana. Zastąpiono
+ją działającym pełnym SCA npm/pip, które sprawdza cały rozwiązywany graf zależności
+każdego PR oraz main, w tym transitive/dev. Nie dodano continue-on-error ani
+warunkowego pomijania skanu. Ewentualne włączenie Dependency Graph przez admina
+może później uzupełnić SCA o natywne porównanie zmian, nie jest jego zamiennikiem.
+
+## Usunięte problemy
+
+pip-audit wykrył podatne certifi 2026.7.22 i stary pip środowiska testowego.
+certifi zaktualizowano do 2026.10.23, a bootstrap venv do pip 26.2.2.
+Trivy wykrył High/Critical w starej bazie Debian slim. Nawet aktualna baza miała
+niezałatane znaleziska, więc zamiast wyłączać kontrole zmniejszono obraz:
+Python 3.13 Alpine 3.24.3 z oficjalnym digestem, aktualne certifi, bez runtime pip.
+UID 10001 i ścieżki aplikacji pozostają zgodne z Compose. Nowa baza wymaga
+zwykłego odbioru rollout/rollback przed wdrożeniem; w tym zadaniu nie wdrażano VPS.
+
+## Weryfikacja developerska 28.10.2026
+
+* Ruff check i format --check PASS, 124 pytest PASS na host Python 3.12.
+* 124 pytest PASS **wewnątrz** jednorazowego obrazu Python 3.13 Alpine, w tym
+  migracje i PostgreSQL na osobnej syntetycznej bazie. Tylko w testowym kontenerze
+  tymczasowo zainstalowano pytest; finalny obraz nie zawiera pip.
+* Finalny obraz: import FastAPI, Argon2 hash/verify i UID 10001 PASS.
+* pip-audit po poprawce: zero znanych podatności. npm audit: zero High/Critical.
+* Semgrep: osiem reguł, 98 plików docelowych, zero znalezisk i błędów reguł.
+* Gitleaks: 88 commitów / 1.86 MB, zero znalezisk; wartości redagowane.
+* Trivy finalnego obrazu: zero High/Critical OS i Python; IaC zero High/Critical.
+
+Wynik jest ważny dla bazy CVE z dnia odczytu. Przyszłe nowe CVE mogą zablokować CI;
+nie jest to uzasadnienie dla wyłączenia kontroli.
+
+## False positives i wyjątki
+
+1. Powtórz wynik przypiętym narzędziem. Zapisz tylko ID reguły/CVE, wersję,
+   ścieżkę/zakres, osiągalność i uzasadnienie; nie wklejaj wartości sekretu.
+2. Usuń przyczynę, zaktualizuj pakiet albo ogranicz powierzchnię obrazu.
+3. Gdy konieczny jest wyjątek, osobny PR musi wskazywać konkretne ID/zakres,
+   dowód false positive lub zaakceptowane ryzyko, osobę odpowiedzialną,
+   datę wygaśnięcia i zgłoszenie usunięcia. Review wykonuje inny developer;
+   wpływ na dane zatwierdza ich właściciel. Wygasły wyjątek nie uprawnia do bypassu.
+4. Nie dodawaj `continue-on-error`, globalnego ignore, `--ignore-unfixed`,
+   `nosemgrep`, szerokich allowlist ani omijania Required CI.
+
+### Wyjątek tekstowy do niezależnego review — 18.11.2026
+
+Właściciel: Jakub Czaja; zadanie: SCRUM-133; proponowany odbiór: reviewer
+bezpieczeństwa PR #101 (Dawid Hnat). Wyjątek jest częścią tego PR i nadal
+wymaga niezależnego review; nie jest zatwierdzeniem odbioru ASVS.
+
+Gitleaks `generic-api-key` błędnie interpretuje polskie „zapisuj:” oraz
+„oczekiwany/faktyczny” w instrukcji dokumentowania wyników QA jako klucz.
+To zwykła proza, bez poświadczenia i bez dostępu do jakiejkolwiek usługi.
+Przypięty skaner odtwarza dokładnie jedno znalezisko:
+
+`aee868abdc2979681fa1e113698e1bd4d473ebf0:docs/COURSE_AGENT_HANDOFFS.md:generic-api-key:22`
+
+Wykluczenie dotyczy wyłącznie tego fingerprintu (commit, plik, reguła, linia),
+nie całego pliku ani reguły. Zmiana aktualnego tekstu nie usuwa znaleziska
+z historii. Generator `tools/gitleaks_false_positives.py` przerywa CI od
+**18.12.2026, 00:00 UTC**. Wtedy wymagane jest ponowne review albo usunięcie
+wyjątku po poprawieniu detekcji w przypiętej wersji Gitleaks. Właściciel śledzi
+usunięcie wyjątku w SCRUM-133. Cała historia HEAD i pozostałe reguły nadal są
+skanowane, z pełną redakcją i bez sieci. Kontrolny syntetyczny sekret poza
+repozytorium służy do sprawdzenia, że inny fingerprint nadal blokuje skan.
+
+Nieznany stan zabezpieczenia to BLOCKED.
+
+## Read-back main i pozostałe warunki odbioru
+
+28.10.2026 odczyt `branches/main` potwierdza protected=true i wymagany
+`Required CI`, app_id 15368, enforcement everyone. Pełny endpoint
+`branches/main/protection` zwraca 404, lista rulesetów jest pusta. Z tych danych
+**nie można** potwierdzić niezależnego approval, strict/up-to-date ani bypassów.
+Nie zmieniano ochrony. Pełny odczyt pozostaje BLOCKED dla właściciela repozytorium
+DawidHnat lub uprawnionego administratora: potrzebny datowany snapshot całych
+reguł oraz dowód czerwonego wymaganego checka na kontrolnym niescalanym PR.
+
+Finalny odbiór wymaga także niezależnego review/QA, zielonego CI na bieżącym SHA,
+dowodów każdej klasy negatywnej i odbioru zmiany bazy obrazu. Późniejsze 107/108
+muszą wejść w tę samą wymaganą kontrolę; ten PR nie udaje ich implementacji.
