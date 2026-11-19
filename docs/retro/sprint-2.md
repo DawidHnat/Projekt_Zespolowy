@@ -1,81 +1,61 @@
-# Retrospektywa Sprintu 2 — materiał do spotkania
+# Retrospektywa Sprintu 2 — potwierdzone ustalenia
 
-**Obserwacje do oceny na spotkaniu — 16.11.2026:** #73, #93, #94 i #95 są już scalone. Main `c0544d1` i [run 43948005790](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/43948005790) mają zielone testy/lint/deploy/smoke. Pomiar SCRUM-65: 4/4 autorów/recenzentów, 0 zwykłych PR bez pierwszego formalnego review ponad 24 h; dowody #24/#77/#78 wyłączono z normalnej kolejki. Pełny odbiór Story S1/S2 pozostaje otwarty; kandydaci to SCRUM-16 i SCRUM-91 (Testowanie). Ochrona nadal wymaga tylko Required CI, a historia ma 3 niezgodne tematy w szerokim zakresie audytu.
-
-To aktualizacja materiału, nie protokół ani deklaracja oceny dokonanej przez zespół. SCRUM-128 pozostaje propozycją do potwierdzenia, SCRUM-129 planowanym wybitym oknem, S3 future. [Aktualna macierz](../COURSE_READINESS.md). Poniższe obserwacje z 10–12.11 zachowują historyczny stan; po prawdziwej retrospektywie zapisać datę, uczestników i decyzje.
-
-**Aktualizacja 12.11.2026:** PO ponownie potwierdził, że Review/retro S2
-i pełny odbiór całej Story jeszcze się nie odbyły. Organizacja spotkań
-i start istniejącego S3: SCRUM-142; pełne DoD: SCRUM-141. Zachowujemy niżej
-historyczne obserwacje z 10.11 jako materiał do oceny przez zespół.
-
-Od tego czasu PR #76 trafił do main. Run `43105067278` dla `2b3f2ba`
-potwierdza success testów, osobnego lintu, wdrożenia i smoke. HTTP pokazuje
-to samo SHA, HTTPS readiness zwraca 200 i JSON `status=ok`. Wymagane checki
-ochrony nadal obejmują tylko `Required CI`; dodanie dwóch osobnych checków
-pozostaje u Dawida w SCRUM-140. S3 nadal jest przyszły, a SCRUM-128/129 są
-w nim zaplanowane. [Aktualne dowody i braki](../COURSE_READINESS.md).
-
-Po spotkaniu dopisać rzeczywistą datę, uczestników, ocenę skutków działań
-S1 oraz decyzję o nowych działaniach; niniejszy materiał tego nie zastępuje.
-
-Stan dowodów: **10.11.2026**, Sprint 2 nadal trwa. PO potwierdził, że Review
-Sprintu 2 i odbiór przez Marcela całej historyjki jeszcze się nie odbyły.
-To przygotowany zapis obserwacji i propozycji do prawdziwej retrospektywy;
-nie protokół odbytego spotkania. Po spotkaniu PO dopisuje datę, uczestników,
-rzeczywiste decyzje i ocenę efektu działań. Zadanie techniczne:
-[SCRUM-127](https://fleet-flow.atlassian.net/browse/SCRUM-127).
+**Data: 18.11.2026**, uczestnicy: **Jakub Czaja, Dawid Hnat, Jakub Nazarewicz,
+Marcel Głowacki**. Potwierdził PO Jakub Czaja 19.11 w bieżącej rozmowie;
+godziny/miejsce nieustalone. Zapis: **agent Codex na polecenie PO**, nie uczestnik.
+[Dowód SCRUM-142/10347](https://fleet-flow.atlassian.net/browse/SCRUM-142?focusedCommentId=10347).
+[Review i stan 12 otwartych prac S2](../SPRINT_2_REVIEW.md).
 
 ## Co poszło dobrze
 
-- Obecny `main` (`5b5fceb`) ma udane CI i wdrożenie
-  [42302297975](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/42302297975).
-  10.11 publiczny HTTP wskazał tę samą wersję, HTTPS aplikacji oraz readiness
-  przeszły kontrolę. To częściowy dowód infrastruktury, nie pełny odbiór Story.
-- Odtworzono utratę szkicu opisu przejazdu przez północ i przygotowano poprawkę
-  [PR #75](https://github.com/DawidHnat/Projekt_Zespolowy/pull/75).
-  CI #75 i zależnego #68 ma po 26 udanych testów przeglądarkowych.
-- Są przygotowane poprawki i dowody desktop/mobile dla dashboardu,
-  personalizacji i edycji zbiorowej: PR #70, #71 i #72. Każdy nadal wymaga
-  właściwego review, kolejności scalenia, wdrożenia i QA.
-- W SCRUM-127 powstają jawne bramy `Lint` i `Post-deploy smoke` oraz macierz
-  odpowiedzialności DoD. Wyniki PR nie oznaczają jeszcze wykonania na main.
+Potwierdzona ogólna ocena PO: „działa wszystko co powinno”, dostępność jest
+stabilna i „nawet ok”. To relacja PO, bez przypisywania jej imiennie innym
+uczestnikom i bez wniosku o pełnym technicznym odbiorze Story.
 
-## Co poszło źle
+Osobno od wyniku spotkania: main `cb634da` ma zielone
+[CI/deploy/smoke 44386951054](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054).
+Agent 19.11 potwierdził zgodny HTTP/HTTPS i readiness. Nie przypisujemy tego
+SHA spotkaniu 18.11.
 
-- Wiele zielonych PR-ów oczekuje na review. Zielone CI nie jest odbiorem
-  kryteriów ani dowodem gotowej całej historyjki.
-- Ochrona `main` wymaga obecnie jednego agregatu `Required CI`; lint jest
-  schowany w jobach backendu. Do dwóch osobnych wymaganych checków potrzebna
-  jest zmiana właściciela repozytorium. jczaja51 nie ma uprawnień admin.
-- Wersja po wdrożeniu była sprawdzana wewnątrz deploymentu, bez osobnego
-  joba smoke wymaganego w zadaniu 4.2. Nowa konfiguracja wymaga review i merge.
-- Build stale ostrzega o dużym bundlu mapy. Nie należy przyzwyczajać się do
-  ostrzeżeń ani wyciszać ich przez podwyższanie limitu.
-- Nie ma jeszcze potwierdzenia Review Sprintu 2 ani pełnego QA całej Story.
-  Tych dowodów nie da się zastąpić przygotowaną instrukcją.
+## Co poszło źle / co poprawić
 
-## Stan działań z retrospektywy Sprintu 1
+PO ocenił przyrost jako w porządku, ale nadal mało widoczny na stronie.
+Wskazał potrzebę jak najszybszego odbioru Story i dokończenia S2. Konkretne
+pokazane Story, SHA i wyniki scenariuszy nie zostały przekazane; nie są
+uzupełniane z domysłu. Sam termin nie zastępuje AC/QA/DoD.
 
-Źródło: [retro Sprintu 1](sprint-1.md). Statusy opisują dostępne dowody,
-nie deklarują decyzji nieodbytej retrospektywy Sprintu 2.
+## Efekt działania SCRUM-65
 
-| Działanie i właściciel | Stan na 10.11 i co zostaje |
-| --- | --- |
-| Codzienne review i pierwsza odpowiedź do 24 h, Jakub Czaja — SCRUM-65 | Rytm został uzgodniony przez zespół. PR #73 zbiera kolejkę i dowody, nadal do review. Pomiar w połowie sprintu i ocena efektu pozostają do wykonania; nie wpisujemy z góry poprawy wyniku. |
-| Stan synchronizacji i dostępność infrastruktury, Dawid Hnat — SCRUM-64/84 | Techniczne wydania mają CI, ale końcowy odbiór synchronizacji i recovery wymaga właściwych dowodów w Jirze. Nie uruchamiano żywego WEBFLEET w tym zadaniu. |
-| Odbiór listy/mapy i zależności frontendu, Jakub Nazarewicz — SCRUM-5 | Poprawki #69/#67 czekają na review/QA. Nie potwierdzono całego DoD listy i mapy na podstawie tych PR. |
-| Pełne QA logowania i plan QA, Marcel Głowacki — SCRUM-56/63 | PR #68 ma zielone CI i pakiet przekazania odbioru. Pozostają niezależny przegląd auth i kontrolowane brakujące scenariusze sesji; dokument nie zastępuje wykonania przez QA. |
-| Zebrać feedback i rozliczyć otwarte prace, Jakub Czaja — SCRUM-3/65 | Review Sprintu 1 potwierdzono 06.11. Sprint 1 został zakończony, Sprint 2 jest aktywny. Historyczne uwagi w pliku S1 nie są aktualnym stanem sprintów. Dla S2 potrzebny rzeczywisty protokół i decyzje zespołu. |
+Działanie z S1: codzienne review, pierwsza odpowiedź do 24 h w dniach
+obecności i doprowadzenie jednej rozpoczętej Story do pełnego DoD.
+[Tabela i datowane pomiary](../REVIEW_QUEUE.md). Dokument #73 i tabela 4/4
+są już dostarczone. Pomiar bazowy 10.11 wykazał 2 zwykłe PR bez pierwszego
+formalnego review >24 h. Odczyt 16.11: 0; rekonstrukcja stanu 11.11 wykonana
+16.11: 7, nie terminowy pomiar z 11.11. Nie antydatujemy tych wyników.
 
-## Nowe działania z właścicielami
+**Ocena tego konkretnego działania przez zespół na retro: nieustalona.**
+PO nie rozpoznał numeru 65 i przekazał tylko ogólną ocenę działania aplikacji.
+Nie przedstawiamy jej jako oceny wskaźnika review. Pełne DoD 16/91 jest w
+SCRUM-141; review auth i ocena restore zostały już wykonane przez Dawida.
+Pozostaje końcowy QA Marcela. Dzisiejsze dane nie są pomiarem wykonanym wczoraj.
 
-| Działanie | Właściciel i termin względny | Dowód efektu |
+## Dalsze działania i plan S3
+
+| Działanie | Właściciel / źródło decyzji | Stan |
 | --- | --- | --- |
-| [SCRUM-128](https://fleet-flow.atlassian.net/browse/SCRUM-128): od początku Sprintu 3 prowadzić do odbioru jedną całą Story i mierzyć kolejkę | Jakub Czaja, z QA Marcela i niezależnym reviewerem; wybór w pierwszych 2 dniach S3, ponowny pomiar po 7 dniach | Macierz DoD jednej Story, review aktualnego SHA, CI, wdrożenie i QA; liczba PR-ów bez odpowiedzi >24 h przed i po. Propozycja do zatwierdzenia na retro S2. |
-| [SCRUM-129](https://fleet-flow.atlassian.net/browse/SCRUM-129): usunąć „wybite okno” dużego bundla | Jakub Nazarewicz, planowany Sprint 3 | Pomiar przed/po i mały PR dla `frontend/vite.config.ts` / importu Mapbox w `frontend/src/features/fleet/components/VehicleMap.tsx`, bez wyciszania limitu ostrzeżenia; testy i QA. |
+| Dokończyć bieżący zakres S2, zebrać odbiory i przygotować osobne 3.2/4.2; następnie rozpocząć istniejący S3 | **Jakub Czaja**, priorytet PO potwierdzony 19.11 po relacji ze spotkań | W toku; termin „dziś” jest celem, nie dowodem odbioru |
+| [SCRUM-128](https://fleet-flow.atlassian.net/browse/SCRUM-128): od początku S3 prowadzić jedną całą Story do DoD i mierzyć kolejkę | **Jakub Czaja**; zakres i dostępność do istniejącego planu potwierdził PO 19.11 | Zaplanowane w istniejącym S3; nie twierdzimy, że dokładnie ten tekst był uzgodnionym wynikiem retro 18.11 |
+| [SCRUM-129](https://fleet-flow.atlassian.net/browse/SCRUM-129): poprawić rozmiar bundla/import Mapbox bez wyciszenia ostrzeżenia | **Jakub Nazarewicz**; plan i dostępność potwierdzone przez PO 19.11 | Zaplanowane w istniejącym S3; frontend/vite.config.ts i VehicleMap.tsx, potrzebny pomiar przed/po |
 
-Oba zgłoszenia są dodane do **planowanego** `FF Sprint 3 - dane i konta`.
-Sprint 3 ma już cel i zakres; nie został uruchomiony przedwcześnie.
-Po prawdziwym Review/retro S2 PO rozlicza niedokończone prace, kończy S2
-w Jirze i uruchamia S3 z istniejącym celem oraz tymi zgłoszeniami.
+Nie dopisano indywidualnych zobowiązań uczestników ani fikcyjnego terminu
+wykonania tych zadań. Nie trzeba dziś kończyć S3. Backup/recovery **84 jest
+odłożony do końcowego S5**, a nie brakującym nowym działaniem na dziś.
+
+## Agenda uzupełnienia oceny (15–20 min)
+
+To agenda dalszego krótkiego uzgodnienia, nie przypisany wstecz przebieg 18.11:
+0–5 min dobrze/źle z przykładami; 5–10 min rzeczywiste miary 65 i pełny DoD;
+10–15 min skuteczność i konkretne nowe działanie z właścicielem;
+15–20 min potwierdzenie pozostałych prac oraz gotowości rozliczenia sprintu.
+Wynik dopisać po potwierdzeniu. Dokumentacja wymaga niezależnego review/CI/main;
+142 i końcowy 143 kończą się dopiero po rzeczywistym przełączeniu S2→S3.
