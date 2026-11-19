@@ -2,7 +2,9 @@
 
 Bazowy odczyt **19.11.2026**, agent Codex na polecenie **Jakuba Czai (jczaja51)**. Main `cb634da0ece8cd93424bfc16a5185cf817a0cbb1`. Środowisko: izolowany checkout, GitHub/Jira oraz publiczne HTTP/HTTPS/readiness; bez rekordów floty.
 
-**Stan integracji: #101 i #110 pozostają otwarte i wymagają niezależnego review.** Jira pokazuje już **Gotowe** dla SCRUM-133. Wieczorny odczyt potwierdził obecność narzędzi backupu w `main` (`70a38db`) po scaleniu #105 o 20:22 czasu polskiego. Uruchomienie backupu off-site i odbiór SCRUM-84 pozostają odłożone do Sprintu 5 (id 37). [PR #105](https://github.com/DawidHnat/Projekt_Zespolowy/pull/105)
+**Stan integracji: #101 i #110 pozostają otwarte i wymagają niezależnego review.** Narzędzia backupu są w `main` (`70a38db`) po scaleniu #105 o 20:22 czasu polskiego. Uruchomienie backupu off-site i odbiór SCRUM-84 pozostają w Sprincie 5 (id 37). [PR #105](https://github.com/DawidHnat/Projekt_Zespolowy/pull/105)
+
+Reguła Jira ustawiła SCRUM-133 na **Gotowe** po scaleniu #105. Jakub przywrócił **W toku** o 20:24. [SCRUM-133](https://fleet-flow.atlassian.net/browse/SCRUM-133)
 
 JSON dowodów zawiera stany z bazowego odczytu oraz `follow_up` ze scaleniem #105. Dotychczasowe wyniki CI, wdrożenia i QA zachowują daty oraz SHA sprawdzonych wersji. [JSON dowodów](SCRUM-133-evidence.json)
 

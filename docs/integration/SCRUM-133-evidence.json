@@ -2723,7 +2723,7 @@
   },
   "follow_up": {
     "audited_on": "2026-11-19",
-    "source": "GitHub PR, CI i ancestry oraz odczyt statusu Jira",
+    "source": "GitHub PR, CI i ancestry oraz historia statusu Jira",
     "main": "70a38db96b5b007ad3b74d5c5d29dc61f9b77a69",
     "backup": {
       "pr": 105,
@@ -2736,7 +2736,19 @@
       "operational_acceptance": "DEFERRED_TO_SPRINT_5",
       "operational_issue": "SCRUM-84"
     },
-    "scrum_133_jira_status": "Gotowe",
+    "scrum_133_jira_status": "W toku",
+    "scrum_133_status_events": [
+      {
+        "at": "2026-11-19T20:22:37.175+01:00",
+        "actor": "Automation for Jira",
+        "status": "Gotowe"
+      },
+      {
+        "at": "2026-11-19T20:24:50.143+01:00",
+        "actor": "Jakub Czaja",
+        "status": "W toku"
+      }
+    ],
     "integration_prs_still_open": [101, 110]
   }
 }
