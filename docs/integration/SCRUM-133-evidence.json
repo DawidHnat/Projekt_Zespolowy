@@ -1,6 +1,6 @@
 {
-  "audited_at": "2026-11-17",
-  "main": "132fefc16de8fa47367fcf579b1d2b6975ef1c7c",
+  "audited_at": "2026-11-19T08:46:04.858217+00:00",
+  "main": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
   "scopes": [
     {
       "pr": 35,
@@ -19,47 +19,56 @@
         {
           "path": "backend/tests/test_backup_operations.py",
           "state": "missing",
-          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29"
+          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29",
+          "state_20261117": "missing"
         },
         {
           "path": "infra/backup/README.md",
           "state": "missing",
-          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29"
+          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29",
+          "state_20261117": "missing"
         },
         {
           "path": "infra/backup/backup.env.example",
           "state": "missing",
-          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29"
+          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29",
+          "state_20261117": "missing"
         },
         {
           "path": "infra/backup/backup.py",
           "state": "missing",
-          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29"
+          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29",
+          "state_20261117": "missing"
         },
         {
           "path": "infra/backup/fleet-flow-backup.service",
           "state": "missing",
-          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29"
+          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29",
+          "state_20261117": "missing"
         },
         {
           "path": "infra/backup/fleet-flow-backup.timer",
           "state": "missing",
-          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29"
+          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29",
+          "state_20261117": "missing"
         },
         {
           "path": "infra/backup/fleet-flow-restore-check.service",
           "state": "missing",
-          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29"
+          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29",
+          "state_20261117": "missing"
         },
         {
           "path": "infra/backup/fleet-flow-restore-check.timer",
           "state": "missing",
-          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29"
+          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29",
+          "state_20261117": "missing"
         },
         {
           "path": "infra/deploy/README.md",
           "state": "different",
-          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29"
+          "source_commit": "c9baac0fdfa413ec6d40e609480ae46997071c29",
+          "state_20261117": "different"
         }
       ],
       "integration": {
@@ -67,16 +76,122 @@
         "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/105",
         "branch": "feat/SCRUM-133-backup-integration",
         "base": "main",
-        "head": "fd1870b37bd6137d3eccd83b1fcbc6fc06c19b86",
+        "head": "dc9e231b872f06b5f4eeac87d8064dd7ee247fb6",
         "backend_tree": "50f471354ae8d2d7e6c8f96aa2898572fb403d0f",
         "frontend_tree": "b044396aac373543cebb2517103b4a19a7df257d",
         "author_validation": "Ruff + 191 pytest / 12 SKIP; osobno 12/12 prawdziwy restic + dump + restore",
-        "independent_review": "NOT RECEIVED",
-        "independent_qa": "NOT RECEIVED",
-        "deployment": "NOT RUN",
-        "delivered_to_main": false
+        "independent_review": {
+          "head_approvals": [],
+          "all_review_states": [
+            {
+              "reviewer": "DawidHnat",
+              "state": "APPROVED",
+              "commit": "5c0f81601fe0fd6a745e6e41e519d45ecc5ae6d4"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "state": "APPROVED",
+              "commit": "5c0f81601fe0fd6a745e6e41e519d45ecc5ae6d4"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "state": "APPROVED",
+              "commit": "5c0f81601fe0fd6a745e6e41e519d45ecc5ae6d4"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "state": "APPROVED",
+              "commit": "5c0f81601fe0fd6a745e6e41e519d45ecc5ae6d4"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "state": "DISMISSED",
+              "commit": "5c0f81601fe0fd6a745e6e41e519d45ecc5ae6d4"
+            }
+          ],
+          "note": "Zatwierdzenie dokumentu ani starego head nie zastępuje review aktualnego kodu."
+        },
+        "independent_qa": "Brak nowego kompletnego odbioru w zebranym materiale; zachować datowane wyniki istniejących QA, bez ponawiania całej regresji za zmiany dokumentacji.",
+        "deployment": {
+          "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+          "main_run": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054",
+          "result": "PASS dla bieżącego main; nie wdrożono otwartych PR-ów"
+        },
+        "delivered_to_main": false,
+        "merge_commit": null,
+        "github_state": "OPEN",
+        "delivery_status": "DEFERRED",
+        "ci_snapshot": [
+          {
+            "name": "Lint",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44413929798/job/135189085235"
+          },
+          {
+            "name": "Frontend build",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44413929798/job/135189084889"
+          },
+          {
+            "name": "Backend (3.12)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44413929798/job/135189085024"
+          },
+          {
+            "name": "Backend (3.13)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44413929798/job/135189084854"
+          },
+          {
+            "name": "Backend image",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44413929798/job/135189084945"
+          },
+          {
+            "name": "Critical browser flows",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44413929798/job/135189084786"
+          },
+          {
+            "name": "Markdown links",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44413929798/job/135189084398"
+          },
+          {
+            "name": "Required CI",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44413929798/job/135192082686"
+          },
+          {
+            "name": "Deploy development server",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44413929798/job/135192136197"
+          },
+          {
+            "name": "Post-deploy smoke",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44413929798/job/135192138083"
+          }
+        ],
+        "deferred_to": {
+          "issue": "SCRUM-84",
+          "sprint_id": 37,
+          "sprint_name": "FF Sprint 5 - import i odbior",
+          "decision_by": "Jakub Czaja / PO",
+          "decision_on": "2026-11-19"
+        }
       },
-      "main_behavior_audit": "Narzędzia restic i timery nieobecne; `infra/backup/backup.py` brak."
+      "main_behavior_audit": "Off-site narzędzia/timery nie są dostarczone; zakres odłożony do S5, bez deklaracji PASS."
     },
     {
       "pr": 36,
@@ -95,47 +210,56 @@
         {
           "path": "backend/README.md",
           "state": "different",
-          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c",
+          "state_20261117": "different"
         },
         {
           "path": "backend/app/modules/fleet/sync.py",
           "state": "different",
-          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c",
+          "state_20261117": "different"
         },
         {
           "path": "backend/app/sync_control.py",
-          "state": "missing",
-          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+          "state": "different",
+          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/tests/test_sync.py",
           "state": "different",
-          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c",
+          "state_20261117": "different"
         },
         {
           "path": "backend/tests/test_sync_operations.py",
-          "state": "missing",
-          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+          "state": "different",
+          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c",
+          "state_20261117": "missing"
         },
         {
           "path": "docs/qa/SCRUM-64.md",
-          "state": "missing",
-          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+          "state": "different",
+          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c",
+          "state_20261117": "missing"
         },
         {
           "path": "infra/deploy/README.md",
           "state": "different",
-          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c",
+          "state_20261117": "different"
         },
         {
           "path": "infra/deploy/compose.yml",
           "state": "different",
-          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c",
+          "state_20261117": "different"
         },
         {
           "path": "infra/deploy/runtime.env.example",
           "state": "different",
-          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c"
+          "source_commit": "3e9f30550587e1ae48e1ec651d24ac63b2afa47c",
+          "state_20261117": "different"
         }
       ],
       "integration": {
@@ -143,16 +267,121 @@
         "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/107",
         "branch": "fix/SCRUM-133-sync-integration",
         "base": "main",
-        "head": "d25e94bba8891fdfec8f68f255f4d31d1f29faea",
+        "head": "f794b8d08eec20c2979d81df913af893e5accab0",
         "backend_tree": "2a22704f2060d828eafb0deef9430135efa86e43",
         "frontend_tree": "b044396aac373543cebb2517103b4a19a7df257d",
         "author_validation": "Ruff + 193 pytest PostgreSQL; bez canary/live",
-        "independent_review": "NOT RECEIVED",
-        "independent_qa": "NOT RECEIVED",
-        "deployment": "NOT RUN",
-        "delivered_to_main": false
+        "independent_review": {
+          "head_approvals": [
+            {
+              "reviewer": "mglowacki0",
+              "submitted_at": "2026-11-18T19:33:50Z",
+              "commit": "f794b8d08eec20c2979d81df913af893e5accab0"
+            }
+          ],
+          "all_review_states": [
+            {
+              "reviewer": "DawidHnat",
+              "state": "APPROVED",
+              "commit": "d5bc01287f3876ddd4e39b0f49ae4be2d53aedc7"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "state": "APPROVED",
+              "commit": "d5bc01287f3876ddd4e39b0f49ae4be2d53aedc7"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "state": "APPROVED",
+              "commit": "d5bc01287f3876ddd4e39b0f49ae4be2d53aedc7"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "state": "DISMISSED",
+              "commit": "d5bc01287f3876ddd4e39b0f49ae4be2d53aedc7"
+            },
+            {
+              "reviewer": "mglowacki0",
+              "state": "APPROVED",
+              "commit": "f794b8d08eec20c2979d81df913af893e5accab0"
+            }
+          ],
+          "note": "Zatwierdzenie dokumentu ani starego head nie zastępuje review aktualnego kodu."
+        },
+        "independent_qa": "Brak nowego kompletnego odbioru w zebranym materiale; zachować datowane wyniki istniejących QA, bez ponawiania całej regresji za zmiany dokumentacji.",
+        "deployment": {
+          "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+          "main_run": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054",
+          "result": "PASS dla bieżącego main; nie wdrożono otwartych PR-ów"
+        },
+        "delivered_to_main": true,
+        "merge_commit": "e1a7309a044b6d6801d086dfbbacfe6f188b8fe6",
+        "github_state": "MERGED",
+        "delivery_status": "DELIVERED_TO_MAIN",
+        "ci_snapshot": [
+          {
+            "name": "Lint",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44381832711/job/135075892965"
+          },
+          {
+            "name": "Frontend build",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44381832711/job/135075892982"
+          },
+          {
+            "name": "Backend (3.12)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44381832711/job/135075892940"
+          },
+          {
+            "name": "Backend (3.13)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44381832711/job/135075892975"
+          },
+          {
+            "name": "Backend image",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44381832711/job/135075892881"
+          },
+          {
+            "name": "Critical browser flows",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44381832711/job/135075892542"
+          },
+          {
+            "name": "Markdown links",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44381832711/job/135075893258"
+          },
+          {
+            "name": "Required CI",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44381832711/job/135078718137"
+          },
+          {
+            "name": "Deploy development server",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44381832711/job/135078789482"
+          },
+          {
+            "name": "Post-deploy smoke",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44381832711/job/135078791787"
+          }
+        ]
       },
-      "main_behavior_audit": "Częściowo: konfiguracja wdrożenia #56 jest obecna, brak `app/sync_control.py` i bezpiecznych zdarzeń workera."
+      "main_behavior_audit": "app/sync_control.py oraz bezpieczne zdarzenia workera są w main przez #107. Odbiór kontrolowanego live SCRUM-64 jest odrębny."
     },
     {
       "pr": 38,
@@ -172,52 +401,62 @@
         {
           "path": "backend/app/core/models.py",
           "state": "different",
-          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac",
+          "state_20261117": "different"
         },
         {
           "path": "backend/app/modules/fleet/router.py",
           "state": "different",
-          "source_commit": "742546df92045c64a0ce38e5a9801e8d86e0f45d"
+          "source_commit": "742546df92045c64a0ce38e5a9801e8d86e0f45d",
+          "state_20261117": "different"
         },
         {
           "path": "backend/app/modules/fleet/service.py",
           "state": "different",
-          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac",
+          "state_20261117": "different"
         },
         {
           "path": "backend/migrations/versions/0006_fleet_search.py",
           "state": "missing",
-          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/tests/test_fleet_api.py",
           "state": "different",
-          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac",
+          "state_20261117": "different"
         },
         {
           "path": "backend/tests/test_fleet_postgres.py",
-          "state": "missing",
-          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+          "state": "different",
+          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/tests/test_fleet_search_migration.py",
-          "state": "missing",
-          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+          "state": "different",
+          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/tools/benchmark_fleet_queries.py",
-          "state": "missing",
-          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+          "state": "different",
+          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac",
+          "state_20261117": "missing"
         },
         {
           "path": "docs/performance/SCRUM-97-plans.json",
-          "state": "missing",
-          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+          "state": "different",
+          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac",
+          "state_20261117": "missing"
         },
         {
           "path": "docs/performance/SCRUM-97.md",
-          "state": "missing",
-          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac"
+          "state": "different",
+          "source_commit": "cab1c42f7c7d7c42119b43a7b60860c6104971ac",
+          "state_20261117": "missing"
         }
       ],
       "integration": {
@@ -225,16 +464,116 @@
         "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/103",
         "branch": "perf/SCRUM-133-sql-integration",
         "base": "main",
-        "head": "d9d6fc82e8d9d4bf0e03f5d6fff8d38878c6c236",
+        "head": "b897dc67a6e2534f7e24503c26741855900dfee9",
         "backend_tree": "b7b18ebbd921fe256063ca25c2d3f0562a93f52b",
         "frontend_tree": "b044396aac373543cebb2517103b4a19a7df257d",
         "author_validation": "Ruff + 197 pytest PostgreSQL; backfill Unicode i test >10 tys. rekordów",
-        "independent_review": "NOT RECEIVED",
-        "independent_qa": "NOT RECEIVED",
-        "deployment": "NOT RUN",
-        "delivered_to_main": false
+        "independent_review": {
+          "head_approvals": [
+            {
+              "reviewer": "DawidHnat",
+              "submitted_at": "2026-11-18T19:31:16Z",
+              "commit": "b897dc67a6e2534f7e24503c26741855900dfee9"
+            }
+          ],
+          "all_review_states": [
+            {
+              "reviewer": "DawidHnat",
+              "state": "DISMISSED",
+              "commit": "d9d6fc82e8d9d4bf0e03f5d6fff8d38878c6c236"
+            },
+            {
+              "reviewer": "mglowacki0",
+              "state": "DISMISSED",
+              "commit": "d9d6fc82e8d9d4bf0e03f5d6fff8d38878c6c236"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "state": "DISMISSED",
+              "commit": "d141ceee3a732bff21ec9594dc3dd36218f1bce3"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "state": "APPROVED",
+              "commit": "b897dc67a6e2534f7e24503c26741855900dfee9"
+            }
+          ],
+          "note": "Zatwierdzenie dokumentu ani starego head nie zastępuje review aktualnego kodu."
+        },
+        "independent_qa": "Brak nowego kompletnego odbioru w zebranym materiale; zachować datowane wyniki istniejących QA, bez ponawiania całej regresji za zmiany dokumentacji.",
+        "deployment": {
+          "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+          "main_run": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054",
+          "result": "PASS dla bieżącego main; nie wdrożono otwartych PR-ów"
+        },
+        "delivered_to_main": true,
+        "merge_commit": "0ff033102881313ece47ec1d8ab7cc9e42821f90",
+        "github_state": "MERGED",
+        "delivery_status": "DELIVERED_TO_MAIN",
+        "ci_snapshot": [
+          {
+            "name": "Lint",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44380232587/job/135070131754"
+          },
+          {
+            "name": "Frontend build",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44380232587/job/135070131237"
+          },
+          {
+            "name": "Backend (3.12)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44380232587/job/135070131638"
+          },
+          {
+            "name": "Backend (3.13)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44380232587/job/135070131798"
+          },
+          {
+            "name": "Backend image",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44380232587/job/135070131900"
+          },
+          {
+            "name": "Critical browser flows",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44380232587/job/135070131824"
+          },
+          {
+            "name": "Markdown links",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44380232587/job/135070131789"
+          },
+          {
+            "name": "Required CI",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44380232587/job/135073683350"
+          },
+          {
+            "name": "Deploy development server",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44380232587/job/135073737400"
+          },
+          {
+            "name": "Post-deploy smoke",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44380232587/job/135073739400"
+          }
+        ]
       },
-      "main_behavior_audit": "Brak paginacji SQL; lista nadal materializuje flotę w Pythonie. Brak migracji wyszukiwania."
+      "main_behavior_audit": "Paginacja SQL, prywatne indeksy wyszukiwania i migracja 0008 są w main przez #103. Zachowano speed_kmh w serializacji."
     },
     {
       "pr": 40,
@@ -254,42 +593,50 @@
         {
           "path": ".github/dependabot.yml",
           "state": "missing",
-          "source_commit": "28d2481708d6b317b79e8952aac4ff3327024f5d"
+          "source_commit": "28d2481708d6b317b79e8952aac4ff3327024f5d",
+          "state_20261117": "missing"
         },
         {
           "path": ".github/security/requirements-bootstrap.txt",
           "state": "missing",
-          "source_commit": "28d2481708d6b317b79e8952aac4ff3327024f5d"
+          "source_commit": "28d2481708d6b317b79e8952aac4ff3327024f5d",
+          "state_20261117": "missing"
         },
         {
           "path": ".github/security/requirements.txt",
           "state": "missing",
-          "source_commit": "28d2481708d6b317b79e8952aac4ff3327024f5d"
+          "source_commit": "28d2481708d6b317b79e8952aac4ff3327024f5d",
+          "state_20261117": "missing"
         },
         {
           "path": ".github/security/semgrep.yml",
           "state": "missing",
-          "source_commit": "28d2481708d6b317b79e8952aac4ff3327024f5d"
+          "source_commit": "28d2481708d6b317b79e8952aac4ff3327024f5d",
+          "state_20261117": "missing"
         },
         {
           "path": ".github/workflows/ci.yml",
           "state": "different",
-          "source_commit": "8dbdeb6ada00bddc431308697fd538b4e5b3dd1c"
+          "source_commit": "8dbdeb6ada00bddc431308697fd538b4e5b3dd1c",
+          "state_20261117": "different"
         },
         {
           "path": "backend/requirements.txt",
           "state": "identical",
-          "source_commit": "28d2481708d6b317b79e8952aac4ff3327024f5d"
+          "source_commit": "28d2481708d6b317b79e8952aac4ff3327024f5d",
+          "state_20261117": "identical"
         },
         {
           "path": "docs/security/SCRUM-95.md",
           "state": "missing",
-          "source_commit": "8dbdeb6ada00bddc431308697fd538b4e5b3dd1c"
+          "source_commit": "8dbdeb6ada00bddc431308697fd538b4e5b3dd1c",
+          "state_20261117": "missing"
         },
         {
           "path": "infra/deploy/backend.Dockerfile",
           "state": "different",
-          "source_commit": "28d2481708d6b317b79e8952aac4ff3327024f5d"
+          "source_commit": "28d2481708d6b317b79e8952aac4ff3327024f5d",
+          "state_20261117": "different"
         }
       ],
       "integration": {
@@ -297,16 +644,122 @@
         "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/101",
         "branch": "chore/SCRUM-133-security-integration",
         "base": "main",
-        "head": "2a8175ac9c99b16d5b5eae9c63d9a49ddfa25691",
+        "head": "a8476acda37bdc19ac402cbf4ee6281185fba53d",
         "backend_tree": "544c4687465f1a68951415b4f3228654cfe38715",
         "frontend_tree": "b044396aac373543cebb2517103b4a19a7df257d",
         "author_validation": "Build/import/Argon2 PASS; skany PASS poza npm High → wymagane CI FAIL",
-        "independent_review": "NOT RECEIVED",
-        "independent_qa": "NOT RECEIVED",
-        "deployment": "NOT RUN",
-        "delivered_to_main": false
+        "independent_review": {
+          "head_approvals": [],
+          "all_review_states": [
+            {
+              "reviewer": "mglowacki0",
+              "state": "DISMISSED",
+              "commit": "535bcee1cf0d76e4fb9e1e7923a4633379b6499a"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "state": "DISMISSED",
+              "commit": "dd5ec56593ad74ab32b54a30aea00883efd908fa"
+            }
+          ],
+          "note": "Zatwierdzenie dokumentu ani starego head nie zastępuje review aktualnego kodu.",
+          "current_decision": "REVIEW_REQUIRED",
+          "requested_reviewers": [
+            "DawidHnat"
+          ]
+        },
+        "independent_qa": "Brak nowego kompletnego odbioru w zebranym materiale; zachować datowane wyniki istniejących QA, bez ponawiania całej regresji za zmiany dokumentacji.",
+        "deployment": {
+          "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+          "main_run": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054",
+          "result": "PASS dla bieżącego main; nie wdrożono otwartych PR-ów"
+        },
+        "delivered_to_main": false,
+        "merge_commit": null,
+        "github_state": "OPEN",
+        "delivery_status": "PENDING",
+        "ci_snapshot": [
+          {
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44487974169/job/135436121154",
+            "name": "Lint",
+            "status": "COMPLETED"
+          },
+          {
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44487974169/job/135436121362",
+            "name": "Frontend build",
+            "status": "COMPLETED"
+          },
+          {
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44487974169/job/135436121378",
+            "name": "Backend (3.12)",
+            "status": "COMPLETED"
+          },
+          {
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44487974169/job/135436121285",
+            "name": "Backend (3.13)",
+            "status": "COMPLETED"
+          },
+          {
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44487974169/job/135436121141",
+            "name": "Backend image",
+            "status": "COMPLETED"
+          },
+          {
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44487974169/job/135436121014",
+            "name": "Dependency security",
+            "status": "COMPLETED"
+          },
+          {
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44487974169/job/135436121317",
+            "name": "Source security",
+            "status": "COMPLETED"
+          },
+          {
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44487974169/job/135436122562",
+            "name": "Secret security",
+            "status": "COMPLETED"
+          },
+          {
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44487974169/job/135436120612",
+            "name": "Critical browser flows",
+            "status": "COMPLETED"
+          },
+          {
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44487974169/job/135436121215",
+            "name": "Markdown links",
+            "status": "COMPLETED"
+          },
+          {
+            "conclusion": "SUCCESS",
+            "detailsUrl": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44487974169/job/135439996947",
+            "name": "Required CI",
+            "status": "COMPLETED"
+          },
+          {
+            "conclusion": "SKIPPED",
+            "detailsUrl": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44487974169/job/135440043464",
+            "name": "Deploy development server",
+            "status": "COMPLETED"
+          },
+          {
+            "conclusion": "SKIPPED",
+            "detailsUrl": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44487974169/job/135440044231",
+            "name": "Post-deploy smoke",
+            "status": "COMPLETED"
+          }
+        ]
       },
-      "main_behavior_audit": "Obecne funkcjonalne Required CI/Lint/E2E/linki; brak SCA/SAST/Gitleaks/Trivy i ich konfiguracji."
+      "main_behavior_audit": "Skany są w #101/a8476ac, ale nie w main. Pełny aktualny CI 44487974169 PASS; wymagane nowe review Dawida i rollout/rollback obrazu."
     },
     {
       "pr": 43,
@@ -327,57 +780,68 @@
         {
           "path": "backend/tests/e2e_server.py",
           "state": "different",
-          "source_commit": "fdb0e05458d9a85b8ee748bc75056eee4d83384f"
+          "source_commit": "fdb0e05458d9a85b8ee748bc75056eee4d83384f",
+          "state_20261117": "different"
         },
         {
           "path": "docs/DESIGN_SYSTEM.md",
           "state": "different",
-          "source_commit": "fdb0e05458d9a85b8ee748bc75056eee4d83384f"
+          "source_commit": "fdb0e05458d9a85b8ee748bc75056eee4d83384f",
+          "state_20261117": "different"
         },
         {
           "path": "docs/qa/SCRUM-107.md",
-          "state": "missing",
-          "source_commit": "fdb0e05458d9a85b8ee748bc75056eee4d83384f"
+          "state": "different",
+          "source_commit": "fdb0e05458d9a85b8ee748bc75056eee4d83384f",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/e2e/critical-flow.spec.ts",
           "state": "different",
-          "source_commit": "fdb0e05458d9a85b8ee748bc75056eee4d83384f"
+          "source_commit": "fdb0e05458d9a85b8ee748bc75056eee4d83384f",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/package-lock.json",
           "state": "different",
-          "source_commit": "740850c2a10a0abbdb81921a11c133ea2aadeb05"
+          "source_commit": "740850c2a10a0abbdb81921a11c133ea2aadeb05",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/package.json",
           "state": "different",
-          "source_commit": "740850c2a10a0abbdb81921a11c133ea2aadeb05"
+          "source_commit": "740850c2a10a0abbdb81921a11c133ea2aadeb05",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/app/build-version.css",
-          "state": "different",
-          "source_commit": "8331767a836a478a6630da34dcc3c1fd11493c8e"
+          "state": "identical",
+          "source_commit": "8331767a836a478a6630da34dcc3c1fd11493c8e",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/app/fleet-data.css",
           "state": "different",
-          "source_commit": "8331767a836a478a6630da34dcc3c1fd11493c8e"
+          "source_commit": "8331767a836a478a6630da34dcc3c1fd11493c8e",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/app/tokens.css",
-          "state": "different",
-          "source_commit": "fdb0e05458d9a85b8ee748bc75056eee4d83384f"
+          "state": "identical",
+          "source_commit": "fdb0e05458d9a85b8ee748bc75056eee4d83384f",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/app/vehicle-details.css",
           "state": "different",
-          "source_commit": "8331767a836a478a6630da34dcc3c1fd11493c8e"
+          "source_commit": "8331767a836a478a6630da34dcc3c1fd11493c8e",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/features/fleet/components/VehicleDetailsDialog.tsx",
           "state": "different",
-          "source_commit": "8331767a836a478a6630da34dcc3c1fd11493c8e"
+          "source_commit": "8331767a836a478a6630da34dcc3c1fd11493c8e",
+          "state_20261117": "different"
         }
       ],
       "integration": {
@@ -385,16 +849,121 @@
         "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/106",
         "branch": "test/SCRUM-133-accessibility-integration",
         "base": "main",
-        "head": "fde687f93de159dd447263e28b521f23bca15b5a",
+        "head": "7d3852ab05ed6e0c81eb6d93884910b905399c73",
         "backend_tree": "65f4d5c3da5dcf648e9a9a012f11498bf49f29d2",
         "frontend_tree": "6520748d18349de673c2d1b4eced7f43a48e70ff",
         "author_validation": "55 npm + build; 6/6 axe/klawiatura; backend 180 / 11 SKIP",
-        "independent_review": "NOT RECEIVED",
-        "independent_qa": "NOT RECEIVED",
-        "deployment": "NOT RUN",
-        "delivered_to_main": false
+        "independent_review": {
+          "head_approvals": [
+            {
+              "reviewer": "DawidHnat",
+              "submitted_at": "2026-11-18T19:31:45Z",
+              "commit": "7d3852ab05ed6e0c81eb6d93884910b905399c73"
+            },
+            {
+              "reviewer": "mglowacki0",
+              "submitted_at": "2026-11-18T19:53:44Z",
+              "commit": "7d3852ab05ed6e0c81eb6d93884910b905399c73"
+            }
+          ],
+          "all_review_states": [
+            {
+              "reviewer": "jnazarewiczs",
+              "state": "DISMISSED",
+              "commit": "fde687f93de159dd447263e28b521f23bca15b5a"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "state": "DISMISSED",
+              "commit": "2fe79899be680674957234a19ffbbd2ff05d5bfd"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "state": "APPROVED",
+              "commit": "7d3852ab05ed6e0c81eb6d93884910b905399c73"
+            },
+            {
+              "reviewer": "mglowacki0",
+              "state": "APPROVED",
+              "commit": "7d3852ab05ed6e0c81eb6d93884910b905399c73"
+            }
+          ],
+          "note": "Zatwierdzenie dokumentu ani starego head nie zastępuje review aktualnego kodu."
+        },
+        "independent_qa": "Brak nowego kompletnego odbioru w zebranym materiale; zachować datowane wyniki istniejących QA, bez ponawiania całej regresji za zmiany dokumentacji.",
+        "deployment": {
+          "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+          "main_run": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054",
+          "result": "PASS dla bieżącego main; nie wdrożono otwartych PR-ów"
+        },
+        "delivered_to_main": true,
+        "merge_commit": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+        "github_state": "MERGED",
+        "delivery_status": "DELIVERED_TO_MAIN",
+        "ci_snapshot": [
+          {
+            "name": "Lint",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44385266162/job/135087962689"
+          },
+          {
+            "name": "Frontend build",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44385266162/job/135087962047"
+          },
+          {
+            "name": "Backend (3.12)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44385266162/job/135087962494"
+          },
+          {
+            "name": "Backend (3.13)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44385266162/job/135087962391"
+          },
+          {
+            "name": "Backend image",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44385266162/job/135087962392"
+          },
+          {
+            "name": "Critical browser flows",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44385266162/job/135087962167"
+          },
+          {
+            "name": "Markdown links",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44385266162/job/135087962342"
+          },
+          {
+            "name": "Required CI",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44385266162/job/135092004666"
+          },
+          {
+            "name": "Deploy development server",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44385266162/job/135092066372"
+          },
+          {
+            "name": "Post-deploy smoke",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44385266162/job/135092067452"
+          }
+        ]
       },
-      "main_behavior_audit": "Częściowe istniejące UI/fokus; brak axe i pełnego skanu obu motywów/statusów."
+      "main_behavior_audit": "Axe i regresje fokusu są w main przez #106, łącznie z zależnym UX #108. To nie deklaracja pełnego ręcznego QA."
     },
     {
       "pr": 44,
@@ -414,27 +983,32 @@
         {
           "path": ".github/workflows/ci.yml",
           "state": "different",
-          "source_commit": "39b938e313630de8b8c91f7c2e555ea809aedae1"
+          "source_commit": "39b938e313630de8b8c91f7c2e555ea809aedae1",
+          "state_20261117": "different"
         },
         {
           "path": "docs/security/SCRUM-96.md",
-          "state": "missing",
-          "source_commit": "5a43ff01145e6bf45971b62544fe96a09ff8ed7e"
+          "state": "different",
+          "source_commit": "5a43ff01145e6bf45971b62544fe96a09ff8ed7e",
+          "state_20261117": "missing"
         },
         {
           "path": "infra/deploy/Caddyfile",
           "state": "different",
-          "source_commit": "39b938e313630de8b8c91f7c2e555ea809aedae1"
+          "source_commit": "39b938e313630de8b8c91f7c2e555ea809aedae1",
+          "state_20261117": "different"
         },
         {
           "path": "infra/deploy/compose.yml",
           "state": "different",
-          "source_commit": "39b938e313630de8b8c91f7c2e555ea809aedae1"
+          "source_commit": "39b938e313630de8b8c91f7c2e555ea809aedae1",
+          "state_20261117": "different"
         },
         {
           "path": "infra/tests/check_proxy.py",
-          "state": "missing",
-          "source_commit": "39b938e313630de8b8c91f7c2e555ea809aedae1"
+          "state": "different",
+          "source_commit": "39b938e313630de8b8c91f7c2e555ea809aedae1",
+          "state_20261117": "missing"
         }
       ],
       "integration": {
@@ -442,16 +1016,141 @@
         "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/100",
         "branch": "fix/SCRUM-133-edge-integration",
         "base": "main",
-        "head": "6e2734f9688d0f68fcc316651628b53be1b88b63",
+        "head": "6edc12a5e98ba3c149ff4e6ede1a695e6191c558",
         "backend_tree": "544c4687465f1a68951415b4f3228654cfe38715",
         "frontend_tree": "b044396aac373543cebb2517103b4a19a7df257d",
         "author_validation": "Ruff + 180 / 11 SKIP; realne izolowane Caddy/API/PG i koszyki [11,1,11] PASS",
-        "independent_review": "NOT RECEIVED",
-        "independent_qa": "NOT RECEIVED",
-        "deployment": "NOT RUN",
-        "delivered_to_main": false
+        "independent_review": {
+          "head_approvals": [
+            {
+              "reviewer": "DawidHnat",
+              "submitted_at": "2026-11-18T18:14:02Z",
+              "commit": "6edc12a5e98ba3c149ff4e6ede1a695e6191c558"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "submitted_at": "2026-11-18T18:37:00Z",
+              "commit": "6edc12a5e98ba3c149ff4e6ede1a695e6191c558"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "submitted_at": "2026-11-18T18:54:49Z",
+              "commit": "6edc12a5e98ba3c149ff4e6ede1a695e6191c558"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "submitted_at": "2026-11-18T19:02:18Z",
+              "commit": "6edc12a5e98ba3c149ff4e6ede1a695e6191c558"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "submitted_at": "2026-11-18T19:09:54Z",
+              "commit": "6edc12a5e98ba3c149ff4e6ede1a695e6191c558"
+            }
+          ],
+          "all_review_states": [
+            {
+              "reviewer": "DawidHnat",
+              "state": "APPROVED",
+              "commit": "6edc12a5e98ba3c149ff4e6ede1a695e6191c558"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "state": "APPROVED",
+              "commit": "6edc12a5e98ba3c149ff4e6ede1a695e6191c558"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "state": "APPROVED",
+              "commit": "6edc12a5e98ba3c149ff4e6ede1a695e6191c558"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "state": "APPROVED",
+              "commit": "6edc12a5e98ba3c149ff4e6ede1a695e6191c558"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "state": "APPROVED",
+              "commit": "6edc12a5e98ba3c149ff4e6ede1a695e6191c558"
+            }
+          ],
+          "note": "Zatwierdzenie dokumentu ani starego head nie zastępuje review aktualnego kodu."
+        },
+        "independent_qa": "Brak nowego kompletnego odbioru w zebranym materiale; zachować datowane wyniki istniejących QA, bez ponawiania całej regresji za zmiany dokumentacji.",
+        "deployment": {
+          "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+          "main_run": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054",
+          "result": "PASS dla bieżącego main; nie wdrożono otwartych PR-ów"
+        },
+        "delivered_to_main": true,
+        "merge_commit": "e6d1d8822b2840be4837f13da18754cd7f42fd25",
+        "github_state": "MERGED",
+        "delivery_status": "DELIVERED_TO_MAIN",
+        "ci_snapshot": [
+          {
+            "name": "Lint",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44377089527/job/135059003671"
+          },
+          {
+            "name": "Frontend build",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44377089527/job/135059002973"
+          },
+          {
+            "name": "Backend (3.12)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44377089527/job/135059003692"
+          },
+          {
+            "name": "Backend (3.13)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44377089527/job/135059003512"
+          },
+          {
+            "name": "Backend image",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44377089527/job/135059003542"
+          },
+          {
+            "name": "Critical browser flows",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44377089527/job/135059003516"
+          },
+          {
+            "name": "Markdown links",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44377089527/job/135059003488"
+          },
+          {
+            "name": "Required CI",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44377089527/job/135062056057"
+          },
+          {
+            "name": "Deploy development server",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44377089527/job/135062107911"
+          },
+          {
+            "name": "Post-deploy smoke",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44377089527/job/135062109059"
+          }
+        ]
       },
-      "main_behavior_audit": "Brak nowych CSP/Permissions-Policy/X-Frame-Options, prywatnej sieci proxy i testu Caddy."
+      "main_behavior_audit": "Edge/Caddy/trusted proxy oraz test prawdziwego Caddy są w main przez #100."
     },
     {
       "pr": 45,
@@ -469,68 +1168,81 @@
       "files": [
         {
           "path": ".dockerignore",
-          "state": "different",
-          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+          "state": "identical",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61",
+          "state_20261117": "different"
         },
         {
           "path": ".github/workflows/ci.yml",
           "state": "different",
-          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61",
+          "state_20261117": "different"
         },
         {
           "path": "backend/requirements-dev.txt",
-          "state": "different",
-          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+          "state": "identical",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61",
+          "state_20261117": "different"
         },
         {
           "path": "backend/tests/test_contracts.py",
-          "state": "missing",
-          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+          "state": "different",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61",
+          "state_20261117": "missing"
         },
         {
           "path": "contracts/api-design.json",
           "state": "different",
-          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61",
+          "state_20261117": "different"
         },
         {
           "path": "docs/DATA_MODEL.md",
           "state": "different",
-          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61",
+          "state_20261117": "different"
         },
         {
           "path": "docs/qa/SCRUM-108.md",
-          "state": "missing",
-          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+          "state": "different",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/features/auth/AuthProvider.tsx",
           "state": "different",
-          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/features/fleet/model/types.ts",
           "state": "different",
-          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/features/trips/model/annotations.ts",
-          "state": "different",
-          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+          "state": "identical",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/shared/api/generated/contracts.ts",
-          "state": "missing",
-          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+          "state": "different",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61",
+          "state_20261117": "missing"
         },
         {
           "path": "infra/deploy/backend.Dockerfile",
           "state": "different",
-          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61",
+          "state_20261117": "different"
         },
         {
           "path": "tools/generate_api_types.py",
-          "state": "missing",
-          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61"
+          "state": "identical",
+          "source_commit": "c8e95064a2fa8aa120917737b84b9c6862941c61",
+          "state_20261117": "missing"
         }
       ],
       "integration": {
@@ -538,16 +1250,201 @@
         "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/102",
         "branch": "test/SCRUM-133-contract-integration",
         "base": "main",
-        "head": "797e5bc587dcc2d125460d80fe1c2e17050f97e6",
+        "head": "d13850b8927f8690b87a5842289fbd7666a3a33b",
         "backend_tree": "d164a7b1f7e4611dae260c5d9a4b80f916404d97",
         "frontend_tree": "5b0fa37d721e370b27b51805cd8714508345f2eb",
         "author_validation": "Ruff + 212 pytest PostgreSQL; 55 npm/build; 26/26 Playwright",
-        "independent_review": "NOT RECEIVED",
-        "independent_qa": "NOT RECEIVED",
-        "deployment": "NOT RUN",
-        "delivered_to_main": false
+        "independent_review": {
+          "head_approvals": [
+            {
+              "reviewer": "DawidHnat",
+              "submitted_at": "2026-11-18T18:14:03Z",
+              "commit": "d13850b8927f8690b87a5842289fbd7666a3a33b"
+            },
+            {
+              "reviewer": "mglowacki0",
+              "submitted_at": "2026-11-18T18:33:43Z",
+              "commit": "d13850b8927f8690b87a5842289fbd7666a3a33b"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "submitted_at": "2026-11-18T18:37:01Z",
+              "commit": "d13850b8927f8690b87a5842289fbd7666a3a33b"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "submitted_at": "2026-11-18T18:40:17Z",
+              "commit": "d13850b8927f8690b87a5842289fbd7666a3a33b"
+            },
+            {
+              "reviewer": "jnazarewiczs",
+              "submitted_at": "2026-11-18T18:46:27Z",
+              "commit": "d13850b8927f8690b87a5842289fbd7666a3a33b"
+            }
+          ],
+          "all_review_states": [
+            {
+              "reviewer": "DawidHnat",
+              "state": "APPROVED",
+              "commit": "d13850b8927f8690b87a5842289fbd7666a3a33b"
+            },
+            {
+              "reviewer": "mglowacki0",
+              "state": "APPROVED",
+              "commit": "d13850b8927f8690b87a5842289fbd7666a3a33b"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "state": "APPROVED",
+              "commit": "d13850b8927f8690b87a5842289fbd7666a3a33b"
+            },
+            {
+              "reviewer": "DawidHnat",
+              "state": "APPROVED",
+              "commit": "d13850b8927f8690b87a5842289fbd7666a3a33b"
+            },
+            {
+              "reviewer": "jnazarewiczs",
+              "state": "APPROVED",
+              "commit": "d13850b8927f8690b87a5842289fbd7666a3a33b"
+            }
+          ],
+          "note": "Zatwierdzenie dokumentu ani starego head nie zastępuje review aktualnego kodu."
+        },
+        "independent_qa": "Brak nowego kompletnego odbioru w zebranym materiale; zachować datowane wyniki istniejących QA, bez ponawiania całej regresji za zmiany dokumentacji.",
+        "deployment": {
+          "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+          "main_run": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054",
+          "result": "PASS dla bieżącego main; nie wdrożono otwartych PR-ów"
+        },
+        "delivered_to_main": true,
+        "merge_commit": "f5176f47dc15bf07bb1f236e880a3879430fb345",
+        "github_state": "MERGED",
+        "delivery_status": "DELIVERED_TO_MAIN",
+        "ci_snapshot": [
+          {
+            "name": "Lint",
+            "status": "COMPLETED",
+            "conclusion": "CANCELLED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372029100/job/135041100072"
+          },
+          {
+            "name": "Lint",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372030066/job/135041176226"
+          },
+          {
+            "name": "Frontend build",
+            "status": "COMPLETED",
+            "conclusion": "CANCELLED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372029100/job/135041099370"
+          },
+          {
+            "name": "Frontend build",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372030066/job/135041175588"
+          },
+          {
+            "name": "Backend (3.12)",
+            "status": "COMPLETED",
+            "conclusion": "CANCELLED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372029100/job/135041100361"
+          },
+          {
+            "name": "Backend (3.12)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372030066/job/135041176384"
+          },
+          {
+            "name": "Backend (3.13)",
+            "status": "COMPLETED",
+            "conclusion": "CANCELLED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372029100/job/135041100276"
+          },
+          {
+            "name": "Backend (3.13)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372030066/job/135041176339"
+          },
+          {
+            "name": "Backend image",
+            "status": "COMPLETED",
+            "conclusion": "CANCELLED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372029100/job/135041099808"
+          },
+          {
+            "name": "Backend image",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372030066/job/135041176386"
+          },
+          {
+            "name": "Critical browser flows",
+            "status": "COMPLETED",
+            "conclusion": "CANCELLED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372029100/job/135041100100"
+          },
+          {
+            "name": "Critical browser flows",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372030066/job/135041176322"
+          },
+          {
+            "name": "Markdown links",
+            "status": "COMPLETED",
+            "conclusion": "CANCELLED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372029100/job/135041100053"
+          },
+          {
+            "name": "Markdown links",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372030066/job/135041175995"
+          },
+          {
+            "name": "Required CI",
+            "status": "COMPLETED",
+            "conclusion": "FAILURE",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372029100/job/135041110780"
+          },
+          {
+            "name": "Required CI",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372030066/job/135044048743"
+          },
+          {
+            "name": "Deploy development server",
+            "status": "COMPLETED",
+            "conclusion": "CANCELLED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372029100/job/135041171471"
+          },
+          {
+            "name": "Deploy development server",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372030066/job/135044115993"
+          },
+          {
+            "name": "Post-deploy smoke",
+            "status": "COMPLETED",
+            "conclusion": "CANCELLED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372029100/job/135041171200"
+          },
+          {
+            "name": "Post-deploy smoke",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44372030066/job/135044117400"
+          }
+        ]
       },
-      "main_behavior_audit": "Kontrakt JSON jest obecny, brak generatora, generowanych typów i testów odpowiedzi API."
+      "main_behavior_audit": "Generator, wygenerowane typy i testy kontraktów są w main przez #102. Bieżący main-run PASS; historyczne canceled/failure nie są przepisywane na PASS."
     },
     {
       "pr": 47,
@@ -566,57 +1463,68 @@
         {
           "path": "docs/DESIGN_SYSTEM.md",
           "state": "different",
-          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc",
+          "state_20261117": "different"
         },
         {
           "path": "docs/qa/SCRUM-105.md",
-          "state": "missing",
-          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+          "state": "different",
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/e2e/critical-flow.spec.ts",
           "state": "different",
-          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/app/App.tsx",
           "state": "different",
-          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/app/WorkspacePage.tsx",
           "state": "different",
-          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/app/components/AppSettingsPage.tsx",
           "state": "different",
-          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/app/styles.css",
           "state": "different",
-          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/app/workspace-pages.css",
           "state": "different",
-          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/features/dashboard/components/BackgroundPicker.tsx",
           "state": "different",
-          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/features/fleet/components/VehicleCardsPage.tsx",
           "state": "different",
-          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/features/fleet/components/VehiclePhotoDialog.tsx",
           "state": "different",
-          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc"
+          "source_commit": "56d9f4cfb6e683c6a9cf5123878b31ab49aa0edc",
+          "state_20261117": "different"
         }
       ],
       "integration": {
@@ -628,12 +1536,98 @@
         "backend_tree": "65f4d5c3da5dcf648e9a9a012f11498bf49f29d2",
         "frontend_tree": "a0b3cfe41ef69409f11aac07b4b45dfb43325edb",
         "author_validation": "55 npm/build; 4/4 Playwright oba motywy i ekrany",
-        "independent_review": "NOT RECEIVED",
-        "independent_qa": "NOT RECEIVED",
-        "deployment": "NOT RUN",
-        "delivered_to_main": false
+        "independent_review": {
+          "head_approvals": [
+            {
+              "reviewer": "jnazarewiczs",
+              "submitted_at": "2026-11-18T18:48:58Z",
+              "commit": "bf7e7cb5b0b5882ed29f2a71fdad83afeb7cb6ab"
+            }
+          ],
+          "all_review_states": [
+            {
+              "reviewer": "jnazarewiczs",
+              "state": "APPROVED",
+              "commit": "bf7e7cb5b0b5882ed29f2a71fdad83afeb7cb6ab"
+            }
+          ],
+          "note": "Zatwierdzenie dokumentu ani starego head nie zastępuje review aktualnego kodu."
+        },
+        "independent_qa": "Brak nowego kompletnego odbioru w zebranym materiale; zachować datowane wyniki istniejących QA, bez ponawiania całej regresji za zmiany dokumentacji.",
+        "deployment": {
+          "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+          "main_run": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054",
+          "result": "PASS dla bieżącego main; nie wdrożono otwartych PR-ów"
+        },
+        "delivered_to_main": true,
+        "merge_commit": "2fe79899be680674957234a19ffbbd2ff05d5bfd",
+        "github_state": "MERGED",
+        "delivery_status": "DELIVERED_TO_MAIN",
+        "ci_snapshot": [
+          {
+            "name": "Lint",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181408392/job/134386595032"
+          },
+          {
+            "name": "Frontend build",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181408392/job/134386595633"
+          },
+          {
+            "name": "Backend (3.12)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181408392/job/134386595668"
+          },
+          {
+            "name": "Backend (3.13)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181408392/job/134386595817"
+          },
+          {
+            "name": "Backend image",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181408392/job/134386595628"
+          },
+          {
+            "name": "Critical browser flows",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181408392/job/134386595962"
+          },
+          {
+            "name": "Markdown links",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181408392/job/134386595726"
+          },
+          {
+            "name": "Required CI",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181408392/job/134389682402"
+          },
+          {
+            "name": "Deploy development server",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181408392/job/134389736827"
+          },
+          {
+            "name": "Post-deploy smoke",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181408392/job/134389737501"
+          }
+        ],
+        "entry_to_main_via": 106
       },
-      "main_behavior_audit": "Częściowo: puste widoki są, brak wspólnego oznaczenia Planowane; opisy lokalnych danych wymagają dopasowania do SCRUM-91."
+      "main_behavior_audit": "UX modułów i lokalnych danych jest w main przez #108 → #106."
     },
     {
       "pr": 48,
@@ -652,67 +1646,80 @@
         {
           "path": ".env.example",
           "state": "different",
-          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0",
+          "state_20261117": "different"
         },
         {
           "path": "backend/README.md",
           "state": "different",
-          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0",
+          "state_20261117": "different"
         },
         {
           "path": "backend/app/core/settings.py",
           "state": "different",
-          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0",
+          "state_20261117": "different"
         },
         {
           "path": "backend/app/main.py",
           "state": "different",
-          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0",
+          "state_20261117": "different"
         },
         {
           "path": "backend/app/manage.py",
           "state": "different",
-          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0",
+          "state_20261117": "different"
         },
         {
           "path": "backend/app/modules/auth/models.py",
           "state": "different",
-          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0",
+          "state_20261117": "different"
         },
         {
           "path": "backend/app/modules/auth/policies.py",
-          "state": "missing",
-          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+          "state": "different",
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/app/modules/auth/router.py",
           "state": "different",
-          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0",
+          "state_20261117": "different"
         },
         {
           "path": "backend/app/modules/auth/service.py",
           "state": "different",
-          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0",
+          "state_20261117": "different"
         },
         {
           "path": "backend/migrations/versions/0007_user_roles.py",
           "state": "missing",
-          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/tests/test_role_docs_hardening.py",
-          "state": "missing",
-          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+          "state": "different",
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/tests/test_user_role_migration.py",
-          "state": "missing",
-          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+          "state": "different",
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0",
+          "state_20261117": "missing"
         },
         {
           "path": "docs/security/SCRUM-103.md",
-          "state": "missing",
-          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0"
+          "state": "different",
+          "source_commit": "b3d05aa1de055a0767d9f1aeb97a7c3aa538c4d0",
+          "state_20261117": "missing"
         }
       ],
       "integration": {
@@ -724,12 +1731,108 @@
         "backend_tree": "401418cff8755e268f0b323855dbf6c9c017f8d8",
         "frontend_tree": "b044396aac373543cebb2517103b4a19a7df257d",
         "author_validation": "Ruff + 212 pytest PostgreSQL; kontrolowana odmowa brudnej migracji",
-        "independent_review": "NOT RECEIVED",
-        "independent_qa": "NOT RECEIVED",
-        "deployment": "NOT RUN",
-        "delivered_to_main": false
+        "independent_review": {
+          "head_approvals": [
+            {
+              "reviewer": "DawidHnat",
+              "submitted_at": "2026-11-18T18:14:06Z",
+              "commit": "ec02780907112cdba70829ae1424916eebc76395"
+            },
+            {
+              "reviewer": "mglowacki0",
+              "submitted_at": "2026-11-18T18:51:41Z",
+              "commit": "ec02780907112cdba70829ae1424916eebc76395"
+            }
+          ],
+          "all_review_states": [
+            {
+              "reviewer": "DawidHnat",
+              "state": "APPROVED",
+              "commit": "ec02780907112cdba70829ae1424916eebc76395"
+            },
+            {
+              "reviewer": "mglowacki0",
+              "state": "APPROVED",
+              "commit": "ec02780907112cdba70829ae1424916eebc76395"
+            }
+          ],
+          "note": "Zatwierdzenie dokumentu ani starego head nie zastępuje review aktualnego kodu."
+        },
+        "independent_qa": "Brak nowego kompletnego odbioru w zebranym materiale; zachować datowane wyniki istniejących QA, bez ponawiania całej regresji za zmiany dokumentacji.",
+        "deployment": {
+          "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+          "main_run": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054",
+          "result": "PASS dla bieżącego main; nie wdrożono otwartych PR-ów"
+        },
+        "delivered_to_main": true,
+        "merge_commit": "d141ceee3a732bff21ec9594dc3dd36218f1bce3",
+        "github_state": "MERGED",
+        "delivery_status": "DELIVERED_TO_MAIN",
+        "ci_snapshot": [
+          {
+            "name": "Lint",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181401329/job/134386598062"
+          },
+          {
+            "name": "Frontend build",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181401329/job/134386598164"
+          },
+          {
+            "name": "Backend (3.12)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181401329/job/134386598010"
+          },
+          {
+            "name": "Backend (3.13)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181401329/job/134386597961"
+          },
+          {
+            "name": "Backend image",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181401329/job/134386598204"
+          },
+          {
+            "name": "Critical browser flows",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181401329/job/134386598186"
+          },
+          {
+            "name": "Markdown links",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181401329/job/134386597798"
+          },
+          {
+            "name": "Required CI",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181401329/job/134389740796"
+          },
+          {
+            "name": "Deploy development server",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181401329/job/134389800544"
+          },
+          {
+            "name": "Post-deploy smoke",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181401329/job/134389801062"
+          }
+        ],
+        "entry_to_main_via": 103
       },
-      "main_behavior_audit": "Role sprawdzane w runtime, brak CHECK w PostgreSQL i kontrolowanego wyłączenia dokumentacji API."
+      "main_behavior_audit": "Constraint ról, blokada publicznych docs i migracja 0009 są w main przez #104 → #103."
     },
     {
       "pr": 49,
@@ -748,122 +1851,146 @@
         {
           "path": "README.md",
           "state": "different",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "different"
         },
         {
           "path": "backend/app/modules/analytics/router.py",
           "state": "different",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "different"
         },
         {
           "path": "backend/tests/e2e_server.py",
           "state": "different",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "different"
         },
         {
           "path": "backend/tests/test_distance_alerts.py",
           "state": "different",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "different"
         },
         {
           "path": "contracts/api-design.json",
           "state": "different",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "different"
         },
         {
           "path": "docs/DATA_MODEL.md",
           "state": "different",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "different"
         },
         {
           "path": "docs/DESIGN_SYSTEM.md",
           "state": "different",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "different"
         },
         {
           "path": "docs/qa/SCRUM-105.md",
-          "state": "missing",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "state": "different",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "missing"
         },
         {
           "path": "docs/qa/SCRUM-32.md",
           "state": "missing",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/e2e/alerts.spec.ts",
           "state": "missing",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/e2e/critical-flow.spec.ts",
           "state": "different",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/app/App.tsx",
           "state": "different",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/app/alerts.css",
           "state": "missing",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/app/navigation.ts",
           "state": "different",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/features/analytics/components/ActivityWidget.tsx",
           "state": "different",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/features/analytics/components/AlertRows.tsx",
           "state": "missing",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/features/analytics/components/AlertsPage.tsx",
           "state": "missing",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/features/analytics/components/RuleVehiclePicker.tsx",
           "state": "missing",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/features/analytics/components/RulesPanel.tsx",
           "state": "missing",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/features/analytics/model/useAlerts.ts",
           "state": "missing",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/features/dashboard/model/widget-registry.ts",
           "state": "different",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/main.tsx",
           "state": "different",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/shared/api/generated/contracts.ts",
-          "state": "missing",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "state": "different",
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/shared/components/ListPagination.tsx",
           "state": "different",
-          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c"
+          "source_commit": "873d5d093b17ec0b468c54250e61adce4ae4959c",
+          "state_20261117": "different"
         }
       ],
       "integration": {
@@ -875,12 +2002,85 @@
         "backend_tree": "aaa6aac62b85be45c89ba0db7f7c6208c9f5454c",
         "frontend_tree": "9a05bfe3b6699565303e6032d700bc092f7765e4",
         "author_validation": "Ruff + 213 pytest PostgreSQL; 55 npm/build; 14/14 Playwright",
-        "independent_review": "NOT RECEIVED",
-        "independent_qa": "NOT RECEIVED",
-        "deployment": "NOT RUN",
-        "delivered_to_main": false
+        "independent_review": {
+          "head_approvals": [],
+          "all_review_states": [],
+          "note": "Zatwierdzenie dokumentu ani starego head nie zastępuje review aktualnego kodu."
+        },
+        "independent_qa": "Brak nowego kompletnego odbioru w zebranym materiale; zachować datowane wyniki istniejących QA, bez ponawiania całej regresji za zmiany dokumentacji.",
+        "deployment": {
+          "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+          "main_run": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054",
+          "result": "PASS dla bieżącego main; nie wdrożono otwartych PR-ów"
+        },
+        "delivered_to_main": false,
+        "merge_commit": "87ec7240b07ef438b89fc41abe244f750b81ef2a",
+        "github_state": "MERGED",
+        "delivery_status": "PENDING",
+        "ci_snapshot": [
+          {
+            "name": "Lint",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181412879/job/134386405021"
+          },
+          {
+            "name": "Frontend build",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181412879/job/134386405195"
+          },
+          {
+            "name": "Backend (3.12)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181412879/job/134386405372"
+          },
+          {
+            "name": "Backend (3.13)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181412879/job/134386405054"
+          },
+          {
+            "name": "Backend image",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181412879/job/134386404690"
+          },
+          {
+            "name": "Critical browser flows",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181412879/job/134386405173"
+          },
+          {
+            "name": "Markdown links",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181412879/job/134386405045"
+          },
+          {
+            "name": "Required CI",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181412879/job/134390503989"
+          },
+          {
+            "name": "Deploy development server",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181412879/job/134390556434"
+          },
+          {
+            "name": "Post-deploy smoke",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181412879/job/134390557275"
+          }
+        ]
       },
-      "main_behavior_audit": "API SCRUM-31 jest obecne, brak rzeczywistej listy/reguł React; Alerty są placeholderem."
+      "main_behavior_audit": "UI alertów z #109 scalono wyłącznie do zależności; kod czeka na #110/be609d7 i QA SCRUM-33."
     },
     {
       "pr": 50,
@@ -899,149 +2099,259 @@
         {
           "path": "backend/README.md",
           "state": "different",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "different"
         },
         {
           "path": "backend/app/core/models.py",
           "state": "different",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "different"
         },
         {
           "path": "backend/app/main.py",
           "state": "different",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "different"
         },
         {
           "path": "backend/app/modules/drivers/__init__.py",
           "state": "missing",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/app/modules/drivers/models.py",
           "state": "missing",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/app/modules/drivers/router.py",
           "state": "missing",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/app/modules/drivers/schemas.py",
           "state": "missing",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/app/modules/drivers/service.py",
           "state": "missing",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/app/modules/fleet/router.py",
           "state": "different",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "different"
         },
         {
           "path": "backend/app/modules/fleet/service.py",
           "state": "different",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "different"
         },
         {
           "path": "backend/migrations/env.py",
           "state": "different",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "different"
         },
         {
           "path": "backend/migrations/versions/0008_manual_drivers.py",
           "state": "missing",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/tests/e2e_server.py",
           "state": "different",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "different"
         },
         {
           "path": "backend/tests/test_contracts.py",
-          "state": "missing",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "state": "different",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/tests/test_fleet_search_migration.py",
-          "state": "missing",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "state": "different",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/tests/test_manual_drivers.py",
           "state": "missing",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/tests/test_manual_drivers_postgres.py",
           "state": "missing",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "missing"
         },
         {
           "path": "contracts/api-design.json",
           "state": "different",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "different"
         },
         {
           "path": "docs/DATA_MODEL.md",
           "state": "different",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "different"
         },
         {
           "path": "docs/DESIGN_SYSTEM.md",
           "state": "different",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "different"
         },
         {
           "path": "docs/qa/SCRUM-52.md",
           "state": "missing",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/e2e/critical-flow.spec.ts",
           "state": "different",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/features/fleet/components/VehicleCardsPage.tsx",
           "state": "different",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/features/fleet/components/VehicleListWidget.tsx",
           "state": "different",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/features/fleet/model/driver-label.ts",
           "state": "missing",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/shared/api/generated/contracts.ts",
-          "state": "missing",
-          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224"
+          "state": "different",
+          "source_commit": "8aaef29f32207bc2e3f151f0dd8f6cfe7023c224",
+          "state_20261117": "missing"
         }
       ],
       "integration": {
         "pr": 110,
         "url": "https://github.com/DawidHnat/Projekt_Zespolowy/pull/110",
         "branch": "feat/SCRUM-133-drivers-api-integration",
-        "base": "feat/SCRUM-133-alerts-integration",
-        "head": "9f445f7d879c1944563ceee9c5659c594f173337",
+        "base": "main",
+        "head": "be609d7260191424d686f92b1f00c48c10cff5cf",
         "backend_tree": "33ba278724965f30935ca6201c260da89cdf47c1",
         "frontend_tree": "ebd2f330679e4f6c6605f68e1e916de03be1e3e9",
         "author_validation": "Ruff + 262 pytest PostgreSQL; 55 npm/build; 2/2 Playwright wielu kierowców",
-        "independent_review": "NOT RECEIVED",
-        "independent_qa": "NOT RECEIVED",
-        "deployment": "NOT RUN",
-        "delivered_to_main": false
+        "independent_review": {
+          "head_approvals": [],
+          "all_review_states": [
+            {
+              "reviewer": "mglowacki0",
+              "state": "DISMISSED",
+              "commit": "5a5ce04c0edfd1bf07d184ac7401ed82404d5b1a"
+            },
+            {
+              "reviewer": "jnazarewiczs",
+              "state": "DISMISSED",
+              "commit": "5a5ce04c0edfd1bf07d184ac7401ed82404d5b1a"
+            }
+          ],
+          "note": "Zatwierdzenie dokumentu ani starego head nie zastępuje review aktualnego kodu."
+        },
+        "independent_qa": "Brak nowego kompletnego odbioru w zebranym materiale; zachować datowane wyniki istniejących QA, bez ponawiania całej regresji za zmiany dokumentacji.",
+        "deployment": {
+          "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+          "main_run": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054",
+          "result": "PASS dla bieżącego main; nie wdrożono otwartych PR-ów"
+        },
+        "delivered_to_main": false,
+        "merge_commit": null,
+        "github_state": "OPEN",
+        "delivery_status": "PENDING",
+        "ci_snapshot": [
+          {
+            "name": "Lint",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44414413143/job/135190787796"
+          },
+          {
+            "name": "Frontend build",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44414413143/job/135190788156"
+          },
+          {
+            "name": "Backend (3.12)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44414413143/job/135190788137"
+          },
+          {
+            "name": "Backend (3.13)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44414413143/job/135190788189"
+          },
+          {
+            "name": "Backend image",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44414413143/job/135190788121"
+          },
+          {
+            "name": "Critical browser flows",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44414413143/job/135190788114"
+          },
+          {
+            "name": "Markdown links",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44414413143/job/135190788441"
+          },
+          {
+            "name": "Required CI",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44414413143/job/135195519869"
+          },
+          {
+            "name": "Deploy development server",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44414413143/job/135195587698"
+          },
+          {
+            "name": "Post-deploy smoke",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44414413143/job/135195587776"
+          }
+        ]
       },
-      "main_behavior_audit": "Jest minimalny Driver/driver_id; brak kartoteki API, kategorii i historii wiele-do-wielu."
+      "main_behavior_audit": "API ręcznych kierowców i migracja 0010 są w #110/be609d7; brak w main. QA SCRUM-54 oraz odbiór operatora migracji/rollbacku oczekują."
     },
     {
       "pr": 51,
@@ -1060,182 +2370,218 @@
         {
           "path": "README.md",
           "state": "different",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "different"
         },
         {
           "path": "backend/README.md",
           "state": "different",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "different"
         },
         {
           "path": "backend/app/modules/drivers/router.py",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/app/modules/drivers/schemas.py",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/app/modules/drivers/service.py",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "backend/tests/e2e_server.py",
           "state": "different",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "different"
         },
         {
           "path": "backend/tests/test_manual_drivers.py",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "contracts/api-design.json",
           "state": "different",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "different"
         },
         {
           "path": "docs/DESIGN_SYSTEM.md",
           "state": "different",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "different"
         },
         {
           "path": "docs/qa/SCRUM-53.md",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/README.md",
           "state": "different",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/e2e/critical-flow.spec.ts",
           "state": "different",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/e2e/drivers.spec.ts",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/app/App.tsx",
           "state": "different",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/app/drivers.css",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/app/navigation.ts",
           "state": "different",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/features/analytics/components/RuleVehiclePicker.tsx",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/features/dashboard/model/widget-layout.ts",
           "state": "different",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/features/dashboard/model/widget-registry.ts",
           "state": "different",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/features/dashboard/model/widget-sizing.ts",
           "state": "different",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/features/dashboard/model/widget-types.ts",
           "state": "different",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/features/drivers/DriversPage.tsx",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/features/drivers/components/DriverAssignments.tsx",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/features/drivers/components/DriverCard.tsx",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/features/drivers/components/DriverDetailsPanel.tsx",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/features/drivers/components/DriverForm.tsx",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/features/drivers/components/DriverWidgets.tsx",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/features/drivers/model/DriverContext.tsx",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/features/drivers/model/preferences.ts",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/features/fleet/components/VehiclePicker.tsx",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/features/fleet/components/useCardResize.ts",
           "state": "different",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/features/fleet/model/vehicle-layout.ts",
           "state": "different",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/main.tsx",
           "state": "different",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "different"
         },
         {
           "path": "frontend/src/shared/components/dialog-focus.ts",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/shared/hooks/useCardResize.ts",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         },
         {
           "path": "frontend/src/shared/model/card-layout.ts",
           "state": "missing",
-          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1"
+          "source_commit": "ff8834917a9c05cc272dccede12689dc0f5c37a1",
+          "state_20261117": "missing"
         }
       ],
       "integration": {
@@ -1247,12 +2593,85 @@
         "backend_tree": "b87c7c71c9dba49d1187d0d061d62918e32bc540",
         "frontend_tree": "32126e496c9553302ef5f588a564ac4d6267c85a",
         "author_validation": "Ruff + 265 pytest PostgreSQL; 55 npm/build; 114/114 pełne E2E + 10/10 końcowe axe/klawiatura",
-        "independent_review": "NOT RECEIVED",
-        "independent_qa": "NOT RECEIVED",
-        "deployment": "NOT RUN",
-        "delivered_to_main": false
+        "independent_review": {
+          "head_approvals": [],
+          "all_review_states": [],
+          "note": "Zatwierdzenie dokumentu ani starego head nie zastępuje review aktualnego kodu."
+        },
+        "independent_qa": "Brak nowego kompletnego odbioru w zebranym materiale; zachować datowane wyniki istniejących QA, bez ponawiania całej regresji za zmiany dokumentacji.",
+        "deployment": {
+          "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+          "main_run": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44386951054",
+          "result": "PASS dla bieżącego main; nie wdrożono otwartych PR-ów"
+        },
+        "delivered_to_main": false,
+        "merge_commit": "128d1dea7357bd82a22fb321b8ce8dd87e85d1d7",
+        "github_state": "MERGED",
+        "delivery_status": "PENDING",
+        "ci_snapshot": [
+          {
+            "name": "Lint",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181424033/job/134386851273"
+          },
+          {
+            "name": "Frontend build",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181424033/job/134386851128"
+          },
+          {
+            "name": "Backend (3.12)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181424033/job/134386851277"
+          },
+          {
+            "name": "Backend (3.13)",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181424033/job/134386851122"
+          },
+          {
+            "name": "Backend image",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181424033/job/134386851411"
+          },
+          {
+            "name": "Critical browser flows",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181424033/job/134386850514"
+          },
+          {
+            "name": "Markdown links",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181424033/job/134386851236"
+          },
+          {
+            "name": "Required CI",
+            "status": "COMPLETED",
+            "conclusion": "SUCCESS",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181424033/job/134392065633"
+          },
+          {
+            "name": "Deploy development server",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181424033/job/134392125879"
+          },
+          {
+            "name": "Post-deploy smoke",
+            "status": "COMPLETED",
+            "conclusion": "SKIPPED",
+            "url": "https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44181424033/job/134392126586"
+          }
+        ]
       },
-      "main_behavior_audit": "Brak kartoteki React; Kierowcy są placeholderem."
+      "main_behavior_audit": "UI kierowców z #111 scalono tylko do #110; brak w main. Pełny diff #110 obejmuje #109 i #111; QA SCRUM-54."
     },
     {
       "pr": 79,
@@ -1274,7 +2693,62 @@
           "source_commit": "7929fc8d00a28c1a36ae7981627773917f0be6e2"
         }
       ],
-      "main_behavior_audit": "PR #79 jest przodkiem main przez #53; ekstrakcja artefaktu i kontrola paczki są w workflow. Nie przenosić ponownie."
+      "main_behavior_audit": "Dostarczone przez #53; merge #79 i #53 są przodkami main. Bez duplikowania kodu.",
+      "delivered_to_main": true
     }
-  ]
+  ],
+  "previous_audit": {
+    "audited_at": "2026-11-17",
+    "main": "132fefc16de8fa47367fcf579b1d2b6975ef1c7c"
+  },
+  "executor": "agent Codex na polecenie Jakuba Czai (jczaja51)",
+  "environment": "izolowany checkout + odczyt GitHub/Jira; publiczny HTTP/HTTPS/readiness; bez danych floty",
+  "decision_20261119": "#35/#105 DEFERRED do SCRUM-84 / FF Sprint 5 id=37; nie są warunkiem bieżącego zamknięcia 133. Kolejka #101 → #110.",
+  "additional_79": {
+    "source_pr": 79,
+    "merge_commit": "a739d684827d6927ce250df279342563414f9b85",
+    "delivered_to_main": true,
+    "via_pr": 53,
+    "via_merge": "9dad2b2a953dfaa4cb03e1b30ce373025cadffa5",
+    "note": "#79 dostarczone przez #53; nie dublowano ani nie przypisano samemu #79 nieistniejącego review."
+  },
+  "release_snapshot": {
+    "sha": "cb634da0ece8cd93424bfc16a5185cf817a0cbb1",
+    "main_run": 44386951054,
+    "ci": "PASS",
+    "http_sha": "cb634da",
+    "https_sha": "cb634da",
+    "readiness": "HTTP 200 / status ok",
+    "scope": "publiczne strony wersji i readiness, nie odbiór zalogowanej funkcji"
+  },
+  "follow_up": {
+    "audited_on": "2026-11-19",
+    "source": "GitHub PR, CI i ancestry oraz historia statusu Jira",
+    "main": "70a38db96b5b007ad3b74d5c5d29dc61f9b77a69",
+    "backup": {
+      "pr": 105,
+      "head": "90f8832805d92252026df56319296d22c6fe3446",
+      "merged_at": "2026-11-19T19:22:27Z",
+      "merge_commit": "70a38db96b5b007ad3b74d5c5d29dc61f9b77a69",
+      "delivery_status": "DELIVERED_TO_MAIN",
+      "pr_ci_run": 44595612322,
+      "pr_ci_conclusion": "SUCCESS",
+      "operational_acceptance": "DEFERRED_TO_SPRINT_5",
+      "operational_issue": "SCRUM-84"
+    },
+    "scrum_133_jira_status": "W toku",
+    "scrum_133_status_events": [
+      {
+        "at": "2026-11-19T20:22:37.175+01:00",
+        "actor": "Automation for Jira",
+        "status": "Gotowe"
+      },
+      {
+        "at": "2026-11-19T20:24:50.143+01:00",
+        "actor": "Jakub Czaja",
+        "status": "W toku"
+      }
+    ],
+    "integration_prs_still_open": [101, 110]
+  }
 }
