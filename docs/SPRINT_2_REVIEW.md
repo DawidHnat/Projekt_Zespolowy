@@ -77,7 +77,7 @@ S2 id=3 **active**, S3 id=4 **future**; nie tworzono sprintów ani nie przenoszo
 | SCRUM-65 | Jakub Czaja | Pomiar i ocena retro zapisane, nowe działanie Jakuba z 19.11; pozostają pełny DoD jednej Story w 141 i review/main dokumentacji |
 | SCRUM-94 | Jakub Czaja | Arkusz #121 uzupełniony danymi PO; właściciel wskazany lokalnie, brak konsultacji i pełnych procedur 113 |
 | SCRUM-101 | Marcel Głowacki | Własne AC bezpieczeństwa i otwarte pozycje ASVS; review auth jest już dowodem, nie nowym brakiem |
-| SCRUM-133 | Jakub Czaja | Jira pokazuje Gotowe. #101 i #110 nadal oczekują dostarczenia do `main`, a odbiór kierowców i alertów pozostaje w QA 54/33. |
+| SCRUM-133 | Jakub Czaja | Po scaleniu #105 automat krótko ustawił Gotowe. Jakub przywrócił W toku. #101 i #110 nadal oczekują dostarczenia do `main`, a odbiór kierowców i alertów pozostaje w QA 54/33. |
 | SCRUM-141 | Marcel Głowacki | Pełne AC/12 DoD 16/91 i końcowy niezależny QA, zachowując wykonany review/restore |
 | SCRUM-142 | Jakub Czaja | Uzupełnienie rzeczywistych wyników, PR/review/CI/main i późniejsze przełączenie S2→S3 |
 | SCRUM-143 | Jakub Czaja | Pakiet 3.2 przed zamknięciem S2; końcowy 4.2 po rzeczywistym starcie S3, dowody po ostatnim merge |
