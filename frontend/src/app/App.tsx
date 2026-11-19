@@ -33,6 +33,8 @@ import { VehicleCardsPage } from "../features/fleet/components/VehicleCardsPage"
 import { VehicleLayoutEditorControls } from "../features/fleet/components/VehicleLayoutEditorControls";
 import { VehicleDetailsDialog } from "../features/fleet/components/VehicleDetailsDialog";
 import { AccountPreferenceNotice } from "../shared/components/AccountPreferenceNotice";
+import { AlertsPage } from "../features/analytics/components/AlertsPage";
+import { DriversPage } from "../features/drivers/DriversPage";
 
 const readSection = () => sectionFromHash(window.location.hash);
 
@@ -360,6 +362,10 @@ export function App() {
             <VehicleCardsPage />
           ) : section === "profile" ? (
             <ProfilePage />
+          ) : section === "alerts" ? (
+            <AlertsPage />
+          ) : section === "drivers" ? (
+            <DriversPage />
           ) : section === "settings" ? (
             <AppSettingsPage
               category={settingsCategory}

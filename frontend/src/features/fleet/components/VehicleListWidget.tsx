@@ -1,3 +1,4 @@
+import { driverLabel, driverNames } from "../model/driver-label";
 import { Truck } from "lucide-react";
 import { WidgetFrame } from "../../../shared/components/WidgetFrame";
 import { EmptyState } from "../../../shared/components/EmptyState";
@@ -121,7 +122,7 @@ export function VehicleListWidget({
                         {statusLabels[v.status]}
                       </span>
                     </td>
-                    <td>{v.driver?.display_name || "Nieprzypisany"}</td>
+                    <td title={driverNames(v)}>{driverLabel(v)}</td>
                     <td>
                       {measurementLabel(v.is_stale ? null : v.speed_kmh, "km/h", 0)}
                     </td>
