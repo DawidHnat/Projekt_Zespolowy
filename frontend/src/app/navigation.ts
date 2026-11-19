@@ -57,12 +57,7 @@ export const sections = [
     id: "drivers",
     title: "Kierowcy",
     icon: Users,
-    description: "Osoby prowadzące pojazdy i ich przypisania.",
-    placeholder: {
-      title: "Zespół za kierownicą",
-      description:
-        "Tu znajdzie się lista kierowców, ich dane i przypisania do pojazdów, gotowa do rozbudowy wraz z zespołem.",
-    },
+    description: "Ręczna kartoteka kierowców, kontakt i historia przypisań.",
   },
   {
     id: "fuel-cards",
@@ -79,12 +74,7 @@ export const sections = [
     id: "alerts",
     title: "Alerty",
     icon: Bell,
-    description: "Zdarzenia i powiadomienia wymagające uwagi.",
-    placeholder: {
-      title: "Ważne zdarzenia pod ręką",
-      description:
-        "Tu pojawią się alerty floty, ich statusy i reguły powiadomień, aby łatwo odnaleźć sprawy wymagające reakcji.",
-    },
+    description: "Przekroczenia dziennego dystansu, reguły i Twój stan odczytu.",
   },
   {
     id: "profile",
