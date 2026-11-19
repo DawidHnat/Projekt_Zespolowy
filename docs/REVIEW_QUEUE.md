@@ -1,6 +1,6 @@
 # SCRUM-65 — kolejka review i dowody usprawnienia
 
-Pomiar **2026-11-19T10:56:27+01:00**, wykonawca: **agent Codex na polecenie Jakuba Czai (jczaja51)**. Kontekst main `cb634da0ece8cd93424bfc16a5185cf817a0cbb1`; środowisko: odczyt GitHub reviews/comments i dowodów Jira. Wynik metryki: **PASS wykonania pomiaru**. Zadanie 65: **BLOCKED pełnego zakończenia** do pełnego DoD jednej Story i rzeczywistej oceny efektu.
+Pomiar **2026-11-19T10:56:27+01:00**, wykonawca: **agent Codex na polecenie Jakuba Czai (jczaja51)**. Kontekst main `cb634da0ece8cd93424bfc16a5185cf817a0cbb1`; środowisko: odczyt GitHub reviews/comments i dowodów Jira. Wynik metryki: **PASS wykonania pomiaru**. Zadanie 65: **BLOCKED pełnego zakończenia** do pełnego DoD jednej Story i niezależnego review/main aktualizacji; ocenę retro uzupełniono poniżej.
 
 ## Uzgodniony rytm i tabela całej czwórki
 
@@ -47,8 +47,10 @@ Metryki liczą nieautorskie formalne reviews oraz osobno komentarze człowieka. 
 
 ## Pełny DoD i rzeczywista retrospektywa
 
+[Uzupełniona ocena i nowe działanie PO — SCRUM-65/10363](https://fleet-flow.atlassian.net/browse/SCRUM-65?focusedCommentId=10363).
+
 [SCRUM-141](https://fleet-flow.atlassian.net/browse/SCRUM-141) zbiera obie pełne macierze 16/91. W zebranych dowodach **0/2 wybranych Story ma pełny końcowy odbiór**, mimo administracyjnego Gotowe. Review auth i ocena restore są już PASS w komentarzach 10324/10345. Następny krok **Marcela**: końcowe brakujące AC/DoD i podpis QA; **PO Jakub** potwierdza zakres. Nie trzeba kończyć wszystkich przyszłych regresji produktu.
 
-PO potwierdził 19.11, że Review i retro S2 odbyły się 18.11 z całą czwórką ([SCRUM-142/10347](https://fleet-flow.atlassian.net/browse/SCRUM-142?focusedCommentId=10347)). Nie rozpoznał jednak numeru 65 i przekazał ogólną ocenę aplikacji. **Ocena skuteczności tego konkretnego działania na retro nie została przekazana**; nie zastępujemy jej dzisiejszą statystyką ani samym faktem spotkania. Aktualizacja rzeczywistych protokołów: [PR #123](https://github.com/DawidHnat/Projekt_Zespolowy/pull/123).
+PO potwierdził 19.11, że Review i retro S2 odbyły się 18.11 z całą czwórką ([SCRUM-142/10347](https://fleet-flow.atlassian.net/browse/SCRUM-142?focusedCommentId=10347)). Następnie doprecyzował rzeczywistą ocenę działania na retro: **spotkania pomagały, lecz bez nich codzienne regularne sprawdzanie PR-ów nie odbywało się w pełni**. To relacja PO o retro 18.11, nie dzisiejsza statystyka przypisana wstecz. Aktualizacja rzeczywistych protokołów: [PR #123](https://github.com/DawidHnat/Projekt_Zespolowy/pull/123).
 
-Do zakończenia 65 pozostają: niezależny review/CI/main aktualizacji tej kolejki, pełny DoD jednej Story w 141 oraz **Jakub Czaja/uczestnicy retro — konkretna ocena efektu codziennego review i uzgodnione dalsze działanie**. Dostępność i plan 128/129 PO potwierdził 19.11; nie wpisujemy tej decyzji wstecz jako szczegółowego wyniku spotkania 18.11.
+**Nowa decyzja PO z 19.11:** Jakub Czaja **codziennie sprawdza kolejkę PR-ów i przypomina przypisanym reviewerom**. Właściciel: Jakub Czaja. Nie przypisujemy tej decyzji do retro 18.11 i nie uruchamiamy automatycznej wysyłki. Ocena i nowe działanie są zapisane. Do zakończenia 65 pozostają niezależny review/CI/main aktualizacji kolejki oraz pełny DoD jednej Story w 141. Dostępność i plan 128/129 PO potwierdził 19.11; nie wpisujemy tej decyzji wstecz jako szczegółowego wyniku spotkania 18.11.
