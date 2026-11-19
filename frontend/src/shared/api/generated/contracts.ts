@@ -23,8 +23,12 @@ export type VehicleList = { "items": Array<Vehicle>; "total": number; "page": nu
 export type TripList = { "items": Array<Trip>; "total": number; "page": number; "page_size": number; };
 export type RuleList = { "items": Array<Rule>; "total": number; "page": number; "page_size": number; };
 export type AlertList = { "items": Array<Alert>; "total": number; "page": number; "page_size": number; };
+export type SourceRefreshState = { "enabled": boolean; "running": boolean; "server_time": string; "next_allowed_at": string | null; "retry_after_seconds": number; };
+export type SourceRefreshResult = { "enabled": boolean; "running": boolean; "server_time": string; "next_allowed_at": string | null; "retry_after_seconds": number; "result": "updated" | "cooldown" | "busy" | "failed" | "disabled"; };
 
 export type Responses = {
+  "GET /fleet/refresh": SourceRefreshState;
+  "POST /fleet/refresh": SourceRefreshResult;
   "POST /auth/login": UserResponse;
   "GET /auth/me": UserResponse;
   "POST /auth/logout": OkResponse;
