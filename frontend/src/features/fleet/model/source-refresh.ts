@@ -1,14 +1,5 @@
-export type SourceRefreshState = {
-  enabled: boolean;
-  running: boolean;
-  server_time: string;
-  next_allowed_at: string | null;
-  retry_after_seconds: number;
-};
-
-export type SourceRefreshResult = SourceRefreshState & {
-  result: "updated" | "cooldown" | "busy" | "failed" | "disabled";
-};
+import type { SourceRefreshState } from "../../../shared/api/generated/contracts";
+export type { SourceRefreshState, SourceRefreshResult } from "../../../shared/api/generated/contracts";
 
 // Use a monotonic browser deadline; the user's wall clock need not match the server.
 export function refreshDeadline(state: SourceRefreshState, now: number) {

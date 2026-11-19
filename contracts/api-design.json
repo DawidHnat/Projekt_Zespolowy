@@ -18,7 +18,19 @@
       },
       "error_example": {
         "status": 401,
-        "body": { "error": { "code": "UNAUTHENTICATED", "message": "Syntetyczny przykład błędu" } }
+        "body": {
+          "error": {
+            "code": "UNAUTHENTICATED",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      },
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/SourceRefreshState"
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
       }
     },
     {
@@ -36,7 +48,19 @@
       },
       "error_example": {
         "status": 403,
-        "body": { "error": { "code": "FORBIDDEN", "message": "Syntetyczny przykład błędu" } }
+        "body": {
+          "error": {
+            "code": "FORBIDDEN",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      },
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/SourceRefreshResult"
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
       }
     },
     {
@@ -1830,6 +1854,93 @@
         "page_size"
       ],
       "additionalProperties": true
+    },
+    "SourceRefreshState": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "running": {
+          "type": "boolean"
+        },
+        "server_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "next_allowed_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retry_after_seconds": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "enabled",
+        "running",
+        "server_time",
+        "next_allowed_at",
+        "retry_after_seconds"
+      ],
+      "additionalProperties": false
+    },
+    "SourceRefreshResult": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "running": {
+          "type": "boolean"
+        },
+        "server_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "next_allowed_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retry_after_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "result": {
+          "type": "string",
+          "enum": [
+            "updated",
+            "cooldown",
+            "busy",
+            "failed",
+            "disabled"
+          ]
+        }
+      },
+      "required": [
+        "enabled",
+        "running",
+        "server_time",
+        "next_allowed_at",
+        "retry_after_seconds",
+        "result"
+      ],
+      "additionalProperties": false
     }
   }
 }
