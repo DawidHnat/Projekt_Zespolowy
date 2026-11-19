@@ -4,6 +4,30 @@ Pierwsza implementacja (SCRUM-38) ustala wygląd dashboardu inspirowany
 referencją zespołu. Przyjęto Inter, jasne tło, niebieski akcent i turkusowy
 kolor statusu sukcesu. Motyw i akcent są niezależne od zawartości kafelków.
 
+## Bieżące dane floty — SCRUM-150
+
+`FleetRefreshButton` jest wspólny dla prawej strony paska mapy i kompaktowej
+kontrolki podglądu auta. Korzysta z `button-secondary` i tokenów, bez nowego
+widgetu. Oba przyciski używają jednego stanu `useSourceRefresh` w `FleetProvider`.
+Próba ręcznego odczytu zachowuje wybór, filtry i formularze; po odpowiedzi
+ponawiany jest odczyt cache listy, mapy, podsumowania i wybranego auta.
+
+Odliczanie opiera się na metadanych backendu i monotonicznym zegarze przeglądarki.
+Limit dotyczy także automatycznego workera i innych użytkowników. Kontrolki
+pozostają fokusowalne (`aria-disabled`), żeby po kliknięciu lub Enter wyjaśnić
+oczekiwanie, brak sieci lub wyłączenie źródła; guard nie wysyła wtedy POST.
+Sekundy są widoczne na przycisku/badge, lecz nie są regionem live. Pojedynczy
+region statusu przy mapie przekazuje krótki wynik polecenia, bez modala.
+Animacja ikon respektuje ograniczenie ruchu.
+
+`UtilizationWidget` pozostaje istniejącym modułem z rejestru. Pokazuje bieżące
+podsumowanie całej floty, niezależnie od filtrów/paginacji listy: ruch, postój
+oraz pozostałe (stare/nieznane statusy). Wykres korzysta z tokenów sukcesu,
+ostrzeżenia i tekstu pomocniczego. Brak danych daje kreski, rzeczywiście pusta
+flota liczby 0 bez procentu, a wszystkie statusy niepotwierdzone nie udają
+zerowego wykorzystania. Błąd API zachowuje znany wynik z jawnym opisem cache;
+awaria źródła ma osobne objaśnienie. Nie jest to analityka czasu jazdy za okres.
+
 ## Wspólne tokeny
 
 Źródło: `frontend/src/app/tokens.css`. Używaj zmiennych CSS zamiast

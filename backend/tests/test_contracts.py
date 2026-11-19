@@ -157,6 +157,8 @@ def test_every_implemented_operation_has_a_real_success_response(logged_in, monk
         "POST", "/auth/login", json={"username": "test-user", "password": "synthetic-test-password"}
     )
     check("GET", "/auth/me")
+    assert check("GET", "/fleet/refresh")["enabled"] is False
+    assert check("POST", "/fleet/refresh")["result"] == "disabled"
     payload = check("GET", "/fleet/vehicles")
     assert payload["total"] == 2
     assert "contract-private-id" not in json.dumps(payload)

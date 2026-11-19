@@ -11,6 +11,7 @@ from app.core.errors import ApiError
 from app.core.models import Driver, Measurement, Vehicle
 from app.modules.auth.models import User
 from app.modules.auth.service import check_origin, current_user, editor
+from app.modules.fleet.refresh import refresh_state, request_refresh
 from app.modules.fleet.service import (
     fleet_driver_summaries,
     fleet_markers,
@@ -59,6 +60,16 @@ def context(request, session):
     settings = request.app.state.settings
     source = account_key(settings.webfleet_account)
     return settings, source, source_payload(session, source)
+
+
+@router.get("/refresh")
+def refresh_status(request: Request, session: SessionDep):
+    return refresh_state(request, session)
+
+
+@router.post("/refresh", dependencies=[Depends(check_origin)])
+def refresh_source(request: Request, session: SessionDep):
+    return request_refresh(request, session)
 
 
 @router.get("/vehicles")

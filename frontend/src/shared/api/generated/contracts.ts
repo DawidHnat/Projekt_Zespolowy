@@ -23,6 +23,8 @@ export type VehicleList = { "items": Array<Vehicle>; "total": number; "page": nu
 export type TripList = { "items": Array<Trip>; "total": number; "page": number; "page_size": number; };
 export type RuleList = { "items": Array<Rule>; "total": number; "page": number; "page_size": number; };
 export type AlertList = { "items": Array<Alert>; "total": number; "page": number; "page_size": number; };
+export type SourceRefreshState = { "enabled": boolean; "running": boolean; "server_time": string; "next_allowed_at": string | null; "retry_after_seconds": number; };
+export type SourceRefreshResult = { "enabled": boolean; "running": boolean; "server_time": string; "next_allowed_at": string | null; "retry_after_seconds": number; "result": "updated" | "cooldown" | "busy" | "failed" | "disabled"; };
 export type DriverCompatibility = { "status": "not_evaluated"; "reason": "SCRUM-70"; };
 export type DriverVehiclePreview = { "id": string; "name": string; "active": boolean; };
 export type DriverProfile = { "id": string; "display_name": string; "first_name": string | null; "last_name": string | null; "identifier": string | null; "phone": string | null; "email": string | null; "active": boolean; "version": number; "needs_completion": boolean; "categories": Array<"AM" | "A1" | "A2" | "A" | "B1" | "B" | "B+E" | "C1" | "C1+E" | "C" | "C+E" | "D1" | "D1+E" | "D" | "D+E" | "T">; "categories_version": "pl-driving-categories-v1"; "vehicles_total": number; "first_vehicle": DriverVehiclePreview | null; "compatibility": DriverCompatibility; };
@@ -34,6 +36,8 @@ export type DriverAssignmentResult = { "assignment": DriverAssignment; "driver_v
 export type DriverCategoryCatalog = { "version": "pl-driving-categories-v1"; "items": Array<{ "id": "AM" | "A1" | "A2" | "A" | "B1" | "B" | "B+E" | "C1" | "C1+E" | "C" | "C+E" | "D1" | "D1+E" | "D" | "D+E" | "T"; "label": "AM" | "A1" | "A2" | "A" | "B1" | "B" | "B+E" | "C1" | "C1+E" | "C" | "C+E" | "D1" | "D1+E" | "D" | "D+E" | "T"; }>; "compatibility": "not_evaluated"; };
 
 export type Responses = {
+  "GET /fleet/refresh": SourceRefreshState;
+  "POST /fleet/refresh": SourceRefreshResult;
   "POST /auth/login": UserResponse;
   "GET /auth/me": UserResponse;
   "POST /auth/logout": OkResponse;

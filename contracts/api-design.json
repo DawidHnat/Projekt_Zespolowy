@@ -5,6 +5,65 @@
   "examples": "synthetic-only",
   "operations": [
     {
+      "method": "GET",
+      "path": "/fleet/refresh",
+      "delivery": "first",
+      "request_example": {},
+      "response_example": {
+        "enabled": true,
+        "running": false,
+        "server_time": "2026-11-18T12:00:00+00:00",
+        "next_allowed_at": "2026-11-18T12:00:24+00:00",
+        "retry_after_seconds": 24
+      },
+      "error_example": {
+        "status": 401,
+        "body": {
+          "error": {
+            "code": "UNAUTHENTICATED",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      },
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/SourceRefreshState"
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/fleet/refresh",
+      "delivery": "first",
+      "request_example": {},
+      "response_example": {
+        "enabled": true,
+        "running": false,
+        "server_time": "2026-11-18T12:00:00+00:00",
+        "next_allowed_at": "2026-11-18T12:01:00+00:00",
+        "retry_after_seconds": 60,
+        "result": "updated"
+      },
+      "error_example": {
+        "status": 403,
+        "body": {
+          "error": {
+            "code": "FORBIDDEN",
+            "message": "Syntetyczny przykład błędu"
+          }
+        }
+      },
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/SourceRefreshResult"
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
+      }
+    },
+    {
       "method": "POST",
       "path": "/auth/login",
       "delivery": "first",
@@ -2160,6 +2219,93 @@
         "page_size"
       ],
       "additionalProperties": true
+    },
+    "SourceRefreshState": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "running": {
+          "type": "boolean"
+        },
+        "server_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "next_allowed_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retry_after_seconds": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "enabled",
+        "running",
+        "server_time",
+        "next_allowed_at",
+        "retry_after_seconds"
+      ],
+      "additionalProperties": false
+    },
+    "SourceRefreshResult": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "running": {
+          "type": "boolean"
+        },
+        "server_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "next_allowed_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retry_after_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "result": {
+          "type": "string",
+          "enum": [
+            "updated",
+            "cooldown",
+            "busy",
+            "failed",
+            "disabled"
+          ]
+        }
+      },
+      "required": [
+        "enabled",
+        "running",
+        "server_time",
+        "next_allowed_at",
+        "retry_after_seconds",
+        "result"
+      ],
+      "additionalProperties": false
     },
     "DriverCompatibility": {
       "type": "object",
