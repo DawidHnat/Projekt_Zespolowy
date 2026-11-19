@@ -168,11 +168,35 @@ test("SCRUM-46: all scope includes filtered, unloaded and future vehicles; cance
   await page.getByRole("button", { name: "Edytuj układ", exact: true }).click();
   await page.getByRole("button", { name: "Wszystkie pojazdy", exact: true }).click();
   await sizePicker(page).selectOption("Małe");
-  await page.getByRole("button", { name: "Zapisz układ", exact: true }).click();
+
+  let releaseLayoutWrite!: () => void;
+  const layoutWriteGate = new Promise<void>(resolve => { releaseLayoutWrite = resolve; });
+  let signalLayoutWrite!: () => void;
+  const layoutWriteStarted = new Promise<void>(resolve => { signalLayoutWrite = resolve; });
+  await page.route("**/api/v1/preferences/vehicles", async route => {
+    const request = route.request();
+    if (request.method() === "PUT" && request.postDataJSON().value.layout.defaultSize.width === 280) {
+      signalLayoutWrite();
+      await layoutWriteGate;
+    }
+    await route.fallback();
+  });
+  try {
+    await page.getByRole("button", { name: "Zapisz układ", exact: true }).click();
+    await layoutWriteStarted;
+    await search(page).fill("");
+  } finally {
+    releaseLayoutWrite();
+  }
+
   await expect(page.getByRole("button", { name: "Edytuj układ", exact: true })).toBeVisible();
+  await expect.poll(async () => {
+    const saved = await savedPreferences(page);
+    return { defaultSize: saved?.layout.defaultSize, query: saved?.filters.q };
+  }).toEqual({ defaultSize: { width: 280, height: 420 }, query: "" });
   fixture.add();
   await page.reload();
-  await search(page).fill("");
+  await expect(search(page)).toHaveValue("");
   await pageSize(page).selectOption("100");
   await expect(page.getByRole("article")).toHaveCount(27);
   await expect(card(page, 27)).toHaveCSS("width", "280px");

@@ -5,6 +5,7 @@ import { useVehiclePreferences } from "../model/VehiclePreferences";
 import { vehiclePreview } from "../model/vehicle-preview";
 import { statusLabels, type Vehicle } from "../model/types";
 import { VehiclePositionTime } from "./VehiclePositionTime";
+import { FleetRefreshButton } from "./FleetRefreshButton";
 
 export function VehicleMapPreview({
   vehicle,
@@ -78,9 +79,12 @@ export function VehicleMapPreview({
               <Clock3 size={13} aria-hidden="true" />
               <VehiclePositionTime value={vehicle.position_at} />
             </span>
-            <button className="button button-secondary" onClick={onDetails}>
-              Szczegóły <ArrowUpRight size={15} aria-hidden="true" />
-            </button>
+            <div className="map-preview-actions">
+              <FleetRefreshButton compact />
+              <button className="button button-secondary" onClick={onDetails}>
+                Szczegóły <ArrowUpRight size={15} aria-hidden="true" />
+              </button>
+            </div>
           </footer>
         </>
       ) : (
