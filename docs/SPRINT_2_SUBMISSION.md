@@ -7,7 +7,8 @@ potwierdzenie cudzego QA ani pozwolenie na wysłanie niekompletnej odpowiedzi.
 
 **BLOCKED: S3 id=4 jest nadal future.** Potwierdzone przez PO spotkania
 Review/retro S2 odbyły się 18.11, cała czwórka; aktualny zapis jest w #123
-do review/main. Pokazana Story/SHA i szczegółowa ocena efektu 65 nieustalone.
+do review/main. Zakres pokazu i ocena efektu 65 uzupełnione relacją PO; SHA pokazu nieustalone.
+Nowe działanie z 19.11: Jakub codziennie sprawdza kolejkę i przypomina reviewerom.
 [Pełne odbiory 16/91](qa/SCRUM-141-current.md) mają własne kryteria.
 
 Technika już sprawdzona: main/HTTP/HTTPS cb634da, readiness 200/ok,

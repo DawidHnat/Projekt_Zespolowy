@@ -19,6 +19,17 @@ SCRUM-23 i SCRUM-40**, zgodnie z decyzją PO. Zachowujemy historyczne opisy
 i wyniki z datami; nowy zapis określa bieżący zakres. Nie oznacza zamknięcia
 innych kryteriów tych zadań, rzeczywistej mapy lub nowych pól źródła.
 
+## Doprecyzowanie wykonawcy — odpowiedź PO 19.11
+
+[Zakres wyjątku w SCRUM-141/10364](https://fleet-flow.atlassian.net/browse/SCRUM-141?focusedCommentId=10364).
+
+**Jakub Czaja przejmuje tylko próby wymagające jego Maca/Safari**, z powodu
+braku tego sprzętu/przeglądarki u Marcela. To ograniczony wyjątek od niezależnego
+QA; wynik musi wskazywać faktycznego wykonawcę. **Pozostałe QA zostaje u Marcela**,
+bez przejęcia całego SCRUM-141/23/40/101. Nie przedstawiono nowego wyniku testu.
+Safari nadal jest poza obowiązkowym zakresem; wyjątek nie przywraca go jako
+blokady sprintu ani nie zmienia niezależnego review PR.
+
 **Dwa konta syntetyczne pozostają potrzebne dla SCRUM-91 AC4.** Sprawdzają
 dwóch użytkowników tej samej firmy, w tym naprawiony błąd przeniesienia
 preferencji A→B (SCRUM-144/#99); nie wymagają dwóch firm ani dwóch API.

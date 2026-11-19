@@ -23,7 +23,10 @@ całej czwórki](course/2026-11-19/technical-evidence.json).
 - Review i retro S2 odbyły się **18.11 z całą czwórką**, potwierdził PO 19.11:
   [SCRUM-142/10347](https://fleet-flow.atlassian.net/browse/SCRUM-142?focusedCommentId=10347).
   Aktualizacja protokołów jest w [PR #123](https://github.com/DawidHnat/Projekt_Zespolowy/pull/123);
-  konkretna pokazana Story/SHA oraz szczegółowa ocena 65 pozostają nieustalone.
+  PO opisał mapę/szczegóły/zdjęcia, style i kafelki, zapis, aktualizacje/statusy oraz
+  login/logout; SHA pokazu nieustalone. Ocena 65: spotkania pomagały, codzienna
+  kontrola bez nich była nieregularna. Nowe działanie z 19.11: Jakub codziennie
+  sprawdza kolejkę i przypomina reviewerom.
 
 | Osoba | Własny scalony PR | Rzeczywiste review innego autora na końcowym head |
 | --- | --- | --- |
@@ -46,15 +49,16 @@ dowody. Marcel kończy wskazane brakujące QA 16/91 na oznaczonym wydaniu:
 cookie/odwołanie API, pełne kombinacje preferencji, dwie osoby i migracja.
 Autor testów nie podpisuje tego za niego. Dwa syntetyczne konta to użytkownicy
 jednej firmy, bez wielofirmowości. [Decyzja PO o zakresie przeglądarek](qa/browser-scope-20261119.md)
-wyłącza obowiązkowe Safari; nie zalicza niewykonanej próby.
+wyłącza obowiązkowe Safari; nie zalicza niewykonanej próby. Jakub przejmuje
+wyłącznie próby wymagające Maca/Safari; pozostałe QA nadal wykonuje Marcel.
 
 | Zakres | Co pozostaje / odpowiedzialny | Stan |
 | --- | --- | --- |
 | 3.2 — pełne S1 | Marcel końcowy QA + PO zakres; aktualne dokumenty przez niezależny review/CI/main; zachować pakiet jeszcze przy S2 active | BLOCKED |
 | Integracje S2 | Dawid aktualny review #101/a8476ac (CI PASS), potem zwykły merge/deploy/smoke; następnie #110 z review i QA Marcela 54/33 | BLOCKED |
 | SCRUM-46 | [#120](https://github.com/DawidHnat/Projekt_Zespolowy/pull/120), 58 unit/build i 6/6 E2E PASS; Nazarewicz aktualny review, CI/main. Szersze QA 23/40 osobno | BLOCKED review/main |
-| Prywatność | [#121](https://github.com/DawidHnat/Projekt_Zespolowy/pull/121), gotowy arkusz; Jakub wskazuje uprawnionego administratora/konsultującego, właściwe osoby rozstrzygają 113 i screening | BLOCKED |
-| 65 / retro | Datowane miary istnieją; Marcel pełny DoD jednej Story w 141, PO/uczestnicy konkretna ocena skuteczności 65 | BLOCKED |
+| Prywatność | [#121](https://github.com/DawidHnat/Projekt_Zespolowy/pull/121), arkusz uzupełniony: rzeczywiste dane jednej firmy, właściciel wskazany lokalnie, czwórka i pokaz prowadzącemu, użyczenie do końca lutego 2027 i plan usunięcia. Brak konsultacji i pozostałych procedur; Jakub koordynuje | BLOCKED |
+| 65 / retro | Miary i rzeczywista ocena 65 zapisane; nowe działanie Jakuba z 19.11 uzgodnione. Pozostają pełny DoD jednej Story w 141 i review/main dokumentów | BLOCKED |
 | 4.2 — finalne | Po rozliczeniu zakresu i spełnieniu warunków zamknąć S2 id=3, uruchomić istniejący S3 id=4, potwierdzić 128/129 i odświeżyć CI/deploy/smoke po ostatnim merge | BLOCKED |
 
 **12 pozostałych otwartych S2:** 21, 23, 40, 46, 64, 65, 94, 101, 133, 141,

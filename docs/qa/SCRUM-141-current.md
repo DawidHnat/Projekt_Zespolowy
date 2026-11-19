@@ -6,6 +6,10 @@ Bieżący kod `cb634da0ece8cd93424bfc16a5185cf817a0cbb1`; środowisko CI Linux/P
 
 Źródłowe pełne macierze Marcela: [SCRUM-141/10254](https://fleet-flow.atlassian.net/browse/SCRUM-141?focusedCommentId=10254) (S1) i [SCRUM-141/10255](https://fleet-flow.atlassian.net/browse/SCRUM-141?focusedCommentId=10255) (S2). Review auth i ocena restore **już PASS**: [SCRUM-141/10324](https://fleet-flow.atlassian.net/browse/SCRUM-141?focusedCommentId=10324) i [SCRUM-141/10345](https://fleet-flow.atlassian.net/browse/SCRUM-141?focusedCommentId=10345). Błędy 144/145/146 zostały poprawione i scalone w #99; brak końcowego QA nie oznacza, że kod nadal ma dawny FAIL.
 
+Doprecyzowanie PO 19.11: **Jakub wykonuje wyłącznie próby wymagające Maca/Safari**;
+reszta QA pozostaje u Marcela. Safari jest poza obowiązkowym zakresem, nie ma
+nowego wyniku PASS. [Ograniczony wyjątek](browser-scope-20261119.md).
+
 Dla tabel AC: historyczne ręczne środowisko Marcela to Chrome/Edge Windows, `9dad2b2`, chyba że w wierszu wskazano inaczej; pełne SHA jest w podlinkowanym źródle. Aktualna regresja automatyczna pochodzi z powyższego dokładnego SHA/CI.
 
 ## S1 / SCRUM-16 — wszystkie 4 AC
