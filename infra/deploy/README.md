@@ -70,6 +70,21 @@ Protokół odbioru łączy commit, run CI, SBOM, wynik skanu, SHA archiwum,
 identyfikator obrazu z joba `Backend image`, identyfikator kontenera na VPS i
 publiczny smoke tego wydania. Właściciel operacyjny potwierdza okno aktywacji.
 
+### Wycofanie aplikacji po migracjach kartoteki i historii (SCRUM-18 / SCRUM-119)
+
+Próba syntetyczna 20.11.2026 objęła starszy backend `dff6240` i migracje
+0011–0012 z `a8af891`. Po rozszerzeniu schematu starsze API nadal potwierdziło
+gotowość, logowanie, odczyt floty i zapisanej historii. Te same odczyty przeszły
+po odtworzeniu kopii schematu 0010 do osobnej bazy.
+
+Stary zapis kartoteki może przejść na rozszerzonym schemacie bez ustawienia
+własności konkretnego pola. W próbie taki zapis zostałby zastąpiony przez
+następną synchronizację nowej aplikacji. Przy powrocie do wersji sprzed 0011
+operator wstrzymuje zapisy kartoteki i synchronizację do czasu ponownego
+wdrożenia albo uzgodnionego odtworzenia kopii. Jeśli stara wersja już przyjęła
+zapisy, operator najpierw je identyfikuje i uzgadnia ich zachowanie lub zakres
+odtworzenia z PO. Readiness i poprawny odczyt nie rozstrzygają zachowania zmian.
+
 ### Walidacja aktualności wydania i jawny rollback (SCRUM-137)
 
 Przed rozpakowaniem artefaktu i jakąkolwiek zmianą stanu serwera (`releases/`,
