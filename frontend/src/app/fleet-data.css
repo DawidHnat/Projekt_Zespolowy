@@ -337,7 +337,7 @@ table.vehicle-table {
 .map-fallback {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: 4;
   background: var(--surface);
 }
 .map-status {
@@ -413,3 +413,25 @@ table.vehicle-table {
 .map-canvas .empty-state p {
   color: var(--wallpaper-muted);
 }
+
+.vehicle-card-details h3 { margin-top: 0; }
+.vehicle-card-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: 12px;
+  margin: 0 0 12px;
+}
+.vehicle-card-fields :is(dt, label) { font-size: .875rem; font-weight: 600; }
+.vehicle-card-fields dd { margin: 4px 0 0; overflow-wrap: anywhere; }
+.vehicle-card-fields input {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+.vehicle-card-actions { display: flex; flex-wrap: wrap; gap: 8px; }

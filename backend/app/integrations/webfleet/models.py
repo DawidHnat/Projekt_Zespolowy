@@ -7,6 +7,8 @@ from typing import Any
 
 MAX_ODOMETER_KM = Decimal("9999999999999.9")
 MAX_ODOMETER_RAW = Decimal("99999999999999")
+ODOMETER_RESOLUTION_KM = Decimal("0.1")
+MAX_SPEED_KMH = 300
 
 
 def _number(value: Any) -> Decimal | None:
@@ -35,7 +37,7 @@ def _odometer(value: Any) -> Decimal | None:
     if km > MAX_ODOMETER_KM:
         raise ValueError(f"Wartość odometru przekracza limit Numeric(14,1): {km}")
     try:
-        return km.quantize(Decimal("0.1"))
+        return km.quantize(ODOMETER_RESOLUTION_KM)
     except InvalidOperation:
         raise ValueError(f"Niepoprawny wykładnik dziesiętny odometru: {km}") from None
 
@@ -66,7 +68,7 @@ def _speed(value: Any) -> Decimal | None:
     number = _number(value)
     if number is None:
         return None
-    if 0 <= number <= 300:
+    if 0 <= number <= MAX_SPEED_KMH:
         return number
     return None
 
