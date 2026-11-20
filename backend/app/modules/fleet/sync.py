@@ -126,6 +126,10 @@ def apply_records(session, source, masters, readings, now):
             .with_for_update()
         )
     }
+    # The provider reports no authoritative deletion signal. A shrinking report
+    # cannot replace a known roster, even if its telemetry is internally consistent.
+    if any(vehicle.active and uid not in masters for uid, vehicle in vehicles.items()):
+        raise WebfleetError("INCOMPLETE_REPORT")
     for uid, row in masters.items():
         vehicle = vehicles.get(uid)
         if not vehicle:
@@ -169,9 +173,6 @@ def apply_records(session, source, masters, readings, now):
             ):
                 setattr(measurement, field, getattr(reading, field))
             measurement.received_at = now
-    for uid, vehicle in vehicles.items():
-        if uid not in masters:
-            vehicle.active = False
 
 
 def sync_once(
