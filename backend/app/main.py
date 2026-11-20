@@ -15,6 +15,7 @@ from app.modules.analytics.router import router as analytics_router
 from app.modules.auth.profile import router as profile_router
 from app.modules.auth.reset import router as reset_router
 from app.modules.auth.router import router as auth_router
+from app.modules.drivers.router import router as drivers_router
 from app.modules.fleet.router import router as fleet_router
 from app.modules.fleet.sync import sync_worker
 from app.modules.preferences.router import router as preferences_router
@@ -65,6 +66,7 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
     )
     register_handlers(app)
     app.include_router(auth_router)
+    app.include_router(drivers_router)
     app.include_router(reset_router)
     app.include_router(profile_router)
     app.include_router(fleet_router)
