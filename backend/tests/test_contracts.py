@@ -201,6 +201,9 @@ def test_every_implemented_operation_has_a_real_success_response(logged_in, monk
     )
     day = now.astimezone(ZoneInfo("Europe/Warsaw")).date()
     check("GET", "/trips/mileage", params={"vehicle_id": vehicle, "from_day": day, "through": day})
+    check(
+        "GET", "/analytics/usage", params={"vehicle_ids": vehicle, "from_day": day, "through": day}
+    )
     detail = check("GET", "/trips/{id}", f"/trips/{trip}")
     assert detail["duration_seconds"] == 600 and detail["distance_km"] == 12.5
     assert detail["annotation"]["updated_at"] is None and detail["geometry"] is None

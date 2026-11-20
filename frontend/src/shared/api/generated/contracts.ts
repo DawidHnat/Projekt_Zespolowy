@@ -39,6 +39,9 @@ export type TripStop = { "start_at": string; "end_at": string; "duration_seconds
 export type TripStopList = { "items": Array<TripStop>; "total": number; "page": number; "page_size": number; "coverage": TripCoverage | null; };
 export type MileageSummary = { "distance_km": number | null; "documented_km": number | null; "missing_purpose": number; "missing_driver": number; "missing_distance": number; };
 export type MileagePeriod = { "items": Array<Trip>; "total": number; "page": number; "page_size": number; "coverage": TripCoverage | null; "summary": MileageSummary; };
+export type VehicleUsage = { "vehicle_id": string; "name": string; "coverage": TripCoverage; "distance_km": number | null; "trip_count": number | null; "active_days": number | null; "missing_distance": number; };
+export type UsageSummary = { "distance_km": number | null; "trip_count": number | null; "active_days": number | null; "missing_distance": number; "coverage_complete": boolean; };
+export type UsagePeriod = { "source": "webfleet_trip_history"; "timezone": "Europe/Warsaw"; "day_basis": "trip_start_day"; "items": Array<VehicleUsage>; "summary": UsageSummary; };
 
 export type Responses = {
   "GET /fleet/refresh": SourceRefreshState;
@@ -73,4 +76,5 @@ export type Responses = {
   "GET /drivers/{id}/assignments": DriverAssignmentList;
   "POST /drivers/{id}/assignments": DriverAssignmentResult;
   "PATCH /drivers/{id}/assignments/{assignment_id}/close": DriverAssignmentResult;
+  "GET /analytics/usage": UsagePeriod;
 };
