@@ -46,7 +46,7 @@ def test_vehicle_edit_requires_editor_role(application, role, expected_status):
     result = client.patch(
         f"/api/v1/fleet/vehicles/{uuid4()}",
         headers=ORIGIN,
-        json={"name": "Synthetic test vehicle"},
+        json={"card_version": 1, "name": "Synthetic test vehicle"},
     )
 
     assert result.status_code == expected_status
