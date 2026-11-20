@@ -10,9 +10,17 @@ Jira: <!-- rzeczywisty klucz, np. SCRUM-123 -->
 
 <!-- Jak sprawdzono zmianę? Dla samej struktury: lista katalogów i puste pliki. -->
 
-- [ ] Zakres odpowiada zadaniu.
+QA konkretnej zmiany: <!-- osoba inna niż autor, SHA, środowisko, scenariusze i wynik; dla dokumentacji N/A z uzasadnieniem -->
+
+Osobna regresja modułu / odbiór wdrożenia: <!-- istniejący klucz QA, jeśli dotyczy -->
+
+- [ ] PR kończy cały zakres zadania wskazanego kluczem w gałęzi; częściowy przyrost ma własne zadanie.
+- [ ] Sprawdzenie kryteriów konkretnej zmiany zapisano powyżej przed merge; reviewer potwierdza wynik przy Approved.
 - [ ] Diff nie zawiera sekretów ani `.env`.
 - [ ] Zmiana jest gotowa do przeglądu drugiej osoby.
+
+Po aktualnym Approved, zielonym wymaganym CI i merge do `main` zadanie
+implementacyjne jest **Gotowe**. Osobne QA/regresja zachowuje własny status.
 
 ## Security / SCRUM-101 (jeśli dotyczy)
 
