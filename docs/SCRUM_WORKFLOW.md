@@ -1,7 +1,8 @@
 # Zasady pracy Scrum — SCRUM-34
 
-Aktualizacja: 26.10.2026. Właściciel: Jakub Czaja. Dokument porządkuje
-bieżący przepływ pracy i zastępuje nieaktualny opis SCRUM-34 z 5 października.
+Aktualizacja przepływu: 18.11.2026, SCRUM-151, decyzja PO. Właściciel:
+Jakub Czaja. QA konkretnej zmiany odbywa się przed merge; regresja modułu
+jest osobnym zadaniem. Poniższy plan sprintów jest zapisem z 26.10.2026.
 Źródłem bieżących statusów i składu sprintów jest
 [Jira](https://fleet-flow.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog).
 
@@ -53,19 +54,36 @@ zakres Story jest ponownie planowany.
 | --- | --- | --- | --- |
 | Do zrobienia | Do zrobienia | Zakres czeka na rozpoczęcie | Właściciel, kryteria i zależności |
 | W toku | W toku | Właściciel rozpoczął pracę | Gałąź zadania, następny krok i opisana blokada, jeśli występuje |
-| W trakcie weryfikacji | W toku | Rezultat jest gotowy do niezależnego review | PR lub dokument, aktualny commit i sposób sprawdzenia |
-| Testowanie | W toku | Przyrost po review można niezależnie sprawdzić | Osoba QA, scenariusze, wersja i środowisko; bez domyślnego PASS |
-| Gotowe | Gotowe | Spełniono wszystkie kryteria i DoD | Wynik odbioru, scalony PR i wymagane dowody |
+| W trakcie weryfikacji | W toku | Konkretna zmiana czeka na review i sprawdzenie przed merge | PR, aktualne SHA, niezależne review oraz wynik sprawdzenia kryteriów |
+| Testowanie | W toku | Trwa osobne zadanie QA, regresji modułu lub odbioru wdrożenia | Osoba QA, scenariusze, wersja i środowisko oraz rzeczywisty wynik |
+| Gotowe | Gotowe | Cały zakres zadania jest dostarczony; dla implementacji po zatwierdzonym merge do main | Aktualne Approved, zielone wymagane CI i sprawdzenie zmiany przed merge; QA bez kodu ma zapisany wynik |
 
-26.10 poprawiono kategorię istniejącego statusu **Testowanie** z Do zrobienia
-na W toku. Nazwa, położenie kolumny, punkty i statusy konkretnych zgłoszeń
-pozostają zachowane. Po odświeżeniu backlog Sprintu 1 pokazuje 0/21 SP
-Do zrobienia, 21/21 W toku i 0/21 Gotowe. Nie oznacza to ukończenia żadnej Story.
+Przepływ implementacji: **Do zrobienia → W toku → W trakcie weryfikacji →
+Gotowe**. Review i sprawdzenie kryteriów konkretnego PR odbywają się przed
+merge. QA wykonuje Marcel lub inna osoba niż autor; recenzent zatwierdza PR
+po potwierdzeniu zakresu, wyników i wymaganych kontroli CI.
+
+Osobne zadania QA przechodzą przez **Testowanie**, np. SCRUM-23 (flota),
+SCRUM-56 (logowanie), SCRUM-63 (historia/ewidencja) i SCRUM-17 (regresja MVP).
+Nie powielamy w nich akceptacji każdego PR; sprawdzamy określone scenariusze
+integracyjne i regresję modułu na wskazanej wersji. Implementacja może być
+Gotowe, gdy przekrojowa regresja ma jeszcze otwarty zakres.
+
+Reguła **SCRUM: merge PR do main → Gotowe** dotyczy wyłącznie
+`DawidHnat/Projekt_Zespolowy`, docelowego `main` i dokładnego klucza zadania
+w nazwie gałęzi. Story i epiki są poza automatycznym zamykaniem; status Gotowe
+nie jest cofany przez ponowne zdarzenie. Reguła odwzorowuje decyzję o merge;
+review i QA są potwierdzane wcześniej w GitHub. Dostarczenie zdarzeń GitHub
+i test działania reguły śledzi [SCRUM-151](https://fleet-flow.atlassian.net/browse/SCRUM-151).
+Gałąź ma postać `prefiks/SCRUM-123-krotki-opis`, z jednym kluczem i opisem
+z małych liter, cyfr i myślników. Obsługiwane prefiksy: `feat`, `fix`, `docs`,
+`chore`, `refactor`, `test`, `codex`. Inny format nie uruchamia zamknięcia.
 
 W widoku **Grupa → Subtask** dzieci są widoczne we własnych kolumnach z punktami.
 Bez grupowania rozwijamy dzieci na karcie rodzica. Rodzic może pozostać W toku,
-gdy gotowy fragment ma już odbiór QA — jak SCRUM-5 z otwartym SCRUM-51.
-Nie przenosimy całej Story do Gotowe po scaleniu jednego fragmentu.
+gdy gotowy fragment został sprawdzony i scalony do main. Częściowy PR ma
+własne zadanie; jego merge nie zamyka całej Story ani osobnego QA. Także
+merge do gałęzi zależności wymaga późniejszego dostarczenia do main.
 
 Developer pracuje według [CONTRIBUTING](../CONTRIBUTING.md): jedna gałąź i PR
 na zadanie, review innej osoby oraz wymagane CI. QA zapisuje scenariusz,
@@ -80,10 +98,10 @@ Przed rozpoczęciem właściciel zna użytkownika i cel, kryteria, zakres,
 uprawnienia, źródło danych, zależności i sposób odbioru. Brak niezbędnego
 interfejsu staje się jawną zależnością, a nie ukrytą atrapą w produkcie.
 
-Obowiązuje [DEFINITION_OF_DONE.md](../DEFINITION_OF_DONE.md). Zawiera sprawdzalne
-warunki review, CI, testów, wdrożenia HTTPS i zgodności SHA z `origin/main`.
-Wynik CI nie zastępuje niezależnego QA, a dokumentacja konfiguracji nie jest
-dowodem jej działania. Nie zastępujemy DoD drugim, skróconym zestawem reguł.
+Obowiązuje [DEFINITION_OF_DONE.md](../DEFINITION_OF_DONE.md). Definiuje ukończenie
+zadania implementacyjnego po sprawdzeniu i merge oraz osobny odbiór QA/wydania.
+Wdrożenie HTTPS, smoke, SHA i regresja mają własne wyniki i zadania. Status
+implementacji nie potwierdza automatycznie zaliczenia całego modułu ani wydania.
 Testy używają danych syntetycznych; żywe WEBFLEET i wysyłka SMTP wymagają
 osobnego uzgodnienia. Sekrety i `.env` pozostają poza Git.
 

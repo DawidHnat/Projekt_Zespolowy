@@ -7,7 +7,7 @@ a układy Pulpitu i Pojazdów zapisują się na koncie (SCRUM-91).
 Nie cofnięto preferencji backendowych, profilu, nowszej kartoteki ani testów sesji.
 
 
-Serwis, Ewidencja przebiegu, Kierowcy, Karty paliwowe i Alerty mają napis
+Serwis, Ewidencja przebiegu, Kierowcy, Karty paliwowe mają napis
 „Planowane” w nawigacji oraz na stronie. Rejestr `navigation.ts` wyznacza
 oba oznaczenia przez `placeholder`. Usunięcie go wraz z podłączeniem
 zaimplementowanego widoku usuwa oznaczenie. Działające widoki nie mają etykiety.
