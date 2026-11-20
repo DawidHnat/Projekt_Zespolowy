@@ -188,8 +188,12 @@ są walidowane przy starcie; nie ustawiaj częstotliwości przed sprawdzeniem li
 WEBFLEET dla używanego konta.
 PostgreSQL advisory lock i zapis czasu próby chronią limit także przy kilku
 procesach. Nie uruchamiaj równolegle diagnostyki w pętli. Awaria zachowuje dane
-ostatniego sukcesu; brak kompletnego raportu nie dezaktywuje pojazdów. Import
-aktualizuje wyłącznie pola pojazdu/pomiaru — nigdy ręcznych kierowców/przypisań.
+ostatniego sukcesu. Pierwszy pusty odczyt jest poprawny, jeżeli oba raporty
+są puste. Brak dowolnego wcześniej aktywnego pojazdu w raporcie głównym daje
+`INCOMPLETE_REPORT`: cały ostatni stan pozostaje w cache, a źródło jest
+`degraded` do czasu poprawnego odczytu. Sama nieobecność w raporcie nie jest
+dowodem dezaktywacji. Import aktualizuje wyłącznie pojazdy i pomiary.
+Kierowcy i przypisania są wprowadzane ręcznie.
 Synchronizator ponawia timeout, błąd połączenia, limit źródła i błędy HTTP 408,
 425 oraz 5xx maksymalnie do trzech prób na każdy raport (dwie ponowne próby),
 z co najmniej 10 s przerwy wymaganej przez raport i z uwzględnieniem `Retry-After`
