@@ -10,6 +10,7 @@ import { EmptyState } from "../../../shared/components/EmptyState";
 import { VehicleMarkers } from "./vehicle-markers";
 import { useVehiclePreferences } from "../model/VehiclePreferences";
 import { VehicleMapPreview } from "./VehicleMapPreview";
+import MapConfigurationNotice from "./MapConfigurationNotice";
 
 const token = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
 const style = () =>
@@ -187,16 +188,7 @@ export default function VehicleMap() {
       else handler.enable();
     }
   }, [editing, ready]);
-  if (!token?.startsWith("pk."))
-    return (
-      <div className="map-canvas">
-        <EmptyState
-          icon={MapPin}
-          title="Mapa czeka na konfigurację"
-          description="Administrator musi skonfigurować dostęp do mapy. Lista pojazdów jest dostępna."
-        />
-      </div>
-    );
+  if (!token?.startsWith("pk.")) return <MapConfigurationNotice />;
   return (
     <div className="map-canvas live-map" aria-label="Mapa pozycji floty">
       <div className="mapbox-container" ref={container} tabIndex={-1} />
