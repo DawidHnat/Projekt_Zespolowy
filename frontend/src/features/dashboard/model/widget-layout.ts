@@ -12,7 +12,7 @@ import {
   minimumWidth,
   minimumHeight,
 } from "./widget-sizing.ts";
-import { WIDGET_IDS, type SectionId, type WidgetId } from "./widget-types.ts";
+import { DRIVER_WIDGET_IDS, WIDGET_IDS, type SectionId, type WidgetId } from "./widget-types.ts";
 
 export const SECTION_IDS = [
   "dashboard",
@@ -20,6 +20,7 @@ export const SECTION_IDS = [
   "fleet",
   "trips",
   "analytics",
+  "drivers",
 ] as const;
 export const PROFILES = ["desktop", "compact"] as const;
 export type LayoutProfile = (typeof PROFILES)[number];
@@ -30,6 +31,7 @@ export const SECTION_WIDGETS: Record<SectionId, readonly WidgetId[]> = {
   fleet: ["metrics", "map", "vehicles"],
   trips: ["trips"],
   analytics: ["metrics", "activity", "utilization"],
+  drivers: DRIVER_WIDGET_IDS,
 };
 export const columns = (profile: LayoutProfile) =>
   profile === "desktop" ? 12 : 1;
@@ -43,6 +45,10 @@ const sizes: Record<
   vehicles: { w: 8, h: 9, minW: 6, minH: 9 },
   utilization: { w: 4, h: 9, minW: 4, minH: 8 },
   trips: { w: 12, h: 5.5, minW: 4, minH: 5.5 },
+  "driver-active": { w: 3, h: 7, minW: 3, minH: 7 },
+  "driver-unassigned": { w: 3, h: 7, minW: 3, minH: 7 },
+  "driver-missing": { w: 3, h: 7, minW: 3, minH: 7 },
+  "driver-checks": { w: 3, h: 7, minW: 3, minH: 7 },
 };
 // The Map view uses a compact vehicle sidebar; the Pulpit keeps its table budget.
 const mapSizes = {

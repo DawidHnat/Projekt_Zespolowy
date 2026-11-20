@@ -26,12 +26,31 @@ i role są w README, a ustalenia zespołu w TEAM_CONTRACT.md.
    z kluczem zadania i wykonaj `git push -u origin NAZWA-GALEZI`.
 5. Utwórz PR do `main` na GitHubie. Wpisz klucz SCRUM, opis zmiany i sposób
    sprawdzenia. Niedokończony PR oznacz jako draft.
-6. Drugi developer sprawdza zmianę, a QA potwierdza kryteria, jeśli dotyczy
-   zachowania aplikacji. Poprawki trafiają na tę samą gałąź.
-7. Po przeglądzie scal PR, zachowując autorstwo commitów, i dodaj link w Jirze.
-   Ustaw **Done** dopiero po spełnieniu wszystkich kryteriów zadania oraz odbiorze
-   QA. Scalenie częściowego przyrostu nie zamyka całej Story.
+6. Przed scaleniem drugi developer wykonuje review, a QA (Marcel lub inna
+   osoba niż autor) sprawdza kryteria konkretnej zmiany, jeśli dotyczy ona
+   zachowania aplikacji. W PR zapisz wynik, sprawdzone SHA i środowisko;
+   dla dokumentacji uzasadnij N/A. Recenzent przed **Approved** potwierdza
+   kompletność zakresu i wyników. Poprawki trafiają na tę samą gałąź.
+7. Gdy cały zakres zadania jest dostarczony, aktualne review jest zatwierdzone,
+   a wymagane CI jest zielone, scal PR do `main`, zachowując autorstwo commitów.
+   Zadanie implementacyjne przechodzi wtedy do **Gotowe**. Nie wymaga drugiego
+   ręcznego odbioru po merge. Reguła Jira **SCRUM: merge PR do main → Gotowe**
+   dotyczy zadań i podzadań wskazanych kluczem w gałęzi; Story i epiki zamykamy
+   po ich pełnym zakresie. Stan połączenia i testu reguły śledzi
+   [SCRUM-151](https://fleet-flow.atlassian.net/browse/SCRUM-151).
    Nie wysyłaj zmian bezpośrednio na `main`.
+
+Przekrojowe QA, regresja modułu i odbiór wdrożenia mają osobne zadania, zakres
+i wynik. Korzystamy z istniejących SCRUM-23 (flota), SCRUM-56 (logowanie),
+SCRUM-63 (historia/ewidencja) i SCRUM-17 (regresja MVP), jeśli obejmują potrzebne
+scenariusze. **Testowanie** służy tym zadaniom; ukończona implementacja zachowuje
+status **Gotowe**. Błąd znaleziony w regresji otrzymuje zgłoszenie i PR poprawki.
+Wdrożenie i smoke pozostają sprawdzane w pipeline; awaria ma zadanie naprawcze.
+
+Jeden klucz w gałęzi wskazuje zadanie w całości kończone przez PR. Częściowy
+przyrost otrzymuje własne zadanie i klucz przed merge; nie zamyka pozostałego
+zakresu, rodzica ani osobnego QA. Zadania bez kodu zamykamy po dostarczeniu
+ich wyniku. Szczegóły: [Definition of Done](DEFINITION_OF_DONE.md).
 
 Sekrety, klucze prywatne i `.env` pozostają poza repozytorium. Przed pushem
 sprawdzamy zakres zmian; nowe zachowanie sprawdzamy odpowiednimi testami.
@@ -73,7 +92,7 @@ w blokach kodu. Brakujący plik powoduje zakończenie z kodem błędu 1.
 
 Kontrola uruchamia się automatycznie w GitHub Actions.
 
-Statusy **W trakcie weryfikacji** i **Testowanie** rozdzielają niezależne review
-od odbioru QA; oba należą do kategorii W toku. Kryteria przejść, sposób
-zapisu błędów i proponowany rytm spotkań opisują
+**W trakcie weryfikacji** obejmuje review i sprawdzenie konkretnej zmiany przed
+merge. **Testowanie** służy osobnym zadaniom QA/regresji. Oba statusy należą do
+kategorii W toku. Kryteria przejść, sposób zapisu błędów i rytm spotkań opisują
 [zasady pracy Scrum](docs/SCRUM_WORKFLOW.md).

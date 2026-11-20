@@ -1116,6 +1116,42 @@ test("keyboard opens details, traps focus, switches tabs and returns focus on Es
   await expect(opener).toBeFocused();
 });
 
+test("multiple manual drivers are represented without an arbitrary primary driver", async ({ page }) => {
+  execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", "multiple-drivers"], {
+    cwd: "../backend", env: { ...process.env, PYTHONPATH: ".", FLEET_FLOW_E2E: "true" }, stdio: "pipe",
+  });
+  await login(page);
+  await expect(page.getByText("2 kierowców", { exact: true })).toBeVisible();
+  const response = await (await page.request.get("/api/v1/fleet/vehicles/11111111-1111-4111-8111-111111111111")).json();
+  expect(response.driver).toBeNull();
+  expect(response.driver_count).toBe(2);
+  expect(response.driver_preview.map((driver: { display_name: string }) => driver.display_name)).toEqual(["Kierowca E2E A", "Kierowca E2E B"]);
+  const search = await page.request.post("/api/v1/drivers/search", {
+    headers: { Origin: "http://127.0.0.1:54173" }, data: { vehicle_id: "11111111-1111-4111-8111-111111111111" },
+  });
+  expect((await search.json()).total).toBe(2);
+  await page.goto("/#dashboard");
+  await expect(page.getByRole("cell", { name: "2 kierowców", exact: true })).toBeVisible();
+  // Preserve both sides of the integration: multiple drivers and protection
+  // against a cached stale speed being presented as a current measurement.
+  await page.route("**/api/v1/fleet/vehicles?**", async route => {
+    const response = await route.fetch();
+    const data = await response.json();
+    await route.fulfill({ response, json: {
+      ...data,
+      items: data.items.map((item: Record<string, unknown>) => ({
+        ...item, is_stale: true, status: "offline", speed_kmh: 88,
+      })),
+    } });
+  });
+  await page.reload();
+  const row = page.locator(".vehicle-table tbody tr").filter({ hasText: "Pojazd E2E" });
+  await expect(row.getByRole("cell", { name: "2 kierowców", exact: true }))
+    .toHaveAttribute("title", "Kierowca E2E A, Kierowca E2E B");
+  await expect(row.getByRole("cell", { name: "Brak danych", exact: true })).toBeVisible();
+  await expect(row).not.toContainText("88 km/h");
+  await page.screenshot({ path: test.info().outputPath("multiple-drivers.png") });
+});
 for (const theme of ["light", "dark"]) {
   test(`planned modules and local-only data ${theme}`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
@@ -1127,7 +1163,7 @@ for (const theme of ["light", "dark"]) {
       const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
       if (await menu.isVisible()) await menu.click();
     };
-    for (const title of ["Serwis", "Ewidencja przebiegu", "Kierowcy", "Karty paliwowe", "Alerty"]) {
+    for (const title of ["Serwis", "Ewidencja przebiegu", "Karty paliwowe"]) {
       await openMenu();
       const link = page.getByRole("navigation", { name: "Sekcje aplikacji" })
         .getByRole("link", { name: `${title} Planowane`, exact: true });
