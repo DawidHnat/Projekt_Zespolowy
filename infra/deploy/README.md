@@ -30,8 +30,8 @@ Nie ma domyślnych kont aplikacji. WEBFLEET pozostaje wyłączony.
 
 `CI` działa dla **każdego PR**, także zmieniającego wyłącznie dokumentację,
 oraz każdego pushu do `main`. Nie ma filtrów `paths`. Kontrola `Required CI`
-przechodzi tylko po udanej budowie frontendu, obrazu backendu i testach obu
-wersji Pythona.
+przechodzi tylko po udanej budowie frontendu, obrazu backendu i przejściu
+testów backendu na Pythonie 3.12, 3.13 i 3.15.
 Wymagaj jej w ochronie `main`; nazwy tej kontroli nie zmieniaj bez aktualizacji
 reguły. CI nie korzysta z kont WEBFLEET, SMTP ani danych klientów.
 
