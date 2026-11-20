@@ -1163,7 +1163,7 @@ for (const theme of ["light", "dark"]) {
       const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
       if (await menu.isVisible()) await menu.click();
     };
-    for (const title of ["Serwis", "Ewidencja przebiegu", "Karty paliwowe"]) {
+    for (const title of ["Serwis", "Karty paliwowe"]) {
       await openMenu();
       const link = page.getByRole("navigation", { name: "Sekcje aplikacji" })
         .getByRole("link", { name: `${title} Planowane`, exact: true });

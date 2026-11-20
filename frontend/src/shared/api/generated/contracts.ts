@@ -37,6 +37,8 @@ export type DriverCategoryCatalog = { "version": "pl-driving-categories-v1"; "it
 export type TripCoverage = { "basis": "report_end_day"; "state": "unavailable" | "partial" | "complete"; "requested_days": number; "covered_days": Array<string>; "failed_days": Array<string>; "last_success_at": string | null; };
 export type TripStop = { "start_at": string; "end_at": string; "duration_seconds": number; "address": string | null; "latitude": number | null; "longitude": number | null; };
 export type TripStopList = { "items": Array<TripStop>; "total": number; "page": number; "page_size": number; "coverage": TripCoverage | null; };
+export type MileageSummary = { "distance_km": number | null; "documented_km": number | null; "missing_purpose": number; "missing_driver": number; "missing_distance": number; };
+export type MileagePeriod = { "items": Array<Trip>; "total": number; "page": number; "page_size": number; "coverage": TripCoverage | null; "summary": MileageSummary; };
 
 export type Responses = {
   "GET /fleet/refresh": SourceRefreshState;
@@ -52,6 +54,7 @@ export type Responses = {
   "GET /drivers": DriverList;
   "POST /drivers": DriverProfile;
   "GET /trips": TripList;
+  "GET /trips/mileage": MileagePeriod;
   "GET /trips/stops": TripStopList;
   "GET /trips/{id}": Trip;
   "PATCH /trips/{id}/annotation": Annotation;
