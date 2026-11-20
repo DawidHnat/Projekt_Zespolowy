@@ -195,7 +195,12 @@ Synchronizator ponawia timeout, błąd połączenia, limit źródła i błędy H
 z co najmniej 10 s przerwy wymaganej przez raport i z uwzględnieniem `Retry-After`
 do 60 s. Adapter i diagnostyka pozostają bez automatycznych ponowień. Po
 wyczerpaniu prób API nadal udostępnia ostatni zapisany cache ze statusem źródła
-`degraded` i czasem ostatniego sukcesu.
+`degraded` i czasem ostatniego sukcesu. Zapis pomiaru dopuszcza czas pozycji
+najpóźniej równy zakończeniu odczytu (tolerancja przyszłości 0 s). Pomiar
+przyszły, spóźniony, powtórzony lub bez czasu nie zastępuje ostatniej poprawnej
+pozycji; przy remisie zachowujemy pierwszy zapis. Poprawna próbka może
+zastąpić stary rekord zapisany z czasem przyszłym. Taki rekord nie jest
+punktem odniesienia przy obliczaniu dystansu.
 Historia przejazdów nie jest jeszcze synchronizowana. Jej import, postoje
 i harmonogram należą do SCRUM-24; adnotacje są kolejnym przyrostem.
 
