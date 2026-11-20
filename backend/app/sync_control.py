@@ -43,7 +43,10 @@ def main():
         if args.operation == "once":
             webfleet = WebfleetSettings.from_environment(load_environment())
             result = sync_once(
-                engine, webfleet, sync_interval_seconds=settings.sync_interval_seconds
+                engine,
+                webfleet,
+                sync_interval_seconds=settings.sync_interval_seconds,
+                stale_seconds=settings.stale_seconds,
             )
             print(json.dumps({"status": result}))
             return 0 if result == "ok" else 1

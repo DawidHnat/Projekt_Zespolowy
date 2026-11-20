@@ -183,7 +183,9 @@ zdarzenia i losowe event_id; log nie zawiera wyjątku, SQL ani telemetryki.
 
 `SYNC_ENABLED=true` w lokalnym `.env` włącza jeden wspólny odczyt. `SYNC_INTERVAL_SECONDS`
 ustawia częstotliwość (domyślnie 60 s, minimum 10 s zgodnie z limitem źródła),
-a `STALE_SECONDS` próg nieaktualności pomiaru (domyślnie 900 s). Obie wartości
+a `STALE_SECONDS` próg nieaktualności pomiaru (domyślnie 900 s). Ten sam próg
+obowiązuje przy ocenie alertu po synchronizacji (w tym ręcznym odświeżeniu)
+i przy tworzeniu lub edycji reguły. Obie wartości
 są walidowane przy starcie; nie ustawiaj częstotliwości przed sprawdzeniem limitów
 WEBFLEET dla używanego konta.
 PostgreSQL advisory lock i zapis czasu próby chronią limit także przy kilku
