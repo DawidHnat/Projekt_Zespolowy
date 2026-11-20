@@ -172,6 +172,14 @@ bez gwarancji trwałego doręczenia; awaria SMTP nie cofa udanej zmiany hasła.
 Zmiana adresu i jego potwierdzanie pozostają poza tym przyrostem. Testy używają
 atrap SMTP, a rzeczywista wysyłka wymaga osobnego uzgodnienia.
 
+Gdy dostawa linku resetu przez SMTP zgłosi błąd, poprzedni niewykorzystany
+link zachowuje ważność do swojego terminu. Po potwierdzonej dostawie nowego
+linku starsze linki tego konta są usuwane. Publiczna odpowiedź pozostaje
+neutralna. Log `fleet_flow.auth` emituje jeden stały sygnał
+`password_reset_smtp_failed` dla nieudanej dostawy. Komunikaty setup/state
+wskazują problemy konfiguracji lub zapisu i mają własne stałe kody.
+Żaden z nich nie zawiera adresu odbiorcy, tokena ani wyjątku SMTP.
+
 ## Synchronizacja pojazdów — SCRUM-15
 
 Operator ma `python -m app.sync_control once` (pojedynczy **żywy import**, tylko
