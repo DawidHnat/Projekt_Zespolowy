@@ -94,7 +94,12 @@ class Vehicle(Base):
     )
     # This local field belongs to Fleet-Flow and is never written by WEBFLEET.
     driver_id: Mapped[UUID | None] = mapped_column(ForeignKey("drivers.id"))
+    # Retained for application rollback; current writes track the three shared fields separately.
     locally_edited: Mapped[bool] = mapped_column(Boolean, default=False)
+    manual_name: Mapped[bool] = mapped_column(default=False, server_default="false")
+    manual_license_plate: Mapped[bool] = mapped_column(default=False, server_default="false")
+    manual_vehicle_type: Mapped[bool] = mapped_column(default=False, server_default="false")
+    card_version: Mapped[int] = mapped_column(default=1, server_default="1")
 
 
 @event.listens_for(Vehicle, "before_insert")
