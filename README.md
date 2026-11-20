@@ -190,7 +190,9 @@ Widok podaje pokrycie raportami i ułatwia uzupełnienie brakującego celu.
 Backend ma FastAPI, PostgreSQL, migracje, sesje i synchronizację pojazdów WEBFLEET.
 Ma też API reguł dziennego dystansu i trwałych alertów z ochroną przed duplikatami
 (SCRUM-31). Dystans obejmuje odebrane pomiary, z jawnym niepełnym pokryciem dnia;
-widok Alerty umożliwia tworzenie, zmianę i wyłączanie reguł dla floty lub pojazdu,
+zakładka Analityka porównuje dystans, liczbę przejazdów i dni z przejazdem
+dla wybranego okresu i pojazdów. Pokazuje pokrycie zapisanej historii.
+Widok Alerty umożliwia tworzenie, zmianę i wyłączanie reguł dla floty lub pojazdu,
 a także listowanie i trwały odczyt per konto (SCRUM-32). Terminy, wspólny stan
 obsługi i e-mail są kolejnymi przyrostami SCRUM-69/73.
 Sekcja Kierowcy ma listę/kafelki, ręczne formularze i historię wielu przypisań
