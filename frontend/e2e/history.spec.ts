@@ -1,14 +1,15 @@
 import { execFileSync } from "node:child_process";
 import { expect, test } from "@playwright/test";
 
-function fixture(action: "import" | "clear") {
-  execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", `${action}-history-case`], {
+function fixture(action: "import" | "clear" | "reset") {
+  execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", action === "reset" ? "reset-case" : `${action}-history-case`], {
     cwd: "../backend",
     env: { ...process.env, PYTHONPATH: ".", FLEET_FLOW_E2E: "true" },
     stdio: "pipe",
   });
 }
 test("persistent history displays imported trips and stops and retains annotations across reimport", async ({ page }) => {
+  fixture("reset");
   fixture("clear");
   fixture("import");
   try {
