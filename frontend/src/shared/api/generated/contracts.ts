@@ -14,13 +14,13 @@ export type FleetFeature = { "type": "Feature"; "geometry": { "type": "Point"; "
 export type FleetMap = { "type": "FeatureCollection"; "features": Array<FleetFeature>; "located": number; "total": number; "source": Source; };
 export type Summary = { "total": number; "moving": number; "stopped": number; "offline": number; "unknown": number; "source": Source; };
 export type Annotation = { "purpose": string | null; "description": string | null; "version": number; "updated_at": string | null; "updated_by": Author | null; };
-export type Trip = { "id": string; "vehicle_id": string; "start_at": string; "end_at": string | null; "distance_km": number | null; "duration_seconds": number | null; "annotation": Annotation; "geometry": null; };
+export type Trip = { "id": string; "vehicle_id": string; "start_at": string; "end_at": string | null; "distance_km": number | null; "duration_seconds": number | null; "annotation": Annotation; "geometry": null; "start_address"?: string | null; "end_address"?: string | null; "driver_id"?: string | null; "vehicle_name"?: string | null; };
 export type Rule = { "id": string; "type": "daily_distance_threshold"; "threshold_km": number; "vehicle_id": string | null; "active": boolean; "vehicle_name"?: string | null; "license_plate"?: string | null; };
 export type Alert = { "id": string; "vehicle_id": string; "rule_id": string; "occurred_at": string; "read_at": string | null; "event_day": string; "threshold_km": number; "distance_km": number; "coverage": "partial"; "vehicle_name"?: string; "license_plate"?: string | null; };
 export type Receipt = { "read_at": string | null; };
 export type Error = { "error": { "code": string; "message": string; }; };
 export type VehicleList = { "items": Array<Vehicle>; "total": number; "page": number; "page_size": number; "source": Source; };
-export type TripList = { "items": Array<Trip>; "total": number; "page": number; "page_size": number; };
+export type TripList = { "items": Array<Trip>; "total": number; "page": number; "page_size": number; "coverage": TripCoverage | null; };
 export type RuleList = { "items": Array<Rule>; "total": number; "page": number; "page_size": number; };
 export type AlertList = { "items": Array<Alert>; "total": number; "page": number; "page_size": number; };
 export type SourceRefreshState = { "enabled": boolean; "running": boolean; "server_time": string; "next_allowed_at": string | null; "retry_after_seconds": number; };
@@ -34,6 +34,9 @@ export type DriverAssignment = { "id": string; "driver_id": string; "vehicle": {
 export type DriverAssignmentList = { "items": Array<DriverAssignment>; "total": number; "page": number; "page_size": number; };
 export type DriverAssignmentResult = { "assignment": DriverAssignment; "driver_version": number; };
 export type DriverCategoryCatalog = { "version": "pl-driving-categories-v1"; "items": Array<{ "id": "AM" | "A1" | "A2" | "A" | "B1" | "B" | "B+E" | "C1" | "C1+E" | "C" | "C+E" | "D1" | "D1+E" | "D" | "D+E" | "T"; "label": "AM" | "A1" | "A2" | "A" | "B1" | "B" | "B+E" | "C1" | "C1+E" | "C" | "C+E" | "D1" | "D1+E" | "D" | "D+E" | "T"; }>; "compatibility": "not_evaluated"; };
+export type TripCoverage = { "basis": "report_end_day"; "state": "unavailable" | "partial" | "complete"; "requested_days": number; "covered_days": Array<string>; "failed_days": Array<string>; "last_success_at": string | null; };
+export type TripStop = { "start_at": string; "end_at": string; "duration_seconds": number; "address": string | null; "latitude": number | null; "longitude": number | null; };
+export type TripStopList = { "items": Array<TripStop>; "total": number; "page": number; "page_size": number; "coverage": TripCoverage | null; };
 
 export type Responses = {
   "GET /fleet/refresh": SourceRefreshState;
@@ -49,6 +52,7 @@ export type Responses = {
   "GET /drivers": DriverList;
   "POST /drivers": DriverProfile;
   "GET /trips": TripList;
+  "GET /trips/stops": TripStopList;
   "GET /trips/{id}": Trip;
   "PATCH /trips/{id}/annotation": Annotation;
   "GET /analytics/rules": RuleList;
