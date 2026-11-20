@@ -3,6 +3,7 @@ import { CarFront, Users, Wrench, Route, X } from "lucide-react";
 import { useFleet } from "../model/FleetProvider";
 import { useVehiclePreferences } from "../model/VehiclePreferences";
 import { statusLabels, type Vehicle } from "../model/types";
+import { VehicleCardDetails } from "./VehicleCardDetails";
 import { VehiclePhoto } from "./VehiclePhoto";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { VehicleTrips } from "../../trips/components/VehicleTrips";
@@ -101,6 +102,8 @@ function VehicleDetailsContent({ vehicle, unsaved, onUnsaved, mayLeave }: {
                   onDay={day.select}
                   onUnsaved={onUnsaved}
                 />
+              ) : current.id === "vehicle" ? (
+                <VehicleCardDetails vehicle={vehicle} onUnsaved={onUnsaved} />
               ) : <>
               <EmptyState
                 icon={current.icon}
@@ -123,7 +126,7 @@ export function VehicleDetailsDialog() {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const [unsaved, setUnsaved] = useState(false);
-  const mayLeave = () => !unsaved || window.confirm("Masz niezapisany cel lub opis przejazdu. Odrzucić zmiany?");
+  const mayLeave = () => !unsaved || window.confirm("Masz niezapisane zmiany. Odrzucić zmiany?");
   const vehicle = fleet.selected?.id === fleet.selectedId ? fleet.selected : null;
   useEffect(() => {
     const dialog = ref.current;
