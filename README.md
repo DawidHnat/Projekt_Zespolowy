@@ -184,6 +184,9 @@ Kliknięcie pojazdu na mapie pokazuje mały podgląd; przycisk Szczegóły otwie
 panel z zakładkami Pojazd, Kierowca, Przegląd i Podróże.
 Zakładka Podróże pokazuje zapisany zakres zdarzeń i postoje od pięciu minut.
 Kafelek Ostatnie przejazdy ma wybór dnia i listę zapisanych przejazdów floty.
+Ewidencja przebiegu pokazuje cel oraz sumę za zakres dat wybranego pojazdu.
+Przejazd przez północ jest liczony w okresie jego rozpoczęcia w Europe/Warsaw.
+Widok podaje pokrycie raportami i ułatwia uzupełnienie brakującego celu.
 Backend ma FastAPI, PostgreSQL, migracje, sesje i synchronizację pojazdów WEBFLEET.
 Ma też API reguł dziennego dystansu i trwałych alertów z ochroną przed duplikatami
 (SCRUM-31). Dystans obejmuje odebrane pomiary, z jawnym niepełnym pokryciem dnia;

@@ -3,6 +3,7 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 
+from app.core.errors import ApiError
 from app.modules.auth.service import aware
 from app.modules.trips.models import TripHistoryDay
 
@@ -13,6 +14,15 @@ def polish_day(day: date) -> tuple[datetime, datetime]:
     start = datetime.combine(day, time.min, WARSAW)
     end = datetime.combine(day + timedelta(days=1), time.min, WARSAW)
     return start.astimezone(UTC), end.astimezone(UTC)
+
+
+def calendar_window(first: date, last: date) -> tuple[datetime, datetime]:
+    try:
+        if not 0 <= (last - first).days < 93:
+            raise ValueError
+        return polish_day(first)[0], polish_day(last)[1]
+    except (OverflowError, ValueError):
+        raise ApiError(422, "VALIDATION_ERROR", "Wybierz prawidłowy okres do 93 dni") from None
 
 
 def report_coverage(session, vehicle_id, lower, upper):

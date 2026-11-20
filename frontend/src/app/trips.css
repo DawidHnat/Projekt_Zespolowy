@@ -164,3 +164,24 @@
   overflow-wrap: anywhere;
 }
 .trip-stop-list span { color: var(--muted); }
+
+.mileage-page { display: grid; gap: 16px; min-width: 0; }
+.mileage-filters, .mileage-results {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.mileage-dates { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+.mileage-results h2, .mileage-results p { margin: 0; }
+.mileage-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: 12px;
+  margin: 0;
+}
+.mileage-stats div { padding: 10px; border: 1px solid var(--border); border-radius: 10px; }
+.mileage-stats dd { margin: 4px 0 0; font-weight: 650; }
