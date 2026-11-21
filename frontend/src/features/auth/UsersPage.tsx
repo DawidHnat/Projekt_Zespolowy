@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, Users } from "lucide-react";
 import { api } from "../../shared/api/client";
 import { EmptyState } from "../../shared/components/EmptyState";
@@ -14,7 +14,12 @@ export function UsersPage() {
   const [pageSize, setPageSize] = useState(25);
   const [revision, setRevision] = useState(0);
   const [editor, setEditor] = useState<Account | "new" | null>(null);
+  const addAccount = useRef<HTMLButtonElement>(null);
   const reload = () => setRevision((value) => value + 1);
+  const closeEditor = () => {
+    setEditor(null);
+    if (document.activeElement === document.body) addAccount.current?.focus();
+  };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -34,7 +39,7 @@ export function UsersPage() {
     <section className="widget accounts-page" aria-labelledby="accounts-heading" aria-busy={loading}>
       <header className="accounts-header">
         <h2 id="accounts-heading">Konta użytkowników</h2>
-        <button className="button button-primary" onClick={() => setEditor("new")}>
+        <button ref={addAccount} className="button button-primary" onClick={() => setEditor("new")}>
           <Plus size={17} aria-hidden="true" /> Dodaj konto
         </button>
       </header>
@@ -83,7 +88,7 @@ export function UsersPage() {
       {editor && (
         <AccountDialog
           account={editor === "new" ? null : editor}
-          onClose={() => setEditor(null)}
+          onClose={closeEditor}
           onSaved={reload}
         />
       )}

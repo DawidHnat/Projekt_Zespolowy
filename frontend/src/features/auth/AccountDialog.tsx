@@ -30,6 +30,7 @@ export function AccountDialog({
   onSaved: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const firstField = useRef<HTMLInputElement>(null);
   const titleId = useId();
   const [saved, setSaved] = useState(account);
   const [draft, setDraft] = useState(() => draftFrom(account));
@@ -47,6 +48,7 @@ export function AccountDialog({
     const dialog = ref.current;
     const opener = document.activeElement;
     dialog?.showModal();
+    firstField.current?.focus();
     return () => {
       dialog?.close();
       if (opener instanceof HTMLElement && opener.isConnected) opener.focus();
@@ -147,7 +149,7 @@ export function AccountDialog({
       <form className="account-form" onSubmit={save} aria-busy={Boolean(busy)}>
         <fieldset disabled={Boolean(busy) || stale}>
           <label>Imię
-            <input value={draft.first_name} autoComplete="off" maxLength={60} autoFocus
+            <input ref={firstField} value={draft.first_name} autoComplete="off" maxLength={60}
               required={!saved || Boolean(saved.first_name)}
               onChange={(e) => setDraft({ ...draft, first_name: e.target.value })} />
           </label>

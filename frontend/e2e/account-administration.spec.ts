@@ -17,9 +17,11 @@ test("administrator invites a new user, who activates and signs in by email", as
   await page.goto("/#users");
   await login(page, "e2e-admin", initialPassword);
   await expect(page.getByRole("heading", { name: "Konta użytkowników" })).toBeVisible();
-  await page.getByRole("button", { name: "Dodaj konto" }).click();
+  const addAccount = page.getByRole("button", { name: "Dodaj konto" });
+  await addAccount.click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("heading", { name: "Dodaj konto" })).toBeVisible();
+  await expect(dialog.getByLabel("Imię", { exact: true })).toBeFocused();
   await dialog.getByLabel("Imię", { exact: true }).fill("Anna");
   await dialog.getByLabel("Nazwisko", { exact: true }).fill("Testowa");
   await dialog.getByLabel("Login", { exact: true }).fill(username);
@@ -30,6 +32,7 @@ test("administrator invites a new user, who activates and signs in by email", as
   await expect(dialog.getByRole("status")).toContainText("Serwer pocztowy przyjął zaproszenie");
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
+  await expect(addAccount).toBeFocused();
   await expect(page.locator(".account-list")).toContainText("Oczekujące");
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
     page.viewportSize()!.width,
