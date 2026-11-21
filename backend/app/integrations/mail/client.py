@@ -73,6 +73,20 @@ def send_account_activation(settings: SmtpSettings, recipient: str, url: str) ->
     _send(settings, recipient, message)
 
 
+def send_email_confirmation(settings: SmtpSettings, recipient: str, url: str) -> None:
+    message = EmailMessage()
+    message["From"] = settings.username
+    message["To"] = recipient
+    message["Subject"] = "Fleet-Flow — potwierdź nowy adres e-mail"
+    message.set_content(
+        "Potwierdź w Profilu, że ten adres ma być powiązany z Twoim kontem Fleet-Flow. "
+        "Zaloguj się używanym dotychczas loginem lub adresem. Link jest ważny przez 20 minut.\n\n"
+        + url
+        + "\n\nJeśli nie zlecasz tej zmiany, zignoruj tę wiadomość."
+    )
+    _send(settings, recipient, message)
+
+
 def _send(settings: SmtpSettings, recipient: str, message: EmailMessage) -> None:
     try:
         with smtplib.SMTP_SSL(

@@ -14,7 +14,7 @@ from app.core.models import Base
 from app.core.settings import Settings
 from app.integrations.mail.client import SmtpError
 from app.main import create_app
-from app.modules.auth import accounts
+from app.modules.auth import accounts, profile
 from app.modules.auth.models import AccountActivation, LoginAttempt, User
 from app.modules.auth.service import aware, digest, now_utc, password_hasher
 
@@ -272,6 +272,32 @@ def test_email_alias_shares_rate_bucket_and_ambiguous_legacy_email_is_neutral(ap
     assert login(client, "legacy").status_code == 200
 
 
+def test_admin_email_edit_invalidates_a_pending_self_service_link(logged_in, messages, monkeypatch):
+    app, admin = logged_in
+    account = add_user(app, "operator", "viewer", email="original@example.com")
+    monkeypatch.setattr(
+        profile, "send_email_confirmation", lambda _, to, url: messages.append((to, url))
+    )
+    with TestClient(app) as owner:
+        assert login(owner, "operator").status_code == 200
+        response = owner.post(
+            "/api/v1/auth/email/change/request",
+            headers=ORIGIN,
+            json={"current_password": PASSWORD, "new_email": "pending@example.com"},
+        )
+        assert response.status_code == 200
+        assert edit_account(admin, account, email="assigned@example.com").status_code == 200
+        assert owner.get("/api/v1/auth/me").status_code == 401
+        assert login(owner, "operator").status_code == 200
+        response = owner.post(
+            "/api/v1/auth/email/change/confirm",
+            headers=ORIGIN,
+            json={"token": token_from(messages[0])},
+        )
+        assert response.status_code == 400
+        assert owner.get("/api/v1/auth/profile").json()["email"] == "assigned@example.com"
+
+
 @pytest.fixture
 def isolated_accounts_app():
     url = os.environ.get("TEST_DATABASE_URL")
@@ -330,3 +356,45 @@ def test_postgres_concurrent_activation_uses_link_exactly_once(isolated_accounts
             user = session.get(User, UUID(account["id"]))
             assert user.active and not user.needs_activation
             assert session.scalars(select(AccountActivation)).all() == []
+
+
+@pytest.mark.parametrize("same_account", [True, False], ids=["same-link", "same-address"])
+def test_postgres_concurrent_email_confirmation(
+    isolated_accounts_app, messages, monkeypatch, same_account
+):
+    app = isolated_accounts_app
+    add_user(app, "first-viewer", "viewer")
+    if not same_account:
+        add_user(app, "second-viewer", "viewer")
+    monkeypatch.setattr(
+        profile, "send_email_confirmation", lambda _, to, url: messages.append((to, url))
+    )
+    email = "verified-address@example.com"
+
+    with TestClient(app) as first, TestClient(app) as second:
+        assert login(first, "first-viewer").status_code == 200
+        assert login(second, "first-viewer" if same_account else "second-viewer").status_code == 200
+        for owner in (first,) if same_account else (first, second):
+            response = owner.post(
+                "/api/v1/auth/email/change/request",
+                headers=ORIGIN,
+                json={"current_password": PASSWORD, "new_email": email},
+            )
+            assert response.status_code == 200
+        with ThreadPoolExecutor(max_workers=2) as workers:
+            results = [
+                workers.submit(
+                    owner.post,
+                    "/api/v1/auth/email/change/confirm",
+                    headers=ORIGIN,
+                    json={"token": token_from(message)},
+                )
+                for owner, message in zip((first, second), (messages[0], messages[-1]), strict=True)
+            ]
+            assert sorted(result.result().status_code for result in results) == [
+                200,
+                401 if same_account else 409,
+            ]
+    with app.state.sessions() as session:
+        matches = session.scalars(select(User).where(User.email == email)).all()
+        assert len(matches) == 1 and matches[0].version == 2

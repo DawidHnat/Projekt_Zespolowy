@@ -55,10 +55,11 @@ def test_profile_is_own_read_only_data_and_requires_a_session(application):
     assert response.json() == {
         "username": "test-user",
         "display_name": "Osoba testowa",
+        "first_name": None,
+        "last_name": None,
         "email": "owner@example.com",
         "role": "viewer",
     }
-    assert set(response.json()) == {"username", "display_name", "email", "role"}
     assert "no-store" in response.headers["cache-control"]
     assert (
         client.patch(

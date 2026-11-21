@@ -4,7 +4,8 @@ import { Brand } from "../../shared/components/Brand";
 import { useDashboardPreferences } from "../../app/preferences";
 import { useAuth } from "./AuthProvider";
 import { PasswordResetForm } from "./PasswordResetForm";
-import { activationTokenFromHash, resetTokenFromHash } from "./reset-model";
+import { EmailChangeConfirmation } from "./EmailChangeConfirmation";
+import { activationTokenFromHash, emailTokenFromHash, resetTokenFromHash } from "./reset-model";
 import { api } from "../../shared/api/client";
 
 export function AuthGate({ children }: { children: ReactNode }) {
@@ -17,6 +18,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [forgot, setForgot] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [activated, setActivated] = useState(false);
+  const [emailConfirmed, setEmailConfirmed] = useState(false);
+  const [emailToken, setEmailToken] = useState(() => emailTokenFromHash(window.location.hash));
   const [activationToken, setActivationToken] = useState(() =>
     activationTokenFromHash(window.location.hash),
   );
@@ -25,8 +28,17 @@ export function AuthGate({ children }: { children: ReactNode }) {
   );
   useEffect(() => {
     const read = () => {
+      const nextEmailToken = emailTokenFromHash(window.location.hash);
       setResetToken(resetTokenFromHash(window.location.hash));
       setActivationToken(activationTokenFromHash(window.location.hash));
+      setEmailToken(nextEmailToken);
+      setActivated(false);
+      setEmailConfirmed(false);
+      if (nextEmailToken !== null) {
+        setForgot(false);
+        setNotice(null);
+        setError(null);
+      }
     };
     window.addEventListener("hashchange", read);
     return () => window.removeEventListener("hashchange", read);
@@ -80,6 +92,31 @@ export function AuthGate({ children }: { children: ReactNode }) {
         }}
       />
     );
+  if (auth.user && (emailToken !== null || emailConfirmed)) {
+    const clearEmailLink = () => {
+      history.replaceState(
+        history.state,
+        "",
+        window.location.pathname + window.location.search + "#profile",
+      );
+      setEmailToken(null);
+    };
+    return (
+      <EmailChangeConfirmation
+        key={emailToken ?? "confirmed"}
+        token={emailToken}
+        onConfirmed={() => {
+          auth.credentialsChanged();
+          clearEmailLink();
+          setEmailConfirmed(true);
+        }}
+        onBack={() => {
+          clearEmailLink();
+          setEmailConfirmed(false);
+        }}
+      />
+    );
+  }
   if (auth.user) return children;
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -113,12 +150,18 @@ export function AuthGate({ children }: { children: ReactNode }) {
           <LockKeyhole size={28} />
         </span>
         <h1>
-          {forgot ? "Nie pamiętasz hasła?" : "Twoja flota, pod kontrolą."}
+          {forgot
+            ? "Nie pamiętasz hasła?"
+            : emailToken !== null
+              ? "Zaloguj się, aby potwierdzić e-mail"
+              : "Twoja flota, pod kontrolą."}
         </h1>
         <p>
           {forgot
             ? "Podaj login swojego konta."
-            : "Zaloguj się za pomocą loginu lub adresu e-mail."}
+            : emailToken !== null
+              ? "Użyj dotychczasowego loginu lub adresu e-mail."
+              : "Zaloguj się za pomocą loginu lub adresu e-mail."}
         </p>
         {notice && (
           <p className="auth-notice" role="status">

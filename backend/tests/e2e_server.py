@@ -20,7 +20,7 @@ from app.core.settings import Settings
 from app.integrations.mail.client import SmtpError
 from app.main import create_app
 from app.modules.analytics.models import Alert, AlertReceipt, DailyDistance, Rule
-from app.modules.auth import accounts
+from app.modules.auth import accounts, profile
 from app.modules.auth.models import LoginAttempt, LoginSession, PasswordReset, User
 from app.modules.auth.service import password_hasher
 from app.modules.drivers.models import DriverAssignment, DriverCategory
@@ -32,6 +32,7 @@ ACCOUNT = "synthetic-e2e-source"
 VEHICLE = UUID("11111111-1111-4111-8111-111111111111")
 TRIP = UUID("22222222-2222-4222-8222-222222222222")
 INVITE_USERS = ("e2e-invite-desktop", "e2e-invite-mobile")
+PROFILE_USERS = ("e2e-profile-desktop", "e2e-profile-mobile")
 
 
 def test_database_url():
@@ -62,13 +63,14 @@ def seed(engine):
         hour=10, minute=0, second=0, microsecond=0
     )
     with Session(engine) as session:
-        known = {"e2e-editor", "e2e-viewer", "e2e-editor-two", "e2e-admin", *INVITE_USERS}
+        temporary = (*INVITE_USERS, *PROFILE_USERS)
+        known = {"e2e-editor", "e2e-viewer", "e2e-editor-two", "e2e-admin", *temporary}
         if any(username not in known for username in session.scalars(select(User.username))):
             raise RuntimeError("E2E database contains non-fixture users")
-        invites = select(User.id).where(User.username.in_(INVITE_USERS))
+        temporary_ids = select(User.id).where(User.username.in_(temporary))
         for model in (LoginSession, PasswordReset, AccountPreference, AlertReceipt):
-            session.execute(delete(model).where(model.user_id.in_(invites)))
-        session.execute(delete(User).where(User.username.in_(INVITE_USERS)))
+            session.execute(delete(model).where(model.user_id.in_(temporary_ids)))
+        session.execute(delete(User).where(User.username.in_(temporary)))
         fixtures = (
             ("e2e-editor", "Test editor", "editor"),
             ("e2e-viewer", "Test viewer", "viewer"),
@@ -86,6 +88,18 @@ def seed(engine):
                         password_hash=password_hasher.hash("synthetic-e2e-password"),
                     )
                 )
+        for username in PROFILE_USERS:
+            session.add(
+                User(
+                    username=username,
+                    email=f"{username}-old@example.com",
+                    first_name="Anna",
+                    last_name="Próba",
+                    display_name="Anna Próba",
+                    role="viewer",
+                    password_hash=password_hasher.hash("synthetic-e2e-password"),
+                )
+            )
         source = account_key(ACCOUNT)
         if not session.get(SyncState, source):
             session.add(SyncState(source_account=source, last_success_at=now))
@@ -131,23 +145,29 @@ def seed(engine):
     source_state(engine, "ok")
 
 
-def install_invitation_fixture(app):
+def install_account_mail_fixture(app):
     sent = {}
-    allowed = {f"{username}@example.com" for username in INVITE_USERS}
+    allowed = {f"{username}@example.com" for username in (*INVITE_USERS, *PROFILE_USERS)}
 
     def fake_sender(_, recipient, url):
         if recipient not in allowed:
-            raise SmtpError("Expected a synthetic invitation address")
+            raise SmtpError("Expected a synthetic address")
         sent[recipient] = url
 
-    accounts.load_environment = lambda: {
-        "SMTP_USERNAME": "e2e-sender@example.com",
-        "SMTP_PASSWORD": "synthetic",
-    }
+    def synthetic_environment():
+        return {"SMTP_USERNAME": "e2e-sender@example.com", "SMTP_PASSWORD": "synthetic"}
+
+    accounts.load_environment = profile.load_environment = synthetic_environment
     accounts.send_account_activation = fake_sender
+    profile.send_email_confirmation = fake_sender
+    profile.send_password_changed = lambda *_: None
 
     @app.get("/__e2e/invitations/{username}")
     def invitation(username: str):
+        return {"url": sent.get(f"{username}@example.com")}
+
+    @app.get("/__e2e/email-changes/{username}")
+    def email_change(username: str):
         return {"url": sent.get(f"{username}@example.com")}
 
 
@@ -300,7 +320,7 @@ def main():
     seed(engine)
     settings = Settings(database_url, origins=("http://127.0.0.1:54173",), webfleet_account=ACCOUNT)
     app = create_app(settings, engine=engine)
-    install_invitation_fixture(app)
+    install_account_mail_fixture(app)
     uvicorn.run(app, host="127.0.0.1", port=58000, access_log=False)
 
 

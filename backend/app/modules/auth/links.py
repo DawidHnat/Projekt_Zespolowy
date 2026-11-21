@@ -1,22 +1,38 @@
-"""Shared issuance and delivery handling for one-use password links."""
+"""Shared issuance and delivery handling for one-use account links."""
 
 import secrets
 from datetime import datetime, timedelta
+from typing import Annotated
 from uuid import UUID
 
-from pydantic import BaseModel, Field, SecretStr, field_validator
+from pydantic import AfterValidator, BaseModel, Field, SecretStr, field_validator
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
-from app.modules.auth.models import AccountActivation, PasswordReset
+from app.modules.auth.models import AccountActivation, EmailChange, PasswordReset
 from app.modules.auth.service import aware, digest, lock_user, now_utc
 
-type LinkModel = type[AccountActivation] | type[PasswordReset]
+type AccountLink = AccountActivation | EmailChange | PasswordReset
 
 
-class PasswordLinkBody(BaseModel):
+def valid_password_text(value: SecretStr) -> SecretStr:
+    try:
+        value.get_secret_value().encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise ValueError("Invalid password text") from exc
+    return value
+
+
+type CurrentPassword = Annotated[
+    SecretStr, Field(min_length=1, max_length=1024), AfterValidator(valid_password_text)
+]
+type NewPassword = Annotated[
+    SecretStr, Field(min_length=12, max_length=1024), AfterValidator(valid_password_text)
+]
+
+
+class LinkBody(BaseModel):
     token: str = Field(min_length=20, max_length=100)
-    password: SecretStr = Field(min_length=12, max_length=1024)
 
     @field_validator("token")
     @classmethod
@@ -25,20 +41,14 @@ class PasswordLinkBody(BaseModel):
             raise ValueError("Invalid token text")
         return value
 
-    @field_validator("password")
-    @classmethod
-    def valid_password_text(cls, value: SecretStr) -> SecretStr:
-        try:
-            value.get_secret_value().encode("utf-8")
-        except UnicodeEncodeError as exc:
-            raise ValueError("Invalid password text") from exc
-        return value
+
+class PasswordLinkBody(LinkBody):
+    password: NewPassword
 
 
-def stage_link(
-    session: Session, model: LinkModel, user_id: UUID, lifetime: timedelta
-) -> tuple[str, datetime]:
+def stage_link(session: Session, link: AccountLink, lifetime: timedelta) -> tuple[str, datetime]:
     # The caller holds the User lock. Monotonic expiry distinguishes concurrent deliveries.
+    model, user_id = type(link), link.user_id
     token = secrets.token_urlsafe(32)
     now = now_utc()
     expires_at = now + lifetime
@@ -48,13 +58,15 @@ def stage_link(
     if latest_expiry is not None and aware(latest_expiry) >= expires_at:
         expires_at = aware(latest_expiry) + timedelta(microseconds=1)
     session.execute(delete(model).where(model.user_id == user_id, model.expires_at <= now))
-    session.add(model(token_hash=digest(token), user_id=user_id, expires_at=expires_at))
+    link.token_hash = digest(token)
+    link.expires_at = expires_at
+    session.add(link)
     return token, expires_at
 
 
 def settle_delivery(
     session: Session,
-    model: LinkModel,
+    model: type[AccountLink],
     user_id: UUID,
     token: str,
     expires_at: datetime,
