@@ -17,8 +17,9 @@ from app.modules.auth.service import (
     current_user,
     digest,
     dummy_hash,
-    find_user,
+    find_login_user,
     issue_session,
+    lock_user,
     now_utc,
     password_hasher,
     user_payload,
@@ -28,7 +29,7 @@ router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
 
 class LoginBody(BaseModel):
-    username: str = Field(min_length=1, max_length=100)
+    username: str = Field(min_length=1, max_length=254)
     password: SecretStr = Field(min_length=1, max_length=1024)
 
     @field_validator("username")
@@ -36,6 +37,10 @@ class LoginBody(BaseModel):
     def valid_username(cls, value: str) -> str:
         if "\x00" in value:
             raise ValueError("Invalid characters in username")
+        try:
+            value.encode("utf-8")
+        except UnicodeEncodeError as exc:
+            raise ValueError("Invalid characters in username") from exc
         return value
 
     @field_validator("password")
@@ -86,11 +91,14 @@ def login(
     response: Response,
     session: Annotated[Session, Depends(get_session)],
 ):
-    username = body.username.strip().lower()
+    identifier = body.username.strip().lower()
     count_attempt(session, digest("ip:" + (request.client.host if request.client else "unknown")))
-    count_attempt(session, digest("account:" + username))
-    # Serialize login with password reset/change on the same User row.
-    user = find_user(session, username, lock=True)
+    candidate = find_login_user(session, identifier)
+    count_attempt(session, digest("account:" + (candidate.username if candidate else identifier)))
+    # Serialize login with changes to credentials, roles and account status.
+    user = lock_user(session, candidate.id) if candidate else None
+    if user and identifier not in (user.username, (user.email or "").strip().lower()):
+        user = None
     valid = password_hasher.verify(
         body.password.get_secret_value(), user.password_hash if user else dummy_hash
     )

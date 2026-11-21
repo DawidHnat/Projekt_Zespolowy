@@ -4,7 +4,7 @@ import { Brand } from "../../shared/components/Brand";
 import { useDashboardPreferences } from "../../app/preferences";
 import { useAuth } from "./AuthProvider";
 import { PasswordResetForm } from "./PasswordResetForm";
-import { resetTokenFromHash } from "./reset-model";
+import { activationTokenFromHash, resetTokenFromHash } from "./reset-model";
 import { api } from "../../shared/api/client";
 
 export function AuthGate({ children }: { children: ReactNode }) {
@@ -16,11 +16,18 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [forgot, setForgot] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [activated, setActivated] = useState(false);
+  const [activationToken, setActivationToken] = useState(() =>
+    activationTokenFromHash(window.location.hash),
+  );
   const [resetToken, setResetToken] = useState(() =>
     resetTokenFromHash(window.location.hash),
   );
   useEffect(() => {
-    const read = () => setResetToken(resetTokenFromHash(window.location.hash));
+    const read = () => {
+      setResetToken(resetTokenFromHash(window.location.hash));
+      setActivationToken(activationTokenFromHash(window.location.hash));
+    };
     window.addEventListener("hashchange", read);
     return () => window.removeEventListener("hashchange", read);
   }, []);
@@ -31,7 +38,37 @@ export function AuthGate({ children }: { children: ReactNode }) {
       window.location.pathname + window.location.search + "#dashboard",
     );
     setResetToken(null);
+    setActivationToken(null);
   };
+  if (activationToken !== null)
+    return (
+      <PasswordResetForm
+        key={activationToken}
+        activation
+        token={activationToken}
+        onCancel={leaveReset}
+        onDone={() => {
+          leaveReset();
+          setForgot(false);
+          setError(null);
+          setNotice("Konto zostało aktywowane. Zaloguj się ustawionym hasłem.");
+          setActivated(Boolean(auth.user));
+        }}
+      />
+    );
+  if (activated)
+    return (
+      <main className="login-page">
+        <section className="login-card">
+          <Brand />
+          <h1>Konto zostało aktywowane</h1>
+          <p role="status">Nowe konto ma już własne hasło.</p>
+          <button className="button button-primary" onClick={() => setActivated(false)}>
+            Wróć do aplikacji
+          </button>
+        </section>
+      </main>
+    );
   if (resetToken !== null)
     return (
       <PasswordResetForm
@@ -81,7 +118,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
         <p>
           {forgot
             ? "Podaj login swojego konta."
-            : "Zaloguj się do przestrzeni Fleet-Flow."}
+            : "Zaloguj się za pomocą loginu lub adresu e-mail."}
         </p>
         {notice && (
           <p className="auth-notice" role="status">
@@ -97,7 +134,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
               <input
                 autoComplete="username"
                 required
-                maxLength={100}
+                maxLength={forgot ? 100 : 254}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 autoFocus

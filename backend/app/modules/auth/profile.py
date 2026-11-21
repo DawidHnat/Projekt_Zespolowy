@@ -2,23 +2,22 @@ from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
-from sqlalchemy import delete, select
+from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
 from app.core.config import SmtpSettings, load_environment
 from app.core.database import get_session
 from app.core.errors import ApiError
 from app.integrations.mail.client import send_password_changed
-from app.modules.auth.models import LoginSession, PasswordReset, User
+from app.modules.auth.models import PasswordReset, User
 from app.modules.auth.router import count_attempt
 from app.modules.auth.service import (
     COOKIE_NAME,
-    aware,
     check_origin,
     current_user,
     digest,
     issue_session,
-    now_utc,
+    locked_current_user,
     password_hasher,
     revoke_sessions,
 )
@@ -41,34 +40,6 @@ class ChangePassword(BaseModel):
         except UnicodeEncodeError as exc:
             raise ValueError("Invalid password text") from exc
         return value
-
-
-def locked_current_user(session, request, user):
-    # Same lock order as password reset: user, then session/token. Login also locks User.
-    locked = session.scalar(
-        select(User)
-        .where(User.id == user.id)
-        .with_for_update()
-        .execution_options(populate_existing=True)
-    )
-    token = request.cookies.get(COOKIE_NAME, "")
-    login = session.scalar(
-        select(LoginSession)
-        .where(
-            LoginSession.token_hash == digest(token),
-            LoginSession.user_id == user.id,
-        )
-        .execution_options(populate_existing=True)
-    )
-    if (
-        not locked
-        or not locked.active
-        or locked.role not in ("admin", "editor", "viewer")
-        or not login
-        or aware(login.expires_at) <= now_utc()
-    ):
-        raise ApiError(401, "UNAUTHENTICATED", "Zaloguj się ponownie")
-    return locked
 
 
 def notify_password_changed(recipient):

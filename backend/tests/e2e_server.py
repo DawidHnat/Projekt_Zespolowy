@@ -17,9 +17,11 @@ from sqlalchemy.orm import Session
 
 from app.core.models import Driver, Measurement, SyncState, Vehicle
 from app.core.settings import Settings
+from app.integrations.mail.client import SmtpError
 from app.main import create_app
 from app.modules.analytics.models import Alert, AlertReceipt, DailyDistance, Rule
-from app.modules.auth.models import LoginAttempt, LoginSession, User
+from app.modules.auth import accounts
+from app.modules.auth.models import LoginAttempt, LoginSession, PasswordReset, User
 from app.modules.auth.service import password_hasher
 from app.modules.drivers.models import DriverAssignment, DriverCategory
 from app.modules.fleet.sync import account_key
@@ -29,6 +31,7 @@ from app.modules.trips.models import Trip
 ACCOUNT = "synthetic-e2e-source"
 VEHICLE = UUID("11111111-1111-4111-8111-111111111111")
 TRIP = UUID("22222222-2222-4222-8222-222222222222")
+INVITE_USERS = ("e2e-invite-desktop", "e2e-invite-mobile")
 
 
 def test_database_url():
@@ -59,13 +62,18 @@ def seed(engine):
         hour=10, minute=0, second=0, microsecond=0
     )
     with Session(engine) as session:
-        known = {"e2e-editor", "e2e-viewer", "e2e-editor-two"}
+        known = {"e2e-editor", "e2e-viewer", "e2e-editor-two", "e2e-admin", *INVITE_USERS}
         if any(username not in known for username in session.scalars(select(User.username))):
             raise RuntimeError("E2E database contains non-fixture users")
+        invites = select(User.id).where(User.username.in_(INVITE_USERS))
+        for model in (LoginSession, PasswordReset, AccountPreference, AlertReceipt):
+            session.execute(delete(model).where(model.user_id.in_(invites)))
+        session.execute(delete(User).where(User.username.in_(INVITE_USERS)))
         fixtures = (
             ("e2e-editor", "Test editor", "editor"),
             ("e2e-viewer", "Test viewer", "viewer"),
             ("e2e-editor-two", "Test editor two", "editor"),
+            ("e2e-admin", "Test administrator", "admin"),
         )
         for username, display_name, role in fixtures:
             user = session.scalar(select(User).where(User.username == username))
@@ -121,6 +129,26 @@ def seed(engine):
             )
         session.commit()
     source_state(engine, "ok")
+
+
+def install_invitation_fixture(app):
+    sent = {}
+    allowed = {f"{username}@example.com" for username in INVITE_USERS}
+
+    def fake_sender(_, recipient, url):
+        if recipient not in allowed:
+            raise SmtpError("Expected a synthetic invitation address")
+        sent[recipient] = url
+
+    accounts.load_environment = lambda: {
+        "SMTP_USERNAME": "e2e-sender@example.com",
+        "SMTP_PASSWORD": "synthetic",
+    }
+    accounts.send_account_activation = fake_sender
+
+    @app.get("/__e2e/invitations/{username}")
+    def invitation(username: str):
+        return {"url": sent.get(f"{username}@example.com")}
 
 
 def main():
@@ -272,6 +300,7 @@ def main():
     seed(engine)
     settings = Settings(database_url, origins=("http://127.0.0.1:54173",), webfleet_account=ACCOUNT)
     app = create_app(settings, engine=engine)
+    install_invitation_fixture(app)
     uvicorn.run(app, host="127.0.0.1", port=58000, access_log=False)
 
 

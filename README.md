@@ -156,6 +156,10 @@ Udostępnienie pliku prowadzącemu oczekuje na podanie jego adresu e-mail.
 
 ## Uruchomienie lokalne
 
+Administrator zarządza kontami w sekcji **Użytkownicy** (SCRUM-48). Nowe konto
+oczekuje na aktywację przez adresata zaproszenia. Logowanie przyjmuje login
+lub e-mail. [Macierz uprawnień i scenariusze odbioru](docs/qa/SCRUM-48.md).
+
 Pierwszy przyrost SCRUM-49 dodaje **Profil** dostępny po kliknięciu własnej nazwy
 w menu (`#profile`). Pokazuje dane konta, pozwala zmienić własne hasło oraz
 wylogować wszystkie sesje. Potwierdzanie zmiany e-maila pozostaje kolejnym

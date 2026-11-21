@@ -59,6 +59,20 @@ def send_password_changed(settings: SmtpSettings, recipient: str) -> None:
     _send(settings, recipient, message)
 
 
+def send_account_activation(settings: SmtpSettings, recipient: str, url: str) -> None:
+    message = EmailMessage()
+    message["From"] = settings.username
+    message["To"] = recipient
+    message["Subject"] = "Fleet-Flow — aktywuj konto"
+    message.set_content(
+        "Otwórz link, aby aktywować konto Fleet-Flow i ustawić swoje hasło. "
+        "Link jest ważny przez 24 godziny i działa jeden raz.\n\n"
+        + url
+        + "\n\nJeśli nie spodziewasz się zaproszenia, skontaktuj się z administratorem zespołu."
+    )
+    _send(settings, recipient, message)
+
+
 def _send(settings: SmtpSettings, recipient: str, message: EmailMessage) -> None:
     try:
         with smtplib.SMTP_SSL(
