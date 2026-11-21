@@ -20,7 +20,10 @@ services:
       context: ../..
       dockerfile: infra/deploy/backend.Dockerfile
     restart: unless-stopped
-    env_file: ${FLEET_FLOW_ENV_FILE:?Set FLEET_FLOW_ENV_FILE}
+    env_file:
+      - ${FLEET_FLOW_ENV_FILE:?Set FLEET_FLOW_ENV_FILE}
+      - path: ${FLEET_FLOW_SMTP_ENV_FILE:-/opt/fleet-flow/shared/smtp.env}
+        required: false
     environment:
       COOKIE_SECURE: 'true'
       CORS_ORIGINS: https://${APP_DOMAIN:?Set APP_DOMAIN}

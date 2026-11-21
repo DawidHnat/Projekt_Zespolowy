@@ -127,6 +127,13 @@ Zmienna środowiska Actions `DEV_WEBFLEET_SYNC_ENABLED` ma domyślnie wartość
 `true` i wdrożyć zatwierdzoną wersję. Powrót do `false` zatrzymuje kolejne
 cykle po wdrożeniu bez czyszczenia zapisanych danych.
 
+Po uzgodnieniu uruchomienia SMTP administrator zapisuje konfigurację w
+`/opt/fleet-flow/shared/smtp.env` na VPS. Plik w formacie dotenv należy do
+`root:root` i ma uprawnienia `0600`. Zawiera ustawienia opisane w instrukcji
+backendu. Docker Compose 2.24 lub nowszy wczytuje opcjonalny plik do kontenera
+API przy każdym wdrożeniu. Po zmianie pliku odtwórz kontener API. Ustawienia
+SMTP pozostają na VPS. [Konfiguracja i diagnostyka SMTP](../../backend/README.md#poczta-ovh--test-logowania-bez-wysyłki).
+
 ## Ochrona main — wykonuje właściciel repozytorium
 
 Repozytorium jest publiczne. Odczyt 10.11.2026 pokazuje aktywną ochronę
