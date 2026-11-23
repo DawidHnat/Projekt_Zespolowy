@@ -276,7 +276,7 @@ def test_distance_is_a_daily_delta_not_the_absolute_odometer(application):
         vehicle, previous = vehicle_with_reading(
             session,
             "source",
-            now - timedelta(minutes=1),
+            now - timedelta(minutes=2),
             value=Decimal(100000),
             with_distance=False,
         )
@@ -464,7 +464,7 @@ def test_postgres_parallel_evaluation_and_sync_share_deduplication():
         settings = WebfleetSettings("synthetic-sync-" + uuid4().hex, "test", "test", "test")
         sync_source = account_key(settings.account)
         with Session(engine) as session:
-            sync_rule = Rule(source_account=sync_source, threshold_km=Decimal(100))
+            sync_rule = Rule(source_account=sync_source, threshold_km=Decimal(5))
             session.add(sync_rule)
             session.commit()
             sync_rule_id = sync_rule.id
@@ -486,11 +486,12 @@ def test_postgres_parallel_evaluation_and_sync_share_deduplication():
 
             async def fetch_objects(self):
                 FakeClient.reading_number += 1
-                reading_index = min(FakeClient.reading_number - 1, 1)
+                reading_index = min(FakeClient.reading_number - 1, 2)
                 return [
                     {
                         "objectuid": "synthetic-alert-vehicle",
-                        "odometer": str(20001 + reading_index * 1001),
+                        "odometer": ["1000", "50000", "50051"][reading_index],
+                        "standstill": "1" if reading_index == 1 else "0",
                         "pos_time": (now + timedelta(seconds=reading_index * 60)).isoformat(),
                     }
                 ]
@@ -507,6 +508,16 @@ def test_postgres_parallel_evaluation_and_sync_share_deduplication():
             sync_once(engine, settings, client_factory=FakeClient, now=now + timedelta(seconds=60))
             == "ok"
         )
+        with Session(engine) as session:
+            assert session.scalar(select(Alert).where(Alert.rule_id == sync_rule_id)) is None
+            assert (
+                session.scalar(
+                    select(DailyDistance)
+                    .join(Vehicle, Vehicle.id == DailyDistance.vehicle_id)
+                    .where(Vehicle.source_account == sync_source)
+                )
+                is None
+            )
         assert (
             sync_once(engine, settings, client_factory=FakeClient, now=now + timedelta(seconds=120))
             == "ok"
@@ -522,7 +533,7 @@ def test_postgres_parallel_evaluation_and_sync_share_deduplication():
                 select(DailyDistance.distance_km)
                 .join(Vehicle, Vehicle.id == DailyDistance.vehicle_id)
                 .where(Vehicle.source_account == sync_source)
-            ) == Decimal("100.1")
+            ) == Decimal("5.1")
     finally:
         engine.dispose()
 
