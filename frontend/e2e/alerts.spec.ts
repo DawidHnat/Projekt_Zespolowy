@@ -78,9 +78,14 @@ test("alerts empty state and rule forms save scoped rules and retain failed draf
   await expect(page.getByRole("alert")).toContainText("Nie zapisano reguły");
   await expect(form.getByLabel("Próg dziennego dystansu (km)", { exact: true })).toHaveValue("12.5");
   await page.unroute(pattern);
+  // Focus returns when the form closes, even while animation frames are paused.
+  const now = Date.now();
+  await page.clock.install({ time: now - 60_000 });
+  await page.clock.pauseAt(now);
   await form.getByRole("button", { name: "Zapisz regułę", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: "Reguła została zapisana" })).toBeVisible();
   await expect(add).toBeFocused();
+  await page.clock.resume();
   let rules = (await (await page.request.get("/api/v1/analytics/rules")).json()).items;
   expect(rules[0].vehicle_id).toBe("11111111-1111-4111-8111-111111111111");
   expect(rules[0].threshold_km).toBe(12.5);
