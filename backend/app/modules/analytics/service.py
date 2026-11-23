@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
@@ -7,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import ApiError
 from app.core.models import Vehicle
 from app.core.settings import DEFAULT_STALE_SECONDS
+from app.integrations.webfleet.models import MAX_SPEED_KMH, ODOMETER_RESOLUTION_KM
 from app.modules.analytics.models import Alert, DailyDistance, Rule
 from app.modules.auth.service import aware
 
@@ -17,7 +19,7 @@ def record_distance_interval(session, vehicle_id, previous, reading, now, *, max
     """Persist only a known, nonnegative interval wholly inside one Polish calendar day.
 
     Call before replacing the previous Measurement, in the synchronization transaction.
-    Duplicate/out-of-order samples, counter resets and gaps do not invent distance.
+    Duplicate/out-of-order samples, counter resets, jumps and gaps do not invent distance.
     The existing shared synchronization lock serializes updates to a vehicle's baseline.
     """
     if previous is None or not previous.position_at or not reading.position_at:
@@ -36,10 +38,15 @@ def record_distance_interval(session, vehicle_id, previous, reading, now, *, max
         or after < before
     ):
         return
+    distance_km = after - before
+    elapsed_seconds = Decimal(str((end - start).total_seconds()))
+    max_distance_km = elapsed_seconds * MAX_SPEED_KMH / 3600 + ODOMETER_RESOLUTION_KM
+    if distance_km > max_distance_km:
+        return
     statement = insert_for(session, DailyDistance).values(
         vehicle_id=vehicle_id,
         event_day=end.astimezone(WARSAW).date(),
-        distance_km=after - before,
+        distance_km=distance_km,
         first_observed_at=start,
         last_observed_at=end,
     )

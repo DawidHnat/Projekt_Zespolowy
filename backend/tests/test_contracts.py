@@ -170,7 +170,12 @@ def test_every_implemented_operation_has_a_real_success_response(logged_in, monk
         "PATCH",
         "/fleet/vehicles/{id}",
         f"/fleet/vehicles/{vehicle}",
-        json={"make": "Syntetyczna marka", "model": "Kontrakt", "year": 2026},
+        json={
+            "card_version": detail["card_version"],
+            "make": "Syntetyczna marka",
+            "model": "Kontrakt",
+            "year": 2026,
+        },
     )
     assert card["make"] == "Syntetyczna marka" and card["year"] == 2026
     check("GET", "/fleet/map")
