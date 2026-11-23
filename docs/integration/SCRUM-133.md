@@ -41,3 +41,18 @@ Poniższe SHA i wyniki opisują bazowy odczyt. Wyniki nowych commitów są w kar
 133 kończymy po dostarczeniu nieodłożonych zakresów z aktualnym review, CI, adekwatnym QA i dowodem wdrożenia. Kontrolowany live odbiera osobno Dawid w SCRUM-64 na jego własnych AC i dotychczasowych kopiach/rollbacku SCRUM-18; **zakończenie odłożonego SCRUM-84 nie jest blokadą**. Nie uruchomiono żywego WEBFLEET/SMTP, nie zmieniano ochrony ani konfiguracji VPS i nie włączono automerge.
 
 Każdy nowy wynik: wykonawca (agent/człowiek), data, SHA, środowisko, dowód i PASS/FAIL/BLOCKED. Brak niezależnego QA ma konkretną rolę i nie jest naprawiany samą zmianą statusu.
+
+## Indeks stanu na 20.11.2026 — SCRUM-154
+
+Powyższy rejestr jest odczytem historycznym. Poniżej stan sprawdzony przez
+agenta 20.11.2026 dla publicznego wydania `dff6240`.
+
+| Zakres | GitHub i wdrożenie | Dowód lub pozostały odbiór |
+| --- | --- | --- |
+| Integracja kontroli bezpieczeństwa SCRUM-133 | [#101](https://github.com/DawidHnat/Projekt_Zespolowy/pull/101) Approved i merge do `main` 19.11, `bfc6034` jest w `dff6240`. | [CI/deploy/smoke 44745990611](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44745990611) PASS, ten sam publiczny SHA i readiness 200. |
+| Alerty, kierowcy i przypisania SCRUM-32/52/53 | [#110](https://github.com/DawidHnat/Projekt_Zespolowy/pull/110) Approved i merge do `main` 19.11, `a1a4b60` jest w `dff6240`. [#50](https://github.com/DawidHnat/Projekt_Zespolowy/pull/50) i [#51](https://github.com/DawidHnat/Projekt_Zespolowy/pull/51) miały pośrednie bazy. | [CI #110](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/44611524542) PASS. Niezależny odbiór [alertów](https://fleet-flow.atlassian.net/browse/SCRUM-33) i [kartoteki](https://fleet-flow.atlassian.net/browse/SCRUM-54) ma osobne protokoły. |
+| QA release i dane kursowe | [#124](https://github.com/DawidHnat/Projekt_Zespolowy/pull/124) (`a958a66`) dostarczył uzupełnienie dowodów kursowych. | [Indeks kursowy](../COURSE_READINESS.md), [dotychczasowy protokół QA](../qa/SCRUM-141-current.md), [protokół wydania](../../infra/deploy/MVP_RELEASE_PROTOCOL.md). Decyzje PO są w Jirze, uzupełnienie dowodów trwa w [SCRUM-154](https://fleet-flow.atlassian.net/browse/SCRUM-154). |
+| Nowy DoD i plan weryfikacji | [#140](https://github.com/DawidHnat/Projekt_Zespolowy/pull/140) był otwarty z zielonym CI. | Obowiązujący [DoD](../../DEFINITION_OF_DONE.md) i sesja [SCRUM-152](https://fleet-flow.atlassian.net/browse/SCRUM-152). |
+
+Publiczny smoke dotyczył HTTP/HTTPS i gotowości API. Macierz bieżących przyrostów,
+daty i bramy operacyjne prowadzi [SCRUM-154](https://fleet-flow.atlassian.net/browse/SCRUM-154).

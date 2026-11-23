@@ -2,7 +2,7 @@ from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Request
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -32,6 +32,7 @@ VehicleSort = Literal["name-asc", "name-desc", "status", "odometer-asc", "odomet
 
 class VehicleCardUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    card_version: int = Field(strict=True, ge=1, le=2147483646)
     name: Annotated[str | None, Field(default=None, max_length=200)] = None
     make: Annotated[str | None, Field(default=None, max_length=100)] = None
     model: Annotated[str | None, Field(default=None, max_length=100)] = None
@@ -54,6 +55,12 @@ class VehicleCardUpdate(BaseModel):
             return None
         cleaned = value.strip()
         return cleaned or None
+
+    @model_validator(mode="after")
+    def require_update(self):
+        if not self.model_fields_set - {"card_version"}:
+            raise ValueError("Podaj co najmniej jedno pole kartoteki")
+        return self
 
 
 def context(request, session):
@@ -178,15 +185,20 @@ def update_vehicle_card(
         .outerjoin(Measurement, Measurement.vehicle_id == Vehicle.id)
         .outerjoin(Driver, Driver.id == Vehicle.driver_id)
         .where(Vehicle.id == vehicle_id, Vehicle.source_account == source, Vehicle.active.is_(True))
+        .with_for_update(of=Vehicle)
     ).first()
     if not row:
         raise ApiError(404, "NOT_FOUND", "Pojazd nie istnieje")
     vehicle, measurement, driver = row
-    for field in ("name", "make", "model", "year", "vin", "license_plate", "vehicle_type"):
-        if field in payload.model_fields_set:
-            val = getattr(payload, field)
-            setattr(vehicle, field, val)
-            vehicle.locally_edited = True
+    if vehicle.card_version != payload.card_version:
+        raise ApiError(409, "VERSION_CONFLICT", "Kartoteka pojazdu zmieniła się podczas edycji")
+    changes = payload.model_dump(exclude_unset=True, exclude={"card_version"})
+    for field, value in changes.items():
+        setattr(vehicle, field, value)
+    for field in changes.keys() & {"name", "license_plate", "vehicle_type"}:
+        setattr(vehicle, f"manual_{field}", True)
+    vehicle.locally_edited = True
+    vehicle.card_version += 1
     session.commit()
     drivers = fleet_driver_summaries(session, [vehicle_id], source)
     return with_driver_summary(

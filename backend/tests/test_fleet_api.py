@@ -213,15 +213,24 @@ def test_vehicle_card_patch_telemetry_and_stale_address(logged_in):
         session.commit()
 
     # Invalid names: null, empty string, whitespace-only -> 422
-    assert client.patch(path, headers=ORIGIN, json={"name": None}).status_code == 422
-    assert client.patch(path, headers=ORIGIN, json={"name": ""}).status_code == 422
-    assert client.patch(path, headers=ORIGIN, json={"name": "   "}).status_code == 422
+    assert (
+        client.patch(path, headers=ORIGIN, json={"card_version": 1, "name": None}).status_code
+        == 422
+    )
+    assert (
+        client.patch(path, headers=ORIGIN, json={"card_version": 1, "name": ""}).status_code == 422
+    )
+    assert (
+        client.patch(path, headers=ORIGIN, json={"card_version": 1, "name": "   "}).status_code
+        == 422
+    )
 
     # Patch card metadata with valid fields and trimmed name
     patch_res = client.patch(
         path,
         headers=ORIGIN,
         json={
+            "card_version": 1,
             "name": "  Nowa Nazwa Pojazdu  ",
             "make": "  Renault  ",
             "model": "Master",
@@ -232,6 +241,11 @@ def test_vehicle_card_patch_telemetry_and_stale_address(logged_in):
     assert patch_res.status_code == 200
     patched = patch_res.json()
     assert patched["name"] == "Nowa Nazwa Pojazdu"
+    assert patched["card_version"] == 2
+    assert client.patch(path, headers=ORIGIN, json={"make": "Old client"}).status_code == 422
+    assert client.patch(path, headers=ORIGIN, json={"card_version": 2}).status_code == 422
+    stale = client.patch(path, headers=ORIGIN, json={"card_version": 1, "make": "Stale"})
+    assert stale.status_code == 409 and stale.json()["error"]["code"] == "VERSION_CONFLICT"
     assert patched["make"] == "Renault"
     assert patched["model"] == "Master"
     assert patched["year"] == 2023
@@ -244,14 +258,14 @@ def test_vehicle_card_patch_telemetry_and_stale_address(logged_in):
         assert res["items"][0]["id"] == vehicle_id
 
     # Validation errors
-    bad_year = client.patch(path, headers=ORIGIN, json={"year": 1850})
+    bad_year = client.patch(path, headers=ORIGIN, json={"card_version": 2, "year": 1850})
     assert bad_year.status_code == 422
-    extra_field = client.patch(path, headers=ORIGIN, json={"extra": "val"})
+    extra_field = client.patch(path, headers=ORIGIN, json={"card_version": 2, "extra": "val"})
     assert extra_field.status_code == 422
     not_found = client.patch(
         "/api/v1/fleet/vehicles/11111111-1111-4111-8111-111111111111",
         headers=ORIGIN,
-        json={"make": "Test"},
+        json={"card_version": 1, "make": "Test"},
     )
     assert not_found.status_code == 404
 
