@@ -48,10 +48,13 @@ def verify(app_origin, username, password):
         {"username": username, "password": password},
     )
     try:
+        viewer = login.get("user")
         profile = fetch_json(client, base_url, "/api/v1/auth/profile")
         if (
-            profile.get("role") != "viewer"
-            or profile.get("username") != login.get("username")
+            not isinstance(viewer, dict)
+            or viewer.get("role") != "viewer"
+            or profile.get("role") != "viewer"
+            or profile.get("username") != viewer.get("username")
             or not isinstance(profile.get("username"), str)
             or not isinstance(profile.get("display_name"), str)
             or "email" not in profile

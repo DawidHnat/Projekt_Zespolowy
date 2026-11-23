@@ -118,7 +118,9 @@ class Sprint3SmokeTests(unittest.TestCase):
         page = {"items": [], "page": 1, "page_size": 1, "total": 0, "summary": {}}
         with (
             patch.object(
-                sprint3, "fetch_json", side_effect=[self.viewer, self.viewer, page, {}]
+                sprint3,
+                "fetch_json",
+                side_effect=[{"user": self.viewer}, self.viewer, page, {}],
             ) as fetch,
             redirect_stdout(io.StringIO()) as output,
         ):
@@ -141,7 +143,11 @@ class Sprint3SmokeTests(unittest.TestCase):
             patch.object(
                 sprint3,
                 "fetch_json",
-                side_effect=[self.viewer, {**self.viewer, "role": "admin"}, {}],
+                side_effect=[
+                    {"user": self.viewer},
+                    {**self.viewer, "role": "admin"},
+                    {},
+                ],
             ) as fetch,
             self.assertRaises(ValueError),
         ):
