@@ -1,5 +1,9 @@
+import { accountRoles, type AccountRole } from "./accounts-model.ts";
+
 export type Profile = {
   display_name: string;
+  first_name: string | null;
+  last_name: string | null;
   username: string;
   email: string | null;
   role: string;
@@ -25,10 +29,5 @@ export function profileError(error: unknown): string {
 }
 
 export function profileRole(role: string): string {
-  switch (role) {
-    case "admin": return "Administrator";
-    case "editor": return "Edytor";
-    case "viewer": return "Tylko odczyt";
-    default: return "Nieznana rola";
-  }
+  return Object.hasOwn(accountRoles, role) ? accountRoles[role as AccountRole] : "Nieznana rola";
 }
