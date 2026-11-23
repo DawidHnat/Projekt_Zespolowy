@@ -37,8 +37,8 @@ export default function VehicleMap() {
   const features = validFeatures(fleet.map);
   const emptyState = mapEmptyState(
     fleet.map,
-    fleet.loading,
-    fleet.error,
+    fleet.mapLoading,
+    fleet.mapError,
     Boolean(fleet.q.trim() || fleet.status),
   );
   useEffect(() => {
