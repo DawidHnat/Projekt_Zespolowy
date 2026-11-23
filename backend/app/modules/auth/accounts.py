@@ -20,13 +20,7 @@ from app.core.database import get_session
 from app.core.errors import ApiError
 from app.integrations.mail.client import SmtpError, send_account_activation
 from app.modules.auth.links import PasswordLinkBody, settle_delivery, stage_link
-from app.modules.auth.models import (
-    AccountActivation,
-    AccountStatus,
-    PasswordReset,
-    User,
-    normalize_identifier,
-)
+from app.modules.auth.models import AccountActivation, AccountStatus, User, normalize_identifier
 from app.modules.auth.policies import Role
 from app.modules.auth.router import count_attempt
 from app.modules.auth.service import (
@@ -41,6 +35,7 @@ from app.modules.auth.service import (
     locked_current_user,
     now_utc,
     password_hasher,
+    revoke_recovery_links,
     revoke_sessions,
 )
 
@@ -211,7 +206,7 @@ def edit_account(
     check_identifiers(session, changes.get("username"), changes.get("email"), except_user=user.id)
     if status != user.status or changes.keys() & {"username", "email", "role"}:
         revoke_sessions(session, user)
-        session.execute(delete(PasswordReset).where(PasswordReset.user_id == user.id))
+        revoke_recovery_links(session, user)
         session.execute(delete(AccountActivation).where(AccountActivation.user_id == user.id))
     if changes.keys() & {"first_name", "last_name"}:
         user.display_name = display_name(
@@ -247,7 +242,7 @@ def send_activation(
             503, "ACTIVATION_MAIL_UNAVAILABLE", "Skonfiguruj pocztę SMTP i ponów wysyłkę"
         ) from None
     recipient = user.email
-    token, expires_at = stage_link(session, AccountActivation, user_id, timedelta(hours=24))
+    token, expires_at = stage_link(session, AccountActivation(user_id=user_id), timedelta(hours=24))
     session.commit()
     url = request.headers["origin"] + "/#activate-account?token=" + token
     delivered = False

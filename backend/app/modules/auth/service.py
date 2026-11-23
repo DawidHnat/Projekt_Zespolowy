@@ -10,7 +10,13 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_session
 from app.core.errors import ApiError
-from app.modules.auth.models import LoginSession, User, normalize_identifier
+from app.modules.auth.models import (
+    EmailChange,
+    LoginSession,
+    PasswordReset,
+    User,
+    normalize_identifier,
+)
 from app.modules.auth.policies import can_authenticate, can_edit, can_manage_accounts
 
 COOKIE_NAME = "fleet_flow_session"
@@ -75,6 +81,11 @@ def user_payload(user: User):
 
 def revoke_sessions(session: Session, user: User):
     session.execute(delete(LoginSession).where(LoginSession.user_id == user.id))
+
+
+def revoke_recovery_links(session: Session, user: User) -> None:
+    session.execute(delete(PasswordReset).where(PasswordReset.user_id == user.id))
+    session.execute(delete(EmailChange).where(EmailChange.user_id == user.id))
 
 
 def find_user(session: Session, username: str, *, lock=False):

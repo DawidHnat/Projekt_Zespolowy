@@ -9,13 +9,14 @@ from sqlalchemy import delete
 from app.core.database import make_engine, make_sessions
 from app.core.errors import ApiError
 from app.core.settings import Settings
-from app.modules.auth.models import AccountActivation, PasswordReset, User, normalize_identifier
+from app.modules.auth.models import AccountActivation, User, normalize_identifier
 from app.modules.auth.policies import ROLES
 from app.modules.auth.service import (
     check_identifiers,
     find_user,
     lock_account_changes,
     password_hasher,
+    revoke_recovery_links,
     revoke_sessions,
 )
 
@@ -75,7 +76,7 @@ def main():
                         parser.error("Pierwsze hasło użytkownik ustawia z linku aktywacyjnego")
                     user.password_hash = password_hasher.hash(password)
                     revoke_sessions(session, user)
-                session.execute(delete(PasswordReset).where(PasswordReset.user_id == user.id))
+                revoke_recovery_links(session, user)
             session.commit()
     except ApiError as error:
         parser.error(error.message)

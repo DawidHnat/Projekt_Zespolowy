@@ -80,6 +80,13 @@ transakcyjną, która chroni ostatniego aktywnego administratora i unikalność
 identyfikatorów logowania.
 [Macierz dostępu i kontrakt administracyjny](qa/SCRUM-48.md).
 
+SCRUM-49 zapisuje oczekującą zmianę e-maila w `email_changes`. Rekord wiąże
+hash jednorazowego tokenu, nowy adres, ważność linku i wersję konta. Potwierdzenie
+wymaga sesji właściciela. W jednej transakcji API ponownie sprawdza dostępność
+adresu, aktualizuje e-mail i wersję konta oraz unieważnia poprzednie sesje
+i linki do resetu hasła lub zmiany adresu.
+[Scenariusze odbioru Profilu](qa/SCRUM-49.md).
+
 Preferencje konta mają osobne moduły `dashboard` i `vehicles` pod
 `/api/v1/preferences/{module}`. PUT wymaga odczytanej wersji i atomowo odrzuca
 przestarzały zapis kodem 409. Migracja istniejącego stanu przeglądarki wymaga
