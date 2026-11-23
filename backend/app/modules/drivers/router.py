@@ -62,17 +62,28 @@ def summary(
     request: Request,
     session: SessionDep,
     _: UserDep,
-    q: str = Query(default="", max_length=200),
     active: bool | None = None,
     assigned: bool | None = None,
     category: str | None = None,
     vehicle_id: UUID | None = None,
     missing_categories: bool | None = None,
 ):
+    require_post_for_search(request)
     source = source_for(request)
     query = profile_filters(
-        profile_query(source), source, q, active, assigned, category, vehicle_id, missing_categories
+        profile_query(source),
+        source,
+        "",
+        active,
+        assigned,
+        category,
+        vehicle_id,
+        missing_categories,
     )
+    return driver_summary(session, query)
+
+
+def driver_summary(session, query):
     scope = query.subquery()
     active_count = func.count().filter(scope.c.active.is_(True))
     without = func.count().filter(scope.c.active.is_(True), scope.c.vehicle_count == 0)
@@ -98,7 +109,6 @@ def drivers(
     request: Request,
     session: SessionDep,
     _: UserDep,
-    q: str = Query(default="", max_length=200),
     active: bool | None = None,
     assigned: bool | None = None,
     category: str | None = None,
@@ -109,10 +119,22 @@ def drivers(
     missing_categories: bool | None = None,
     custom_order: Annotated[list[UUID] | None, Query(max_length=2000)] = None,
 ):
+    require_post_for_search(request)
     source = source_for(request)
     query = profile_filters(
-        profile_query(source), source, q, active, assigned, category, vehicle_id, missing_categories
+        profile_query(source),
+        source,
+        "",
+        active,
+        assigned,
+        category,
+        vehicle_id,
+        missing_categories,
     )
+    return driver_page(session, source, query, sort, page, page_size, custom_order)
+
+
+def driver_page(session, source, query, sort, page, page_size, custom_order):
     total = session.scalar(select(func.count()).select_from(query.subquery()))
     name = func.lower(func.coalesce(Driver.last_name, Driver.display_name))
     first = func.lower(func.coalesce(Driver.first_name, ""))
@@ -152,21 +174,28 @@ def drivers(
     }
 
 
+def require_post_for_search(request):
+    if "q" in request.query_params:
+        raise ApiError(422, "QUERY_BODY_REQUIRED", "Użyj formularza wyszukiwania kierowców")
+
+
 @router.post("/search", dependencies=[Depends(check_origin)])
-def search_drivers(body: DriverSearch, request: Request, session: SessionDep, user: UserDep):
-    # Contact searches stay in the body, outside access-log URLs/browser history.
-    result = drivers(request, session, user, **body.model_dump())
-    result["summary"] = summary(
-        request,
-        session,
-        user,
-        q=body.q,
-        active=body.active,
-        assigned=body.assigned,
-        category=body.category,
-        vehicle_id=body.vehicle_id,
-        missing_categories=body.missing_categories,
+def search_drivers(body: DriverSearch, request: Request, session: SessionDep, _: UserDep):
+    source = source_for(request)
+    query = profile_filters(
+        profile_query(source),
+        source,
+        body.q,
+        body.active,
+        body.assigned,
+        body.category,
+        body.vehicle_id,
+        body.missing_categories,
     )
+    result = driver_page(
+        session, source, query, body.sort, body.page, body.page_size, body.custom_order
+    )
+    result["summary"] = driver_summary(session, query)
     return result
 
 

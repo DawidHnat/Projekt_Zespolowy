@@ -163,9 +163,15 @@ def test_search_filters_summary_pagination_and_source_scope(logged_in):
         )
         session.commit()
     for query in ("STRASSE", "Specjalny", "+48", "synthetic@example.com"):
-        assert client.get(ROOT, params={"q": query}).json()["total"] >= 1
+        assert client.post(ROOT + "/search", headers=ORIGIN, json={"q": query}).json()["total"] >= 1
     for query in ("%_", "\x00"):
-        assert client.get(ROOT, params={"q": query}).json()["total"] == 0
+        assert client.post(ROOT + "/search", headers=ORIGIN, json={"q": query}).json()["total"] == 0
+    for path in (ROOT, ROOT + "/summary"):
+        refused = client.get(path, params={"q": "synthetic@example.com"})
+        assert (
+            refused.status_code == 422 and refused.json()["error"]["code"] == "QUERY_BODY_REQUIRED"
+        )
+        assert "synthetic@example.com" not in refused.text
     assert client.get(ROOT, params={"assigned": True}).json()["total"] == 1
     assert client.get(ROOT, params={"category": "C+E"}).json()["total"] == 1
     assert client.get(ROOT, params={"category": "unsupported"}).status_code == 422
@@ -264,3 +270,21 @@ def test_custom_order_is_global_bounded_and_source_scoped_with_missing_category_
         ).status_code
         == 422
     )
+
+
+def test_driver_access_logs_hide_query_but_keep_method_path_and_status(application, caplog):
+    import logging
+
+    access = logging.getLogger("uvicorn.access")
+    caplog.set_level(logging.INFO, logger="uvicorn.access")
+    access.info(
+        '%s - "%s %s HTTP/%s" %d',
+        "127.0.0.1",
+        "GET",
+        "/api/v1/drivers/summary?q=synthetic%40example.com",
+        "1.1",
+        422,
+    )
+    assert "GET /api/v1/drivers/summary HTTP/1.1" in caplog.text
+    assert "422" in caplog.text
+    assert "synthetic" not in caplog.text
