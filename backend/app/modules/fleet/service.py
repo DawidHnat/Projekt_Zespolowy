@@ -92,6 +92,7 @@ def serialize_vehicle(vehicle, measurement, driver, now, stale_seconds, source_d
     return {
         "id": str(vehicle.id),
         "name": vehicle.name,
+        "card_version": vehicle.card_version,
         "number": vehicle.number,
         "license_plate": vehicle.license_plate,
         "vehicle_type": vehicle.vehicle_type,

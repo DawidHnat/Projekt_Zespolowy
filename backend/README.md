@@ -172,6 +172,14 @@ bez gwarancji trwałego doręczenia; awaria SMTP nie cofa udanej zmiany hasła.
 Zmiana adresu i jego potwierdzanie pozostają poza tym przyrostem. Testy używają
 atrap SMTP, a rzeczywista wysyłka wymaga osobnego uzgodnienia.
 
+Gdy dostawa linku resetu przez SMTP zgłosi błąd, poprzedni niewykorzystany
+link zachowuje ważność do swojego terminu. Po potwierdzonej dostawie nowego
+linku starsze linki tego konta są usuwane. Publiczna odpowiedź pozostaje
+neutralna. Log `fleet_flow.auth` emituje jeden stały sygnał
+`password_reset_smtp_failed` dla nieudanej dostawy. Komunikaty setup/state
+wskazują problemy konfiguracji lub zapisu i mają własne stałe kody.
+Żaden z nich nie zawiera adresu odbiorcy, tokena ani wyjątku SMTP.
+
 ## Synchronizacja pojazdów — SCRUM-15
 
 Operator ma `python -m app.sync_control once` (pojedynczy **żywy import**, tylko
@@ -216,6 +224,16 @@ GPS pozostają na liście. Prędkość świeżego, poprawnego pomiaru jest podaw
 w `speed_kmh` (km/h, 0–300); brak, stary/przyszły pomiar, niedostępne źródło
 lub niepotwierdzony GPS oznaczają `null`, bez zastępowania braku zerem.
 [Kontrolne potwierdzenie jednostki](../docs/qa/SCRUM-14-speed-unit.md).
+Edycja kartoteki (PATCH) wymaga aktualnej wartości `card_version` zwróconej
+przez odczyt pojazdu oraz co najmniej jednego pola. Wersja rośnie po zapisie.
+Konflikt zwraca HTTP 409 `VERSION_CONFLICT`. Podanie ręcznej nazwy,
+rejestracji lub typu blokuje nadpisywanie wyłącznie tego pola. Pusta ręczna
+rejestracja lub typ pozostają puste. Numer obiektu pochodzi ze źródła.
+Migracja 0011 zachowuje nazwę, rejestrację i typ starych kartotek oznaczonych
+jako edytowane, ponieważ wcześniejsza flaga nie wskazuje konkretnego pola.
+Rollback aplikacji zachowuje rozszerzony schemat i wartości. Cofnięcie DDL
+usuwa szczegółową własność oraz wersję, dlatego przed odtworzeniem zachowaj
+kopię rozszerzonego schematu.
 Publiczne API nie zwraca UID źródła.
 `/docs` pokazuje aktualny OpenAPI; plan kolejnych operacji jest w contracts/.
 

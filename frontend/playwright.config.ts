@@ -14,6 +14,9 @@ export default defineConfig({
     screenshot: "only-on-failure",
     trace: "off",
     video: "off",
+    launchOptions: process.env.E2E_SYNTHETIC_MAP === "true" ? {
+      args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"],
+    } : undefined,
   },
   projects: [
     { name: "desktop", use: { browserName: "chromium", viewport: { width: 1440, height: 1000 } } },
