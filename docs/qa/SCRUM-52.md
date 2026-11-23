@@ -21,11 +21,12 @@ powstają wyłącznie ręcznie. WEBFLEET nie zapisuje żadnej z tych tabel.
 
 - GET `/api/v1/drivers/categories`: wersjonowany katalog `pl-driving-categories-v1`.
 - GET `/api/v1/drivers` i `/summary`: listy i agregaty w bieżącym źródle;
-  filtry q, active, assigned, category, vehicle_id; stabilne sorty name_asc,
+  filtry active, assigned, category, vehicle_id; stabilne sorty name_asc,
   name_desc, vehicles_asc, vehicles_desc i strony maksymalnie 100.
 - POST `/api/v1/drivers/search`: ten sam odczyt i podsumowanie, z parametrami
-  w JSON. Frontend używa tego wariantu przy wyszukiwaniu kontaktu, aby telefon
-  lub e-mail nie trafiały do URL i logu żądań. Wymaga sesji i poprawnego Origin.
+  w JSON. Fraza `q` jest przyjmowana tylko w tym wariancie. Stare żądanie GET
+  z `q` otrzymuje 422 bez treści frazy. Log dostępu Uvicorn pomija query na
+  ścieżkach kierowców. Wyszukanie wymaga sesji i poprawnego Origin.
 - POST `/api/v1/drivers`, GET/PATCH `/{id}`: kartoteka. Nowa osoba wymaga
   osobnych imienia/nazwiska i identyfikatora. Kontakt jest opcjonalny i może
   być współdzielony. Identyfikator jest unikalny w źródle, z Unicode casefold.
