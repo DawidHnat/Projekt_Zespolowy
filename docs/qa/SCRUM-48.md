@@ -39,6 +39,8 @@ zatwierdzonego odbiorcy testowego. Konto aplikacji to osobny rekord od kierowcy.
    administratora, również przy równoległych zmianach.
 
 Logowanie akceptuje login lub e-mail bez rozróżniania wielkości liter.
+Adres z uwzględnieniem oryginalnych znaków służy do wysyłki, a zapisany
+identyfikator logowania stosuje tę samą normalizację Unicode co login.
 Próby dla obu identyfikatorów trafiają do jednego limitu konta (10/min);
 obowiązuje też wspólny limit 10/min na IP. Wieloznaczny adres z danych
 historycznych daje neutralną odmowę, a wcześniejszy login nadal działa.

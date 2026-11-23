@@ -13,7 +13,7 @@ test("administrator invites a new user, who activates and signs in by email", as
   page, browser, request,
 }, info) => {
   const username = `e2e-invite-${info.project.name}`;
-  const email = `${username}@example.com`;
+  const email = `İ-${username}@example.com`;
   await page.goto("/#users");
   await login(page, "e2e-admin", initialPassword);
   await expect(page.getByRole("heading", { name: "Konta użytkowników" })).toBeVisible();
@@ -25,7 +25,11 @@ test("administrator invites a new user, who activates and signs in by email", as
   await dialog.getByLabel("Imię", { exact: true }).fill("Anna");
   await dialog.getByLabel("Nazwisko", { exact: true }).fill("Testowa");
   await dialog.getByLabel("Login", { exact: true }).fill(username);
-  await dialog.getByLabel("E-mail", { exact: true }).fill(email);
+  const address = dialog.getByLabel("E-mail", { exact: true });
+  await address.fill("błędny-adres");
+  await dialog.getByRole("button", { name: "Utwórz konto" }).click();
+  await expect(dialog.getByRole("alert")).toHaveText("Sprawdź dane konta i format adresu e-mail.");
+  await address.fill(email);
   await dialog.getByRole("button", { name: "Utwórz konto" }).click();
   await expect(dialog.getByRole("status")).toContainText("Konto utworzone");
   await dialog.getByRole("button", { name: "Wyślij zaproszenie" }).click();

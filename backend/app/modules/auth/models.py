@@ -3,9 +3,13 @@ from enum import StrEnum
 from uuid import UUID, uuid4
 
 from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, false
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, validates
 
 from app.core.models import Base
+
+
+def normalize_identifier(value: str) -> str:
+    return value.strip().lower()
 
 
 class AccountStatus(StrEnum):
@@ -42,6 +46,12 @@ class User(Base):
     needs_activation: Mapped[bool] = mapped_column(default=False, server_default=false())
     version: Mapped[int] = mapped_column(default=1, server_default="1")
     email: Mapped[str | None] = mapped_column(String(254))
+    email_identifier: Mapped[str | None] = mapped_column(String(508), index=True)
+
+    @validates("email")
+    def update_email_identifier(self, _: str, email: str | None) -> str | None:
+        self.email_identifier = normalize_identifier(email or "") or None
+        return email
 
     @property
     def status(self) -> AccountStatus:

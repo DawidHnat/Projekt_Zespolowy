@@ -17,7 +17,7 @@ test("a new address becomes visible and usable only after the authenticated mail
 }, testInfo) => {
   const username = `e2e-profile-${testInfo.project.name}`;
   const oldEmail = `${username}-old@example.com`;
-  const newEmail = `${username}@example.com`;
+  const newEmail = `İ-${username}@example.com`;
   const secondDevice = await browser.newContext({
     baseURL: origin,
     viewport: page.viewportSize() ?? undefined,
@@ -47,6 +47,10 @@ test("a new address becomes visible and usable only after the authenticated mail
     await form.getByRole("button", { name: "Anuluj", exact: true }).click();
     await expect(opener).toBeFocused();
     await opener.click();
+    await address.fill("błędny-adres");
+    await current.fill(password);
+    await submit.click();
+    await expect(form.getByRole("alert")).toHaveText("Sprawdź format nowego adresu e-mail.");
     await address.fill(newEmail);
     await current.fill("wrong-synthetic-password");
     await submit.click();

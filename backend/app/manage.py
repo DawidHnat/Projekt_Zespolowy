@@ -9,7 +9,7 @@ from sqlalchemy import delete
 from app.core.database import make_engine, make_sessions
 from app.core.errors import ApiError
 from app.core.settings import Settings
-from app.modules.auth.models import AccountActivation, User
+from app.modules.auth.models import AccountActivation, User, normalize_identifier
 from app.modules.auth.policies import ROLES
 from app.modules.auth.service import (
     check_identifiers,
@@ -52,7 +52,7 @@ def main():
                     parser.error("Konto już istnieje")
                 check_identifiers(session, args.username, email)
                 user = User(
-                    username=args.username.strip().lower(),
+                    username=normalize_identifier(args.username),
                     display_name=args.name or args.username,
                     role=args.role,
                     password_hash=password_hasher.hash(password),

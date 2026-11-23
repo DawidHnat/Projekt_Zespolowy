@@ -17,7 +17,7 @@ from app.modules.auth.links import (
     settle_delivery,
     stage_link,
 )
-from app.modules.auth.models import EmailChange, User
+from app.modules.auth.models import EmailChange, User, normalize_identifier
 from app.modules.auth.router import count_attempt
 from app.modules.auth.service import (
     COOKIE_NAME,
@@ -126,7 +126,7 @@ def request_email_change(
     if not password_hasher.verify(body.current_password.get_secret_value(), locked.password_hash):
         raise ApiError(400, "INVALID_CURRENT_PASSWORD", "Niepoprawne aktualne hasło")
     recipient = body.new_email
-    if recipient.lower() == (locked.email or "").strip().lower():
+    if normalize_identifier(recipient) == locked.email_identifier:
         raise ApiError(409, "EMAIL_UNCHANGED", "Wpisz inny adres e-mail")
     try:
         settings = SmtpSettings.from_environment(load_environment())

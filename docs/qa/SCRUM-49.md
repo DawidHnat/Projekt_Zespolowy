@@ -51,8 +51,9 @@ przeglądarki i skrzynki wskazanej do testów doręczenia.
   wymagają odizolowanego PostgreSQL 17 z bazą o nazwie zaczynającej się
   od `fleet_flow_test`. CI uruchamia Playwright na desktopie i mobile
   z atrapą poczty.
-- Migracja `0013_email_confirmation` wymaga `0012_account_administration`.
-  Test równoczesnego potwierdzenia weryfikuje, że jeden link daje jedną zmianę
-  i że ten sam adres może zostać przypisany jednemu kontu.
+- Rewizja `0014_merge_account_links` łączy migrację potwierdzenia adresu
+  z migracją identyfikatorów logowania SCRUM-48. Test równoczesnego
+  potwierdzenia weryfikuje jednokrotne użycie linku i unikalność adresu.
+  Playwright sprawdza również potwierdzenie adresu z Unicode i logowanie nim.
 - Doręczenie wiadomości na uzgodnioną skrzynkę oraz niezależny przegląd PR
   i odbiór QA są wymagane przed zakończeniem zadania.

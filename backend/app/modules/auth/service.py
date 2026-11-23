@@ -10,7 +10,13 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_session
 from app.core.errors import ApiError
-from app.modules.auth.models import EmailChange, LoginSession, PasswordReset, User
+from app.modules.auth.models import (
+    EmailChange,
+    LoginSession,
+    PasswordReset,
+    User,
+    normalize_identifier,
+)
 from app.modules.auth.policies import can_authenticate, can_edit, can_manage_accounts
 
 COOKIE_NAME = "fleet_flow_session"
@@ -83,14 +89,10 @@ def revoke_recovery_links(session: Session, user: User) -> None:
 
 
 def find_user(session: Session, username: str, *, lock=False):
-    statement = select(User).where(User.username == username.strip().lower())
+    statement = select(User).where(User.username == normalize_identifier(username))
     if lock:
         statement = statement.with_for_update().execution_options(populate_existing=True)
     return session.scalar(statement)
-
-
-def email_identifier():
-    return func.lower(func.trim(User.email))
 
 
 def find_login_user(session: Session, identifier: str) -> User | None:
@@ -98,7 +100,7 @@ def find_login_user(session: Session, identifier: str) -> User | None:
     username_matches = User.username == identifier
     matches = session.scalars(
         select(User)
-        .where(or_(username_matches, email_identifier() == identifier))
+        .where(or_(username_matches, User.email_identifier == identifier))
         .order_by(username_matches.desc())
         .limit(2)
     ).all()
@@ -145,11 +147,11 @@ def lock_account_changes(session: Session) -> None:
 
 
 def check_identifiers(session: Session, *changed: str | None, except_user=None) -> None:
-    identifiers = {value.strip().lower() for value in changed if value}
+    identifiers = {normalize_identifier(value) for value in changed if value}
     if not identifiers:
         return
     duplicate = select(User.id).where(
-        or_(User.username.in_(identifiers), email_identifier().in_(identifiers))
+        or_(User.username.in_(identifiers), User.email_identifier.in_(identifiers))
     )
     if except_user is not None:
         duplicate = duplicate.where(User.id != except_user)

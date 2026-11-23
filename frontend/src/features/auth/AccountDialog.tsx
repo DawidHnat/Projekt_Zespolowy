@@ -65,6 +65,10 @@ export function AccountDialog({
       setStale(true);
       onSaved();
     }
+    if (err instanceof ApiError && err.code === "VALIDATION_ERROR") {
+      setError("Sprawdź dane konta i format adresu e-mail.");
+      return;
+    }
     setError(err instanceof Error ? err.message : "Spróbuj ponownie.");
   };
 
@@ -163,7 +167,8 @@ export function AccountDialog({
               onChange={(e) => setDraft({ ...draft, username: e.target.value })} />
           </label>
           <label>E-mail
-            <input value={draft.email} type="email" autoComplete="off" maxLength={254} required={!saved}
+            <input value={draft.email} inputMode="email" autoComplete="off" spellCheck={false}
+              maxLength={254} required={!saved}
               onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
           </label>
           <label>Rola

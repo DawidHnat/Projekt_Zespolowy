@@ -20,7 +20,7 @@ from app.core.database import get_session
 from app.core.errors import ApiError
 from app.integrations.mail.client import SmtpError, send_account_activation
 from app.modules.auth.links import PasswordLinkBody, settle_delivery, stage_link
-from app.modules.auth.models import AccountActivation, AccountStatus, User
+from app.modules.auth.models import AccountActivation, AccountStatus, User, normalize_identifier
 from app.modules.auth.policies import Role
 from app.modules.auth.router import count_attempt
 from app.modules.auth.service import (
@@ -46,7 +46,7 @@ NO_CONTROL_CHARACTERS = r"^[^\x00-\x1f\x7f]+$"
 
 
 def normalize_username(value: str) -> str:
-    normalized = value.lower()
+    normalized = normalize_identifier(value)
     if len(normalized) > 100:
         raise ValueError("Username exceeds the maximum length after normalization")
     return normalized

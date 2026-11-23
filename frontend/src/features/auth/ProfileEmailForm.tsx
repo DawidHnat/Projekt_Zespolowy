@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Mail } from "lucide-react";
-import { api } from "../../shared/api/client";
+import { ApiError, api } from "../../shared/api/client";
 
 export function ProfileEmailForm() {
   const [editing, setEditing] = useState(false);
@@ -44,7 +44,11 @@ export function ProfileEmailForm() {
       close();
       setNotice(`Link potwierdzający został wysłany na ${newEmail}. Jest ważny przez 20 minut.`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Nie udało się wysłać linku.");
+      if (err instanceof ApiError && err.code === "VALIDATION_ERROR") {
+        setError("Sprawdź format nowego adresu e-mail.");
+      } else {
+        setError(err instanceof Error ? err.message : "Nie udało się wysłać linku.");
+      }
     } finally {
       setPassword("");
       setBusy(false);
@@ -62,8 +66,9 @@ export function ProfileEmailForm() {
             <input
               ref={input}
               value={email}
-              type="email"
+              inputMode="email"
               autoComplete="email"
+              spellCheck={false}
               required
               maxLength={254}
               disabled={busy}
