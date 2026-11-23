@@ -368,6 +368,7 @@ jobs:
   smoke:
     name: Post-deploy smoke
     needs: [deploy]
+    environment: development
     runs-on: ubuntu-latest
     timeout-minutes: 3
     env:
