@@ -20,11 +20,15 @@ async function login(page: Page, section = "map") {
   await expect(page.getByRole("searchbox", { name: "Szukaj pojazdu" })).toBeEnabled();
 }
 
-test.beforeEach(async ({ context }) => {
-  execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", "reset-case"], {
+function fleetFixture(caseName: "reset-case" | "drivers-case") {
+  execFileSync(process.env.E2E_PYTHON || "python3", ["tests/e2e_server.py", caseName], {
     cwd: "../backend", env: { ...process.env, PYTHONPATH: ".", FLEET_FLOW_E2E: "true" },
     stdio: "pipe",
   });
+}
+
+test.beforeEach(async ({ context }) => {
+  fleetFixture("reset-case");
   await context.route("**/*", route => new URL(route.request().url()).hostname === "127.0.0.1"
     ? route.continue() : route.abort());
 });
@@ -117,4 +121,34 @@ test("utilization shows whole-fleet counts, preserves cache on error and disting
   await wake(page);
   await expect(widget).toContainText("We flocie nie ma jeszcze pojazdów");
   await expect(widget.locator(".fleet-gauge")).not.toContainText("%");
+});
+
+test.describe("fleet pagination", () => {
+  test.afterEach(() => fleetFixture("reset-case"));
+
+  test("pagination changes only the list and a shared filter refreshes the map", async ({ page }) => {
+    fleetFixture("drivers-case");
+    const mapQueries: string[] = [];
+    page.on("request", request => {
+      const url = new URL(request.url());
+      if (url.pathname === "/api/v1/fleet/map") mapQueries.push(url.searchParams.get("q") ?? "");
+    });
+    await login(page, "vehicles");
+    await expect.poll(() => mapQueries.length).toBeGreaterThan(0);
+    const mapCount = mapQueries.length;
+    const paginated = page.waitForResponse(response =>
+      response.url().includes("/api/v1/fleet/vehicles?") && response.url().includes("page_size=10")
+    );
+    await page.getByRole("combobox", { name: "Elementów na stronę: pojazdy", exact: true }).selectOption("10");
+    await paginated;
+    const next = page.waitForResponse(response =>
+      response.url().includes("/api/v1/fleet/vehicles?") && new URL(response.url()).searchParams.get("page") === "2"
+    );
+    await page.getByRole("button", { name: "Następna strona: pojazdy", exact: true }).click();
+    await next;
+    expect(mapQueries).toHaveLength(mapCount);
+
+    await page.getByRole("searchbox", { name: "Szukaj pojazdu" }).fill("Auto kierowcy");
+    await expect.poll(() => mapQueries.at(-1)).toBe("Auto kierowcy");
+  });
 });
