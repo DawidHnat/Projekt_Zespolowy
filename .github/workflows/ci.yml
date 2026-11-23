@@ -382,3 +382,8 @@ jobs:
           python-version: '3.13'
       - name: Verify deployed SHA and API readiness
         run: python tools/verify_deployment.py --sha "$GITHUB_SHA" --status-origin "$STATUS_ORIGIN" --app-origin "$APP_ORIGIN"
+      - name: Verify SCRUM-42 and SCRUM-49 on the development server
+        env:
+          DEV_SPRINT3_SMOKE_USERNAME: ${{ secrets.DEV_SPRINT3_SMOKE_USERNAME }}
+          DEV_SPRINT3_SMOKE_PASSWORD: ${{ secrets.DEV_SPRINT3_SMOKE_PASSWORD }}
+        run: python tools/verify_sprint3_features.py --app-origin "$APP_ORIGIN"
