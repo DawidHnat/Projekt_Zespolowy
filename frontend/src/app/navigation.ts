@@ -9,6 +9,7 @@ import {
   Users,
   Wrench,
   Settings,
+  UserCog,
   UserRound,
 } from "lucide-react";
 
@@ -83,6 +84,12 @@ export const sections = [
     title: "Profil",
     icon: UserRound,
     description: "Twoje konto, hasło i bezpieczeństwo sesji.",
+  },
+  {
+    id: "users",
+    title: "Użytkownicy",
+    icon: UserCog,
+    description: "Dodawaj konta, wysyłaj zaproszenia i zarządzaj dostępem.",
   },
   {
     id: "settings",

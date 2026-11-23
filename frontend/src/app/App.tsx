@@ -5,6 +5,7 @@ import {
   PanelLeftClose,
   Search,
   Settings,
+  UserCog,
   X,
 } from "lucide-react";
 import { DashboardGrid } from "../features/dashboard/components/DashboardGrid";
@@ -29,6 +30,7 @@ import { WIDGET_IDS } from "../features/dashboard/model/widget-types";
 
 import { useAuth } from "../features/auth/AuthProvider";
 import { ProfilePage } from "../features/auth/ProfilePage";
+import { UsersPage } from "../features/auth/UsersPage";
 import { VehicleCardsPage } from "../features/fleet/components/VehicleCardsPage";
 import { VehicleLayoutEditorControls } from "../features/fleet/components/VehicleLayoutEditorControls";
 import { VehicleDetailsDialog } from "../features/fleet/components/VehicleDetailsDialog";
@@ -37,11 +39,14 @@ import { AlertsPage } from "../features/analytics/components/AlertsPage";
 import { AnalyticsPage } from "../features/analytics/components/AnalyticsPage";
 import { DriversPage } from "../features/drivers/DriversPage";
 import { MileagePage } from "../features/trips/components/MileagePage";
+import { EmptyState } from "../shared/components/EmptyState";
+import "./accounts.css";
 
 const readSection = () => sectionFromHash(window.location.hash);
 
 export function App() {
   const auth = useAuth();
+  const managesAccounts = auth.user?.role === "admin";
   const [logoutError, setLogoutError] = useState(false);
   const settings = useDashboardPreferences();
   const backgroundMedia = useBackgroundImage();
@@ -155,6 +160,7 @@ export function App() {
         <nav aria-label="Sekcje aplikacji">
           {sections
             .filter((value) => value.id !== "settings" && value.id !== "profile")
+            .filter((value) => value.id !== "users" || managesAccounts)
             .map((item) => {
               const { id, title, icon: Icon } = item;
               return (
@@ -366,6 +372,11 @@ export function App() {
             <ProfilePage />
           ) : section === "analytics" ? (
             <AnalyticsPage />
+          ) : section === "users" ? (
+            managesAccounts
+              ? <UsersPage key={auth.user?.id} />
+              : <EmptyState icon={UserCog} title="Panel administratora"
+                  description="Do zarządzania kontami potrzebujesz roli Administrator." />
           ) : section === "alerts" ? (
             <AlertsPage />
           ) : section === "mileage" ? (
