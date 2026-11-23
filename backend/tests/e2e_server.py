@@ -133,10 +133,10 @@ def seed(engine):
 
 def install_invitation_fixture(app):
     sent = {}
-    allowed = {f"{username}@example.com" for username in INVITE_USERS}
+    addresses = {username: f"İ-{username}@example.com" for username in INVITE_USERS}
 
     def fake_sender(_, recipient, url):
-        if recipient not in allowed:
+        if recipient not in addresses.values():
             raise SmtpError("Expected a synthetic invitation address")
         sent[recipient] = url
 
@@ -148,7 +148,7 @@ def install_invitation_fixture(app):
 
     @app.get("/__e2e/invitations/{username}")
     def invitation(username: str):
-        return {"url": sent.get(f"{username}@example.com")}
+        return {"url": sent.get(addresses.get(username))}
 
 
 def main():
