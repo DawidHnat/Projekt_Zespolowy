@@ -18,7 +18,7 @@ type AuthState = {
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   logoutAll: () => Promise<void>;
-  passwordChanged: () => void;
+  credentialsChanged: () => void;
   retry: () => void;
   clearSession: () => void;
 };
@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     finishSession(null);
     changes.current?.notify();
   };
-  const passwordChanged = () => {
+  const credentialsChanged = () => {
     finishSession(user);
     changes.current?.notify();
   };
@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         logoutAll,
-        passwordChanged,
+        credentialsChanged,
         retry: checkSession,
         clearSession: () => {
           finishSession(null);
