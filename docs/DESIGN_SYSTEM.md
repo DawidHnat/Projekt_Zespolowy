@@ -419,6 +419,11 @@ W edycji układu podgląd jest ukryty, aby nie blokował chwytania mapy.
 Przy przybliżeniu kamera zostawia wybrany znacznik obok karty na szerokiej
 mapie lub nad nią na wąskiej.
 
+Kartoteka w zakładce Pojazd pokazuje zapisane pola i brakujące wartości w
+responsywnej siatce. Po konflikcie edycji formularz zachowuje wpisane pola;
+wczytanie aktualnej wersji uzupełnia pola spoza szkicu. Zmianę użytkownik
+ponownie zapisuje po sprawdzeniu uzupełnionego formularza.
+
 Zakładki mają powiązane `tab`/`tabpanel`, jeden element w kolejności Tab,
 obsługę strzałek, Home i End. Nagłówek używa wspólnego `VehiclePhoto` i tokenów
 statusu. Na telefonie ikony są nad etykietami, a kontrolki dnia zawijają się
