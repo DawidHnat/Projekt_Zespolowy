@@ -1,10 +1,11 @@
+import logging
 import secrets
 from datetime import timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from pydantic import BaseModel, Field, SecretStr, field_validator
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import SmtpSettings, load_environment
@@ -26,6 +27,7 @@ router = APIRouter(
     prefix="/api/v1/auth/password", tags=["auth"], dependencies=[Depends(check_origin)]
 )
 SessionDep = Annotated[Session, Depends(get_session)]
+logger = logging.getLogger("fleet_flow.auth")
 
 
 class RequestReset(BaseModel):
@@ -61,21 +63,54 @@ def deliver_reset(app, username, origin):
                 return
             settings = SmtpSettings.from_environment(load_environment())
             token = secrets.token_urlsafe(32)
-            session.execute(delete(PasswordReset).where(PasswordReset.user_id == user.id))
-            session.add(
-                PasswordReset(
-                    token_hash=digest(token),
-                    user_id=user.id,
-                    expires_at=now_utc() + timedelta(minutes=20),
+            token_hash = digest(token)
+            now = now_utc()
+            user_id, recipient = user.id, user.email
+            expires_at = now + timedelta(minutes=20)
+            latest_expiry = session.scalar(
+                select(func.max(PasswordReset.expires_at)).where(PasswordReset.user_id == user_id)
+            )
+            if latest_expiry is not None and aware(latest_expiry) >= expires_at:
+                expires_at = aware(latest_expiry) + timedelta(microseconds=1)
+            session.execute(
+                delete(PasswordReset).where(
+                    PasswordReset.user_id == user_id, PasswordReset.expires_at <= now
                 )
             )
-            recipient = user.email
+            session.add(
+                PasswordReset(token_hash=token_hash, user_id=user_id, expires_at=expires_at)
+            )
             session.commit()
-        send_password_reset(settings, recipient, origin + "/#reset-password?token=" + token)
     except Exception:
-        # Never reveal whether an account exists or log a token/SMTP exception.
-        # Users can request another link or ask the local administrator.
+        logger.warning("password_reset_delivery_setup_failed")
         return
+
+    delivered = False
+    try:
+        send_password_reset(settings, recipient, origin + "/#reset-password?token=" + token)
+        delivered = True
+    except Exception:
+        # Count one fixed event per failed delivery; no recipient, token or SMTP exception.
+        logger.warning("password_reset_smtp_failed")
+
+    try:
+        with app.state.sessions() as session:
+            # Both password updates and token cleanup acquire User before touching tokens.
+            session.scalar(select(User.id).where(User.id == user_id).with_for_update())
+            criteria = [PasswordReset.user_id == user_id]
+            if delivered:
+                criteria.extend(
+                    [
+                        PasswordReset.token_hash != token_hash,
+                        PasswordReset.expires_at <= expires_at,
+                    ]
+                )
+            else:
+                criteria.append(PasswordReset.token_hash == token_hash)
+            session.execute(delete(PasswordReset).where(*criteria))
+            session.commit()
+    except Exception:
+        logger.warning("password_reset_delivery_state_failed")
 
 
 @router.post("/request")

@@ -64,7 +64,7 @@ def test_repeated_import_preserves_id_manual_driver_and_newer_measurement(applic
         assert float(measurement.speed_kmh) == 65.0
         assert measurement.position_address == "Warszawa, Marszałkowska 10"
         vehicle.name = "Lokalna nazwa"
-        vehicle.locally_edited = True
+        vehicle.manual_name = True
         session.commit()
         apply_records(session, "test-source", masters, readings, now)
         session.commit()

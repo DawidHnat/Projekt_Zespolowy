@@ -32,6 +32,10 @@ type FleetState = {
   summary: Summary | null;
   loading: boolean;
   error: string | null;
+  mapLoading: boolean;
+  mapError: string | null;
+  summaryLoading: boolean;
+  summaryError: string | null;
   q: string;
   status: VehicleStatus | "";
   page: number;
@@ -55,14 +59,59 @@ type FleetState = {
   sourceRefresh: ReturnType<typeof useSourceRefresh>;
 };
 const Context = createContext<FleetState | null>(null);
-type FleetSnapshot = {
-  requestKey: string;
-  filterKey: string;
-  list: VehicleList;
-  map: FleetMap;
-  summary: Summary;
-};
-type RequestState = { key: string; loading: boolean; error: string | null };
+type RequestState = { path: string; loading: boolean; error: string | null };
+type FleetSnapshot<T> = { path: string; scope: string; payload: T };
+
+function useFleetRead<T>(path: string, scope: string, enabled: boolean) {
+  const [snapshot, setSnapshot] = useState<FleetSnapshot<T> | null>(null);
+  const [request, setRequest] = useState<RequestState | null>(null);
+  const currentPoll = useRef<ReturnType<typeof startPolling> | null>(null);
+  useEffect(() => {
+    if (!enabled) return;
+    const environment = browserPollingEnvironment();
+    const pause = () => setRequest(current => ({
+      path,
+      loading: false,
+      error: !navigator.onLine
+        ? "Brak połączenia z siecią. Pobieranie wznowi się po odzyskaniu połączenia."
+        : current?.path === path ? current.error : null,
+    }));
+    const load = async (signal: AbortSignal) => {
+      setRequest({ path, loading: true, error: null });
+      try {
+        const payload = await api<T>(path, { signal });
+        if (!signal.aborted) setSnapshot({ path, scope, payload });
+      } catch (err) {
+        if (!signal.aborted) setRequest({
+          path,
+          loading: false,
+          error: err instanceof Error ? err.message : "Nie można pobrać floty.",
+        });
+        throw err;
+      } finally {
+        if (!signal.aborted) setRequest(current =>
+          current?.path === path ? { ...current, loading: false } : current,
+        );
+      }
+    };
+    const poll = startPolling(load, environment, pause, fleetPollIntervalMs);
+    if (!environment.available()) pause();
+    currentPoll.current = poll;
+    return () => {
+      poll.dispose();
+      currentPoll.current = null;
+    };
+  }, [path, scope, enabled]);
+
+  return {
+    value: snapshot?.path === path ? snapshot.payload : null,
+    cached: snapshot?.scope === scope ? snapshot.payload : null,
+    loading: !enabled || request?.path !== path || request.loading,
+    error: request?.path === path ? request.error : null,
+    refresh: () => currentPoll.current?.refresh(),
+  };
+}
+
 type DetailRequestState = {
   id: string;
   loading: boolean;
@@ -75,8 +124,6 @@ export function FleetProvider({ children }: { children: ReactNode }) {
 
 function AccountFleetProvider({ children }: { children: ReactNode }) {
   const preferences = useVehiclePreferences();
-  const [snapshot, setSnapshot] = useState<FleetSnapshot | null>(null);
-  const [request, setRequest] = useState<RequestState | null>(null);
   const q = preferences.filters.q;
   const [debouncedQ, setDebouncedQ] = useState("");
   const status = preferences.filters.status as VehicleStatus | "";
@@ -92,21 +139,26 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
   const [selected, setSelected] = useState<Vehicle | null>(null);
   const [detailRequest, setDetailRequest] = useState<DetailRequestState | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const listPoll = useRef<ReturnType<typeof startPolling> | null>(null);
   const detailPoll = useRef<ReturnType<typeof startPolling> | null>(null);
   const selectedIdRef = useRef<string | null>(null);
   selectedIdRef.current = selectedId;
-  const filterKey = JSON.stringify([q.trim(), status]);
-  const requestKey = JSON.stringify([filterKey, sort, page, pageSize]);
-  // Cached results belong to the criteria that produced them, including while
-  // the next query is debouncing or fails. Map results do not depend on the page.
-  const list = snapshot?.requestKey === requestKey ? snapshot.list : null;
-  const map = snapshot?.filterKey === filterKey ? snapshot.map : null;
-  const total = snapshot?.filterKey === filterKey ? snapshot.list.total : 0;
-  const loading = preferences.cloud.loading || request?.key !== requestKey || request.loading;
-  const error = request?.key === requestKey ? request.error : null;
+  const termPending = debouncedQ !== q.trim();
+  const enabled = !preferences.cloud.loading;
+  const filter = new URLSearchParams({ q: debouncedQ, ...(status ? { status } : {}) });
+  const listQuery = new URLSearchParams(filter);
+  listQuery.set("sort", sort);
+  listQuery.set("page", String(page));
+  listQuery.set("page_size", String(pageSize));
+  const listRead = useFleetRead<VehicleList>(`/fleet/vehicles?${listQuery}`, filter.toString(), enabled);
+  const mapRead = useFleetRead<FleetMap>(`/fleet/map?${filter}`, filter.toString(), enabled);
+  const summaryRead = useFleetRead<Summary>("/fleet/summary", "summary", enabled);
+  const list = termPending ? null : listRead.value;
+  const map = termPending ? null : mapRead.value;
+  const total = termPending ? 0 : listRead.cached?.total ?? 0;
   const refresh = () => {
-    listPoll.current?.refresh();
+    listRead.refresh();
+    mapRead.refresh();
+    summaryRead.refresh();
     detailPoll.current?.refresh();
   };
   const sourceRefresh = useSourceRefresh(refresh, fleetPollIntervalMs);
@@ -115,76 +167,8 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timer);
   }, [q]);
   useEffect(() => {
-    if (preferences.cloud.loading) return;
-    const activeFilterKey = JSON.stringify([debouncedQ, status]);
-    const activeKey = JSON.stringify([activeFilterKey, sort, page, pageSize]);
-    const load = async (signal: AbortSignal) => {
-      setRequest({ key: activeKey, loading: true, error: null });
-      const filter = new URLSearchParams({
-        q: debouncedQ,
-        ...(status ? { status } : {}),
-      });
-      const listFilter = new URLSearchParams(filter);
-      listFilter.set("sort", sort);
-      try {
-        const [nextList, nextMap, nextSummary] = await Promise.all([
-          api<VehicleList>(
-            `/fleet/vehicles?${listFilter}&page=${page}&page_size=${pageSize}`,
-            { signal },
-          ),
-          api<FleetMap>(`/fleet/map?${filter}`, { signal }),
-          api<Summary>("/fleet/summary", { signal }),
-        ]);
-        if (signal.aborted) return;
-        setSnapshot({
-          requestKey: activeKey,
-          filterKey: activeFilterKey,
-          list: nextList,
-          map: nextMap,
-          summary: nextSummary,
-        });
-        if (page > 1 && nextList.items.length === 0 && nextList.total > 0)
-          setPage(1);
-      } catch (err) {
-        if (!signal.aborted)
-          setRequest({
-            key: activeKey,
-            loading: false,
-            error: err instanceof Error ? err.message : "Nie można pobrać floty.",
-          });
-        throw err;
-      } finally {
-        if (!signal.aborted)
-          setRequest(current =>
-            current?.key === activeKey ? { ...current, loading: false } : current,
-          );
-      }
-    };
-    const environment = browserPollingEnvironment();
-    const pause = () => {
-      setRequest(current => ({
-        key: activeKey,
-        loading: false,
-        error: !navigator.onLine
-          ? "Brak połączenia z siecią. Pobieranie wznowi się po odzyskaniu połączenia."
-          : current?.key === activeKey ? current.error : null,
-      }));
-    };
-    const poll = startPolling(
-      load,
-      environment,
-      pause,
-      fleetPollIntervalMs,
-    );
-    // A provider can mount (or change criteria) after the offline event fired.
-    // No request starts then, so there is no pending request to finish loading.
-    if (!environment.available()) pause();
-    listPoll.current = poll;
-    return () => {
-      poll.dispose();
-      listPoll.current = null;
-    };
-  }, [debouncedQ, status, sort, page, pageSize, preferences.cloud.loading]);
+    if (page > 1 && list && !list.items.length && list.total > 0) setPage(1);
+  }, [list, page]);
   useEffect(() => {
     if (!selectedId) {
       setSelected(null);
@@ -270,9 +254,13 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
         list,
         total,
         map,
-        summary: snapshot?.summary ?? null,
-        loading,
-        error,
+        summary: summaryRead.value,
+        loading: termPending || listRead.loading,
+        error: termPending ? null : listRead.error,
+        mapLoading: termPending || mapRead.loading,
+        mapError: termPending ? null : mapRead.error,
+        summaryLoading: summaryRead.loading,
+        summaryError: summaryRead.error,
         q,
         status,
         page,
