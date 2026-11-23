@@ -24,6 +24,7 @@ export default function VehicleMap() {
   const container = useRef<HTMLDivElement>(null);
   const instance = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<VehicleMarkers | null>(null);
+  const retryStyle = useRef<(() => void) | null>(null);
   const latest = useRef(fleet);
   latest.current = fleet;
   const editRef = useRef(editing);
@@ -76,11 +77,14 @@ export default function VehicleMap() {
     });
     fitted.current = false;
     let frame = 0;
+    let styleFailed = false;
     map.addControl(
       new mapboxgl.NavigationControl({ showCompass: false }),
       "top-right",
     );
     const install = () => {
+      styleFailed = false;
+      setFailure(null);
       const bounds = boundsForFeatures(validFeatures(latest.current.map));
       if (bounds && !fitted.current) {
         map.fitBounds(bounds, { padding: 50, maxZoom: 12, duration: 0 });
@@ -88,12 +92,25 @@ export default function VehicleMap() {
       }
       setReady(true);
     };
+    const fail = () => {
+      styleFailed = true;
+      setFailure("Nie udało się załadować mapy. Lista pojazdów pozostaje dostępna.");
+    };
+    const retry = () => {
+      if (!styleFailed) return;
+      styleFailed = false;
+      setReady(false);
+      try {
+        map.setStyle(null);
+        map.setStyle(style());
+      } catch {
+        fail();
+      }
+    };
+    retryStyle.current = retry;
+    window.addEventListener("online", retry);
     map.on("style.load", install);
-    map.on("error", () =>
-      setFailure(
-        "Nie udało się załadować mapy. Lista pojazdów pozostaje dostępna.",
-      ),
-    );
+    map.on("error", fail);
     map.on("click", () => {
       if (!editRef.current) {
         setOverlap([]);
@@ -120,6 +137,8 @@ export default function VehicleMap() {
       attributeFilter: ["data-theme"],
     });
     return () => {
+      window.removeEventListener("online", retry);
+      retryStyle.current = null;
       observer.disconnect();
       themes.disconnect();
       cancelAnimationFrame(frame);
@@ -193,12 +212,17 @@ export default function VehicleMap() {
     <div className="map-canvas live-map" aria-label="Mapa pozycji floty">
       <div className="mapbox-container" ref={container} tabIndex={-1} />
       {failure && (
-        <div className="map-fallback" role="alert">
+        <div className="map-fallback map-load-fallback" role="alert">
           <EmptyState
             icon={MapPin}
             title="Mapa chwilowo niedostępna"
             description={failure}
           />
+          {retryStyle.current && (
+            <button type="button" className="button button-secondary" onClick={() => retryStyle.current?.()}>
+              Ponów mapę
+            </button>
+          )}
         </div>
       )}
       {!failure && emptyState && !editing && !fleet.selectedId && (

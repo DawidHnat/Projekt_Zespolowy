@@ -119,7 +119,12 @@ def validate_records(masters, snapshots):
 def apply_records(session, source, masters, readings, now):
     vehicles = {
         v.external_uid: v
-        for v in session.scalars(select(Vehicle).where(Vehicle.source_account == source))
+        for v in session.scalars(
+            select(Vehicle)
+            .where(Vehicle.source_account == source)
+            .order_by(Vehicle.id)
+            .with_for_update()
+        )
     }
     for uid, row in masters.items():
         vehicle = vehicles.get(uid)
@@ -127,13 +132,14 @@ def apply_records(session, source, masters, readings, now):
             vehicle = Vehicle(source_account=source, external_uid=uid, name="Bez nazwy")
             session.add(vehicle)
             session.flush()
-        # Explicit allowlist. driver_id and all future annotations are local ownership.
-        if not vehicle.locally_edited:
+        if not vehicle.manual_name:
             vehicle.name = str(row.get("objectname") or row.get("objectno") or "Bez nazwy")[:200]
-            vehicle.number = str(row["objectno"])[:200] if row.get("objectno") else None
+        vehicle.number = str(row["objectno"])[:200] if row.get("objectno") else None
+        if not vehicle.manual_license_plate:
             vehicle.license_plate = (
                 str(row["licenseplatenumber"])[:100] if row.get("licenseplatenumber") else None
             )
+        if not vehicle.manual_vehicle_type:
             vehicle.vehicle_type = str(row["vehicletype"])[:100] if row.get("vehicletype") else None
         vehicle.active = True
         reading = readings.get(uid)

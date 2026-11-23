@@ -301,3 +301,31 @@ def test_postgres_login_with_old_password_cannot_outlive_reset(monkeypatch):
             finish_reset.set()
         assert reset_request.result().status_code == 200
         assert (login.result().status_code, client.get("/api/v1/auth/me").status_code) == (401, 401)
+
+
+def test_failed_delivery_preserves_previously_delivered_token(application, monkeypatch, caplog):
+    app, client = application
+    sent = configure_email(app, monkeypatch)
+    request_path = "/api/v1/auth/password/request"
+    confirm_path = "/api/v1/auth/password/confirm"
+    body = {"username": "test-user"}
+    assert client.post(request_path, headers=ORIGIN, json=body).json() == {"ok": True}
+    first = token_from(sent[0])
+
+    def fail(_, recipient, url):
+        sent.append((recipient, url))
+        raise OSError("synthetic confidential server response")
+
+    monkeypatch.setattr(reset, "send_password_reset", fail)
+    assert client.post(request_path, headers=ORIGIN, json=body).json() == {"ok": True}
+    assert caplog.messages.count("password_reset_smtp_failed") == 1
+    assert "owner@example.com" not in caplog.text
+    assert "synthetic confidential" not in caplog.text
+    assert first not in caplog.text and token_from(sent[1]) not in caplog.text
+    for token, status in ((token_from(sent[1]), 400), (first, 200)):
+        result = client.post(
+            confirm_path,
+            headers=ORIGIN,
+            json={"token": token, "password": "synthetic-replacement-password"},
+        )
+        assert result.status_code == status
