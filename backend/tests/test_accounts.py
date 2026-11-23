@@ -293,6 +293,28 @@ def isolated_accounts_app():
         engine.dispose()
 
 
+def test_postgres_unicode_email_uses_the_same_identifier_for_login_and_conflicts(
+    isolated_accounts_app,
+):
+    app = isolated_accounts_app
+    add_user(app, "first-admin", "admin")
+    email = "İstanbul@example.com"
+    owner = add_user(app, "unicode-account", "viewer", email=email)
+    with TestClient(app) as admin, TestClient(app) as user:
+        assert login(admin, "first-admin").status_code == 200
+        assert login(user, email).status_code == 200
+        assert login(user, email.lower()).status_code == 200
+        for fields in ({"email": email}, {"email": email.lower()}, {"username": email}):
+            duplicate = admin.post(USERS, headers=ORIGIN, json={**NEW_USER, **fields})
+            assert duplicate.status_code == 409
+            assert duplicate.json()["error"]["code"] == "ACCOUNT_IDENTIFIER_TAKEN"
+
+        replacement = "żółć@example.com"
+        assert edit_account(admin, owner, email=replacement).status_code == 200
+        assert login(user, email).status_code == 401
+        assert login(user, replacement.upper()).status_code == 200
+
+
 def test_postgres_concurrent_admin_changes_cannot_remove_both_admins(isolated_accounts_app):
     app = isolated_accounts_app
     first = add_user(app, "first-admin", "admin")

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_session
 from app.core.errors import ApiError
-from app.modules.auth.models import LoginAttempt, LoginSession, User
+from app.modules.auth.models import LoginAttempt, LoginSession, User, normalize_identifier
 from app.modules.auth.policies import can_authenticate
 from app.modules.auth.service import (
     COOKIE_NAME,
@@ -91,13 +91,13 @@ def login(
     response: Response,
     session: Annotated[Session, Depends(get_session)],
 ):
-    identifier = body.username.strip().lower()
+    identifier = normalize_identifier(body.username)
     count_attempt(session, digest("ip:" + (request.client.host if request.client else "unknown")))
     candidate = find_login_user(session, identifier)
     count_attempt(session, digest("account:" + (candidate.username if candidate else identifier)))
     # Serialize login with changes to credentials, roles and account status.
     user = lock_user(session, candidate.id) if candidate else None
-    if user and identifier not in (user.username, (user.email or "").strip().lower()):
+    if user and identifier not in (user.username, normalize_identifier(user.email or "")):
         user = None
     valid = password_hasher.verify(
         body.password.get_secret_value(), user.password_hash if user else dummy_hash
