@@ -41,7 +41,7 @@ async function confirmUnsaved(page: Page, action: () => Promise<unknown>, accept
   const pending = action();
   const dialog = await prompt;
   expect(dialog.type()).toBe("confirm");
-  expect(dialog.message()).toContain("niezapisany cel lub opis");
+  expect(dialog.message()).toContain("niezapisane zmiany");
   if (accept) await dialog.accept();
   else await dialog.dismiss();
   await pending;
