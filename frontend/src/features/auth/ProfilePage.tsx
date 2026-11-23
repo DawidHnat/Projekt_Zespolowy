@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { KeyRound, LogOut, UserRound } from "lucide-react";
 import { api } from "../../shared/api/client";
 import { useAuth } from "./AuthProvider";
+import { ProfileEmailForm } from "./ProfileEmailForm";
 import { passwordChangeValidation, profileError, profileRole, type Profile } from "./profile-model";
 
 export function ProfilePage() {
@@ -44,7 +45,7 @@ export function ProfilePage() {
         method: "POST", body: JSON.stringify({ current_password: current, new_password: next }),
       });
       if (!mounted.current) return;
-      auth.passwordChanged();
+      auth.credentialsChanged();
       setNotice("Hasło zostało zmienione. Pozostałe sesje wylogowano; na tym urządzeniu możesz dalej pracować.");
     } catch (err) { setError(profileError(err)); }
     finally {
@@ -66,11 +67,15 @@ export function ProfilePage() {
     <section className="widget profile-card profile-identity" aria-labelledby={`${id}-identity`}>
       <h2 id={`${id}-identity`}><UserRound size={20} aria-hidden="true" /> Dane konta</h2>
       <dl>
-        <div><dt>Imię i nazwisko</dt><dd>{profile.display_name}</dd></div>
+        {profile.first_name || profile.last_name ? <>
+          <div><dt>Imię</dt><dd>{profile.first_name || "Nie ustawiono"}</dd></div>
+          <div><dt>Nazwisko</dt><dd>{profile.last_name || "Nie ustawiono"}</dd></div>
+        </> : <div><dt>Imię i nazwisko</dt><dd>{profile.display_name}</dd></div>}
         <div><dt>Login</dt><dd>{profile.username}</dd></div>
         <div><dt>E-mail</dt><dd>{profile.email || "Nie ustawiono"}</dd></div>
         <div><dt>Rola</dt><dd>{profileRole(profile.role)}</dd></div>
       </dl>
+      <ProfileEmailForm />
     </section>
     <section className="widget profile-card" aria-labelledby={`${id}-password`}>
       <h2 id={`${id}-password`}><KeyRound size={20} aria-hidden="true" /> Zmiana hasła</h2>
