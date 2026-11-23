@@ -9,8 +9,8 @@ export function UtilizationWidget() {
   const fleet = useFleet();
   const values = fleetUtilization(fleet.summary);
   const caption = !values
-    ? fleet.loading ? "Pobieranie stanu floty…" : "Nie można pobrać stanu floty."
-    : fleet.error ? "Pokazujemy ostatni poprawny odczyt."
+    ? fleet.summaryLoading ? "Pobieranie stanu floty…" : "Nie można pobrać stanu floty."
+    : fleet.summaryError ? "Pokazujemy ostatni poprawny odczyt."
     : fleet.summary?.source.status === "degraded" ? "Źródło jest niedostępne. Statusy niepotwierdzone."
     : values.total === 0 ? "We flocie nie ma jeszcze pojazdów."
     : "Bieżący stan całej floty. Pozostałe: starsze lub brakujące pomiary.";
@@ -19,7 +19,7 @@ export function UtilizationWidget() {
       title="Wykorzystanie floty"
       icon={CircleGauge}
       className="utilization-widget"
-      badge={fleet.error || fleet.summary?.source.status === "degraded"
+      badge={fleet.summaryError || fleet.summary?.source.status === "degraded"
         ? "Ostatni odczyt" : "Bieżący stan"}
     >
       <div className="utilization-body">
