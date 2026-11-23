@@ -219,6 +219,14 @@ GPS pozostają na liście. Prędkość świeżego, poprawnego pomiaru jest podaw
 w `speed_kmh` (km/h, 0–300); brak, stary/przyszły pomiar, niedostępne źródło
 lub niepotwierdzony GPS oznaczają `null`, bez zastępowania braku zerem.
 [Kontrolne potwierdzenie jednostki](../docs/qa/SCRUM-14-speed-unit.md).
+
+Synchronizacja przyjmuje czas pozycji najwyżej równy zakończeniu odczytu
+(tolerancja przyszłości 0 s). Pomiar przyszły, spóźniony, powtórzony lub bez
+czasu nie zastępuje ostatniej poprawnej pozycji. Przy równych znacznikach czasu
+pozostaje pierwszy zapis. Poprawna próbka może zastąpić stary rekord zapisany
+z przyszłym czasem. Taki rekord nie jest punktem odniesienia przy obliczaniu
+dystansu.
+
 Edycja kartoteki (PATCH) wymaga aktualnej wartości `card_version` zwróconej
 przez odczyt pojazdu oraz co najmniej jednego pola. Wersja rośnie po zapisie.
 Konflikt zwraca HTTP 409 `VERSION_CONFLICT`. Podanie ręcznej nazwy,
