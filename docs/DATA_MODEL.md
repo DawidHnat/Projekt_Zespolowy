@@ -70,6 +70,23 @@ Brak publicznej rejestracji. Błędy: `{ "error": { "code": "...", "message":
 400/422 — walidacja, 401 — brak sesji, 403 — rola/Origin, 404 — brak rekordu,
 409 — konflikt wersji, 429 — limit, 503 — niedostępna zależność.
 
+SCRUM-48 dodaje dane konta do `users` oraz hashe zaproszeń do
+`account_activations`. Stany oczekujące i zablokowane mają `active=false`,
+dzięki czemu wcześniejsza wersja backendu także odmawia im sesji. Istniejące
+konta zachowują nazwę wyświetlaną, hasło, rolę i aktywność. API administracyjne
+sprawdza wersję rekordu przy zmianie konta i wysyłaniu zaproszenia. W ramach
+jednej organizacji wszystkie zmiany kont przechodzą przez wspólną blokadę
+transakcyjną, która chroni ostatniego aktywnego administratora i unikalność
+identyfikatorów logowania.
+[Macierz dostępu i kontrakt administracyjny](qa/SCRUM-48.md).
+
+SCRUM-49 zapisuje oczekującą zmianę e-maila w `email_changes`. Rekord wiąże
+hash jednorazowego tokenu, nowy adres, ważność linku i wersję konta. Potwierdzenie
+wymaga sesji właściciela. W jednej transakcji API ponownie sprawdza dostępność
+adresu, aktualizuje e-mail i wersję konta oraz unieważnia poprzednie sesje
+i linki do resetu hasła lub zmiany adresu.
+[Scenariusze odbioru Profilu](qa/SCRUM-49.md).
+
 Preferencje konta mają osobne moduły `dashboard` i `vehicles` pod
 `/api/v1/preferences/{module}`. PUT wymaga odczytanej wersji i atomowo odrzuca
 przestarzały zapis kodem 409. Migracja istniejącego stanu przeglądarki wymaga
