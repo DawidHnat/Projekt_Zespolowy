@@ -34,7 +34,12 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
             webfleet = WebfleetSettings.from_environment(load_environment())
             app.state.webfleet_settings = webfleet
             worker = asyncio.create_task(
-                sync_worker(engine, webfleet, settings.sync_interval_seconds)
+                sync_worker(
+                    engine,
+                    webfleet,
+                    settings.sync_interval_seconds,
+                    stale_seconds=settings.stale_seconds,
+                )
             )
         try:
             yield
