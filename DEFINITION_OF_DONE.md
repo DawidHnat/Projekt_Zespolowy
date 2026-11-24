@@ -96,3 +96,70 @@ i wysokie dotyczące zmiany zamykamy albo zapisujemy jawną decyzję PO o ryzyku
 Dodatkowy ręczny odbiór przed merge wynika z kryteriów zadania. Przekrojowa
 regresja bezpieczeństwa ma osobne zadanie QA. Dowody nie mogą zawierać
 sekretów ani danych klientów.
+
+
+## SCRUM-121 — dowody i bramy bezpieczeństwa PR
+
+Poniższe wymagania uzupełniają SCRUM-101. Stosujemy je
+proporcjonalnie do zakresu zmiany, bez deklarowania pełnej
+zgodności z OWASP ASVS L2.
+
+### Zakres kontroli i wyjątki
+
+- PR wskazuje konkretne identyfikatory OWASP ASVS v5.0.0
+  z macierzy SCRUM-101/SCRUM-120, których dotyczy zmiana.
+- Dla każdej kontroli zapisujemy PASS, FAIL, BLOCKED
+  albo N/A z uzasadnieniem i osobą akceptującą wyjątek.
+- Wynik zawiera SHA badanego commita, środowisko,
+  scenariusz, datę, wykonawcę i link do dowodu.
+- PASS z przeglądu kodu odróżniamy od PASS testu.
+  Historycznych wyników nie przenosimy na nowy SHA
+  bez ponownej weryfikacji.
+- Otwarta lub niepełna macierz SCRUM-120 nie pozwala
+  deklarować pełnego odbioru ASVS L2.
+
+### Scenariusze bezpieczeństwa
+
+Dla zmienionych obszarów wymagamy odpowiednich
+testów pozytywnych i negatywnych:
+
+- logowanie, wylogowanie, reset hasła, wygaśnięcie
+  i odwołanie sesji;
+- role admin/editor/viewer, autoryzacja obiektów,
+  izolacja kont i danych (IDOR);
+- Origin/CSRF przy zapisach oraz osobno CORS,
+  w tym allowlista i preflight;
+- walidacja danych, limity i błędy 401/403/409/422;
+- ustawienia cookie, w tym Secure, HttpOnly,
+  SameSite i wymagany prefiks nazwy;
+- timeout bezczynności i absolutny limit sesji,
+  jeśli dotyczą zmiany.
+
+Brak testu oznaczamy BLOCKED lub NOT RUN z przyczyną,
+a nie PASS. Nie testujemy żywego WEBFLEET ani SMTP
+bez osobnej zgody i uzgodnionego zakresu.
+
+### Migracje, rollback i decyzje o ryzyku
+
+Przy zmianie schematu, sesji, cookie lub wdrożenia
+PR zawiera:
+
+- identyfikator i wynik migracji oraz środowisko;
+- plan powrotu do poprzedniej wersji;
+- dowód testu restore/rollback albo wyraźny BLOCKED;
+- ograniczenia odwracalności i wpływ na istniejące dane;
+- właściciela decyzji, jeśli rollback nie jest bezpieczny.
+
+Istotne otwarte FAIL/BLOCKED wymagają naprawy przed
+merge albo jawnej decyzji osoby uprawnionej do
+akceptacji ryzyka. Checklist nie zastępuje testów,
+niezależnego review ani formalnego odbioru.
+
+### Niezależna weryfikacja
+
+Reviewer inny niż autor sprawdza zakres ASVS,
+dowody dla aktualnego SHA, wyjątki, brak sekretów,
+migracje oraz ograniczenia rollbacku.
+Wymagane kontrole CI muszą być zielone.
+QA zapisuje własny wynik, jeśli wymaga tego zadanie.
+Regresja przekrojowa sprintu pozostaje osobna.
