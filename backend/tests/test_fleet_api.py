@@ -40,7 +40,7 @@ def add_fleet(app):
                         received_at=now,
                         gps_quality="A",
                         standing_still=False,
-                        odometer_km=1234.5,
+                        odometer_km=Decimal("1234.5"),
                     )
                 )
         session.add(Vehicle(source_account="other-account", external_uid="other", name="OTHER"))
@@ -106,7 +106,7 @@ def test_vehicle_sorting_applies_before_pagination(logged_in):
         for vehicle in vehicles:
             if vehicle.name in odometers:
                 measurement = session.query(Measurement).filter_by(vehicle_id=vehicle.id).one()
-                measurement.odometer_km = odometers[vehicle.name]
+                measurement.odometer_km = Decimal(odometers[vehicle.name])
         session.commit()
 
     descending = client.get("/api/v1/fleet/vehicles?sort=odometer-desc&page_size=1").json()
@@ -375,7 +375,7 @@ def test_large_fleet_only_materializes_the_requested_page(logged_in):
         session.commit()
     loaded = []
 
-    def track_load(session, instance):
+    def track_load(_session, instance):
         if isinstance(instance, (Vehicle, Measurement, Driver)):
             loaded.append(instance)
 
