@@ -11,6 +11,7 @@ from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from app.core.models import Measurement, SyncState, Vehicle
+from app.core.settings import DEFAULT_STALE_SECONDS
 from app.integrations.webfleet.client import REQUEST_INTERVALS, WebfleetClient, WebfleetError
 from app.integrations.webfleet.models import MAX_ODOMETER_KM, ObjectSnapshot
 from app.modules.analytics.service import evaluate_distance_rules, record_distance_interval
@@ -192,6 +193,7 @@ def sync_once(
     client_factory=WebfleetClient,
     now=None,
     sync_interval_seconds=60,
+    stale_seconds=DEFAULT_STALE_SECONDS,
     sleep=asyncio.sleep,
 ):
     supplied_now = now is not None
@@ -233,7 +235,9 @@ def sync_once(
                     )
                     apply_records(session, source, indexed, readings, completed_at)
                     session.flush()
-                    evaluate_distance_rules(session, source, now=completed_at)
+                    evaluate_distance_rules(
+                        session, source, now=completed_at, stale_seconds=stale_seconds
+                    )
                     state.last_attempt_at = completed_at
                     state.last_success_at = completed_at
                     state.error_code = None
@@ -272,7 +276,7 @@ def sync_once(
             connection.commit()
 
 
-async def sync_worker(engine, settings, interval):
+async def sync_worker(engine, settings, interval, *, stale_seconds=DEFAULT_STALE_SECONDS):
     while True:
         try:
             result = await asyncio.to_thread(
@@ -280,6 +284,7 @@ async def sync_worker(engine, settings, interval):
                 engine,
                 settings,
                 sync_interval_seconds=interval,
+                stale_seconds=stale_seconds,
             )
             if result == "degraded":
                 log_sync_failure("SOURCE_DEGRADED")

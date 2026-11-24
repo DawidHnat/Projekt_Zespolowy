@@ -7,6 +7,8 @@ from urllib.parse import urlsplit
 
 from app.core.config import ConfigurationError, load_environment
 
+DEFAULT_STALE_SECONDS = 900
+
 
 def _seconds(values: Mapping[str, str], name: str, default: int, minimum: int, maximum: int) -> int:
     try:
@@ -28,7 +30,7 @@ class Settings:
     session_hours: int = 12
     sync_enabled: bool = False
     sync_interval_seconds: int = 60
-    stale_seconds: int = 900
+    stale_seconds: int = DEFAULT_STALE_SECONDS
     webfleet_account: str = field(default="", repr=False)
     api_docs_enabled: bool = True
 
@@ -82,7 +84,7 @@ class Settings:
             cookie_secure=secure,
             sync_enabled=values.get("SYNC_ENABLED", "false").lower() == "true",
             sync_interval_seconds=_seconds(values, "SYNC_INTERVAL_SECONDS", 60, 10, 86400),
-            stale_seconds=_seconds(values, "STALE_SECONDS", 900, 1, 604800),
+            stale_seconds=_seconds(values, "STALE_SECONDS", DEFAULT_STALE_SECONDS, 1, 604800),
             webfleet_account=values.get("WEBFLEET_ACCOUNT", ""),
             api_docs_enabled=docs == "true",
         )
