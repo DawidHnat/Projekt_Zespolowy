@@ -110,7 +110,8 @@ Kafelki funkcji znajdują się w `src/features/fleet`, `trips` i `analytics`.
 Uzgodnij typy i odpowiedzi API z Dawidem przed podłączaniem danych.
 Nie dodawaj sekretów do zmiennych `VITE_*`: trafiają one do przeglądarki.
 
-Po zmianie uruchom testy i build i sprawdź odpowiedni widok w przeglądarce. Zmiany
+Po zmianie uruchom testy i build. Widok możesz sprawdzić testem Playwright.
+Jeśli dodatkowo sprawdzisz go ręcznie, zapisz krótki wynik w PR. Zmiany
 wprowadzamy gałęzią zadania i PR zgodnie z [CONTRIBUTING](../CONTRIBUTING.md).
 
 ## Dane floty i logowanie — SCRUM-20

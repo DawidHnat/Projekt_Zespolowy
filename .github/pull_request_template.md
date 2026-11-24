@@ -10,12 +10,14 @@ Jira: <!-- rzeczywisty klucz, np. SCRUM-123 -->
 
 <!-- Jak sprawdzono zmianę? Dla samej struktury: lista katalogów i puste pliki. -->
 
-QA konkretnej zmiany: <!-- osoba inna niż autor, SHA, środowisko, scenariusze i wynik; dla dokumentacji N/A z uzasadnieniem -->
+Ręczne sprawdzenie autora (opcjonalne) <!-- jeśli wykonano, wpisz co sprawdzono, w jakim środowisku i z jakim wynikiem -->
 
-Osobna regresja modułu / odbiór wdrożenia: <!-- istniejący klucz QA, jeśli dotyczy -->
+Odbiór przed merge (jeśli wymagają go kryteria zadania) <!-- osoba, SHA, środowisko, scenariusze i wynik -->
+
+QA sprintu lub odbiór wdrożenia (jeśli dotyczy) <!-- link do istniejącej karty QA -->
 
 - [ ] PR kończy cały zakres zadania wskazanego kluczem w gałęzi; częściowy przyrost ma własne zadanie.
-- [ ] Sprawdzenie kryteriów konkretnej zmiany zapisano powyżej przed merge; reviewer potwierdza wynik przy Approved.
+- [ ] Drugi developer sprawdził zakres zmiany i wyniki wymaganych kontroli.
 - [ ] Diff nie zawiera sekretów ani `.env`.
 - [ ] Zmiana jest gotowa do przeglądu drugiej osoby.
 
