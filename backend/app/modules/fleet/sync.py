@@ -148,10 +148,20 @@ def apply_records(session, source, masters, readings, now):
         vehicle.active = True
         reading = readings.get(uid)
         if reading:
+            position_at = reading.position_at
+            if position_at and position_at > now:
+                continue
             measurement = session.get(Measurement, vehicle.id)
+            previous = measurement
             if measurement and measurement.position_at:
-                if not reading.position_at or reading.position_at < aware(measurement.position_at):
-                    continue  # Out-of-order telemetry must not move the vehicle backwards.
+                stored_at = aware(measurement.position_at)
+                if not position_at:
+                    continue
+                if stored_at > min(aware(measurement.received_at), now):
+                    # Old code could store a future timestamp. It is not a distance baseline.
+                    previous = None
+                elif position_at <= stored_at:
+                    continue
             if not measurement:
                 measurement = Measurement(vehicle_id=vehicle.id, received_at=now)
                 session.add(measurement)
@@ -159,7 +169,7 @@ def apply_records(session, source, masters, readings, now):
                 reading.odometer_km < 0 or reading.odometer_km > MAX_ODOMETER_KM
             ):
                 raise WebfleetError("INVALID_RECORDS")
-            record_distance_interval(session, vehicle.id, measurement, reading, now)
+            record_distance_interval(session, vehicle.id, previous, reading, now)
             for field in (
                 "latitude",
                 "longitude",
