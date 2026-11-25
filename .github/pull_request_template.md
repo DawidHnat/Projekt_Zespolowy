@@ -37,6 +37,9 @@ implementacyjne jest **Gotowe**. Osobne QA/regresja zachowuje własny status.
 
 Wypełnij dla zmian objętych kontrolami bezpieczeństwa.
 Dla pozostałych wpisz N/A wraz z uzasadnieniem.
+Brak zatwierdzonej kontroli lub dowodu oznacza BLOCKED.
+Szablon nie stanowi pełnego odbioru ASVS L2 ani
+nie zamyka zależności SCRUM-120.
 
 **SHA testowanej wersji:**
 
@@ -46,9 +49,9 @@ Dla pozostałych wpisz N/A wraz z uzasadnieniem.
 
 **Dowody:** <!-- link do CI, testów lub Jira -->
 
-| ID ASVS / scenariusz | PASS/FAIL/BLOCKED/N/A | Dowód / uzasadnienie |
-| --- | --- | --- |
-| <!-- np. v5.0.0-7.4.1 --> | <!-- wynik --> | <!-- link, SHA --> |
+| ID ASVS / scenariusz | Wynik | Typ dowodu | Dowód i SHA | Data, wykonawca | N/A: uzasadnienie i akceptujący |
+| --- | --- | --- | --- | --- | --- |
+| <!-- ID --> | <!-- PASS/FAIL/BLOCKED/N/A --> | <!-- przegląd kodu / test / NOT RUN --> | <!-- link, SHA --> | <!-- data, osoba --> | <!-- powód N/A, imię i rola akceptującego, link do decyzji Jira --> |
 
 ### Security checks
 
@@ -70,11 +73,15 @@ Dla pozostałych wpisz N/A wraz z uzasadnieniem.
 
 ### Migracje i odtwarzanie
 
-**Migracja / N/A:**
+**Migracja (ID, środowisko, data, wykonawca) / N/A z uzasadnieniem:**
 
-**Wynik testu restore/rollback / BLOCKED / N/A:**
+**Plan powrotu do poprzedniej wersji (kroki, warunki uruchomienia, właściciel) / N/A z uzasadnieniem:**
 
-**Ograniczenia rollbacku i właściciel decyzji:**
+**Wpływ migracji i rollbacku na istniejące dane (utrata, nieodwracalność, zgodność schematu) / N/A z uzasadnieniem:**
+
+**Wynik próby restore/rollback (link, SHA, data, wykonawca) / BLOCKED / N/A z uzasadnieniem:**
+
+**Ograniczenia rollbacku, ryzyko, właściciel decyzji i link do zatwierdzenia PO w Jira, jeśli wymagane:**
 
 ### Odbiór
 

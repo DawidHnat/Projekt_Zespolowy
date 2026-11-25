@@ -104,6 +104,28 @@ Poniższe wymagania uzupełniają SCRUM-101. Stosujemy je
 proporcjonalnie do zakresu zmiany, bez deklarowania pełnej
 zgodności z OWASP ASVS L2.
 
+### Zależność SCRUM-120 i zakres przyrostu
+
+SCRUM-120 pozostaje otwarte i blokuje pełny odbiór SCRUM-121.
+Niniejszy dokument definiuje bramy dowodowe dla zmian
+w auth, sesjach, uprawnieniach i danych. Nie zatwierdza
+kompletnej macierzy ASVS L2 i nie nadaje PASS kontrolom
+bez niezależnego przeglądu i dowodów.
+
+W PR #169 wciąż wymagają uzupełnienia: osobne kontrole
+Origin/CSRF i CORS, odwoływanie sesji po zmianie lub
+resecie hasła, źródła dowodów oraz retesty luk.
+
+Przed scaleniem PR #168 PO i niezależny reviewer muszą
+rozstrzygnąć zależność SCRUM-120 i potwierdzić,
+czy zakres SCRUM-121 jest kompletny.
+
+Jeżeli zespół chce wcześniej wdrożyć tylko formularz
+bram dowodowych, należy najpierw uzgodnić z PO
+wydzielony zakres i utworzyć osobne zadanie oraz PR
+z jego kluczem. SCRUM-121 pozostaje wtedy otwarte.
+Samo dopisanie tej sekcji nie jest zgodą na taki merge.
+
 ### Zakres kontroli i wyjątki
 
 - PR wskazuje konkretne identyfikatory OWASP ASVS v5.0.0
@@ -150,9 +172,23 @@ PR zawiera:
 - ograniczenia odwracalności i wpływ na istniejące dane;
 - właściciela decyzji, jeśli rollback nie jest bezpieczny.
 
-Istotne otwarte FAIL/BLOCKED wymagają naprawy przed
-merge albo jawnej decyzji osoby uprawnionej do
-akceptacji ryzyka. Checklist nie zastępuje testów,
+Istotne otwarte FAIL/BLOCKED wymagają naprawy przed merge.
+
+Przyjęcie ryzyka wysokiego lub krytycznego wymaga
+jawnej decyzji Product Ownera (PO), zgodnie z SCRUM-101.
+Autor PR i reviewer nie mogą samodzielnie zastąpić
+decyzji PO.
+
+Decyzję zapisujemy w powiązanym zadaniu Jira i linkujemy
+w PR. Wymagane dane: ID ASVS, opis i poziom ryzyka,
+uzasadnienie odstępstwa, środki kompensujące, właściciel,
+termin ponownej oceny, data oraz osoba zatwierdzająca.
+
+Ryzyka niższe akceptuje PO lub osoba z udokumentowanym
+upoważnieniem PO. Decyzja także wymaga zapisu w Jira.
+
+Brak decyzji pozostawia BLOCKED. Przyjęcie ryzyka
+nie zmienia FAIL na PASS i nie zastępuje testów,
 niezależnego review ani formalnego odbioru.
 
 ### Niezależna weryfikacja
