@@ -106,25 +106,23 @@ zgodności z OWASP ASVS L2.
 
 ### Zależność SCRUM-120 i zakres przyrostu
 
-SCRUM-120 pozostaje otwarte i blokuje pełny odbiór SCRUM-121.
-Niniejszy dokument definiuje bramy dowodowe dla zmian
-w auth, sesjach, uprawnieniach i danych. Nie zatwierdza
-kompletnej macierzy ASVS L2 i nie nadaje PASS kontrolom
-bez niezależnego przeglądu i dowodów.
+Bramy dowodowe dotyczą zmian w auth, sesjach,
+uprawnieniach i danych. Nie stanowią zatwierdzenia
+kompletnej macierzy ASVS L2 ani potwierdzenia PASS
+bez wymaganych dowodów.
 
-W PR #169 wciąż wymagają uzupełnienia: osobne kontrole
-Origin/CSRF i CORS, odwoływanie sesji po zmianie lub
-resecie hasła, źródła dowodów oraz retesty luk.
+Pełny odbiór SCRUM-121 wymaga rozstrzygnięcia
+zależności od SCRUM-120 oraz potwierdzenia zakresu
+przez PO i niezależnego reviewera.
 
-Przed scaleniem PR #168 PO i niezależny reviewer muszą
-rozstrzygnąć zależność SCRUM-120 i potwierdzić,
-czy zakres SCRUM-121 jest kompletny.
+Jeżeli dostarczamy tylko częściowy przyrost,
+wydzielamy go pod osobnym kluczem Jira w nazwie
+gałęzi zgodnie z SCRUM-151. Zadanie obejmujące
+pozostały zakres pozostaje otwarte.
 
-Jeżeli zespół chce wcześniej wdrożyć tylko formularz
-bram dowodowych, należy najpierw uzgodnić z PO
-wydzielony zakres i utworzyć osobne zadanie oraz PR
-z jego kluczem. SCRUM-121 pozostaje wtedy otwarte.
-Samo dopisanie tej sekcji nie jest zgodą na taki merge.
+Bieżące statusy PR-ów, wyniki CI, blokady i decyzje
+zapisujemy w Jira lub opisie właściwego PR,
+a nie w Definition of Done.
 
 ### Zakres kontroli i wyjątki
 

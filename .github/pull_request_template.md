@@ -75,6 +75,8 @@ nie zamyka zależności SCRUM-120.
 
 **Migracja (ID, środowisko, data, wykonawca) / N/A z uzasadnieniem:**
 
+**Wynik migracji (PASS/FAIL/BLOCKED/N/A, link do dowodu, SHA, data, wykonawca; N/A wymaga uzasadnienia):**
+
 **Plan powrotu do poprzedniej wersji (kroki, warunki uruchomienia, właściciel) / N/A z uzasadnieniem:**
 
 **Wpływ migracji i rollbacku na istniejące dane (utrata, nieodwracalność, zgodność schematu) / N/A z uzasadnieniem:**
