@@ -1,3 +1,4 @@
+import re
 from datetime import UTC, datetime, timedelta
 from math import isfinite
 
@@ -70,15 +71,87 @@ def timestamp(value):
     return aware(value).isoformat() if value else None
 
 
+def normalize_identity_token(value: str | None) -> str:
+    if not value:
+        return ""
+    return re.sub(r"[\s\-]+", "", value).casefold()
+
+
+def find_identity_conflicts(
+    session,
+    source: str,
+    *,
+    license_plate: str | None,
+    vin: str | None,
+    exclude_id=None,
+):
+    plate_token = normalize_identity_token(license_plate)
+    vin_token = normalize_identity_token(vin)
+    if not plate_token and not vin_token:
+        return []
+    query = select(Vehicle).where(Vehicle.source_account == source)
+    if exclude_id is not None:
+        query = query.where(Vehicle.id != exclude_id)
+    conflicts = []
+    for candidate in session.scalars(query).all():
+        same_plate = bool(
+            plate_token and normalize_identity_token(candidate.license_plate) == plate_token
+        )
+        same_vin = bool(vin_token and normalize_identity_token(candidate.vin) == vin_token)
+        if same_plate or same_vin:
+            conflicts.append((candidate, same_plate, same_vin))
+    return conflicts
+
+
+def source_link_candidates(session, vehicle: Vehicle):
+    if not vehicle.is_manual:
+        return []
+    matches = []
+    for candidate, same_plate, same_vin in find_identity_conflicts(
+        session,
+        vehicle.source_account,
+        license_plate=vehicle.license_plate,
+        vin=vehicle.vin,
+        exclude_id=vehicle.id,
+    ):
+        if not candidate.is_manual and candidate.active and not candidate.archived:
+            matches.append(
+                {
+                    "id": str(candidate.id),
+                    "name": candidate.name,
+                    "number": candidate.number,
+                    "license_plate": candidate.license_plate,
+                    "vin": candidate.vin,
+                    "matched_by": [
+                        field
+                        for field, matched in (("license_plate", same_plate), ("vin", same_vin))
+                        if matched
+                    ],
+                }
+            )
+    return matches
+
+
 def source_payload(session, source):
     state = session.get(SyncState, source)
-    if not state or not state.last_success_at:
-        raise ApiError(503, "SOURCE_UNAVAILABLE", "Oczekiwanie na dane WEBFLEET")
-    return {
-        "status": "degraded" if state.error_code else "ok",
-        "last_success_at": timestamp(state.last_success_at),
-        "error_code": state.error_code,
-    }
+    if state and state.last_success_at:
+        return {
+            "status": "degraded" if state.error_code else "ok",
+            "last_success_at": timestamp(state.last_success_at),
+            "error_code": state.error_code,
+        }
+    has_manual = session.scalar(
+        select(Vehicle.id)
+        .where(Vehicle.source_account == source, Vehicle.is_manual.is_(True))
+        .limit(1)
+    )
+    if has_manual is not None:
+        return {
+            "status": "degraded",
+            "last_success_at": None,
+            "error_code": "MANUAL_ONLY",
+        }
+    raise ApiError(503, "SOURCE_UNAVAILABLE", "Oczekiwanie na dane WEBFLEET")
 
 
 def serialize_vehicle(
@@ -90,18 +163,20 @@ def serialize_vehicle(
     source_degraded=False,
     *,
     archive_author=None,
+    link_candidates=None,
 ):
     time = aware(measurement.position_at) if measurement and measurement.position_at else None
     age = (now - time).total_seconds() if time else None
     stale = source_degraded or age is None or age > stale_seconds or age < -300
     status = "unknown"
-    if measurement:
+    if measurement and not vehicle.is_manual:
         if stale:
             status = "offline"
         elif measurement.standing_still is not None:
             status = "stopped" if measurement.standing_still else "moving"
     located = bool(
-        measurement
+        not vehicle.is_manual
+        and measurement
         and measurement.gps_quality == "A"
         and time
         and age >= -300
@@ -119,17 +194,40 @@ def serialize_vehicle(
             ),
             "reason": vehicle.archived_reason,
         }
-    return {
+    telemetry_odometer = (
+        float(measurement.odometer_km)
+        if not vehicle.is_manual and measurement and measurement.odometer_km is not None
+        else None
+    )
+    manual_odometer = (
+        float(vehicle.manual_odometer_km) if vehicle.manual_odometer_km is not None else None
+    )
+    payload = {
         "id": str(vehicle.id),
+        "origin": "manual" if vehicle.is_manual else "webfleet",
         "name": vehicle.name,
         "card_version": vehicle.card_version,
-        "number": vehicle.number,
+        "number": None if vehicle.is_manual else vehicle.number,
         "license_plate": vehicle.license_plate,
         "vehicle_type": vehicle.vehicle_type,
         "make": vehicle.make,
         "model": vehicle.model,
         "year": vehicle.year,
         "vin": vehicle.vin,
+        "fuel_type": vehicle.fuel_type,
+        "leasing_company": vehicle.leasing_company,
+        "leasing_contract_no": vehicle.leasing_contract_no,
+        "leasing_end_on": vehicle.leasing_end_on.isoformat() if vehicle.leasing_end_on else None,
+        "inspection_due_on": (
+            vehicle.inspection_due_on.isoformat() if vehicle.inspection_due_on else None
+        ),
+        "insurance_due_on": (
+            vehicle.insurance_due_on.isoformat() if vehicle.insurance_due_on else None
+        ),
+        "manual_odometer_km": manual_odometer,
+        "manual_odometer_date": (
+            vehicle.manual_odometer_date.isoformat() if vehicle.manual_odometer_date else None
+        ),
         "source_active": vehicle.active,
         "archived": vehicle.archived,
         "archive": archive_info,
@@ -137,13 +235,15 @@ def serialize_vehicle(
         "driver": {"id": str(driver.id), "display_name": driver.display_name} if driver else None,
         "latitude": measurement.latitude if located else None,
         "longitude": measurement.longitude if located else None,
-        "position_at": timestamp(time),
-        "received_at": timestamp(measurement.received_at) if measurement else None,
+        "position_at": None if vehicle.is_manual else timestamp(time),
+        "received_at": (
+            timestamp(measurement.received_at) if not vehicle.is_manual and measurement else None
+        ),
         "is_stale": stale,
-        "position_address": measurement.position_address if measurement else None,
-        "odometer_km": float(measurement.odometer_km)
-        if measurement and measurement.odometer_km is not None
-        else None,
+        "position_address": (
+            measurement.position_address if not vehicle.is_manual and measurement else None
+        ),
+        "odometer_km": telemetry_odometer if telemetry_odometer is not None else manual_odometer,
         "speed_kmh": float(measurement.speed_kmh)
         if located
         and not stale
@@ -152,9 +252,14 @@ def serialize_vehicle(
         and isfinite(measurement.speed_kmh)
         and 0 <= measurement.speed_kmh <= 300
         else None,
-        "ignition_on": measurement.ignition_on if measurement else None,
-        "standing_still": measurement.standing_still if measurement else None,
+        "ignition_on": measurement.ignition_on if not vehicle.is_manual and measurement else None,
+        "standing_still": (
+            measurement.standing_still if not vehicle.is_manual and measurement else None
+        ),
     }
+    if link_candidates is not None:
+        payload["link_candidates"] = link_candidates
+    return payload
 
 
 def fleet_order(session, sort, status_expression):
@@ -172,11 +277,8 @@ def fleet_order(session, sort, status_expression):
         )
         return [rank, name, Vehicle.id]
     if sort in ("odometer-asc", "odometer-desc"):
-        mileage = (
-            Measurement.odometer_km.desc()
-            if sort == "odometer-desc"
-            else Measurement.odometer_km.asc()
-        )
+        effective_mileage = func.coalesce(Measurement.odometer_km, Vehicle.manual_odometer_km)
+        mileage = effective_mileage.desc() if sort == "odometer-desc" else effective_mileage.asc()
         return [mileage.nulls_last(), name, Vehicle.id]
     return [name, Vehicle.id]
 
@@ -309,6 +411,7 @@ def fleet_markers(
         .join(Measurement, Measurement.vehicle_id == Vehicle.id)
         .where(
             *conditions,
+            Vehicle.is_manual.is_(False),
             Measurement.gps_quality == "A",
             Measurement.position_at <= now + timedelta(seconds=300),
             Measurement.latitude.is_not(None),

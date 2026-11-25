@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 import uvicorn
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import create_engine, delete, select, update
+from sqlalchemy import create_engine, delete, or_, select, update
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
@@ -149,7 +149,14 @@ def main():
             session.flush()
             for model in (DriverAssignment, DriverCategory, Driver):
                 session.execute(delete(model))
-            session.execute(delete(Vehicle).where(Vehicle.external_uid.like("e2e-driver-car-%")))
+            session.execute(
+                delete(Vehicle).where(
+                    or_(
+                        Vehicle.external_uid.like("e2e-driver-car-%"),
+                        Vehicle.is_manual.is_(True),
+                    )
+                )
+            )
             for model in (AlertReceipt, Alert, Rule, DailyDistance):
                 session.execute(delete(model))
             measurement = session.get(Measurement, VEHICLE)

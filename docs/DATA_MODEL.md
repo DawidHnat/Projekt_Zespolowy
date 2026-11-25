@@ -27,7 +27,10 @@ dezaktywuje rekord po kompletnym odczycie, bez usuwania historii i ręcznych pó
 Archiwizacja pojazdu przez użytkownika (`Vehicle.archived`, `archived_at`,
 `archived_by`, `archived_reason` w SCRUM-88) jest odrębna od źródłowego `active`:
 synchronizacja nie cofa archiwizacji, a historia przejazdów, alertów i przypisań
-pozostaje nienaruszona.
+pozostaje nienaruszona. Pojazdy dodane ręcznie (`Vehicle.is_manual=true`,
+`external_uid=null` w SCRUM-85) mają stabilne UUID, pola kartoteki (paliwo, leasing,
+terminy badania/OC) oraz datowany przebieg ręczny bez sztucznego GPS; synchronizacja
+WEBFLEET ich nie nadpisuje ani nie scala automatycznie.
 Nie importujemy nazw, loginów, kontaktów ani innych pól kierowców ze źródła.
 User oznacza osobę korzystającą z aplikacji, Driver — ręcznie opisany wpis floty.
 
