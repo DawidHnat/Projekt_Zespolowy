@@ -2,6 +2,19 @@
 
 ## Zakres i zasady
 
+Przyrost dokumentacyjny wydzielono jako
+[SCRUM-179](https://fleet-flow.atlassian.net/browse/SCRUM-179)
+zgodnie z zasadą
+[SCRUM-151](https://fleet-flow.atlassian.net/browse/SCRUM-151).
+
+Scalenie tego przyrostu nie kończy SCRUM-120.
+Pełne retesty, decyzje dotyczące ryzyka i niezależny
+odbiór ASVS L2 pozostają w zakresie SCRUM-120.
+
+Źródło wymagań:
+[OWASP ASVS 5.0.0](https://github.com/OWASP/ASVS/tree/v5.0.0/5.0/en).
+
+
 Przegląd auth/session/access/data Fleet-Flow.
 Dokument uzupełnia częściową macierz SCRUM-101.
 ASVS L2 obejmuje właściwe wymagania L1 i L2.
@@ -38,7 +51,7 @@ nie jest automatycznie dowodem skutecznego ataku.
 | v5.0.0-8.2.1 | Kontrola autoryzacji | [update_vehicle_card](https://github.com/DawidHnat/Projekt_Zespolowy/blob/06bae19e6717870b63c184a8c14a5c3d3b4b7525/backend/app/modules/fleet/router.py); [write_preference](https://github.com/DawidHnat/Projekt_Zespolowy/blob/06bae19e6717870b63c184a8c14a5c3d3b4b7525/backend/app/modules/preferences/router.py); wymagany test dostępu do istniejącego syntetycznego obiektu. | BLOCKED — QA |
 | v5.0.0-8.2.2 | IDOR i izolacja | [fleet/router.py](https://github.com/DawidHnat/Projekt_Zespolowy/blob/06bae19e6717870b63c184a8c14a5c3d3b4b7525/backend/app/modules/fleet/router.py); [AccountPreference/user.id](https://github.com/DawidHnat/Projekt_Zespolowy/blob/06bae19e6717870b63c184a8c14a5c3d3b4b7525/backend/app/modules/preferences/router.py); brak pełnego testu dwóch syntetycznych kont i obcych zasobów. | BLOCKED — QA |
 | v5.0.0-8.3.1 | Autoryzacja backendu | [editor/current_user](https://github.com/DawidHnat/Projekt_Zespolowy/blob/06bae19e6717870b63c184a8c14a5c3d3b4b7525/backend/app/modules/auth/service.py); [test_scrum101_roles.py](https://github.com/DawidHnat/Projekt_Zespolowy/blob/06bae19e6717870b63c184a8c14a5c3d3b4b7525/backend/tests/test_scrum101_roles.py); testy nieistniejącego UUID nie dowodzą odmowy na istniejącym obiekcie. | BLOCKED — QA |
-| v5.0.0-3.3.1 | Cookie Secure | [COOKIE_NAME/issue_session](https://github.com/DawidHnat/Projekt_Zespolowy/blob/06bae19e6717870b63c184a8c14a5c3d3b4b7525/backend/app/modules/auth/service.py); secure zależy od konfiguracji; bez dowodu Set-Cookie na docelowym HTTPS. | BLOCKED — HTTPS |
+| v5.0.0-3.3.1 | Cookie Secure i prefiks nazwy | [COOKIE_NAME/issue_session](https://github.com/DawidHnat/Projekt_Zespolowy/blob/06bae19e6717870b63c184a8c14a5c3d3b4b7525/backend/app/modules/auth/service.py); `COOKIE_NAME = fleet_flow_session` nie ma prefiksu `__Host-` ani `__Secure-`, wymaganego przez ASVS 3.3.1. Atrybut Secure zależy od konfiguracji; weryfikacja Set-Cookie na docelowym HTTPS: BLOCKED. | FAIL — przegląd kodu; Secure HTTPS BLOCKED |
 | v5.0.0-3.3.2 | SameSite | [issue_session](https://github.com/DawidHnat/Projekt_Zespolowy/blob/06bae19e6717870b63c184a8c14a5c3d3b4b7525/backend/app/modules/auth/service.py): samesite=strict w kodzie; brak testu nagłówka na wdrożeniu. | BLOCKED — HTTPS |
 | v5.0.0-3.3.3 | Cookie i prefiks hosta | [COOKIE_NAME](https://github.com/DawidHnat/Projekt_Zespolowy/blob/06bae19e6717870b63c184a8c14a5c3d3b4b7525/backend/app/modules/auth/service.py) = fleet_flow_session, bez prefiksu __Host-; do triage z PO. | FAIL — przegląd kodu |
 | v5.0.0-3.3.4 | HttpOnly | [issue_session](https://github.com/DawidHnat/Projekt_Zespolowy/blob/06bae19e6717870b63c184a8c14a5c3d3b4b7525/backend/app/modules/auth/service.py): httponly=True; brak dowodu Set-Cookie na wdrożeniu. | BLOCKED — HTTPS |
@@ -102,6 +115,12 @@ triage, a nie potwierdzoną naprawę lub akceptację ryzyka.
   izolowane bazy `fleet_flow_test` i `fleet_flow_test_e2e`.
 - Dane: syntetyczne, bez produkcyjnych integracji.
 - Rodzaj dowodu: automatyczna regresja CI.
+
+Dodatkowy dowód historyczny:
+- PR #169, head `dc495d924354f824f7727cf110bc5ba04b5662ce`.
+- Required CI: **SUCCESS**.
+- [Przebieg CI](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/45687535665).
+- Wynik dotyczy wskazanego historycznego SHA, nie nowego PR.
 
 ### Pokrycie i ograniczenia
 
