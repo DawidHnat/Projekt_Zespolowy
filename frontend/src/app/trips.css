@@ -146,3 +146,21 @@
 }
 .trip-annotation-form .form-error { color: var(--danger); }
 .trip-annotation-form .auth-notice { color: var(--success); }
+
+.trip-facts { display: grid; gap: 4px; }
+.trip-facts p { margin: 0; overflow-wrap: anywhere; }
+.trip-stop-list {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+.trip-stop-list li {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+.trip-stop-list span { color: var(--muted); }

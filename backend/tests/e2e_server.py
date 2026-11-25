@@ -15,6 +15,7 @@ from sqlalchemy import create_engine, delete, select, update
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
+from app.core.config import WebfleetSettings
 from app.core.models import Driver, Measurement, SyncState, Vehicle
 from app.core.settings import Settings
 from app.integrations.mail.client import SmtpError
@@ -26,7 +27,15 @@ from app.modules.auth.service import password_hasher
 from app.modules.drivers.models import DriverAssignment, DriverCategory
 from app.modules.fleet.sync import account_key
 from app.modules.preferences.models import AccountPreference
-from app.modules.trips.models import Trip
+from app.modules.trips.importer import import_one_day
+from app.modules.trips.models import (
+    Trip,
+    TripAnnotation,
+    TripHistoryDay,
+    TripHistorySource,
+    TripStop,
+)
+from app.modules.trips.service import WARSAW, polish_day
 
 ACCOUNT = "synthetic-e2e-source"
 VEHICLE = UUID("11111111-1111-4111-8111-111111111111")
@@ -145,6 +154,79 @@ def seed(engine):
     source_state(engine, "ok")
 
 
+def imported_history_case(engine, *, clear=False):
+    source = account_key(ACCOUNT)
+    if clear:
+        with Session(engine) as session:
+            imported = select(Trip.id).where(
+                Trip.vehicle_id == VEHICLE, Trip.external_uid == "500001"
+            )
+            session.execute(delete(TripAnnotation).where(TripAnnotation.trip_id.in_(imported)))
+            session.execute(
+                delete(Trip).where(Trip.vehicle_id == VEHICLE, Trip.external_uid == "500001")
+            )
+            session.execute(delete(TripStop).where(TripStop.vehicle_id == VEHICLE))
+            session.execute(delete(TripHistoryDay).where(TripHistoryDay.vehicle_id == VEHICLE))
+            session.execute(
+                delete(TripHistorySource).where(TripHistorySource.source_account == source)
+            )
+            session.commit()
+        return
+    now = datetime.now(UTC)
+    day = now.astimezone(WARSAW).date() - timedelta(days=1)
+    start, _ = polish_day(day)
+    with Session(engine) as session:
+        limiter = session.get(TripHistorySource, source)
+        if limiter is not None:
+            now = max(now, limiter.next_attempt_at)
+
+    class FixtureSource:
+        def __init__(self, _):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            pass
+
+        async def fetch_trip_history(self, uid, lower, upper):
+            assert uid == "e2e-only" and (lower, upper) == polish_day(day)
+            departure = start + timedelta(hours=8)
+            arrival = departure + timedelta(minutes=22)
+            trips = [
+                {
+                    "tripid": "500001",
+                    "start_time": departure.isoformat(),
+                    "end_time": arrival.isoformat(),
+                    "distance": 12345,
+                    "start_postext": "Początek E2E",
+                    "end_postext": "Koniec E2E",
+                }
+            ]
+            stops = [
+                {
+                    "start_time": arrival.isoformat(),
+                    "end_time": (arrival + timedelta(minutes=8)).isoformat(),
+                    "postext": "Postój E2E",
+                }
+            ]
+            return trips, stops
+
+    settings = WebfleetSettings(ACCOUNT, "synthetic", "synthetic", "synthetic")
+    result = import_one_day(
+        engine,
+        settings,
+        VEHICLE,
+        day,
+        day,
+        refresh=True,
+        client_factory=FixtureSource,
+        clock=lambda: now,
+    )
+    assert result == "imported"
+
+
 def install_account_mail_fixture(app):
     sent = {}
     addresses = {
@@ -176,6 +258,10 @@ def install_account_mail_fixture(app):
 def main():
     database_url = test_database_url()
     engine = create_engine(database_url)
+    if sys.argv[1:] in (["import-history-case"], ["clear-history-case"]):
+        imported_history_case(engine, clear=sys.argv[1] == "clear-history-case")
+        engine.dispose()
+        return
     if sys.argv[1:] == ["reset-case"]:
         with Session(engine) as session:
             session.execute(delete(LoginAttempt))
