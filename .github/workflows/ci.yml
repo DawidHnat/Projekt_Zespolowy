@@ -248,6 +248,16 @@ jobs:
         working-directory: frontend
       - run: npm run test:e2e
         working-directory: frontend
+      - name: Build synthetic map test frontend
+        run: npm run build
+        env:
+          VITE_MAPBOX_TOKEN: pk.fleetflowsynthetic
+        working-directory: frontend
+      - name: Run and time synthetic map recovery
+        run: time npx playwright test e2e/map-provider-recovery.spec.ts --reporter=list --output=test-results/map-recovery
+        env:
+          E2E_SYNTHETIC_MAP: 'true'
+        working-directory: frontend
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
