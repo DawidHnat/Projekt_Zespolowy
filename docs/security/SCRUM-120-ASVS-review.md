@@ -88,6 +88,48 @@ triage, a nie potwierdzoną naprawę lub akceptację ryzyka.
   jeśli miałoby to automatycznie zamknąć całe zadanie;
   wydzielony przyrost wymaga nowego klucza i decyzji PO.
 
+## Wyniki CI — f2ac17f (25.11.2026)
+
+- PR: https://github.com/DawidHnat/Projekt_Zespolowy/pull/169
+- Head PR: `f2ac17f1aa8d287faa9b7498d8f6c03cee7850ff`.
+- Kod bazowy analizowany w macierzy: `06bae19e6717870b63c184a8c14a5c3d3b4b7525`.
+- Dowód: https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/45684810547
+- Required CI: **SUCCESS**.
+- Backend Python 3.13: **317 PASS, 1 SKIP**.
+- Backend Python 3.12: **317 PASS, 1 SKIP**.
+- Playwright desktop/mobile: **174 PASS, 4 SKIP**.
+- Środowisko: GitHub Actions, ubuntu-latest, PostgreSQL 17,
+  izolowane bazy `fleet_flow_test` i `fleet_flow_test_e2e`.
+- Dane: syntetyczne, bez produkcyjnych integracji.
+- Rodzaj dowodu: automatyczna regresja CI.
+
+### Pokrycie i ograniczenia
+
+Automatyczny zestaw obejmuje m.in.:
+- `test_auth.py`: Origin, cookie, logout i wygaśnięcie sesji;
+- `test_profile.py`: zmianę hasła, odwoływanie sesji
+  oraz odmowę operacji z obcym Origin;
+- `test_password_reset.py`: jednorazowość resetu hasła
+  i odwoływanie poprzednich sesji;
+- `test_scrum101_roles.py`: kontrolę ról przy edycji pojazdu.
+
+Zielone CI potwierdza przebieg istniejących testów.
+Nie potwierdza kompletnego pokrycia ASVS L2.
+
+Nadal **BLOCKED / NOT RUN** jako niezależne QA:
+- admin/editor/viewer na istniejącym syntetycznym pojeździe;
+- izolacja dwóch kont i IDOR;
+- przekrojowy Origin/CSRF oraz CORS/preflight;
+- atrybuty Set-Cookie na docelowym HTTPS;
+- udokumentowane retesty SCRUM-144, 145 i 146
+  z expected/actual, SHA i środowiskiem.
+
+Wyniki automatyczne nie są podpisem niezależnego
+manualnego QA. Decyzja PO o ryzykach, pełnym zakresie
+SCRUM-120 i ewentualnym wydzieleniu przyrostu
+pozostaje otwarta. Nie scalać PR pod kluczem SCRUM-120,
+jeżeli spowodowałoby to przedwczesne zamknięcie zadania.
+
 ## Testy do wykonania
 
 - [ ] Logowanie: poprawne i niepoprawne dane.
