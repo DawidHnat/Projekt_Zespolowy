@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { execFileSync } from "node:child_process";
 import { test, expect, type Page } from "@playwright/test";
+import { pauseBrowserClock } from "./fixtures/browser-clock";
 
 const origin = { Origin: "http://127.0.0.1:54173" };
 function fixture(command: string) {
@@ -284,8 +285,7 @@ test("drivers: closing a profile preserves focus on the next filter", async ({ p
   await page.getByRole("button", { name: "Anna Test00", exact: true }).click();
   await expect(page.getByRole("dialog").getByRole("heading", { name: "Anna Test00", exact: true })).toBeFocused();
   // A delayed frame must not move focus after the user starts another action.
-  await page.clock.install();
-  await page.clock.pauseAt(new Date());
+  await pauseBrowserClock(page);
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await search.fill("");

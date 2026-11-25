@@ -1,8 +1,9 @@
 # Zasady pracy Scrum — SCRUM-34
 
-Aktualizacja przepływu: 18.11.2026, SCRUM-151, decyzja PO. Właściciel:
-Jakub Czaja. QA konkretnej zmiany odbywa się przed merge; regresja modułu
-jest osobnym zadaniem. Poniższy plan sprintów jest zapisem z 26.10.2026.
+Jakub Czaja jest właścicielem zasad przepływu. Aktualizację z 20.11.2026
+opisuje [SCRUM-153](https://fleet-flow.atlassian.net/browse/SCRUM-153).
+Ręczny odbiór wspólnej wersji odbywa się w końcówce sprintu, przed Sprint
+Review. Poniższy plan sprintów jest zapisem z 26.10.2026.
 Źródłem bieżących statusów i składu sprintów jest
 [Jira](https://fleet-flow.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog).
 
@@ -54,27 +55,28 @@ zakres Story jest ponownie planowany.
 | --- | --- | --- | --- |
 | Do zrobienia | Do zrobienia | Zakres czeka na rozpoczęcie | Właściciel, kryteria i zależności |
 | W toku | W toku | Właściciel rozpoczął pracę | Gałąź zadania, następny krok i opisana blokada, jeśli występuje |
-| W trakcie weryfikacji | W toku | Konkretna zmiana czeka na review i sprawdzenie przed merge | PR, aktualne SHA, niezależne review oraz wynik sprawdzenia kryteriów |
+| W trakcie weryfikacji | W toku | Zmiana czeka na review lub CI przed merge | PR, aktualne SHA, niezależne review i wyniki wymaganych kontroli |
 | Testowanie | W toku | Trwa osobne zadanie QA, regresji modułu lub odbioru wdrożenia | Osoba QA, scenariusze, wersja i środowisko oraz rzeczywisty wynik |
-| Gotowe | Gotowe | Cały zakres zadania jest dostarczony; dla implementacji po zatwierdzonym merge do main | Aktualne Approved, zielone wymagane CI i sprawdzenie zmiany przed merge; QA bez kodu ma zapisany wynik |
+| Gotowe | Gotowe | Cały zakres zadania jest dostarczony. Dla implementacji oznacza to merge do `main`. | Implementacja ma aktualne Approved i zielone wymagane CI. Zadanie QA ma zapisany wynik odbioru. |
 
 Przepływ implementacji: **Do zrobienia → W toku → W trakcie weryfikacji →
-Gotowe**. Review i sprawdzenie kryteriów konkretnego PR odbywają się przed
-merge. QA wykonuje Marcel lub inna osoba niż autor; recenzent zatwierdza PR
-po potwierdzeniu zakresu, wyników i wymaganych kontroli CI.
+Gotowe**. Recenzent zatwierdza PR po sprawdzeniu zakresu i wymaganych kontroli
+CI. Autor może dodatkowo sprawdzić zmianę ręcznie i opisać wynik w PR. Odbiór
+przed merge wykonujemy, jeśli przewidują go kryteria konkretnego zadania.
 
-Osobne zadania QA przechodzą przez **Testowanie**, np. SCRUM-23 (flota),
-SCRUM-56 (logowanie), SCRUM-63 (historia/ewidencja) i SCRUM-17 (regresja MVP).
-Nie powielamy w nich akceptacji każdego PR; sprawdzamy określone scenariusze
-integracyjne i regresję modułu na wskazanej wersji. Implementacja może być
-Gotowe, gdy przekrojowa regresja ma jeszcze otwarty zakres.
+Pod koniec sprintu Marcel prowadzi ręczną regresję wspólnego wydania.
+Na tę fazę planujemy jedno zadanie QA na sprint, np.
+[SCRUM-152 dla Sprintu 3](https://fleet-flow.atlassian.net/browse/SCRUM-152).
+Podczas odbioru karta przechodzi do **Testowanie**. Odrębne zadania QA
+modułu lub wdrożenia mają własne kryteria i wyniki.
 
 Reguła **SCRUM: merge PR do main → Gotowe** dotyczy wyłącznie
 `DawidHnat/Projekt_Zespolowy`, docelowego `main` i dokładnego klucza zadania
 w nazwie gałęzi. Story i epiki są poza automatycznym zamykaniem; status Gotowe
-nie jest cofany przez ponowne zdarzenie. Reguła odwzorowuje decyzję o merge;
-review i QA są potwierdzane wcześniej w GitHub. Dostarczenie zdarzeń GitHub
-i test działania reguły śledzi [SCRUM-151](https://fleet-flow.atlassian.net/browse/SCRUM-151).
+nie jest cofany przez ponowne zdarzenie. Reguła odwzorowuje decyzję o merge.
+Przed merge GitHub wymaga niezależnego review i zielonego CI. Dostarczenie
+zdarzeń GitHub i test działania reguły śledzi
+[SCRUM-151](https://fleet-flow.atlassian.net/browse/SCRUM-151).
 Gałąź ma postać `prefiks/SCRUM-123-krotki-opis`, z jednym kluczem i opisem
 z małych liter, cyfr i myślników. Obsługiwane prefiksy: `feat`, `fix`, `docs`,
 `chore`, `refactor`, `test`, `codex`. Inny format nie uruchamia zamknięcia.

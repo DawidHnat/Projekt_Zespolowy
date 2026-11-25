@@ -11,9 +11,11 @@ moduły należą do kolejnych zadań. Kierowcy są wprowadzani ręcznie.
 - Zachowuj moduły `fleet`, `trips`, `analytics` oraz osobny adapter WEBFLEET.
 - Przed zmianą UI przeczytaj `docs/DESIGN_SYSTEM.md`. Używaj wspólnych tokenów
   i komponentów; nowe kafelki dodawaj do rejestru dashboardu.
-- Po zmianie frontendu wykonaj `npm test` i `npm run build` w `frontend/` i sprawdź
-  zachowanie zmienionego widoku w przeglądarce. Nie dodawaj fikcyjnych danych
-  do produktu poza osobno uzgodnionym zadaniem.
+- Po zmianie frontendu wykonaj `npm test` i `npm run build` w `frontend/`.
+  Zachowanie zmienionego widoku sprawdź w przeglądarce, np. testem Playwright.
+  Dodatkowe ręczne sprawdzenie autora jest opcjonalne. Zapisz jego wynik
+  w PR, jeśli je wykonasz. Nie dodawaj fikcyjnych danych do produktu poza
+  osobno uzgodnionym zadaniem.
 - Pracuj na gałęzi zadania, np. `feat/SCRUM-123-krotki-opis`; zmiana trafia do PR
   i przeglądu, zgodnie z CONTRIBUTING.
 - Nie umieszczaj sekretów, `.env`, kluczy prywatnych ani danych klientów w Git.

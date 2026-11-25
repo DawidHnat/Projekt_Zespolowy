@@ -191,13 +191,19 @@ zdarzenia i losowe event_id; log nie zawiera wyjątku, SQL ani telemetryki.
 
 `SYNC_ENABLED=true` w lokalnym `.env` włącza jeden wspólny odczyt. `SYNC_INTERVAL_SECONDS`
 ustawia częstotliwość (domyślnie 60 s, minimum 10 s zgodnie z limitem źródła),
-a `STALE_SECONDS` próg nieaktualności pomiaru (domyślnie 900 s). Obie wartości
+a `STALE_SECONDS` próg nieaktualności pomiaru (domyślnie 900 s). Ten sam próg
+obowiązuje przy ocenie alertu po synchronizacji (w tym ręcznym odświeżeniu)
+i przy tworzeniu lub edycji reguły. Obie wartości
 są walidowane przy starcie; nie ustawiaj częstotliwości przed sprawdzeniem limitów
 WEBFLEET dla używanego konta.
 PostgreSQL advisory lock i zapis czasu próby chronią limit także przy kilku
 procesach. Nie uruchamiaj równolegle diagnostyki w pętli. Awaria zachowuje dane
-ostatniego sukcesu; brak kompletnego raportu nie dezaktywuje pojazdów. Import
-aktualizuje wyłącznie pola pojazdu/pomiaru — nigdy ręcznych kierowców/przypisań.
+ostatniego sukcesu. Pierwszy pusty odczyt jest poprawny, jeżeli oba raporty
+są puste. Brak dowolnego wcześniej aktywnego pojazdu w raporcie głównym daje
+`INCOMPLETE_REPORT`: cały ostatni stan pozostaje w cache, a źródło jest
+`degraded` do czasu poprawnego odczytu. Sama nieobecność w raporcie nie jest
+dowodem dezaktywacji. Import aktualizuje wyłącznie pojazdy i pomiary.
+Kierowcy i przypisania są wprowadzane ręcznie.
 Synchronizator ponawia timeout, błąd połączenia, limit źródła i błędy HTTP 408,
 425 oraz 5xx maksymalnie do trzech prób na każdy raport (dwie ponowne próby),
 z co najmniej 10 s przerwy wymaganej przez raport i z uwzględnieniem `Retry-After`
@@ -219,6 +225,14 @@ GPS pozostają na liście. Prędkość świeżego, poprawnego pomiaru jest podaw
 w `speed_kmh` (km/h, 0–300); brak, stary/przyszły pomiar, niedostępne źródło
 lub niepotwierdzony GPS oznaczają `null`, bez zastępowania braku zerem.
 [Kontrolne potwierdzenie jednostki](../docs/qa/SCRUM-14-speed-unit.md).
+
+Synchronizacja przyjmuje czas pozycji najwyżej równy zakończeniu odczytu
+(tolerancja przyszłości 0 s). Pomiar przyszły, spóźniony, powtórzony lub bez
+czasu nie zastępuje ostatniej poprawnej pozycji. Przy równych znacznikach czasu
+pozostaje pierwszy zapis. Poprawna próbka może zastąpić stary rekord zapisany
+z przyszłym czasem. Taki rekord nie jest punktem odniesienia przy obliczaniu
+dystansu.
+
 Edycja kartoteki (PATCH) wymaga aktualnej wartości `card_version` zwróconej
 przez odczyt pojazdu oraz co najmniej jednego pola. Wersja rośnie po zapisie.
 Konflikt zwraca HTTP 409 `VERSION_CONFLICT`. Podanie ręcznej nazwy,
