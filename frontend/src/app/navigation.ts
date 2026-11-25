@@ -1,6 +1,7 @@
 import {
   Bell,
   CarFront,
+  ChartColumn,
   BookOpen,
   CreditCard,
   LayoutDashboard,
@@ -67,6 +68,12 @@ export const sections = [
     },
   },
   {
+    id: "analytics",
+    title: "Analityka",
+    icon: ChartColumn,
+    description: "Porównaj dystans, przejazdy i dni aktywne pojazdów.",
+  },
+  {
     id: "alerts",
     title: "Alerty",
     icon: Bell,
@@ -98,7 +105,6 @@ export type AppSectionId = AppSection["id"];
 const legacySections: Record<string, AppSectionId> = {
   fleet: "map",
   trips: "mileage",
-  analytics: "dashboard",
 };
 
 export function sectionFromHash(hash: string): AppSectionId {
