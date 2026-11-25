@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError
 from app.core.models import Vehicle
+from app.core.settings import DEFAULT_STALE_SECONDS
 from app.integrations.webfleet.models import MAX_SPEED_KMH, ODOMETER_RESOLUTION_KM
 from app.modules.analytics.models import Alert, DailyDistance, Rule
 from app.modules.auth.service import aware
@@ -88,7 +89,12 @@ def rule_payload(rule: Rule):
 
 
 def evaluate_distance_rules(
-    session: Session, source: str, *, now: datetime | None = None, stale_seconds=900, rule_id=None
+    session: Session,
+    source: str,
+    *,
+    now: datetime | None = None,
+    stale_seconds=DEFAULT_STALE_SECONDS,
+    rule_id=None,
 ) -> int:
     """Evaluate the observed daily distance, not the absolute odometer.
 

@@ -11,6 +11,7 @@ from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from app.core.models import Measurement, SyncState, Vehicle
+from app.core.settings import DEFAULT_STALE_SECONDS
 from app.integrations.webfleet.client import REQUEST_INTERVALS, WebfleetClient, WebfleetError
 from app.integrations.webfleet.models import MAX_ODOMETER_KM, ObjectSnapshot
 from app.modules.analytics.service import evaluate_distance_rules, record_distance_interval
@@ -126,6 +127,10 @@ def apply_records(session, source, masters, readings, now):
             .with_for_update()
         )
     }
+    # The provider reports no authoritative deletion signal. A shrinking report
+    # cannot replace a known roster, even if its telemetry is internally consistent.
+    if any(vehicle.active and uid not in masters for uid, vehicle in vehicles.items()):
+        raise WebfleetError("INCOMPLETE_REPORT")
     for uid, row in masters.items():
         vehicle = vehicles.get(uid)
         if not vehicle:
@@ -179,9 +184,6 @@ def apply_records(session, source, masters, readings, now):
             ):
                 setattr(measurement, field, getattr(reading, field))
             measurement.received_at = now
-    for uid, vehicle in vehicles.items():
-        if uid not in masters:
-            vehicle.active = False
 
 
 def sync_once(
@@ -191,6 +193,7 @@ def sync_once(
     client_factory=WebfleetClient,
     now=None,
     sync_interval_seconds=60,
+    stale_seconds=DEFAULT_STALE_SECONDS,
     sleep=asyncio.sleep,
 ):
     supplied_now = now is not None
@@ -232,7 +235,9 @@ def sync_once(
                     )
                     apply_records(session, source, indexed, readings, completed_at)
                     session.flush()
-                    evaluate_distance_rules(session, source, now=completed_at)
+                    evaluate_distance_rules(
+                        session, source, now=completed_at, stale_seconds=stale_seconds
+                    )
                     state.last_attempt_at = completed_at
                     state.last_success_at = completed_at
                     state.error_code = None
@@ -271,7 +276,7 @@ def sync_once(
             connection.commit()
 
 
-async def sync_worker(engine, settings, interval):
+async def sync_worker(engine, settings, interval, *, stale_seconds=DEFAULT_STALE_SECONDS):
     while True:
         try:
             result = await asyncio.to_thread(
@@ -279,6 +284,7 @@ async def sync_worker(engine, settings, interval):
                 engine,
                 settings,
                 sync_interval_seconds=interval,
+                stale_seconds=stale_seconds,
             )
             if result == "degraded":
                 log_sync_failure("SOURCE_DEGRADED")
