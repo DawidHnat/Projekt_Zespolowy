@@ -86,6 +86,12 @@ test("alerts empty state and rule forms save scoped rules and retain failed draf
   await expect(page.getByRole("status").filter({ hasText: "Reguła została zapisana" })).toBeVisible();
   await expect(add).toBeFocused();
   await page.clock.resume();
+  // Closing a reopened editor must also restore keyboard focus.
+  await add.click();
+  await expect(form).toBeVisible();
+  await form.getByRole("button", { name: "Anuluj regułę", exact: true }).click();
+  await expect(form).toHaveCount(0);
+  await expect(add).toBeFocused();
   let rules = (await (await page.request.get("/api/v1/analytics/rules")).json()).items;
   expect(rules[0].vehicle_id).toBe("11111111-1111-4111-8111-111111111111");
   expect(rules[0].threshold_km).toBe(12.5);

@@ -33,8 +33,14 @@ export function RulesPanel({ onChanged }: { onChanged: () => void }) {
   useLayoutEffect(() => {
     if (editing || busy) return;
     const button = opener.current;
+    if (button?.isConnected && !button.disabled) button.focus();
+  }, [editing, busy]);
+  useEffect(() => {
+    if (editing || busy) return;
+    const button = opener.current;
+    if (!button?.isConnected || button.disabled) return;
+    if (document.activeElement !== button) button.focus();
     opener.current = null;
-    button?.focus();
   }, [editing, busy]);
   useEffect(() => {
     const controller = new AbortController();
