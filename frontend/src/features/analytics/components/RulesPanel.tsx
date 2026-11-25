@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Settings2 } from "lucide-react";
 import { api, ApiError } from "../../../shared/api/client";
 import type { Rule, RuleList } from "../../../shared/api/generated/contracts";
@@ -30,6 +30,12 @@ export function RulesPanel({ onChanged }: { onChanged: () => void }) {
   const opener = useRef<HTMLButtonElement | null>(null);
   useEffect(() => () => write.current?.abort(), []);
   useEffect(() => { if (editing) thresholdInput.current?.focus(); }, [editing]);
+  useLayoutEffect(() => {
+    if (editing || busy) return;
+    const button = opener.current;
+    opener.current = null;
+    button?.focus();
+  }, [editing, busy]);
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true); setError(null);
@@ -60,7 +66,6 @@ export function RulesPanel({ onChanged }: { onChanged: () => void }) {
       });
       if (controller.signal.aborted) return;
       setEditing(null); setSaved(true); setRevision(v => v + 1); onChanged();
-      requestAnimationFrame(() => opener.current?.focus());
     } catch (err) {
       if (controller.signal.aborted) return;
       setError(err instanceof ApiError && err.status === 404 ? "Pojazd lub reguła są niedostępne. Wybierz aktywny pojazd i ponów zapis." :
@@ -96,7 +101,7 @@ export function RulesPanel({ onChanged }: { onChanged: () => void }) {
       {scope === "vehicle" && <RuleVehiclePicker selected={vehicle} onSelect={setVehicle} disabled={busy} />}
       <label className="rule-active"><input type="checkbox" checked={active} disabled={busy} onChange={e => setActive(e.target.checked)} />Reguła włączona</label>
       <div className="alert-controls"><button type="submit" className="button button-primary" disabled={busy}>{busy ? "Zapisywanie…" : "Zapisz regułę"}</button>
-        <button type="button" className="button button-secondary" disabled={busy} onClick={() => { setEditing(null); requestAnimationFrame(() => opener.current?.focus()); }}>Anuluj regułę</button></div>
+        <button type="button" className="button button-secondary" disabled={busy} onClick={() => setEditing(null)}>Anuluj regułę</button></div>
     </form>}
   </WidgetFrame>;
 }
