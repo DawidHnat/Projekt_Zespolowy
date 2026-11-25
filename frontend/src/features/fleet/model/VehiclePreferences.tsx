@@ -44,6 +44,14 @@ const sorts: VehicleSort[] = ["name-asc", "name-desc", "status", "odometer-asc",
 const statuses = ["moving", "stopped", "offline", "unknown"];
 const archiveScopes: VehicleArchiveScope[] = ["active", "archived", "all"];
 
+function serializeModulePreferences(prefs: VehicleModulePreferences): VehicleModulePreferences {
+  const { q, status, archive } = prefs.filters;
+  return {
+    ...prefs,
+    filters: archive && archive !== "active" ? { q, status, archive } : { q, status },
+  };
+}
+
 function defaults(): VehicleModulePreferences {
   return {
     layout: normalizeLayoutConfig(null),
@@ -169,7 +177,7 @@ function usePreferences(scope: string) {
         const result = await writeAccountPreference(
           "vehicles",
           expectedVersion ?? revision.current,
-          getValue(),
+          serializeModulePreferences(getValue()),
         );
         revision.current = result.version;
         conflictRef.current = null;
