@@ -61,6 +61,7 @@ export function VehicleListWidget({
                   <strong>{v.name}</strong>
                   <small>
                     {v.license_plate || v.number || "Brak rejestracji"}
+                    {v.origin === "manual" ? " · Ręczny" : ""}
                     {v.archived ? " · Archiwalny" : ""}
                   </small>
                 </div>
@@ -114,6 +115,7 @@ export function VehicleListWidget({
                         <strong>{v.name}</strong>
                         <small>
                           {v.license_plate || v.number || "Brak rejestracji"}
+                          {v.origin === "manual" ? " · Ręczny" : ""}
                           {v.archived ? " · Archiwalny" : ""}
                         </small>
                       </button>

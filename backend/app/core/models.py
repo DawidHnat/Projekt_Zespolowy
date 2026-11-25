@@ -1,10 +1,11 @@
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
+    Date,
     DateTime,
     ForeignKey,
     Integer,
@@ -67,10 +68,21 @@ class Vehicle(Base):
             "AND archived_reason IS NULL) OR (archived AND archived_at IS NOT NULL)",
             name="ck_vehicles_archive_state",
         ),
+        CheckConstraint(
+            "(is_manual AND external_uid IS NULL) OR (NOT is_manual AND external_uid IS NOT NULL)",
+            name="ck_vehicles_origin_uid",
+        ),
+        CheckConstraint(
+            "(manual_odometer_km IS NULL AND manual_odometer_date IS NULL) "
+            "OR (manual_odometer_km IS NOT NULL AND manual_odometer_km >= 0 "
+            "AND manual_odometer_km <= 9999999.9 AND manual_odometer_date IS NOT NULL)",
+            name="ck_vehicles_manual_odometer",
+        ),
     )
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     source_account: Mapped[str] = mapped_column(String(64), index=True)
-    external_uid: Mapped[str] = mapped_column(String(200))
+    external_uid: Mapped[str | None] = mapped_column(String(200))
+    is_manual: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     name: Mapped[str] = mapped_column(String(200))
     number: Mapped[str | None] = mapped_column(String(200))
     license_plate: Mapped[str | None] = mapped_column(String(100))
@@ -79,6 +91,14 @@ class Vehicle(Base):
     model: Mapped[str | None] = mapped_column(String(100))
     year: Mapped[int | None] = mapped_column(Integer)
     vin: Mapped[str | None] = mapped_column(String(100))
+    fuel_type: Mapped[str | None] = mapped_column(String(50))
+    leasing_company: Mapped[str | None] = mapped_column(String(200))
+    leasing_contract_no: Mapped[str | None] = mapped_column(String(100))
+    leasing_end_on: Mapped[date | None] = mapped_column(Date)
+    inspection_due_on: Mapped[date | None] = mapped_column(Date)
+    insurance_due_on: Mapped[date | None] = mapped_column(Date)
+    manual_odometer_km: Mapped[Decimal | None] = mapped_column(Numeric(14, 1))
+    manual_odometer_date: Mapped[date | None] = mapped_column(Date)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     archived: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

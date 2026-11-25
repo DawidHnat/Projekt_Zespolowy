@@ -259,6 +259,19 @@ Stan `archived` jest odrębny od `active` ze źródła WEBFLEET — kolejna sync
 przywraca zarchiwizowanego auta ani nie usuwa historii. Downgrade migracji `0012` blokuje
 utratę zapisanych stanów archiwum.
 
+### Ręczne dodawanie pojazdów bez lokalizatora — SCRUM-85
+
+`POST /api/v1/fleet/vehicles` tworzy pojazd ręczny (`origin: "manual"`, `external_uid = null`,
+stabilne UUID aplikacji) z wymaganą nazwą i numerem rejestracyjnym, polami kartoteki
+(marka, model, rok, VIN, typ, paliwo, dane leasingu), datami badania technicznego/OC oraz
+datowanym przebiegiem ręcznym (`PUT /api/v1/fleet/vehicles/{UUID}/odometer`) i opcjonalnym
+przypisaniem kierowcy. Pojazd ręczny nie otrzymuje fikcyjnego identyfikatora WEBFLEET, GPS
+ani żywej telemetrii. Synchronizacja pomija rekordy `is_manual=true` i nie scala ich
+automatycznie. Powtórzona rejestracja/VIN zwraca czytelny konflikt `409`; jawne połączenie
+z wykrytym pojazdem źródłowym realizuje `POST /api/v1/fleet/vehicles/{UUID}/link-source`
+z zachowaniem UUID, kartoteki i historii. Migracja `0013_manual_vehicles` chroni dane
+przed stratnym downgrade'em.
+
 ## Ręczne odświeżanie floty — SCRUM-150
 
 `GET /api/v1/fleet/refresh` zwraca `enabled`, `running`, `server_time`,

@@ -122,7 +122,7 @@ def apply_records(session, source, masters, readings, now):
         v.external_uid: v
         for v in session.scalars(
             select(Vehicle)
-            .where(Vehicle.source_account == source)
+            .where(Vehicle.source_account == source, Vehicle.is_manual.is_(False))
             .order_by(Vehicle.id)
             .with_for_update()
         )

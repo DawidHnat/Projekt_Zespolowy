@@ -177,6 +177,11 @@ export function VehicleDetailsDialog() {
                   <span className={`vehicle-status status-${vehicle.status}`}>
                     {statusLabels[vehicle.status]}
                   </span>
+                  {vehicle.origin === "manual" && (
+                    <span className="vehicle-status status-unknown">
+                      Ręczny
+                    </span>
+                  )}
                   {vehicle.archived && (
                     <span className="vehicle-status status-offline">
                       Archiwalny
