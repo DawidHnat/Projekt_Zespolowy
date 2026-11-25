@@ -66,6 +66,7 @@ def request_refresh(request, session):
             request.app.state.webfleet_settings,
             client_factory=WebfleetClient,
             sync_interval_seconds=request.app.state.settings.sync_interval_seconds,
+            stale_seconds=request.app.state.settings.stale_seconds,
         )
     except Exception:
         # Provider/SQL exception details can contain private telemetry or credentials.
