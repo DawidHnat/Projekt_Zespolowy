@@ -246,6 +246,19 @@ kopię rozszerzonego schematu.
 Publiczne API nie zwraca UID źródła.
 `/docs` pokazuje aktualny OpenAPI; plan kolejnych operacji jest w contracts/.
 
+### Archiwizacja i przywracanie pojazdów — SCRUM-88
+
+`POST /api/v1/fleet/vehicles/{UUID}/archive` oraz `POST /api/v1/fleet/vehicles/{UUID}/restore`
+wymagają roli `admin`/`editor`, poprawnego `Origin` oraz aktualnego `card_version`.
+Archiwizacja zapisuje `archived=true`, czas UTC, autora oraz opcjonalny powód (do 500 znaków)
+w migracji `0012_vehicle_archive`. Domyślne listy i mapa (`archive=active`) pomijają archiwum;
+filtr `archive=archived` lub `archive=all` pozwala odnaleźć wycofane pojazdy oraz odczytać ich
+historię przejazdów i przypisań. Archiwizacja kończy bieżące przypisania kierowców z zachowaniem
+historii i blokuje nowe przypisania oraz nowe reguły alertów (`409 VEHICLE_ARCHIVED`).
+Stan `archived` jest odrębny od `active` ze źródła WEBFLEET — kolejna synchronizacja nie
+przywraca zarchiwizowanego auta ani nie usuwa historii. Downgrade migracji `0012` blokuje
+utratę zapisanych stanów archiwum.
+
 ## Ręczne odświeżanie floty — SCRUM-150
 
 `GET /api/v1/fleet/refresh` zwraca `enabled`, `running`, `server_time`,

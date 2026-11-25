@@ -178,6 +178,20 @@ def test_every_implemented_operation_has_a_real_success_response(logged_in, monk
         },
     )
     assert card["make"] == "Syntetyczna marka" and card["year"] == 2026
+    archived = check(
+        "POST",
+        "/fleet/vehicles/{id}/archive",
+        f"/fleet/vehicles/{vehicle}/archive",
+        json={"card_version": card["card_version"], "reason": "Syntetyczne archiwum"},
+    )
+    assert archived["archived"] is True and archived["archive"]["reason"] == "Syntetyczne archiwum"
+    restored = check(
+        "POST",
+        "/fleet/vehicles/{id}/restore",
+        f"/fleet/vehicles/{vehicle}/restore",
+        json={"card_version": archived["card_version"]},
+    )
+    assert restored["archived"] is False and restored["archive"] is None
     check("GET", "/fleet/map")
     check("GET", "/fleet/summary")
     check(

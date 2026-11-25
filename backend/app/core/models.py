@@ -60,7 +60,14 @@ def folded_default(field):
 
 class Vehicle(Base):
     __tablename__ = "vehicles"
-    __table_args__ = (UniqueConstraint("source_account", "external_uid"),)
+    __table_args__ = (
+        UniqueConstraint("source_account", "external_uid"),
+        CheckConstraint(
+            "(NOT archived AND archived_at IS NULL AND archived_by IS NULL "
+            "AND archived_reason IS NULL) OR (archived AND archived_at IS NOT NULL)",
+            name="ck_vehicles_archive_state",
+        ),
+    )
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     source_account: Mapped[str] = mapped_column(String(64), index=True)
     external_uid: Mapped[str] = mapped_column(String(200))
@@ -73,6 +80,10 @@ class Vehicle(Base):
     year: Mapped[int | None] = mapped_column(Integer)
     vin: Mapped[str | None] = mapped_column(String(100))
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+    archived: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    archived_by: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    archived_reason: Mapped[str | None] = mapped_column(String(500))
     # Private, derived values keep Unicode search identical to the UI.
     search_name: Mapped[str] = mapped_column(
         String(600), default=folded_default("name"), server_default=""
@@ -130,3 +141,6 @@ class SyncState(Base):
     last_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_success_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     error_code: Mapped[str | None] = mapped_column(String(80))
+
+
+import app.modules.auth.models  # noqa: E402, F401

@@ -177,6 +177,11 @@ export function VehicleDetailsDialog() {
                   <span className={`vehicle-status status-${vehicle.status}`}>
                     {statusLabels[vehicle.status]}
                   </span>
+                  {vehicle.archived && (
+                    <span className="vehicle-status status-offline">
+                      Archiwalny
+                    </span>
+                  )}
                 </div>
               )}
             </div>

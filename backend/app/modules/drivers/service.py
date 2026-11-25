@@ -219,6 +219,7 @@ def assignment_payload(assignment, vehicle):
             "name": vehicle.name,
             "license_plate": vehicle.license_plate,
             "active": vehicle.active,
+            "archived": vehicle.archived,
         },
         "active": assignment.active,
         "started_at": aware(assignment.started_at).isoformat() if assignment.started_at else None,
