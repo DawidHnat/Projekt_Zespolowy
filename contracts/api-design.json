@@ -1383,6 +1383,60 @@
       "error_schema": {
         "$ref": "#/$defs/Error"
       }
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/usage",
+      "delivery": "later",
+      "request_example": {
+        "query": {
+          "vehicle_ids": [
+            "11111111-1111-4111-8111-111111111111"
+          ],
+          "from_day": "2026-01-10",
+          "through": "2026-01-10"
+        }
+      },
+      "response_example": {
+        "source": "webfleet_trip_history",
+        "timezone": "Europe/Warsaw",
+        "day_basis": "trip_start_day",
+        "items": [
+          {
+            "vehicle_id": "11111111-1111-4111-8111-111111111111",
+            "name": "Pojazd testowy",
+            "coverage": {
+              "basis": "report_end_day",
+              "state": "complete",
+              "requested_days": 1,
+              "covered_days": [
+                "2026-01-10"
+              ],
+              "failed_days": [],
+              "last_success_at": "2026-01-11T00:00:00Z"
+            },
+            "distance_km": 25.5,
+            "trip_count": 1,
+            "active_days": 1,
+            "missing_distance": 0
+          }
+        ],
+        "summary": {
+          "distance_km": 25.5,
+          "trip_count": 1,
+          "active_days": 1,
+          "missing_distance": 0,
+          "coverage_complete": true
+        }
+      },
+      "implementation_status": "implemented",
+      "implementation_note": "SCRUM-29: selected vehicles, counts by local start day and report coverage.",
+      "response_schema": {
+        "$ref": "#/$defs/UsagePeriod"
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
+      }
     }
   ],
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -3214,6 +3268,155 @@
         "summary"
       ],
       "additionalProperties": true
+    },
+    "VehicleUsage": {
+      "type": "object",
+      "properties": {
+        "vehicle_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string"
+        },
+        "coverage": {
+          "$ref": "#/$defs/TripCoverage"
+        },
+        "distance_km": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "trip_count": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "active_days": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "missing_distance": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "vehicle_id",
+        "name",
+        "coverage",
+        "distance_km",
+        "trip_count",
+        "active_days",
+        "missing_distance"
+      ]
+    },
+    "UsageSummary": {
+      "type": "object",
+      "properties": {
+        "distance_km": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "trip_count": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "active_days": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "missing_distance": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "coverage_complete": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "distance_km",
+        "trip_count",
+        "active_days",
+        "missing_distance",
+        "coverage_complete"
+      ]
+    },
+    "UsagePeriod": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "enum": [
+            "webfleet_trip_history"
+          ]
+        },
+        "timezone": {
+          "enum": [
+            "Europe/Warsaw"
+          ]
+        },
+        "day_basis": {
+          "enum": [
+            "trip_start_day"
+          ]
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/VehicleUsage"
+          }
+        },
+        "summary": {
+          "$ref": "#/$defs/UsageSummary"
+        }
+      },
+      "required": [
+        "source",
+        "timezone",
+        "day_basis",
+        "items",
+        "summary"
+      ]
     }
   }
 }
