@@ -1,0 +1,77 @@
+name: SCRUM-171 order and history evidence
+on:
+  push:
+    branches: [test/SCRUM-171-history-evidence]
+permissions:
+  contents: read
+jobs:
+  history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        order: [desktop-mobile, mobile-desktop]
+    env:
+      SYNC_ENABLED: 'false'
+      VITE_MAPBOX_TOKEN: ''
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 3f8e84834de4450b4bb87718875c02622a6e677a
+          persist-credentials: false
+      - run: git rev-parse HEAD
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+      - run: python -m pip install -r backend/requirements-dev.txt
+      - run: npm ci
+        working-directory: frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+      - name: Mutate driver assignments and replay history in the requested order
+        working-directory: frontend
+        env:
+          PROFILE_ORDER: ${{ matrix.order }}
+        run: |
+          set -euo pipefail
+          mkdir -p order-reports
+          run_profile() (
+            profile=$1
+            db=$(docker run --rm -d -p 127.0.0.1::5432 \
+              -e POSTGRES_DB=fleet_flow_test_e2e -e POSTGRES_USER=e2e \
+              -e POSTGRES_PASSWORD=synthetic-e2e-only postgres:17-alpine)
+            trap 'docker stop "$db" >/dev/null' EXIT
+            for attempt in {1..30}; do
+              if docker exec "$db" pg_isready -h 127.0.0.1 -U e2e -d fleet_flow_test_e2e; then break; fi
+              sleep 1
+            done
+            docker exec "$db" pg_isready -h 127.0.0.1 -U e2e -d fleet_flow_test_e2e
+            address=$(docker port "$db" 5432/tcp)
+            export E2E_DATABASE_URL="postgresql+psycopg://e2e:synthetic-e2e-only@$address/fleet_flow_test_e2e"
+            echo "Order $PROFILE_ORDER, profile $profile, fresh database container $db"
+            npx playwright test e2e/drivers.spec.ts --project="$profile" --grep 'full many-vehicle count'
+            cp test-results/results.xml "order-reports/$profile-drivers.xml"
+            npx playwright test e2e/history.spec.ts --project="$profile"
+            cp test-results/results.xml "order-reports/$profile-history.xml"
+          )
+          IFS=- read -r first second <<< "$PROFILE_ORDER"
+          run_profile "$first"
+          run_profile "$second"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: history-${{ matrix.order }}-3f8e848
+          path: |
+            frontend/order-reports/
+            frontend/test-results/
+          retention-days: 7
