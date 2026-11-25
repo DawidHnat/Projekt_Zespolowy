@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { execFileSync } from "node:child_process";
 import { test, expect, type Page } from "@playwright/test";
+import { pauseBrowserClock } from "./fixtures/browser-clock";
 
 const trip = "22222222-2222-4222-8222-222222222222";
 const vehicle = "11111111-1111-4111-8111-111111111111";
@@ -508,8 +509,7 @@ test("vehicle details recover from an initial 503 without signing in again", asy
 });
 
 test("detail refresh failure warns and preserves an unsaved trip draft", async ({ page }) => {
-  await page.clock.install();
-  await page.clock.pauseAt(new Date());
+  await pauseBrowserClock(page);
   const pageErrors: string[] = [];
   page.on("pageerror", error => pageErrors.push(error.message));
   const detailPath = `**/api/v1/fleet/vehicles/${vehicle}`;
@@ -557,8 +557,7 @@ test("missing vehicle details close the dialog without changing list state", asy
 });
 
 test("unauthorized detail refresh removes private state and returns to login", async ({ page }) => {
-  await page.clock.install();
-  await page.clock.pauseAt(new Date());
+  await pauseBrowserClock(page);
   const detailPath = `**/api/v1/fleet/vehicles/${vehicle}`;
   await login(page);
   await page.getByRole("button", { name: /Szczegóły.*Pojazd E2E/ }).click();
@@ -683,14 +682,13 @@ test("expired session removes the private draft when a save is rejected", async 
 });
 
 test("polling pauses in a hidden/offline page and keeps an annotation draft on refresh", async ({ page }) => {
-  await page.clock.install();
   // Always cross Polish midnight: the old CI failure depended on the run hour.
   const beforeMidnight = await page.evaluate(() => {
     const time = new Date();
     time.setHours(23, 55, 0, 0);
     return time.toISOString();
   });
-  await page.clock.pauseAt(new Date(beforeMidnight));
+  await pauseBrowserClock(page, new Date(beforeMidnight));
   let lists = 0;
   let details = 0;
   let tripLists = 0;
@@ -742,8 +740,7 @@ test("polling pauses in a hidden/offline page and keeps an annotation draft on r
 });
 
 test("list page size changes do not fetch an unrelated selected detail again", async ({ page }) => {
-  await page.clock.install();
-  await page.clock.pauseAt(new Date());
+  await pauseBrowserClock(page);
   let details = 0;
   page.on("request", request => {
     if (/\/api\/v1\/fleet\/vehicles\/[^/]+$/.test(new URL(request.url()).pathname)) details++;
@@ -900,8 +897,7 @@ test("SCRUM-20: search, status, selection and reset are shared with the map list
 });
 
 test("SCRUM-20: a background failure keeps matching cached results with an explicit warning", async ({ page }) => {
-  await page.clock.install();
-  await page.clock.pauseAt(new Date());
+  await pauseBrowserClock(page);
   await login(page);
   await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
   await page.route("**/api/v1/fleet/vehicles?**", route => route.fulfill({
@@ -914,8 +910,7 @@ test("SCRUM-20: a background failure keeps matching cached results with an expli
 });
 
 test("SCRUM-20: changing filters offline shows an error and resumes automatically online", async ({ page }) => {
-  await page.clock.install();
-  await page.clock.pauseAt(new Date());
+  await pauseBrowserClock(page);
   let requests = 0;
   page.on("request", request => {
     if (new URL(request.url()).pathname === "/api/v1/fleet/vehicles") requests++;
