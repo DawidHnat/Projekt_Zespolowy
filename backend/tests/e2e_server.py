@@ -137,7 +137,15 @@ def main():
                 )
             ):
                 user.password_hash = password_hasher.hash("synthetic-e2e-password")
-            session.execute(update(Vehicle).values(driver_id=None))
+            session.execute(
+                update(Vehicle).values(
+                    driver_id=None,
+                    archived=False,
+                    archived_at=None,
+                    archived_by=None,
+                    archived_reason=None,
+                )
+            )
             session.flush()
             for model in (DriverAssignment, DriverCategory, Driver):
                 session.execute(delete(model))

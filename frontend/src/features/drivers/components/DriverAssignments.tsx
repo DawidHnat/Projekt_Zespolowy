@@ -193,6 +193,7 @@ export function DriverAssignments({
                 </strong>
                 <span>
                   {item.active ? "Bieżące" : "Zakończone"}
+                  {item.vehicle.archived ? " · Pojazd w archiwum" : ""}
                   {!item.vehicle.active ? " · Pojazd nieaktywny" : ""}
                 </span>
                 <span>
@@ -205,7 +206,7 @@ export function DriverAssignments({
                 <div className="driver-actions">
                   <button
                     className="button button-secondary"
-                    disabled={!item.vehicle.active}
+                    disabled={!item.vehicle.active && !item.vehicle.archived}
                     onClick={() => fleet.inspect(item.vehicle.id)}
                   >
                     Szczegóły pojazdu

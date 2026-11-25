@@ -5,8 +5,18 @@ from sqlalchemy import case, false, func, or_, select
 
 from app.core.errors import ApiError
 from app.core.models import Driver, Measurement, SyncState, Vehicle
+from app.modules.auth.models import User
 from app.modules.auth.service import aware
 from app.modules.drivers.models import DriverAssignment
+
+
+def vehicle_archive_authors(session, vehicles):
+    author_ids = {vehicle.archived_by for vehicle in vehicles if vehicle.archived_by is not None}
+    if not author_ids:
+        return {}
+    return {
+        user.id: user for user in session.scalars(select(User).where(User.id.in_(author_ids))).all()
+    }
 
 
 def fleet_driver_summaries(session, vehicle_ids, source):
@@ -71,7 +81,16 @@ def source_payload(session, source):
     }
 
 
-def serialize_vehicle(vehicle, measurement, driver, now, stale_seconds, source_degraded=False):
+def serialize_vehicle(
+    vehicle,
+    measurement,
+    driver,
+    now,
+    stale_seconds,
+    source_degraded=False,
+    *,
+    archive_author=None,
+):
     time = aware(measurement.position_at) if measurement and measurement.position_at else None
     age = (now - time).total_seconds() if time else None
     stale = source_degraded or age is None or age > stale_seconds or age < -300
@@ -89,6 +108,17 @@ def serialize_vehicle(vehicle, measurement, driver, now, stale_seconds, source_d
         and measurement.latitude is not None
         and measurement.longitude is not None
     )
+    archive_info = None
+    if vehicle.archived:
+        archive_info = {
+            "archived_at": timestamp(vehicle.archived_at),
+            "archived_by": (
+                {"id": str(archive_author.id), "display_name": archive_author.display_name}
+                if archive_author
+                else None
+            ),
+            "reason": vehicle.archived_reason,
+        }
     return {
         "id": str(vehicle.id),
         "name": vehicle.name,
@@ -100,6 +130,8 @@ def serialize_vehicle(vehicle, measurement, driver, now, stale_seconds, source_d
         "model": vehicle.model,
         "year": vehicle.year,
         "vin": vehicle.vin,
+        "archived": vehicle.archived,
+        "archive": archive_info,
         "status": status,
         "driver": {"id": str(driver.id), "display_name": driver.display_name} if driver else None,
         "latitude": measurement.latitude if located else None,
@@ -165,8 +197,14 @@ def fleet_status(now, stale_seconds, source_degraded=False):
     )
 
 
-def fleet_filters(source, q, status, status_expression):
-    conditions = [Vehicle.source_account == source, Vehicle.active.is_(True)]
+def fleet_filters(source, q, status, status_expression, archive="active"):
+    conditions = [Vehicle.source_account == source]
+    if archive == "archived":
+        conditions.append(Vehicle.archived.is_(True))
+    elif archive == "all":
+        conditions.append(or_(Vehicle.active.is_(True), Vehicle.archived.is_(True)))
+    else:
+        conditions.extend((Vehicle.active.is_(True), Vehicle.archived.is_(False)))
     needle = q.strip().casefold()
     if "\x00" in needle:
         # PostgreSQL text cannot contain NUL; avoid sending an invalid SQL parameter.
@@ -212,10 +250,17 @@ def fleet_page(
     page_size,
     sort="name-asc",
     *,
+    archive="active",
     source_degraded=False,
 ):
     now = datetime.now(UTC)
-    conditions = fleet_filters(source, q, status, fleet_status(now, stale_seconds, source_degraded))
+    conditions = fleet_filters(
+        source,
+        q,
+        status,
+        fleet_status(now, stale_seconds, source_degraded),
+        archive=archive,
+    )
     total = fleet_count(session, conditions)
     rows = session.execute(
         select(Vehicle, Measurement, Driver)
@@ -227,18 +272,28 @@ def fleet_page(
         .limit(page_size)
     ).all()
     drivers = fleet_driver_summaries(session, [row[0].id for row in rows], source)
+    authors = vehicle_archive_authors(session, [row[0] for row in rows])
     return [
         with_driver_summary(
-            serialize_vehicle(*row, now, stale_seconds, source_degraded), drivers.get(row[0].id)
+            serialize_vehicle(
+                *row,
+                now,
+                stale_seconds,
+                source_degraded,
+                archive_author=authors.get(row[0].archived_by),
+            ),
+            drivers.get(row[0].id),
         )
         for row in rows
     ], total
 
 
-def fleet_markers(session, source, stale_seconds, q, status, *, source_degraded=False):
+def fleet_markers(
+    session, source, stale_seconds, q, status, *, archive="active", source_degraded=False
+):
     now = datetime.now(UTC)
     status_expression = fleet_status(now, stale_seconds, source_degraded)
-    conditions = fleet_filters(source, q, status, status_expression)
+    conditions = fleet_filters(source, q, status, status_expression, archive=archive)
     total = fleet_count(session, conditions)
     # Coordinates of stale positions remain useful; only invalid/missing/future GPS is hidden.
     rows = session.execute(
@@ -285,7 +340,11 @@ def fleet_summary(session, source, stale_seconds, *, source_degraded=False):
         select(status_expression, func.count())
         .select_from(Vehicle)
         .outerjoin(Measurement, Measurement.vehicle_id == Vehicle.id)
-        .where(Vehicle.source_account == source, Vehicle.active.is_(True))
+        .where(
+            Vehicle.source_account == source,
+            Vehicle.active.is_(True),
+            Vehicle.archived.is_(False),
+        )
         .group_by(status_expression)
     ).all()
     counts = dict.fromkeys(("moving", "stopped", "offline", "unknown"), 0)

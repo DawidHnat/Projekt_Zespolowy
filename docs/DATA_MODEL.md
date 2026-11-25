@@ -24,6 +24,10 @@ opis operacji nie oznacza jej implementacji.
 UID dostawcy pozostaje wewnętrzny; API pokazuje UUID aplikacji. Zmiana nazwy,
 numeru lub rejestracji nie tworzy nowego pojazdu. Usunięcie pojazdu ze źródła
 dezaktywuje rekord po kompletnym odczycie, bez usuwania historii i ręcznych pól.
+Archiwizacja pojazdu przez użytkownika (`Vehicle.archived`, `archived_at`,
+`archived_by`, `archived_reason` w SCRUM-88) jest odrębna od źródłowego `active`:
+synchronizacja nie cofa archiwizacji, a historia przejazdów, alertów i przypisań
+pozostaje nienaruszona.
 Nie importujemy nazw, loginów, kontaktów ani innych pól kierowców ze źródła.
 User oznacza osobę korzystającą z aplikacji, Driver — ręcznie opisany wpis floty.
 

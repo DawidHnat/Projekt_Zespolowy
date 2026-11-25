@@ -65,7 +65,10 @@ const VehicleCard = memo(function VehicleCard({
         <header>
           <div>
             <h2 title={v.name}>{v.name}</h2>
-            <span>{v.license_plate || v.number || "Brak rejestracji"}</span>
+            <span>
+              {v.license_plate || v.number || "Brak rejestracji"}
+              {v.archived ? " · Archiwalny" : ""}
+            </span>
           </div>
           <span className={`vehicle-status status-${v.status}`}>
             {statusLabels[v.status]}

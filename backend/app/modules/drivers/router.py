@@ -299,6 +299,12 @@ def assign(
     )
     if not driver.active or not vehicle or not vehicle.active:
         raise ApiError(404, "NOT_FOUND", "Kierowca lub pojazd są niedostępne")
+    if vehicle.archived:
+        raise ApiError(
+            409,
+            "VEHICLE_ARCHIVED",
+            "Nie można przypisać kierowcy do zarchiwizowanego pojazdu",
+        )
     if session.scalar(
         select(DriverAssignment.id).where(
             DriverAssignment.driver_id == driver_id,

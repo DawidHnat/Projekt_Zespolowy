@@ -413,6 +413,128 @@
       }
     },
     {
+      "method": "POST",
+      "path": "/fleet/vehicles/{id}/archive",
+      "delivery": "SCRUM-88",
+      "request_example": {
+        "path": {
+          "id": "11111111-1111-4111-8111-111111111111"
+        },
+        "body": {
+          "card_version": 2,
+          "reason": "Pojazd wycofany z eksploatacji"
+        }
+      },
+      "response_example": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "name": "Pojazd testowy",
+        "number": "TEST-1",
+        "license_plate": "TEST 001",
+        "vehicle_type": "van",
+        "make": "Renault",
+        "model": "Master",
+        "year": 2022,
+        "vin": "VF1MA000000000000",
+        "archived": true,
+        "archive": {
+          "archived_at": "2026-01-10T12:10:00Z",
+          "archived_by": {
+            "id": "33333333-3333-4333-8333-333333333333",
+            "display_name": "Użytkownik testowy"
+          },
+          "reason": "Pojazd wycofany z eksploatacji"
+        },
+        "status": "stopped",
+        "driver": null,
+        "driver_count": 0,
+        "driver_preview": [],
+        "latitude": 52.0,
+        "longitude": 21.0,
+        "position_at": "2026-01-10T12:00:00Z",
+        "received_at": "2026-01-10T12:01:00Z",
+        "is_stale": false,
+        "position_address": "Gdańsk, ul. Morska 1",
+        "odometer_km": 1234.5,
+        "speed_kmh": null,
+        "ignition_on": false,
+        "standing_still": true,
+        "card_version": 3
+      },
+      "error_example": {
+        "status": 409,
+        "body": {
+          "error": {
+            "code": "ALREADY_ARCHIVED",
+            "message": "Pojazd znajduje się już w archiwum"
+          }
+        }
+      },
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/Vehicle"
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/fleet/vehicles/{id}/restore",
+      "delivery": "SCRUM-88",
+      "request_example": {
+        "path": {
+          "id": "11111111-1111-4111-8111-111111111111"
+        },
+        "body": {
+          "card_version": 3
+        }
+      },
+      "response_example": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "name": "Pojazd testowy",
+        "number": "TEST-1",
+        "license_plate": "TEST 001",
+        "vehicle_type": "van",
+        "make": "Renault",
+        "model": "Master",
+        "year": 2022,
+        "vin": "VF1MA000000000000",
+        "archived": false,
+        "archive": null,
+        "status": "stopped",
+        "driver": null,
+        "driver_count": 0,
+        "driver_preview": [],
+        "latitude": 52.0,
+        "longitude": 21.0,
+        "position_at": "2026-01-10T12:00:00Z",
+        "received_at": "2026-01-10T12:01:00Z",
+        "is_stale": false,
+        "position_address": "Gdańsk, ul. Morska 1",
+        "odometer_km": 1234.5,
+        "speed_kmh": null,
+        "ignition_on": false,
+        "standing_still": true,
+        "card_version": 4
+      },
+      "error_example": {
+        "status": 409,
+        "body": {
+          "error": {
+            "code": "NOT_ARCHIVED",
+            "message": "Pojazd nie znajduje się w archiwum"
+          }
+        }
+      },
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/Vehicle"
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
+      }
+    },
+    {
       "method": "GET",
       "path": "/drivers",
       "delivery": "later",
@@ -1391,6 +1513,43 @@
       ],
       "additionalProperties": true
     },
+    "VehicleArchiveInfo": {
+      "type": "object",
+      "properties": {
+        "archived_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "(Z|\\+00:00)$"
+        },
+        "archived_by": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Author"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "archived_at",
+        "archived_by",
+        "reason"
+      ],
+      "additionalProperties": true
+    },
     "Vehicle": {
       "type": "object",
       "properties": {
@@ -1605,6 +1764,19 @@
         "card_version": {
           "type": "integer",
           "minimum": 1
+        },
+        "archived": {
+          "type": "boolean"
+        },
+        "archive": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VehicleArchiveInfo"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -2604,6 +2776,9 @@
               ]
             },
             "active": {
+              "type": "boolean"
+            },
+            "archived": {
               "type": "boolean"
             }
           },

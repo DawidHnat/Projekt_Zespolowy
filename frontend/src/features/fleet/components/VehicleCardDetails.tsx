@@ -2,7 +2,7 @@ import { useEffect, useId, useState, type FormEvent } from "react";
 import { api, ApiError } from "../../../shared/api/client";
 import { useAuth } from "../../auth/AuthProvider";
 import { useFleet } from "../model/FleetProvider";
-import type { Vehicle } from "../model/types";
+import { updateTime, type Vehicle } from "../model/types";
 
 const fields = [
   { key: "name", label: "Nazwa", max: 200 },
@@ -30,6 +30,8 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
   const fleet = useFleet();
   const id = useId();
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [archiving, setArchiving] = useState(false);
+  const [archiveReason, setArchiveReason] = useState("");
   const [saving, setSaving] = useState(false);
   const [conflict, setConflict] = useState(false);
   const [error, setError] = useState("");
@@ -37,7 +39,7 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
   const [lastSaved, setLastSaved] = useState<Vehicle | null>(null);
   const visible = lastSaved && (lastSaved.card_version ?? 0) > (vehicle.card_version ?? 0)
     ? lastSaved : vehicle;
-  const dirty = !!draft && Object.keys(draft.changes).length > 0;
+  const dirty = (!!draft && Object.keys(draft.changes).length > 0) || (archiving && archiveReason.trim().length > 0);
   const editable = user?.role === "admin" || user?.role === "editor";
   const path = `/fleet/vehicles/${encodeURIComponent(vehicle.id)}`;
 
@@ -56,7 +58,7 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!draft || !dirty || !editable || saving || conflict) return;
+    if (!draft || !Object.keys(draft.changes).length || !editable || saving || conflict) return;
     const body = Object.fromEntries(Object.entries(draft.changes).map(([key, value]) =>
       [key, key === "year" && value ? Number(value) : value.trim() || null],
     ));
@@ -81,7 +83,74 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
       setConflict(versionConflict);
       setError(versionConflict
         ? "Kartoteka zmieniła się podczas edycji. Twój szkic pozostał w formularzu."
-        : "Zapis kartoteki nie powiódł się. Spróbuj ponownie.");
+        : failure instanceof ApiError
+          ? failure.message
+          : "Zapis kartoteki nie powiódł się. Spróbuj ponownie.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const submitArchive = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!editable || saving || !visible.card_version) return;
+    if (/[\u0000-\u001f]/.test(archiveReason)) {
+      setError("Powód archiwizacji zawiera niedozwolone znaki sterujące.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    setNotice("");
+    try {
+      const saved = await api<Vehicle>(`${path}/archive`, {
+        method: "POST",
+        body: JSON.stringify({
+          card_version: visible.card_version,
+          reason: archiveReason.trim() || null,
+        }),
+      });
+      setArchiving(false);
+      setArchiveReason("");
+      setDraft(null);
+      setConflict(false);
+      setLastSaved(saved);
+      setNotice("Pojazd został przeniesiony do archiwum. Historia przejazdów i przypisań pozostaje dostępna.");
+      fleet.refresh();
+    } catch (failure) {
+      setError(
+        failure instanceof ApiError && failure.code === "VERSION_CONFLICT"
+          ? "Stan pojazdu zmienił się w międzyczasie. Odśwież dane przed ponowieniem."
+          : failure instanceof ApiError
+            ? failure.message
+            : "Archiwizacja pojazdu nie powiodła się. Spróbuj ponownie.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const submitRestore = async () => {
+    if (!editable || saving || !visible.card_version) return;
+    setSaving(true);
+    setError("");
+    setNotice("");
+    try {
+      const saved = await api<Vehicle>(`${path}/restore`, {
+        method: "POST",
+        body: JSON.stringify({ card_version: visible.card_version }),
+      });
+      setLastSaved(saved);
+      setConflict(false);
+      setNotice("Pojazd został przywrócony do bieżącej floty.");
+      fleet.refresh();
+    } catch (failure) {
+      setError(
+        failure instanceof ApiError && failure.code === "VERSION_CONFLICT"
+          ? "Stan pojazdu zmienił się w międzyczasie. Odśwież dane przed ponowieniem."
+          : failure instanceof ApiError
+            ? failure.message
+            : "Przywrócenie pojazdu nie powiodło się. Spróbuj ponownie.",
+      );
     } finally {
       setSaving(false);
     }
@@ -91,6 +160,7 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
     setSaving(true);
     try {
       const base = await api<Vehicle>(path);
+      setLastSaved(base);
       setDraft(current => current ? { ...current, base } : null);
       setConflict(false);
       setError("");
@@ -105,7 +175,34 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
   return (
     <div className="vehicle-card-details">
       <h3>Szczegóły pojazdu</h3>
-      {draft ? (
+      {visible.archived && visible.archive && (
+        <section className="fleet-notice" aria-label="Stan archiwizacji pojazdu">
+          <div>
+            <strong>Pojazd w archiwum</strong>
+            <p>
+              Zarchiwizowano: {updateTime(visible.archive.archived_at)}
+              {visible.archive.archived_by
+                ? ` · Autor: ${visible.archive.archived_by.display_name}`
+                : ""}
+            </p>
+            {visible.archive.reason && <p>Powód: {visible.archive.reason}</p>}
+            <small>
+              Historyczne przejazdy i przypisania są zachowane. Nowe przypisania wymagają przywrócenia pojazdu.
+            </small>
+          </div>
+          {editable && visible.card_version && (
+            <button
+              type="button"
+              className="button button-primary"
+              disabled={saving}
+              onClick={() => void submitRestore()}
+            >
+              Przywróć pojazd
+            </button>
+          )}
+        </section>
+      )}
+      {draft && !visible.archived ? (
         <form aria-label="Kartoteka pojazdu" aria-busy={saving} onSubmit={submit}>
           <div className="vehicle-card-fields">
             {fields.map(({ key, label, max }) => (
@@ -129,7 +226,7 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
           <div className="vehicle-card-actions">
             {conflict && <button type="button" className="button button-secondary" disabled={saving}
               onClick={readLatest}>Wczytaj bieżącą wersję</button>}
-            <button className="button button-primary" disabled={!dirty || saving || conflict}>
+            <button className="button button-primary" disabled={!Object.keys(draft.changes).length || saving || conflict}>
               Zapisz kartotekę
             </button>
             <button type="button" className="button button-secondary" disabled={saving}
@@ -145,11 +242,51 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
               <div key={key}><dt>{label}</dt><dd>{fieldValue(visible, key) || "Brak danych"}</dd></div>
             ))}
           </dl>
-          {editable && visible.card_version && (
-            <button type="button" className="button button-secondary"
-              onClick={() => { setNotice(""); setDraft({ base: visible, changes: {} }); }}>
-              Edytuj kartotekę
-            </button>
+          {error && !archiving && <p className="form-error" role="alert">{error}</p>}
+          {editable && visible.card_version && !visible.archived && !archiving && (
+            <div className="vehicle-card-actions">
+              <button type="button" className="button button-secondary"
+                onClick={() => { setNotice(""); setError(""); setDraft({ base: visible, changes: {} }); }}>
+                Edytuj kartotekę
+              </button>
+              <button type="button" className="button button-secondary"
+                onClick={() => { setNotice(""); setError(""); setArchiving(true); }}>
+                Archiwizuj pojazd
+              </button>
+            </div>
+          )}
+          {editable && visible.card_version && !visible.archived && archiving && (
+            <form aria-label="Archiwizacja pojazdu" aria-busy={saving} onSubmit={submitArchive}>
+              <label htmlFor={`${id}-archive-reason`}>
+                Powód archiwizacji (opcjonalnie)
+                <input
+                  id={`${id}-archive-reason`}
+                  type="text"
+                  maxLength={500}
+                  placeholder="Np. sprzedaż lub wycofanie z eksploatacji"
+                  value={archiveReason}
+                  onChange={event => setArchiveReason(event.target.value)}
+                  readOnly={saving}
+                />
+              </label>
+              <small>
+                Bieżące przypisania kierowców zostaną zakończone z zachowaniem historii. Kolejna synchronizacja WEBFLEET nie przywróci pojazdu.
+              </small>
+              {error && <p className="form-error" role="alert">{error}</p>}
+              <div className="vehicle-card-actions">
+                <button className="button button-primary" disabled={saving}>
+                  Potwierdź archiwizację
+                </button>
+                <button
+                  type="button"
+                  className="button button-secondary"
+                  disabled={saving}
+                  onClick={() => { setArchiving(false); setArchiveReason(""); setError(""); }}
+                >
+                  Anuluj archiwizację
+                </button>
+              </div>
+            </form>
           )}
         </>
       )}

@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { Search, X } from "lucide-react";
 import { ListPagination } from "../../../shared/components/ListPagination";
 import { useFleet } from "../model/FleetProvider";
+import type { VehicleArchiveScope } from "../model/VehiclePreferences";
 import { statusLabels, type VehicleStatus } from "../model/types";
 
 export function FleetFilters() {
@@ -35,7 +36,17 @@ export function FleetFilters() {
           </option>
         ))}
       </select>
-      {(f.q || f.status) && (
+      <select
+        aria-label="Archiwum pojazdów"
+        value={f.archive}
+        disabled={f.preferencesLoading}
+        onChange={(e) => f.setArchive(e.target.value as VehicleArchiveScope)}
+      >
+        <option value="active">Bieżąca flota</option>
+        <option value="archived">Archiwum</option>
+        <option value="all">Bieżące i archiwalne</option>
+      </select>
+      {(f.q || f.status || f.archive !== "active") && (
         <button
           className="button button-secondary fleet-clear-filters"
           disabled={f.preferencesLoading}

@@ -70,12 +70,21 @@ def insert_for(session, model):
 
 
 def require_vehicle(session: Session, source: str, vehicle_id):
-    if vehicle_id is not None and not session.scalar(
-        select(Vehicle.id).where(
+    if vehicle_id is None:
+        return
+    vehicle = session.scalar(
+        select(Vehicle).where(
             Vehicle.id == vehicle_id, Vehicle.source_account == source, Vehicle.active.is_(True)
         )
-    ):
+    )
+    if not vehicle:
         raise ApiError(404, "NOT_FOUND", "Pojazd nie istnieje lub jest nieaktywny")
+    if vehicle.archived:
+        raise ApiError(
+            409,
+            "VEHICLE_ARCHIVED",
+            "Nie można zapisać reguły dla zarchiwizowanego pojazdu",
+        )
 
 
 def rule_payload(rule: Rule):
@@ -112,7 +121,11 @@ def evaluate_distance_rules(
     readings = session.execute(
         select(Vehicle, DailyDistance)
         .join(DailyDistance, DailyDistance.vehicle_id == Vehicle.id)
-        .where(Vehicle.source_account == source, Vehicle.active.is_(True))
+        .where(
+            Vehicle.source_account == source,
+            Vehicle.active.is_(True),
+            Vehicle.archived.is_(False),
+        )
         .where(
             DailyDistance.last_observed_at >= now - timedelta(seconds=stale_seconds),
             DailyDistance.last_observed_at <= now,
