@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Annotated
 from uuid import UUID
 
@@ -14,7 +14,13 @@ from app.modules.auth.models import User
 from app.modules.auth.service import aware, current_user, editor, now_utc
 from app.modules.fleet.sync import account_key
 from app.modules.trips.models import Trip, TripAnnotation, TripStop
-from app.modules.trips.service import WARSAW, annotation_payload, report_coverage, trip_payload
+from app.modules.trips.service import (
+    WARSAW,
+    annotation_payload,
+    calendar_window,
+    report_coverage,
+    trip_payload,
+)
 
 router = APIRouter(prefix="/api/v1/trips", tags=["trips"])
 SessionDep = Annotated[Session, Depends(get_session)]
@@ -87,6 +93,20 @@ def vehicle_in_source(session, vehicle_id, source):
     return vehicle
 
 
+def page_trips(session, filters, page, size):
+    rows = session.execute(
+        select(Trip, TripAnnotation, User, Vehicle.name)
+        .join(Vehicle)
+        .outerjoin(TripAnnotation, TripAnnotation.trip_id == Trip.id)
+        .outerjoin(User, User.id == TripAnnotation.updated_by)
+        .where(*filters)
+        .order_by(Trip.start_at.desc(), Trip.id)
+        .offset((page - 1) * size)
+        .limit(size)
+    )
+    return [trip_payload(*row) for row in rows]
+
+
 @router.get("", dependencies=[Depends(current_user)])
 def trips(
     request: Request,
@@ -114,22 +134,57 @@ def trips(
         vehicle_in_source(session, vehicle_id, source)
         filters.append(Trip.vehicle_id == vehicle_id)
     total = session.scalar(select(func.count()).select_from(Trip).join(Vehicle).where(*filters))
-    rows = session.execute(
-        select(Trip, TripAnnotation, User, Vehicle.name)
-        .join(Vehicle)
-        .outerjoin(TripAnnotation, TripAnnotation.trip_id == Trip.id)
-        .outerjoin(User, User.id == TripAnnotation.updated_by)
-        .where(*filters)
-        .order_by(Trip.start_at.desc(), Trip.id)
-        .offset((page - 1) * page_size)
-        .limit(page_size)
-    )
     return {
-        "items": [trip_payload(*row) for row in rows],
+        "items": page_trips(session, filters, page, page_size),
         "total": total,
         "page": page,
         "page_size": page_size,
         "coverage": report_coverage(session, vehicle_id, lower, upper) if vehicle_id else None,
+    }
+
+
+@router.get("/mileage", dependencies=[Depends(current_user)])
+def mileage(
+    request: Request,
+    session: SessionDep,
+    vehicle_id: UUID,
+    from_day: date,
+    through: date,
+    page: Annotated[int, Query(ge=1, le=100_000)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 25,
+):
+    lower, upper = calendar_window(from_day, through)
+    vehicle_in_source(session, vehicle_id, account_key(request.app.state.settings.webfleet_account))
+    # Assignment to one local start date prevents double counting a trip across periods.
+    filters = (Trip.vehicle_id == vehicle_id, Trip.start_at >= lower, Trip.start_at < upper)
+    missing_purpose = or_(TripAnnotation.purpose.is_(None), func.trim(TripAnnotation.purpose) == "")
+    result = session.execute(
+        select(
+            func.count(Trip.id).label("total"),
+            func.sum(Trip.distance_km).label("distance"),
+            func.sum(Trip.distance_km)
+            .filter(~missing_purpose, Trip.driver_id.is_not(None))
+            .label("documented"),
+            func.count(Trip.id).filter(missing_purpose).label("missing_purpose"),
+            func.count(Trip.id).filter(Trip.driver_id.is_(None)).label("missing_driver"),
+            func.count(Trip.id).filter(Trip.distance_km.is_(None)).label("missing_distance"),
+        )
+        .outerjoin(TripAnnotation, TripAnnotation.trip_id == Trip.id)
+        .where(*filters)
+    ).one()
+    return {
+        "items": page_trips(session, filters, page, page_size),
+        "total": result.total,
+        "page": page,
+        "page_size": page_size,
+        "coverage": report_coverage(session, vehicle_id, lower, upper),
+        "summary": {
+            "distance_km": float(result.distance) if result.distance is not None else None,
+            "documented_km": float(result.documented) if result.documented is not None else None,
+            "missing_purpose": result.missing_purpose,
+            "missing_driver": result.missing_driver,
+            "missing_distance": result.missing_distance,
+        },
     }
 
 

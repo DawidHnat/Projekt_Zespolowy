@@ -47,3 +47,32 @@ test("persistent history displays imported trips and stops and retains annotatio
     fixture("clear");
   }
 });
+
+test("mileage shows the persisted period sum and recalculates missing purposes after a save", async ({ page }) => {
+  fixture("clear");
+  fixture("import");
+  try {
+    await page.goto("/#mileage");
+    await page.getByLabel("Login", { exact: true }).fill("e2e-editor");
+    await page.getByLabel("Hasło", { exact: true }).fill("synthetic-e2e-password");
+    await page.getByRole("button", { name: "Zaloguj się", exact: true }).click();
+    await expect(page.getByRole("heading", { name: /^Ewidencja przebiegu\.?$/, level: 1 })).toBeVisible();
+    await page.getByRole("button", { name: "Wczoraj", exact: true }).click();
+    await page.getByRole("radio", { name: /Pojazd E2E/ }).check();
+
+    const summary = page.getByRole("region", { name: "Podsumowanie ewidencji" });
+    await expect(summary.getByText("12,345 km", { exact: true })).toBeVisible();
+    const missing = summary.locator("dl > div").filter({ hasText: /^Brak celu/ }).locator("dd");
+    await expect(missing).toHaveText("1");
+    const entry = summary.getByRole("list", { name: "Przejazdy w ewidencji" }).getByRole("button");
+    await entry.click();
+    await summary.getByLabel(/Cel przejazdu/).fill("Ewidencja E2E");
+    await summary.getByRole("button", { name: "Zapisz cel i opis" }).click();
+    await expect(missing).toHaveText("0");
+    await expect(entry).toContainText("Ewidencja E2E");
+    await expect(summary.getByText("12,345 km", { exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally {
+    fixture("clear");
+  }
+});
