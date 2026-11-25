@@ -1,0 +1,62 @@
+name: SCRUM-165 focus evidence
+on:
+  push:
+    branches: [test/SCRUM-165-focus-evidence]
+permissions:
+  contents: read
+jobs:
+  focus:
+    name: Focus regression (${{ matrix.profile }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [desktop, mobile]
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: fleet_flow_test_e2e
+          POSTGRES_USER: e2e
+          POSTGRES_PASSWORD: synthetic-e2e-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U e2e -d fleet_flow_test_e2e"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      E2E_DATABASE_URL: postgresql+psycopg://e2e:synthetic-e2e-only@127.0.0.1:5432/fleet_flow_test_e2e
+      SYNC_ENABLED: 'false'
+      VITE_MAPBOX_TOKEN: ''
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 44509c1baa789c843c02b89596889b1a8d30f5f5
+          persist-credentials: false
+      - run: git rev-parse HEAD
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+      - run: python -m pip install -r backend/requirements-dev.txt
+      - run: npm ci
+        working-directory: frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - name: Repeat the focus regression five times
+        run: npm run test:e2e -- e2e/alerts.spec.ts --grep 'retain failed drafts' --project="$PROFILE" --repeat-each=5 --trace retain-on-failure
+        env:
+          PROFILE: ${{ matrix.profile }}
+        working-directory: frontend
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: focus-${{ matrix.profile }}-44509c1
+          path: frontend/test-results/
+          retention-days: 7
