@@ -1,0 +1,127 @@
+name: Synthetic ASVS QA evidence
+on:
+  push:
+    branches: [test/asvs-qa-evidence-20261126]
+permissions:
+  contents: read
+jobs:
+  retest:
+    name: ASVS synthetic retests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: fleet_flow_test_asvs
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: synthetic-ci-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U test_user -d fleet_flow_test_asvs"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://test_user:synthetic-ci-password@127.0.0.1:5432/fleet_flow_test_asvs
+      SYNC_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 1bdcba9814a1969ca4c7531162e2641b648a7b72
+          persist-credentials: false
+      - run: git rev-parse HEAD
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.13'
+      - run: python -m pip install -r backend/requirements-dev.txt
+      - name: Retest existing auth, role and preferences controls
+        working-directory: backend
+        run: python -m pytest -v tests/test_auth.py tests/test_password_reset.py tests/test_profile.py tests/test_account_preferences.py tests/test_scrum101_roles.py tests/test_role_docs_hardening.py
+      - name: Explicit existing-vehicle PostgreSQL role checks and CORS
+        working-directory: backend
+        run: |
+          cat > tests/test_asvs_qa_probe.py <<'PY'
+          import os
+          import subprocess
+          import sys
+          from datetime import UTC, datetime
+          from uuid import uuid4
+          from fastapi.testclient import TestClient
+          from sqlalchemy import create_engine
+          from sqlalchemy.engine import make_url
+          from sqlalchemy.orm import Session
+          from app.core.models import SyncState, Vehicle
+          from app.core.settings import Settings
+          from app.main import create_app
+          from app.modules.auth.models import User
+          from app.modules.auth.service import password_hasher
+          from app.modules.fleet.sync import account_key
+
+          def test_postgres_existing_vehicle_roles_origin_and_version():
+              url = os.environ["TEST_DATABASE_URL"]
+              parsed = make_url(url)
+              assert parsed.host == "127.0.0.1"
+              assert parsed.database == "fleet_flow_test_asvs"
+              subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"],
+                             env={**os.environ, "DATABASE_URL": url}, check=True)
+              engine = create_engine(url)
+              suffix = uuid4().hex
+              account = "asvs-" + suffix
+              source = account_key(account)
+              vehicle_id = uuid4()
+              pw = "synthetic-asvs-probe-password"
+              origin = "https://fleet.example.invalid"
+              headers = {"Origin": origin}
+              path = f"/api/v1/fleet/vehicles/{vehicle_id}"
+              with Session(engine) as session:
+                  session.add(SyncState(source_account=source, last_success_at=datetime.now(UTC)))
+                  session.add(Vehicle(id=vehicle_id, source_account=source,
+                                      external_uid=suffix, name="Before"))
+                  for role in ("admin", "editor", "viewer"):
+                      session.add(User(username=f"{role}-{suffix}", display_name=role,
+                                       role=role, password_hash=password_hasher.hash(pw)))
+                  session.commit()
+              app = create_app(Settings(database_url=url, webfleet_account=account,
+                                        origins=(origin,), cookie_secure=True), engine=engine)
+              try:
+                  with TestClient(app, base_url=origin) as admin, TestClient(app, base_url=origin) as editor, TestClient(app, base_url=origin) as viewer:
+                      for role, client in (("admin", admin), ("editor", editor), ("viewer", viewer)):
+                          login = client.post("/api/v1/auth/login", headers=headers,
+                                              json={"username": f"{role}-{suffix}", "password": pw})
+                          assert login.status_code == 200
+                          cookie = login.headers["set-cookie"].lower()
+                          assert "secure" in cookie.split("; ")
+                          assert "httponly" in cookie.split("; ")
+                          assert "samesite=strict" in cookie.split("; ")
+                      version = admin.get(path).json()["card_version"]
+                      result = admin.patch(path, headers=headers, json={"card_version": version, "name": "Admin"})
+                      assert result.status_code == 200
+                      assert editor.get(path).json()["name"] == "Admin"
+                      version = result.json()["card_version"]
+                      result = editor.patch(path, headers=headers, json={"card_version": version, "name": "Editor"})
+                      assert result.status_code == 200
+                      current_version = result.json()["card_version"]
+                      assert viewer.patch(path, headers=headers, json={"card_version": current_version, "name": "Denied"}).status_code == 403
+                      assert editor.patch(path, headers=headers, json={"card_version": version, "name": "Stale"}).status_code == 409
+                      for bad_headers in ({}, {"Origin": "https://foreign.invalid"}):
+                          assert admin.patch(path, headers=bad_headers, json={"card_version": current_version, "name": "Denied"}).status_code == 403
+                      assert editor.patch(f"/api/v1/fleet/vehicles/{uuid4()}", headers=headers, json={"card_version": 1, "name": "Missing"}).status_code == 404
+                      with Session(engine) as session:
+                          persisted = session.get(Vehicle, vehicle_id)
+                          assert persisted.name == "Editor"
+                          assert persisted.card_version == current_version
+                      for candidate, expected in ((origin, 200), ("https://foreign.invalid", 400)):
+                          preflight = admin.options(path, headers={
+                              "Origin": candidate, "Access-Control-Request-Method": "PATCH",
+                              "Access-Control-Request-Headers": "content-type"})
+                          assert preflight.status_code == expected
+                          if expected == 200:
+                              assert preflight.headers.get("access-control-allow-origin") == origin
+                              assert preflight.headers.get("access-control-allow-credentials") == "true"
+                          else:
+                              assert "access-control-allow-origin" not in preflight.headers
+                      assert admin.post("/api/v1/auth/logout", headers=headers).status_code in (200, 204)
+                      assert admin.get("/api/v1/auth/me").status_code == 401
+              finally:
+                  engine.dispose()
+          PY
+          python -m pytest -v tests/test_asvs_qa_probe.py
