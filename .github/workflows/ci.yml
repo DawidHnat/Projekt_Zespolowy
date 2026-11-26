@@ -251,6 +251,11 @@ jobs:
         working-directory: frontend
       - run: npx playwright install --with-deps chromium
         working-directory: frontend
+      - name: Intentional desktop failure — isolated negative probe, do not merge
+        if: matrix.profile == 'desktop'
+        run: |
+          echo "Expected desktop-only failure to verify Required CI"
+          exit 1
       - name: Run critical browser flows for this profile
         id: browser-tests
         run: npm run test:e2e -- --project=${{ matrix.profile }}
