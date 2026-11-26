@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: 44509c1baa789c843c02b89596889b1a8d30f5f5
+          ref: 8a0ce2b405a1c6fc4dbaeba50258f7f915143c42
           persist-credentials: false
       - run: git rev-parse HEAD
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
@@ -57,6 +57,7 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
-          name: focus-${{ matrix.profile }}-44509c1
+          name: focus-${{ matrix.profile }}-8a0ce2b
           path: frontend/test-results/
+          if-no-files-found: warn
           retention-days: 7
