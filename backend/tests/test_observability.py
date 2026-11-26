@@ -361,3 +361,88 @@ def test_backup_tls_and_worker_correlation_helpers(tmp_path, monkeypatch, caplog
     snap = metrics.snapshot_counters()["sync_events"]
     assert snap["SYNC_INTERNAL_ERROR"] == 1
     assert snap["SOURCE_DEGRADED"] == 1
+
+
+def test_p95_per_method_route_status_class_random_url_cardinality_and_cert_edges(tmp_path):
+    now = datetime(2026, 11, 26, 12, 0, 0, tzinfo=UTC)
+
+    # 1) Distinct p95 per (method, route, status_class) — fast 2xx is never overwritten by slow 5xx.
+    reg = MetricsRegistry()
+    for _ in range(10):
+        reg.record_http("GET", "/api/v1/fleet/vehicles", 200, 12.5)
+    for _ in range(10):
+        reg.record_http("GET", "/api/v1/fleet/vehicles", 503, 480.0)
+    for _ in range(10):
+        reg.record_http("POST", "/api/v1/fleet/vehicles", 201, 85.0)
+
+    counters = reg.snapshot_counters()["http"]
+    by_key = {
+        (row["method"], row["route"], row["status_class"]): row for row in counters["by_route"]
+    }
+    assert by_key[("GET", "/api/v1/fleet/vehicles", "2xx")]["duration_p95_ms"] == 12.5
+    assert by_key[("GET", "/api/v1/fleet/vehicles", "5xx")]["duration_p95_ms"] == 480.0
+    assert by_key[("POST", "/api/v1/fleet/vehicles", "2xx")]["duration_p95_ms"] == 85.0
+    assert counters["route_p95_ms"]["/api/v1/fleet/vehicles"] == 480.0
+
+    # 2) Route template cardinality cap: >64 synthetic templates collapse excess into "other",
+    # and 100 random unmatched HTTP paths collapse into the single "unmatched" route.
+    for i in range(80):
+        reg.record_http("GET", f"/api/v1/synthetic-route-{i}", 200, 5.0)
+    distinct_routes = {row["route"] for row in reg.snapshot_counters()["http"]["by_route"]}
+    assert "other" in distinct_routes
+    assert len(distinct_routes) <= 65  # MAX_ROUTE_TEMPLATES (64) + "other"
+
+    engine = create_engine(
+        "sqlite://", poolclass=StaticPool, connect_args={"check_same_thread": False}
+    )
+    Base.metadata.create_all(engine)
+    app_a = create_app(Settings(database_url="sqlite://"), engine=engine)
+    app_b = create_app(Settings(database_url="sqlite://"), engine=engine)
+    with TestClient(app_a) as client_a, TestClient(app_b):
+        for idx in range(50):
+            client_a.get(f"/api/v1/nonexistent/{idx}/token-{idx * 9973}")
+        snap_a = app_a.state.metrics.snapshot_counters()["http"]
+        snap_b = app_b.state.metrics.snapshot_counters()["http"]
+        routes_a = {row["route"]: row["requests_total"] for row in snap_a["by_route"]}
+        assert routes_a == {"unmatched": 50}
+        assert snap_b["requests_total"] == 0
+
+    # 3) Certificate parser: expired -> critical, UTCTime (0x17) -> ok, invalid DER/dates -> error.
+    expired_pem = build_synthetic_pem_cert(now - timedelta(days=90), now - timedelta(days=2))
+    exp_path = tmp_path / "expired.pem"
+    exp_path.write_text(expired_pem, encoding="utf-8")
+    exp_res = inspect_tls_certificate(str(exp_path), now=now)
+    assert exp_res["status"] == "critical"
+    assert exp_res["days_remaining"] == -2.0
+
+    # UTCTime (tag 0x17, YYMMDDHHMMSSZ) valid cert
+    nb_utc = _der_tlv(0x17, b"260101000000Z")
+    na_utc = _der_tlv(0x17, b"270101000000Z")
+    val_utc = _der_tlv(0x30, nb_utc + na_utc)
+    alg = _der_tlv(0x30, _der_tlv(0x06, b"\x2a\x86\x48\x86\xf7\x0d\x01\x01\x0b"))
+    dn = _der_tlv(0x30, b"")
+    tbs_utc = _der_tlv(0x30, _der_tlv(0x02, b"\x01") + alg + dn + val_utc + dn + alg)
+    cert_utc = _der_tlv(0x30, tbs_utc + alg + _der_tlv(0x03, b"\x00"))
+    utc_path = tmp_path / "utctime.pem"
+    utc_path.write_text(
+        "-----BEGIN CERTIFICATE-----\n"
+        + base64.b64encode(cert_utc).decode("ascii")
+        + "\n-----END CERTIFICATE-----\n",
+        encoding="utf-8",
+    )
+    assert inspect_tls_certificate(str(utc_path), now=now)["status"] == "ok"
+
+    # Malformed calendar month 13 in GeneralizedTime -> status == "error"
+    bad_na = _der_tlv(0x18, b"20261340000000Z")
+    bad_tbs = _der_tlv(
+        0x30, _der_tlv(0x02, b"\x01") + alg + dn + _der_tlv(0x30, nb_utc + bad_na) + dn + alg
+    )
+    bad_cert = _der_tlv(0x30, bad_tbs + alg + _der_tlv(0x03, b"\x00"))
+    bad_path = tmp_path / "bad_date.pem"
+    bad_path.write_text(
+        "-----BEGIN CERTIFICATE-----\n"
+        + base64.b64encode(bad_cert).decode("ascii")
+        + "\n-----END CERTIFICATE-----\n",
+        encoding="utf-8",
+    )
+    assert inspect_tls_certificate(str(bad_path), now=now)["status"] == "error"

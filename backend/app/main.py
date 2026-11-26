@@ -103,6 +103,7 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
             bind_correlation_id(request.headers.get(CORRELATION_HEADER)) as cid,
             bind_metrics(metrics),
         ):
+            request.state.correlation_id = cid
             try:
                 response = await call_next(request)
             except Exception:

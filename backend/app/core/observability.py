@@ -149,8 +149,10 @@ class MetricsRegistry:
         self._lock = threading.Lock()
         self._requests_total = 0
         self._errors_5xx_total = 0
+        self._known_routes: set[str] = set()
         self._by_route_status: dict[tuple[str, str, str], int] = {}
         self._durations_ms: deque[float] = deque(maxlen=512)
+        self._route_status_durations_ms: dict[tuple[str, str, str], deque[float]] = {}
         self._route_durations_ms: dict[str, deque[float]] = {}
         self._duration_buckets: dict[float, int] = {b: 0 for b in DURATION_BUCKETS_MS}
         self._duration_inf = 0
@@ -168,18 +170,24 @@ class MetricsRegistry:
         with self._lock:
             safe_route = route
             if (
-                safe_route not in self._route_durations_ms
-                and len(self._route_durations_ms) >= MAX_ROUTE_TEMPLATES
+                safe_route not in self._known_routes
+                and len(self._known_routes) >= MAX_ROUTE_TEMPLATES
             ):
                 safe_route = "other"
+            else:
+                self._known_routes.add(safe_route)
             key = (safe_method, safe_route, status_group)
             self._requests_total += 1
             if status_code >= 500:
                 self._errors_5xx_total += 1
             self._by_route_status[key] = self._by_route_status.get(key, 0) + 1
             self._durations_ms.append(bounded_duration)
-            bucket_deque = self._route_durations_ms.setdefault(safe_route, deque(maxlen=128))
-            bucket_deque.append(bounded_duration)
+            self._route_status_durations_ms.setdefault(key, deque(maxlen=128)).append(
+                bounded_duration
+            )
+            self._route_durations_ms.setdefault(safe_route, deque(maxlen=128)).append(
+                bounded_duration
+            )
             for bound in DURATION_BUCKETS_MS:
                 if bounded_duration <= bound:
                     self._duration_buckets[bound] += 1
@@ -207,22 +215,29 @@ class MetricsRegistry:
             all_samples = list(self._durations_ms)
             by_route: list[dict[str, Any]] = []
             for (method, route, status_class), count in sorted(self._by_route_status.items()):
-                route_samples = list(self._route_durations_ms.get(route, ()))
+                key_samples = list(
+                    self._route_status_durations_ms.get((method, route, status_class), ())
+                )
                 by_route.append(
                     {
                         "method": method,
                         "route": route,
                         "status_class": status_class,
                         "requests_total": count,
-                        "duration_p95_ms": _percentile_95(route_samples),
+                        "duration_p95_ms": _percentile_95(key_samples),
                     }
                 )
+            route_p95 = {
+                route: _percentile_95(list(samples))
+                for route, samples in sorted(self._route_durations_ms.items())
+            }
             return {
                 "http": {
                     "requests_total": self._requests_total,
                     "errors_5xx_total": self._errors_5xx_total,
                     "duration_p95_ms": _percentile_95(all_samples),
                     "buckets_ms": {str(int(k)): v for k, v in self._duration_buckets.items()},
+                    "route_p95_ms": route_p95,
                     "by_route": by_route,
                 },
                 "auth": dict(self._auth_events),
