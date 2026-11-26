@@ -21,6 +21,18 @@ def upgrade():
     op.add_column("vehicles", sa.Column("insurance_due_on", sa.Date()))
     op.add_column("vehicles", sa.Column("manual_odometer_km", sa.Numeric(14, 1)))
     op.add_column("vehicles", sa.Column("manual_odometer_date", sa.Date()))
+    op.add_column("vehicles", sa.Column("manual_plate_key", sa.String(300)))
+    op.add_column("vehicles", sa.Column("manual_vin_key", sa.String(300)))
+    op.create_unique_constraint(
+        "uq_vehicles_manual_plate_key",
+        "vehicles",
+        ["source_account", "manual_plate_key"],
+    )
+    op.create_unique_constraint(
+        "uq_vehicles_manual_vin_key",
+        "vehicles",
+        ["source_account", "manual_vin_key"],
+    )
     op.create_check_constraint(
         "ck_vehicles_origin_uid",
         "vehicles",
@@ -48,12 +60,19 @@ def downgrade():
     )
     if manual_or_extended:
         raise RuntimeError(
-            "SCRUM-85: manual vehicles or extended card data cannot be represented by old schema; "
-            "keep schema and roll back application"
+            "SCRUM-85: manual vehicles or extended card data cannot be represented by 0012 schema, "
+            "and pre-SCRUM-85 sync treats active manual vehicles (external_uid IS NULL) as "
+            "INCOMPLETE_REPORT; do not downgrade schema or roll back app below SCRUM-85 while "
+            "active manual vehicles exist — deploy a forward fix on 0013+ "
+            "(see infra/deploy/README.md)"
         )
     op.drop_constraint("ck_vehicles_manual_odometer", "vehicles", type_="check")
     op.drop_constraint("ck_vehicles_origin_uid", "vehicles", type_="check")
+    op.drop_constraint("uq_vehicles_manual_vin_key", "vehicles", type_="unique")
+    op.drop_constraint("uq_vehicles_manual_plate_key", "vehicles", type_="unique")
     for column in (
+        "manual_vin_key",
+        "manual_plate_key",
         "manual_odometer_date",
         "manual_odometer_km",
         "insurance_due_on",

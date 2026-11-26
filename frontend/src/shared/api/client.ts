@@ -72,6 +72,8 @@ export async function api<T>(
       SOURCE_VEHICLE_EXISTS: "Wykryto istniejący pojazd WEBFLEET o tej samej rejestracji lub VIN.",
       ALREADY_LINKED: "Pojazd jest już powiązany ze źródłem WEBFLEET.",
       NOT_SOURCE_VEHICLE: "Wskazany rekord nie jest pojazdem WEBFLEET.",
+      IDENTITY_MISMATCH: "Wskazany pojazd WEBFLEET ma niezgodną rejestrację lub sprzeczny numer VIN.",
+      LINK_CONFLICT: "Nie udało się bezpiecznie połączyć historii wybranego pojazdu.",
     };
     throw new ApiError(
       response.status,

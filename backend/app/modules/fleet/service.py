@@ -106,6 +106,7 @@ def find_identity_conflicts(
 def source_link_candidates(session, vehicle: Vehicle):
     if not vehicle.is_manual:
         return []
+    manual_vin = normalize_identity_token(vehicle.vin)
     matches = []
     for candidate, same_plate, same_vin in find_identity_conflicts(
         session,
@@ -115,6 +116,9 @@ def source_link_candidates(session, vehicle: Vehicle):
         exclude_id=vehicle.id,
     ):
         if not candidate.is_manual and candidate.active and not candidate.archived:
+            candidate_vin = normalize_identity_token(candidate.vin)
+            if manual_vin and candidate_vin and manual_vin != candidate_vin:
+                continue
             matches.append(
                 {
                     "id": str(candidate.id),

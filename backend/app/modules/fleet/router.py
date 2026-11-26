@@ -6,13 +6,14 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-from sqlalchemy import delete, or_, select, update
+from sqlalchemy import or_, select, text, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.database import get_session
 from app.core.errors import ApiError
 from app.core.models import Driver, Measurement, SyncState, Vehicle
-from app.modules.analytics.models import Alert, DailyDistance, Rule
+from app.modules.analytics.models import Alert, AlertReceipt, DailyDistance, Rule
 from app.modules.auth.models import User
 from app.modules.auth.service import check_origin, current_user, editor
 from app.modules.drivers.models import DriverAssignment
@@ -24,14 +25,15 @@ from app.modules.fleet.service import (
     fleet_markers,
     fleet_page,
     fleet_summary,
+    normalize_identity_token,
     serialize_vehicle,
     source_link_candidates,
     source_payload,
     timestamp,
     with_driver_summary,
 )
-from app.modules.fleet.sync import account_key
-from app.modules.trips.models import Trip
+from app.modules.fleet.sync import account_key, source_lock_id
+from app.modules.trips.models import Trip, TripAnnotation
 
 router = APIRouter(prefix="/api/v1/fleet", tags=["fleet"], dependencies=[Depends(current_user)])
 SessionDep = Annotated[Session, Depends(get_session)]
@@ -197,6 +199,15 @@ def write_metadata(session, source):
     }
 
 
+def _lock_identity_namespace(session: Session, source: str) -> None:
+    bind = session.get_bind()
+    if bind is not None and bind.dialect.name == "postgresql":
+        session.execute(
+            text("SELECT pg_advisory_xact_lock(:key)"),
+            {"key": source_lock_id(source) ^ 0x4D414E55},
+        )
+
+
 def _check_identity_conflicts_or_error(
     session,
     source: str,
@@ -317,6 +328,13 @@ def create_manual_vehicle(
         else:
             field_errors["manual_odometer_date"] = "Wybierz datę ręcznego odczytu przebiegu."
 
+    if field_errors:
+        return field_error_response(
+            422, "VALIDATION_ERROR", "Popraw zaznaczone pola formularza", field_errors
+        )
+
+    _lock_identity_namespace(session, source)
+
     assigned_driver = None
     if payload.driver_id is not None:
         assigned_driver = session.scalar(
@@ -327,14 +345,15 @@ def create_manual_vehicle(
                 Driver.active.is_(True),
             )
             .with_for_update()
+            .execution_options(populate_existing=True)
         )
         if not assigned_driver:
-            field_errors["driver_id"] = "Wybrany kierowca jest niedostępny."
-
-    if field_errors:
-        return field_error_response(
-            422, "VALIDATION_ERROR", "Popraw zaznaczone pola formularza", field_errors
-        )
+            return field_error_response(
+                422,
+                "VALIDATION_ERROR",
+                "Popraw zaznaczone pola formularza",
+                {"driver_id": "Wybrany kierowca jest niedostępny."},
+            )
 
     conflict_resp = _check_identity_conflicts_or_error(
         session,
@@ -374,20 +393,33 @@ def create_manual_vehicle(
         active=True,
     )
     session.add(vehicle)
-    session.flush()
-    if assigned_driver is not None:
-        session.add(
-            DriverAssignment(
-                driver_id=assigned_driver.id,
-                vehicle_id=vehicle.id,
-                active=True,
-                started_at=now,
-                recorded_at=now,
+    try:
+        session.flush()
+        if assigned_driver is not None:
+            session.add(
+                DriverAssignment(
+                    driver_id=assigned_driver.id,
+                    vehicle_id=vehicle.id,
+                    active=True,
+                    started_at=now,
+                    recorded_at=now,
+                )
             )
+            assigned_driver.version += 1
+            vehicle.driver_id = assigned_driver.id
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        return field_error_response(
+            409,
+            "DUPLICATE_VEHICLE_IDENTITY",
+            "Powtórzony numer rejestracyjny lub VIN wymaga rozstrzygnięcia",
+            {
+                "license_plate": (
+                    "Numer rejestracyjny lub VIN jest już przypisany do innego pojazdu ręcznego."
+                )
+            },
         )
-        assigned_driver.version += 1
-        vehicle.driver_id = assigned_driver.id
-    session.commit()
     metadata = write_metadata(session, source)
     drivers = fleet_driver_summaries(session, [vehicle.id], source)
     return with_driver_summary(
@@ -486,6 +518,8 @@ def update_vehicle_card(
 ):
     settings = request.app.state.settings
     source = account_key(settings.webfleet_account)
+    if "license_plate" in payload.model_fields_set or "vin" in payload.model_fields_set:
+        _lock_identity_namespace(session, source)
     row = session.execute(
         select(Vehicle, Measurement, Driver)
         .outerjoin(Measurement, Measurement.vehicle_id == Vehicle.id)
@@ -496,6 +530,7 @@ def update_vehicle_card(
             or_(Vehicle.active.is_(True), Vehicle.archived.is_(True)),
         )
         .with_for_update(of=Vehicle)
+        .execution_options(populate_existing=True)
     ).first()
     if not row:
         raise ApiError(404, "NOT_FOUND", "Pojazd nie istnieje")
@@ -545,7 +580,20 @@ def update_vehicle_card(
         setattr(vehicle, f"manual_{field}", True)
     vehicle.locally_edited = True
     vehicle.card_version += 1
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        return field_error_response(
+            409,
+            "DUPLICATE_VEHICLE_IDENTITY",
+            "Powtórzony numer rejestracyjny lub VIN wymaga rozstrzygnięcia",
+            {
+                "license_plate": (
+                    "Numer rejestracyjny lub VIN jest już przypisany do innego pojazdu ręcznego."
+                )
+            },
+        )
     metadata = write_metadata(session, source)
     drivers = fleet_driver_summaries(session, [vehicle_id], source)
     return with_driver_summary(
@@ -572,6 +620,8 @@ def update_manual_odometer(
 ):
     settings = request.app.state.settings
     source = account_key(settings.webfleet_account)
+    if "license_plate" in payload.model_fields_set or "vin" in payload.model_fields_set:
+        _lock_identity_namespace(session, source)
     row = session.execute(
         select(Vehicle, Measurement, Driver)
         .outerjoin(Measurement, Measurement.vehicle_id == Vehicle.id)
@@ -582,6 +632,7 @@ def update_manual_odometer(
             or_(Vehicle.active.is_(True), Vehicle.archived.is_(True)),
         )
         .with_for_update(of=Vehicle)
+        .execution_options(populate_existing=True)
     ).first()
     if not row:
         raise ApiError(404, "NOT_FOUND", "Pojazd nie istnieje")
@@ -633,6 +684,7 @@ def link_manual_vehicle_to_source(
             )
             .order_by(Vehicle.id)
             .with_for_update()
+            .execution_options(populate_existing=True)
         ).all()
     }
     vehicle = locked.get(vehicle_id)
@@ -648,94 +700,206 @@ def link_manual_vehicle_to_source(
     if vehicle.card_version != payload.card_version:
         raise ApiError(409, "VERSION_CONFLICT", "Kartoteka pojazdu zmieniła się podczas edycji")
 
-    saved_uid = source_vehicle.external_uid
-    saved_number = source_vehicle.number
-    for optional_field in ("vehicle_type", "make", "model", "year", "vin"):
-        if getattr(vehicle, optional_field) is None:
-            setattr(vehicle, optional_field, getattr(source_vehicle, optional_field))
+    manual_plate = normalize_identity_token(vehicle.license_plate)
+    source_plate = normalize_identity_token(source_vehicle.license_plate)
+    manual_vin = normalize_identity_token(vehicle.vin)
+    source_vin = normalize_identity_token(source_vehicle.vin)
+    if manual_vin and source_vin and manual_vin != source_vin:
+        raise ApiError(
+            409,
+            "IDENTITY_MISMATCH",
+            "Pojazd źródłowy ma sprzeczny numer VIN względem kartoteki ręcznej",
+        )
+    same_plate = bool(manual_plate and source_plate and manual_plate == source_plate)
+    same_vin = bool(manual_vin and source_vin and manual_vin == source_vin)
+    if (manual_plate and source_plate and not same_plate and not same_vin) or not (
+        same_plate or same_vin
+    ):
+        raise ApiError(
+            409,
+            "IDENTITY_MISMATCH",
+            "Pojazd źródłowy nie pasuje znormalizowaną rejestracją ani numerem VIN",
+        )
 
-    source_measurement = session.get(Measurement, source_vehicle.id)
-    existing_measurement = session.get(Measurement, vehicle.id)
-    if source_measurement is not None and existing_measurement is None:
-        session.add(
-            Measurement(
-                vehicle_id=vehicle.id,
-                latitude=source_measurement.latitude,
-                longitude=source_measurement.longitude,
-                odometer_km=source_measurement.odometer_km,
-                ignition_on=source_measurement.ignition_on,
-                standing_still=source_measurement.standing_still,
-                gps_quality=source_measurement.gps_quality,
-                position_at=source_measurement.position_at,
-                received_at=source_measurement.received_at,
-                speed_kmh=source_measurement.speed_kmh,
-                position_address=source_measurement.position_address,
+    # Canonical lock order: Vehicle (already locked) -> Driver -> DriverAssignment.
+    candidate_driver_ids = sorted(
+        set(
+            session.scalars(
+                select(DriverAssignment.driver_id).where(
+                    DriverAssignment.vehicle_id == source_vehicle.id,
+                    DriverAssignment.active.is_(True),
+                )
+            ).all()
+        )
+    )
+    locked_drivers = (
+        {
+            drv.id: drv
+            for drv in session.scalars(
+                select(Driver)
+                .where(Driver.id.in_(candidate_driver_ids))
+                .order_by(Driver.id)
+                .with_for_update()
+                .execution_options(populate_existing=True)
+            ).all()
+        }
+        if candidate_driver_ids
+        else {}
+    )
+
+    try:
+        saved_uid = source_vehicle.external_uid
+        saved_number = source_vehicle.number
+        for optional_field in ("vehicle_type", "make", "model", "year", "vin"):
+            if getattr(vehicle, optional_field) is None:
+                setattr(vehicle, optional_field, getattr(source_vehicle, optional_field))
+
+        source_measurement = session.get(Measurement, source_vehicle.id)
+        existing_measurement = session.get(Measurement, vehicle.id)
+        if source_measurement is not None and existing_measurement is None:
+            session.add(
+                Measurement(
+                    vehicle_id=vehicle.id,
+                    latitude=source_measurement.latitude,
+                    longitude=source_measurement.longitude,
+                    odometer_km=source_measurement.odometer_km,
+                    ignition_on=source_measurement.ignition_on,
+                    standing_still=source_measurement.standing_still,
+                    gps_quality=source_measurement.gps_quality,
+                    position_at=source_measurement.position_at,
+                    received_at=source_measurement.received_at,
+                    speed_kmh=source_measurement.speed_kmh,
+                    position_address=source_measurement.position_address,
+                )
             )
-        )
-    if source_measurement is not None:
-        session.delete(source_measurement)
+        if source_measurement is not None:
+            session.delete(source_measurement)
 
-    # Re-point related records that do not collide with existing rows on the manual UUID.
-    existing_trip_uids = set(
-        session.scalars(select(Trip.external_uid).where(Trip.vehicle_id == vehicle.id)).all()
-    )
-    for trip in session.scalars(select(Trip).where(Trip.vehicle_id == source_vehicle.id)).all():
-        if trip.external_uid not in existing_trip_uids:
-            trip.vehicle_id = vehicle.id
-    session.execute(
-        delete(DailyDistance).where(
-            DailyDistance.vehicle_id == source_vehicle.id,
-            DailyDistance.event_day.in_(
-                select(DailyDistance.event_day).where(DailyDistance.vehicle_id == vehicle.id)
-            ),
+        existing_trip_uids = set(
+            session.scalars(select(Trip.external_uid).where(Trip.vehicle_id == vehicle.id)).all()
         )
-    )
-    session.execute(
-        update(DailyDistance)
-        .where(DailyDistance.vehicle_id == source_vehicle.id)
-        .values(vehicle_id=vehicle.id)
-    )
-    session.execute(
-        update(Rule).where(Rule.vehicle_id == source_vehicle.id).values(vehicle_id=vehicle.id)
-    )
-    session.execute(
-        delete(Alert).where(
-            Alert.vehicle_id == source_vehicle.id,
-            Alert.rule_id.in_(select(Alert.rule_id).where(Alert.vehicle_id == vehicle.id)),
+        for trip in session.scalars(select(Trip).where(Trip.vehicle_id == source_vehicle.id)).all():
+            if trip.external_uid not in existing_trip_uids:
+                trip.vehicle_id = vehicle.id
+                existing_trip_uids.add(trip.external_uid)
+            elif session.get(TripAnnotation, trip.id) is not None:
+                session.rollback()
+                raise ApiError(
+                    409,
+                    "LINK_CONFLICT",
+                    "Wykryto konflikt adnotacji przejazdu podczas łączenia pojazdów",
+                )
+            else:
+                session.delete(trip)
+
+        manual_distances = {
+            row.event_day: row
+            for row in session.scalars(
+                select(DailyDistance).where(DailyDistance.vehicle_id == vehicle.id)
+            ).all()
+        }
+        for src_dist in session.scalars(
+            select(DailyDistance).where(DailyDistance.vehicle_id == source_vehicle.id)
+        ).all():
+            target_dist = manual_distances.get(src_dist.event_day)
+            if target_dist is None:
+                src_dist.vehicle_id = vehicle.id
+                manual_distances[src_dist.event_day] = src_dist
+            else:
+                if src_dist.distance_km > target_dist.distance_km:
+                    target_dist.distance_km = src_dist.distance_km
+                if src_dist.first_observed_at < target_dist.first_observed_at:
+                    target_dist.first_observed_at = src_dist.first_observed_at
+                if src_dist.last_observed_at > target_dist.last_observed_at:
+                    target_dist.last_observed_at = src_dist.last_observed_at
+                session.delete(src_dist)
+
+        session.execute(
+            update(Rule).where(Rule.vehicle_id == source_vehicle.id).values(vehicle_id=vehicle.id)
         )
-    )
-    session.execute(
-        update(Alert).where(Alert.vehicle_id == source_vehicle.id).values(vehicle_id=vehicle.id)
-    )
-    for assignment in session.scalars(
-        select(DriverAssignment).where(DriverAssignment.vehicle_id == source_vehicle.id)
-    ).all():
-        duplicate_open = assignment.active and session.scalar(
-            select(DriverAssignment.id).where(
-                DriverAssignment.driver_id == assignment.driver_id,
-                DriverAssignment.vehicle_id == vehicle.id,
-                DriverAssignment.active.is_(True),
+
+        # Alerts have UniqueConstraint(rule_id, vehicle_id, event_day) and AlertReceipt FK.
+        manual_alerts = {
+            (alert.rule_id, alert.event_day): alert
+            for alert in session.scalars(select(Alert).where(Alert.vehicle_id == vehicle.id)).all()
+        }
+        for src_alert in session.scalars(
+            select(Alert).where(Alert.vehicle_id == source_vehicle.id)
+        ).all():
+            target_alert = manual_alerts.get((src_alert.rule_id, src_alert.event_day))
+            if target_alert is None:
+                src_alert.vehicle_id = vehicle.id
+                manual_alerts[(src_alert.rule_id, src_alert.event_day)] = src_alert
+            else:
+                if src_alert.distance_km > target_alert.distance_km:
+                    target_alert.distance_km = src_alert.distance_km
+                existing_receipts = {
+                    rec.user_id: rec
+                    for rec in session.scalars(
+                        select(AlertReceipt).where(AlertReceipt.alert_id == target_alert.id)
+                    ).all()
+                }
+                for src_rec in session.scalars(
+                    select(AlertReceipt).where(AlertReceipt.alert_id == src_alert.id)
+                ).all():
+                    existing_rec = existing_receipts.get(src_rec.user_id)
+                    if existing_rec is None:
+                        new_rec = AlertReceipt(
+                            alert_id=target_alert.id,
+                            user_id=src_rec.user_id,
+                            read_at=src_rec.read_at,
+                        )
+                        session.add(new_rec)
+                        existing_receipts[src_rec.user_id] = new_rec
+                    elif src_rec.read_at < existing_rec.read_at:
+                        existing_rec.read_at = src_rec.read_at
+                    session.delete(src_rec)
+                session.flush()
+                session.delete(src_alert)
+
+        now_link = datetime.now(UTC)
+        for assignment in session.scalars(
+            select(DriverAssignment)
+            .where(DriverAssignment.vehicle_id == source_vehicle.id)
+            .order_by(DriverAssignment.id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        ).all():
+            duplicate_open = assignment.active and session.scalar(
+                select(DriverAssignment.id).where(
+                    DriverAssignment.driver_id == assignment.driver_id,
+                    DriverAssignment.vehicle_id == vehicle.id,
+                    DriverAssignment.active.is_(True),
+                )
             )
-        )
-        if duplicate_open:
-            assignment.active = False
-            assignment.ended_at = datetime.now(UTC)
-        assignment.vehicle_id = vehicle.id
+            if duplicate_open:
+                assignment.active = False
+                assignment.ended_at = now_link
+                if assignment.driver_id in locked_drivers:
+                    locked_drivers[assignment.driver_id].version += 1
+            assignment.vehicle_id = vehicle.id
 
-    session.flush()
-    session.delete(source_vehicle)
-    session.flush()
+        session.flush()
+        session.delete(source_vehicle)
+        session.flush()
 
-    vehicle.external_uid = saved_uid
-    vehicle.is_manual = False
-    vehicle.number = saved_number
-    vehicle.locally_edited = True
-    vehicle.manual_name = True
-    vehicle.manual_license_plate = True
-    vehicle.manual_vehicle_type = bool(vehicle.vehicle_type)
-    vehicle.card_version += 1
-    project_vehicle_drivers(session, [vehicle.id], source)
-    session.commit()
+        vehicle.external_uid = saved_uid
+        vehicle.is_manual = False
+        vehicle.number = saved_number
+        vehicle.locally_edited = True
+        vehicle.manual_name = True
+        vehicle.manual_license_plate = True
+        vehicle.manual_vehicle_type = bool(vehicle.vehicle_type)
+        vehicle.card_version += 1
+        project_vehicle_drivers(session, [vehicle.id], source)
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise ApiError(
+            409,
+            "LINK_CONFLICT",
+            "Nie udało się bezpiecznie połączyć historii wskazanego pojazdu",
+        ) from None
 
     now = datetime.now(UTC)
     metadata = write_metadata(session, source)
@@ -861,6 +1025,8 @@ def restore_vehicle(
 ):
     settings = request.app.state.settings
     source = account_key(settings.webfleet_account)
+    if "license_plate" in payload.model_fields_set or "vin" in payload.model_fields_set:
+        _lock_identity_namespace(session, source)
     row = session.execute(
         select(Vehicle, Measurement, Driver)
         .outerjoin(Measurement, Measurement.vehicle_id == Vehicle.id)
@@ -871,6 +1037,7 @@ def restore_vehicle(
             or_(Vehicle.active.is_(True), Vehicle.archived.is_(True)),
         )
         .with_for_update(of=Vehicle)
+        .execution_options(populate_existing=True)
     ).first()
     if not row:
         raise ApiError(404, "NOT_FOUND", "Pojazd nie istnieje")
