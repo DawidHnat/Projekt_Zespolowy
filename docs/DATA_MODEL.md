@@ -27,6 +27,28 @@ dezaktywuje rekord po kompletnym odczycie, bez usuwania historii i ręcznych pó
 Nie importujemy nazw, loginów, kontaktów ani innych pól kierowców ze źródła.
 User oznacza osobę korzystającą z aplikacji, Driver — ręcznie opisany wpis floty.
 
+## Kartoteka kierowców i przypisania — SCRUM-52
+
+- Kierowca tworzy i edytuje wyłącznie operator w kartotece Fleet-Flow.
+  Synchronizacja WEBFLEET nie tworzy, nie nadpisuje i nie dezaktywuje
+  `Driver` ani ręcznych przypisań.
+- Jeden kierowca może być przypisany do wielu pojazdów, a jeden pojazd może
+  mieć wielu bieżących kierowców. Relacje są osobnymi rekordami
+  `DriverAssignment`; nie wybiera się ani nie utrzymuje globalnego kierowcy
+  głównego.
+- Przypisanie i jego zakończenie mają czas `valid_from` i `valid_to`.
+  Zmiana bieżącego przypisania nie zmienia osoby zapisanej przy dawnych
+  przejazdach ani nie usuwa historii relacji.
+- Wyłączenie kierowcy zamyka jego bieżące przypisania. Zachowuje stabilny UUID,
+  dane ręczne i dane historyczne; ponowna aktywacja nie przywraca relacji
+  automatycznie.
+- Formularz i API nie zbierają numerów PESEL ani dokumentów. Wymagane jest
+  imię i nazwisko/nazwa oraz stabilny wewnętrzny identyfikator; opcjonalny
+  kontakt i kategorie prawa jazdy podlegają walidacji po wpisaniu.
+- Kontrola zgodności kategorii kierowcy z wymaganiami pojazdu nie jest
+  wykonywana automatycznie w tym przyroście. Brak danych oznacza
+  `Do sprawdzenia`, a nie zgodność; osobną blokadę opisuje SCRUM-70.
+
 ## Jednostki, czas i jakość
 
 - GPS: stopnie WGS84; GeoJSON ma kolejność `[longitude, latitude]`. Para musi być
