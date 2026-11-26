@@ -1,3 +1,4 @@
+import re
 from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID, uuid4
@@ -63,6 +64,8 @@ class Vehicle(Base):
     __tablename__ = "vehicles"
     __table_args__ = (
         UniqueConstraint("source_account", "external_uid"),
+        UniqueConstraint("source_account", "manual_plate_key", name="uq_vehicles_manual_plate_key"),
+        UniqueConstraint("source_account", "manual_vin_key", name="uq_vehicles_manual_vin_key"),
         CheckConstraint(
             "(NOT archived AND archived_at IS NULL AND archived_by IS NULL "
             "AND archived_reason IS NULL) OR (archived AND archived_at IS NOT NULL)",
@@ -123,6 +126,8 @@ class Vehicle(Base):
     search_vin: Mapped[str] = mapped_column(
         String(300), default=folded_default("vin"), server_default=""
     )
+    manual_plate_key: Mapped[str | None] = mapped_column(String(300))
+    manual_vin_key: Mapped[str | None] = mapped_column(String(300))
     # This local field belongs to Fleet-Flow and is never written by WEBFLEET.
     driver_id: Mapped[UUID | None] = mapped_column(ForeignKey("drivers.id"))
     # Retained for application rollback; current writes track the three shared fields separately.
@@ -138,6 +143,14 @@ class Vehicle(Base):
 def update_vehicle_search(mapper, connection, vehicle):
     for field in ("name", "number", "license_plate", "make", "model", "vin"):
         setattr(vehicle, "search_" + field, (getattr(vehicle, field) or "").casefold())
+    if vehicle.is_manual:
+        plate_norm = re.sub(r"[\s\-]+", "", vehicle.license_plate or "").casefold()
+        vin_norm = re.sub(r"[\s\-]+", "", vehicle.vin or "").casefold()
+        vehicle.manual_plate_key = plate_norm or None
+        vehicle.manual_vin_key = vin_norm or None
+    else:
+        vehicle.manual_plate_key = None
+        vehicle.manual_vin_key = None
 
 
 class Measurement(Base):
