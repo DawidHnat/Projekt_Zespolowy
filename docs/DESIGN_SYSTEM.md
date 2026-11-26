@@ -56,6 +56,15 @@ Przyciski zachowują ten sam rozmiar i promień w obu materiałach: nawigacja
 14 px, zwykłe przyciski 12 px. Materiał zmienia ich powierzchnię.
 Nowy wariant komponentu dopisuj wspólnie, zamiast kopiować style do modułu.
 
+## Ekran logowania
+
+`AuthGate` korzysta ze wspólnego `Brand` i tokenów kolorów. Kompozycja łączy
+kartę formularza z nieprzezroczystym tłem i statyczną ilustrację trasy w SVG;
+gradienty używają tokenów marki/motywu, bez tapet konta ani zdalnych obrazów.
+Na małych ekranach treść układa się pionowo i pozostaje przewijalna przy
+otwartej klawiaturze ekranowej. Wysoki kontrast zastępuje gradient jednolitym
+tłem i ukrywa ilustrację; grafika nie ma animacji.
+
 ## Komponenty i rejestr
 
 - `Brand` składa wybrany przez zespół monogram FF ze strzałką i napis
