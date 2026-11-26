@@ -1,6 +1,8 @@
 import { execFileSync } from "node:child_process";
 import { expect, test } from "@playwright/test";
 
+test.use({ serviceWorkers: "block" });
+
 test.skip(process.env.E2E_SYNTHETIC_MAP !== "true", "Uses a build with a synthetic public map token");
 
 for (const trigger of ["retry", "online"] as const) {
@@ -11,11 +13,15 @@ for (const trigger of ["retry", "online"] as const) {
     });
     let failStyle = true;
     let styleRequests = 0;
+    let recoveredStyleRequests = 0;
     await context.route("**/*", async route => {
       const url = new URL(route.request().url());
-      if (url.hostname === "127.0.0.1") return route.continue();
+      // Only the local E2E server may receive a real HTTP request. All provider
+      // traffic is either fulfilled locally or aborted, including auxiliary URLs.
+      if (url.origin === "http://127.0.0.1:54173") return route.continue();
       if (url.hostname !== "api.mapbox.com" || !url.pathname.startsWith("/styles/v1/")) return route.abort();
       styleRequests++;
+      if (!failStyle) recoveredStyleRequests++;
       return route.fulfill({
         headers: { "Access-Control-Allow-Origin": "*" },
         status: failStyle ? 503 : 200,
@@ -42,6 +48,7 @@ for (const trigger of ["retry", "online"] as const) {
     if (trigger === "retry") await retry.click();
     else await page.evaluate(() => window.dispatchEvent(new Event("online")));
     await expect(page.locator(".map-fallback")).toHaveCount(0);
+    expect(recoveredStyleRequests).toBeGreaterThan(0);
     await expect(page.getByRole("button", { name: "Pokaż całą flotę na mapie" })).toBeEnabled();
     await expect(page.locator(".fleet-map-marker")).toHaveAttribute("aria-pressed", "true");
     await expect(vehicle).toHaveAttribute("aria-pressed", "true");
