@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState } from "react";
-import mapboxgl from "mapbox-gl";
+import * as mapboxgl from "mapbox-gl/esm";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapPin, Scan, X } from "lucide-react";
 import { useFleet } from "../model/FleetProvider";
