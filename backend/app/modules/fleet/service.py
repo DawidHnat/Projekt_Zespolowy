@@ -8,6 +8,7 @@ from app.core.errors import ApiError
 from app.core.models import Driver, Measurement, SyncState, Vehicle
 from app.modules.auth.models import User
 from app.modules.auth.service import aware
+from app.modules.drivers.compatibility import vehicle_license_requirement
 from app.modules.drivers.models import DriverAssignment
 
 
@@ -233,6 +234,11 @@ def serialize_vehicle(
         "manual_odometer_date": (
             vehicle.manual_odometer_date.isoformat() if vehicle.manual_odometer_date else None
         ),
+        "gross_weight_kg": vehicle.gross_weight_kg,
+        "passenger_seats": vehicle.passenger_seats,
+        "tows_heavy_trailer": vehicle.tows_heavy_trailer,
+        "required_category_override": vehicle.required_category_override,
+        "license_requirement": vehicle_license_requirement(vehicle),
         "archived": vehicle.archived,
         "archive": archive_info,
         "status": status,

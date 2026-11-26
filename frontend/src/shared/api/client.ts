@@ -74,6 +74,8 @@ export async function api<T>(
       NOT_SOURCE_VEHICLE: "Wskazany rekord nie jest pojazdem WEBFLEET.",
       IDENTITY_MISMATCH: "Wskazany pojazd WEBFLEET ma niezgodną rejestrację lub sprzeczny numer VIN.",
       LINK_CONFLICT: "Nie udało się bezpiecznie połączyć historii wybranego pojazdu.",
+      LICENSE_INCOMPATIBLE:
+        "Kierowca nie posiada kategorii prawa jazdy wymaganej dla tego pojazdu.",
     };
     throw new ApiError(
       response.status,

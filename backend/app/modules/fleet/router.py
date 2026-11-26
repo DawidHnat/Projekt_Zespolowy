@@ -17,7 +17,9 @@ from app.core.models import Driver, Measurement, SyncState, Vehicle
 from app.modules.analytics.models import Alert, AlertReceipt, DailyDistance, Rule
 from app.modules.auth.models import User
 from app.modules.auth.service import check_origin, current_user, editor
-from app.modules.drivers.models import DriverAssignment
+from app.modules.drivers.compatibility import evaluate_driver_vehicle
+from app.modules.drivers.models import DriverAssignment, DriverCategory
+from app.modules.drivers.schemas import CATEGORIES
 from app.modules.drivers.service import project_vehicle_drivers
 from app.modules.fleet.documents import (
     DOCUMENT_KINDS,
@@ -93,6 +95,10 @@ class VehicleCardFieldsMixin(BaseModel):
     insurance_due_on: date | None = None
     manual_odometer_km: Decimal | None = None
     manual_odometer_date: date | None = None
+    gross_weight_kg: Annotated[int | None, Field(default=None, strict=True, ge=1, le=120000)] = None
+    passenger_seats: Annotated[int | None, Field(default=None, strict=True, ge=0, le=120)] = None
+    tows_heavy_trailer: bool | None = Field(default=None, strict=True)
+    required_category_override: Annotated[str | None, Field(default=None, max_length=10)] = None
 
     @field_validator(
         "make",
@@ -106,6 +112,16 @@ class VehicleCardFieldsMixin(BaseModel):
     @classmethod
     def clean_optional_strings(cls, value: str | None) -> str | None:
         return _clean_plain_str(value)
+
+    @field_validator("required_category_override")
+    @classmethod
+    def check_category_override(cls, value: str | None) -> str | None:
+        cleaned = _clean_plain_str(value)
+        if cleaned is None:
+            return None
+        if cleaned not in CATEGORIES:
+            raise ValueError("Nieznana kategoria prawa jazdy")
+        return cleaned
 
     @field_validator("manual_odometer_km")
     @classmethod
@@ -408,12 +424,28 @@ def create_manual_vehicle(
         insurance_due_on=payload.insurance_due_on,
         manual_odometer_km=payload.manual_odometer_km,
         manual_odometer_date=payload.manual_odometer_date,
+        gross_weight_kg=payload.gross_weight_kg,
+        passenger_seats=payload.passenger_seats,
+        tows_heavy_trailer=bool(payload.tows_heavy_trailer),
+        required_category_override=payload.required_category_override,
         locally_edited=True,
         manual_name=True,
         manual_license_plate=True,
         manual_vehicle_type=bool(payload.vehicle_type),
         active=True,
     )
+    if assigned_driver is not None:
+        driver_cats = list(
+            session.scalars(
+                select(DriverCategory.category).where(
+                    DriverCategory.driver_id == assigned_driver.id
+                )
+            ).all()
+        )
+        comp = evaluate_driver_vehicle(driver_cats, vehicle)
+        if comp["status"] == "incompatible":
+            session.rollback()
+            raise ApiError(409, "LICENSE_INCOMPATIBLE", comp["message"])
     session.add(vehicle)
     try:
         session.flush()
@@ -596,6 +628,8 @@ def update_vehicle_card(
         if conflict_resp is not None:
             return conflict_resp
 
+    if "tows_heavy_trailer" in changes:
+        changes["tows_heavy_trailer"] = bool(changes["tows_heavy_trailer"])
     for field, value in changes.items():
         setattr(vehicle, field, value)
     for field in changes.keys() & {"name", "license_plate", "vehicle_type"}:
@@ -772,9 +806,20 @@ def link_manual_vehicle_to_source(
     try:
         saved_uid = source_vehicle.external_uid
         saved_number = source_vehicle.number
-        for optional_field in ("vehicle_type", "make", "model", "year", "vin"):
+        for optional_field in (
+            "vehicle_type",
+            "make",
+            "model",
+            "year",
+            "vin",
+            "gross_weight_kg",
+            "passenger_seats",
+            "required_category_override",
+        ):
             if getattr(vehicle, optional_field) is None:
                 setattr(vehicle, optional_field, getattr(source_vehicle, optional_field))
+        if not vehicle.tows_heavy_trailer and source_vehicle.tows_heavy_trailer:
+            vehicle.tows_heavy_trailer = True
 
         source_measurement = session.get(Measurement, source_vehicle.id)
         existing_measurement = session.get(Measurement, vehicle.id)

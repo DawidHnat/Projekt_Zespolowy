@@ -19,6 +19,10 @@ const textFields = [
   { key: "leasing_contract_no", label: "Nr umowy leasingu", max: 100 },
 ] as const;
 
+const LICENSE_CATEGORIES = [
+  "AM", "A1", "A2", "A", "B1", "B", "B+E", "C1", "C1+E", "C", "C+E", "D1", "D1+E", "D", "D+E", "T",
+] as const;
+
 const dateFields = [
   { key: "leasing_end_on", label: "Koniec leasingu" },
   { key: "inspection_due_on", label: "Następne badanie techniczne" },
@@ -29,12 +33,37 @@ type EditableKey =
   | typeof textFields[number]["key"]
   | typeof dateFields[number]["key"]
   | "manual_odometer_km"
-  | "manual_odometer_date";
+  | "manual_odometer_date"
+  | "gross_weight_kg"
+  | "passenger_seats"
+  | "tows_heavy_trailer"
+  | "required_category_override";
 type Changes = Partial<Record<EditableKey, string>>;
 type Draft = { base: Vehicle; changes: Changes };
 
 function fieldValue(vehicle: Vehicle, key: EditableKey) {
+  if (key === "tows_heavy_trailer") return vehicle.tows_heavy_trailer ? "true" : "false";
   return String(vehicle[key] ?? "");
+}
+
+function formatLicenseRequirement(vehicle: Vehicle): string {
+  const req = vehicle.license_requirement;
+  if (!req) return "Brak danych";
+  if (req.status === "determined" && req.required_category) {
+    const srcLabel =
+      req.source === "override"
+        ? "wyjątek kartoteki"
+        : req.source === "passenger_seats"
+          ? "liczba miejsc"
+          : req.source === "vehicle_type"
+            ? "typ pojazdu"
+            : "DMC";
+    return `Kat. ${req.required_category} (${srcLabel})`;
+  }
+  if (req.reason === "missing_vehicle_dmc") return "Niezweryfikowane (brak DMC w kg)";
+  if (req.reason === "missing_passenger_seats") return "Niezweryfikowane (brak liczby miejsc)";
+  if (req.reason === "missing_vehicle_requirements") return "Niezweryfikowane (wymagany wyjątek kategorii)";
+  return "Niezweryfikowane";
 }
 
 export function VehicleCardDetails({ vehicle, onUnsaved }: {
@@ -86,7 +115,10 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
       return;
     }
     const body = Object.fromEntries(Object.entries(draft.changes).map(([key, value]) => {
-      if (key === "year") return [key, value ? Number(value) : null];
+      if (key === "year" || key === "gross_weight_kg" || key === "passenger_seats")
+        return [key, value.trim() ? Number(value) : null];
+      if (key === "tows_heavy_trailer")
+        return [key, value === "true"];
       if (key === "manual_odometer_km")
         return [key, value.trim() ? Number(value.replace(",", ".")) : null];
       return [key, value.trim() || null];
@@ -360,6 +392,72 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
                 <span className="form-error">{fieldErrors.manual_odometer_date}</span>
               )}
             </div>
+            <label htmlFor={`${id}-gross-weight-kg`}>
+              DMC w kg
+              <input
+                id={`${id}-gross-weight-kg`}
+                type="number"
+                step="1"
+                min={1}
+                max={120000}
+                value={draft.changes.gross_weight_kg ?? fieldValue(draft.base, "gross_weight_kg")}
+                onChange={event => change("gross_weight_kg", event.target.value)}
+                aria-invalid={Boolean(fieldErrors.gross_weight_kg)}
+                readOnly={saving}
+              />
+              {fieldErrors.gross_weight_kg && (
+                <span className="form-error">{fieldErrors.gross_weight_kg}</span>
+              )}
+            </label>
+            <label htmlFor={`${id}-passenger-seats`}>
+              Miejsca pasażerskie
+              <input
+                id={`${id}-passenger-seats`}
+                type="number"
+                step="1"
+                min={0}
+                max={120}
+                value={draft.changes.passenger_seats ?? fieldValue(draft.base, "passenger_seats")}
+                onChange={event => change("passenger_seats", event.target.value)}
+                aria-invalid={Boolean(fieldErrors.passenger_seats)}
+                readOnly={saving}
+              />
+              {fieldErrors.passenger_seats && (
+                <span className="form-error">{fieldErrors.passenger_seats}</span>
+              )}
+            </label>
+            <label htmlFor={`${id}-required-category-override`}>
+              Wymagana kategoria (wyjątek)
+              <select
+                id={`${id}-required-category-override`}
+                value={
+                  draft.changes.required_category_override ??
+                  fieldValue(draft.base, "required_category_override")
+                }
+                disabled={saving}
+                onChange={event => change("required_category_override", event.target.value)}
+              >
+                <option value="">Wg DMC / liczby miejsc</option>
+                {LICENSE_CATEGORIES.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </label>
+            <label htmlFor={`${id}-tows-heavy-trailer`} className="driver-checkbox">
+              <input
+                id={`${id}-tows-heavy-trailer`}
+                type="checkbox"
+                checked={
+                  (draft.changes.tows_heavy_trailer ??
+                    fieldValue(draft.base, "tows_heavy_trailer")) === "true"
+                }
+                disabled={saving}
+                onChange={event =>
+                  change("tows_heavy_trailer", event.target.checked ? "true" : "false")
+                }
+              />
+              Przyczepa ciężka (+E)
+            </label>
           </div>
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="vehicle-card-actions">
@@ -401,6 +499,26 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
                     }`
                   : "Brak danych"}
               </dd>
+            </div>
+            <div>
+              <dt>DMC</dt>
+              <dd>
+                {visible.gross_weight_kg != null
+                  ? `${visible.gross_weight_kg.toLocaleString("pl-PL")} kg`
+                  : "Brak danych"}
+              </dd>
+            </div>
+            <div>
+              <dt>Miejsca pasażerskie</dt>
+              <dd>{visible.passenger_seats != null ? String(visible.passenger_seats) : "Brak danych"}</dd>
+            </div>
+            <div>
+              <dt>Przyczepa ciężka (+E)</dt>
+              <dd>{visible.tows_heavy_trailer ? "Tak" : "Nie"}</dd>
+            </div>
+            <div>
+              <dt>Wymagane prawo jazdy</dt>
+              <dd>{formatLicenseRequirement(visible)}</dd>
             </div>
           </dl>
           {error && !archiving && <p className="form-error" role="alert">{error}</p>}

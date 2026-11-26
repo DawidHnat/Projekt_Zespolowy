@@ -35,6 +35,12 @@ class DriverSearch(BaseModel):
     assigned: bool | None = Field(default=None, strict=True)
     category: str | None = None
     missing_categories: bool | None = Field(default=None, strict=True)
+    compatibility_status: (
+        Literal["compatible", "incompatible", "unverified", "attention"] | None
+    ) = None
+    compatibility_status: (
+        Literal["compatible", "incompatible", "unverified", "attention"] | None
+    ) = None
     vehicle_id: UUID | None = None
     sort: DriverSort = "name_asc"
     page: int = Field(default=1, strict=True, ge=1)

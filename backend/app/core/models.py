@@ -82,6 +82,19 @@ class Vehicle(Base):
             name="ck_vehicles_manual_odometer",
         ),
         CheckConstraint("photo_version >= 0", name="ck_vehicles_photo_version"),
+        CheckConstraint(
+            "gross_weight_kg IS NULL OR (gross_weight_kg > 0 AND gross_weight_kg <= 120000)",
+            name="ck_vehicles_gross_weight_kg",
+        ),
+        CheckConstraint(
+            "passenger_seats IS NULL OR (passenger_seats >= 0 AND passenger_seats <= 120)",
+            name="ck_vehicles_passenger_seats",
+        ),
+        CheckConstraint(
+            "required_category_override IS NULL OR required_category_override IN "
+            "('AM','A1','A2','A','B1','B','B+E','C1','C1+E','C','C+E','D1','D1+E','D','D+E','T')",
+            name="ck_vehicles_req_cat_override",
+        ),
     )
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     source_account: Mapped[str] = mapped_column(String(64), index=True)
@@ -138,6 +151,10 @@ class Vehicle(Base):
     manual_vehicle_type: Mapped[bool] = mapped_column(default=False, server_default="false")
     card_version: Mapped[int] = mapped_column(default=1, server_default="1")
     photo_version: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    gross_weight_kg: Mapped[int | None] = mapped_column(Integer)
+    passenger_seats: Mapped[int | None] = mapped_column(Integer)
+    tows_heavy_trailer: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    required_category_override: Mapped[str | None] = mapped_column(String(5))
 
 
 @event.listens_for(Vehicle, "before_insert")

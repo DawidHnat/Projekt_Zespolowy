@@ -160,3 +160,12 @@ rozmiarem, wymiarem obrazu, wersją oraz statusem skanowania (`quarantined`,
 pod losowymi kluczami i udostępniane wyłącznie po uwierzytelnieniu, weryfikacji
 `source_account` i pozytywnym statusie `clean`.
 [Model zagrożeń i zakres kopii SCRUM-84](security/SCRUM-58-upload-threat-model.md).
+
+## Zgodność kategorii prawa jazdy z pojazdem — SCRUM-70
+
+Migracja `0015_license_compatibility` rozszerza `vehicles` o `gross_weight_kg` (DMC),
+`passenger_seats`, `tows_heavy_trailer` i `required_category_override`, a `trip_annotations`
+o opcjonalne `driver_id`. Ocena zgodności rozróżnia `compatible`, `incompatible`
+i `unverified`, blokując nowe niezgodne przypisania oraz wybór kierowcy w ewidencji
+przy zachowaniu historycznych rekordów z jawnym ostrzeżeniem.
+[Macierz reguł SCRUM-70](SCRUM-70-license-matrix.md).

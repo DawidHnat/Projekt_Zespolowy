@@ -6,6 +6,10 @@ from sqlalchemy.exc import IntegrityError
 from app.core.errors import ApiError
 from app.core.models import Driver, Vehicle
 from app.modules.auth.service import aware
+from app.modules.drivers.compatibility import (
+    evaluate_driver_vehicle,
+    summarize_driver_compatibility,
+)
 from app.modules.drivers.models import DriverAssignment, DriverCategory
 from app.modules.drivers.schemas import CATEGORIES, CATEGORIES_VERSION
 
@@ -93,6 +97,7 @@ def profiles(session, rows, source):
     identities = [driver.id for driver, _ in rows]
     categories = {identity: [] for identity in identities}
     first = {}
+    active_vehicles = {identity: [] for identity in identities}
     if identities:
         for driver_id, category in session.execute(
             select(DriverCategory.driver_id, DriverCategory.category).where(
@@ -100,50 +105,50 @@ def profiles(session, rows, source):
             )
         ):
             categories[driver_id].append(category)
-        ranked = (
-            select(
-                DriverAssignment.driver_id,
-                Vehicle.id.label("vehicle_id"),
-                Vehicle.name,
-                Vehicle.active,
-                func.row_number()
-                .over(partition_by=DriverAssignment.driver_id, order_by=(Vehicle.name, Vehicle.id))
-                .label("rank"),
-            )
+        for driver_id, vehicle in session.execute(
+            select(DriverAssignment.driver_id, Vehicle)
             .join(Vehicle, Vehicle.id == DriverAssignment.vehicle_id)
             .where(
                 DriverAssignment.driver_id.in_(identities),
                 DriverAssignment.active.is_(True),
                 Vehicle.source_account == source,
             )
-            .subquery()
-        )
-        for row in session.execute(select(ranked).where(ranked.c.rank == 1)).mappings():
-            first[row["driver_id"]] = {
-                "id": str(row["vehicle_id"]),
-                "name": row["name"],
-                "active": row["active"],
+            .order_by(DriverAssignment.driver_id, Vehicle.name, Vehicle.id)
+        ):
+            active_vehicles[driver_id].append(vehicle)
+            if driver_id not in first:
+                first[driver_id] = {
+                    "id": str(vehicle.id),
+                    "name": vehicle.name,
+                    "active": vehicle.active,
+                }
+    result = []
+    for driver, count in rows:
+        ordered_cats = [item for item in CATEGORIES if item in categories[driver.id]]
+        result.append(
+            {
+                "id": str(driver.id),
+                "display_name": driver.display_name,
+                "first_name": driver.first_name,
+                "last_name": driver.last_name,
+                "identifier": driver.identifier,
+                "phone": driver.phone,
+                "email": driver.email,
+                "active": driver.active,
+                "version": driver.version,
+                "needs_completion": not all(
+                    (driver.first_name, driver.last_name, driver.identifier)
+                ),
+                "categories": ordered_cats,
+                "categories_version": CATEGORIES_VERSION,
+                "vehicles_total": count,
+                "first_vehicle": first.get(driver.id),
+                "compatibility": summarize_driver_compatibility(
+                    ordered_cats, active_vehicles[driver.id]
+                ),
             }
-    return [
-        {
-            "id": str(driver.id),
-            "display_name": driver.display_name,
-            "first_name": driver.first_name,
-            "last_name": driver.last_name,
-            "identifier": driver.identifier,
-            "phone": driver.phone,
-            "email": driver.email,
-            "active": driver.active,
-            "version": driver.version,
-            "needs_completion": not all((driver.first_name, driver.last_name, driver.identifier)),
-            "categories": [item for item in CATEGORIES if item in categories[driver.id]],
-            "categories_version": CATEGORIES_VERSION,
-            "vehicles_total": count,
-            "first_vehicle": first.get(driver.id),
-            "compatibility": {"status": "not_evaluated", "reason": "SCRUM-70"},
-        }
-        for driver, count in rows
-    ]
+        )
+    return result
 
 
 def find_driver(session, source, identity, *, version=None):
@@ -217,7 +222,9 @@ def close_driver_assignments(session, driver, source):
         project_vehicle_drivers(session, sorted({row.vehicle_id for row in rows}), source)
 
 
-def assignment_payload(assignment, vehicle):
+def assignment_payload(assignment, vehicle, *, driver_categories=None):
+    cats = list(driver_categories or ())
+    comp = evaluate_driver_vehicle(cats, vehicle, historical=not assignment.active)
     return {
         "id": str(assignment.id),
         "driver_id": str(assignment.driver_id),
@@ -233,4 +240,5 @@ def assignment_payload(assignment, vehicle):
         "ended_at": aware(assignment.ended_at).isoformat() if assignment.ended_at else None,
         "recorded_at": aware(assignment.recorded_at).isoformat(),
         "start_known": assignment.started_at is not None,
+        "compatibility": comp,
     }

@@ -800,8 +800,14 @@
         "vehicles_total": 0,
         "first_vehicle": null,
         "compatibility": {
-          "status": "not_evaluated",
-          "reason": "SCRUM-70"
+          "status": "unverified",
+          "reason": "missing_driver_categories",
+          "reasons": [
+            "missing_driver_categories"
+          ],
+          "incompatible_count": 0,
+          "unverified_count": 0,
+          "message": "Kierowca nie ma wpisanych kategorii prawa jazdy."
         }
       },
       "error_example": {
@@ -892,6 +898,8 @@
             "annotation": {
               "purpose": null,
               "description": null,
+              "driver_id": null,
+              "driver": null,
               "version": 1,
               "updated_at": null,
               "updated_by": null
@@ -940,6 +948,8 @@
         "annotation": {
           "purpose": null,
           "description": null,
+          "driver_id": null,
+          "driver": null,
           "version": 1,
           "updated_at": null,
           "updated_by": null
@@ -981,6 +991,8 @@
       "response_example": {
         "purpose": "Cel testowy",
         "description": "Opis testowy",
+        "driver_id": null,
+        "driver": null,
         "version": 2,
         "updated_at": "2026-01-10T12:05:00Z",
         "updated_by": {
@@ -1361,7 +1373,9 @@
             "label": "T"
           }
         ],
-        "compatibility": "not_evaluated"
+        "compatibility": "evaluated",
+        "matrix_version": "pl-ustawa-o-kierujacych-v1-pending-po",
+        "po_confirmed": false
       },
       "error_schema": {
         "$ref": "#/$defs/Error"
@@ -1381,9 +1395,19 @@
         "active_unassigned": 0,
         "active_missing_categories": 0,
         "assignments_to_check": {
-          "status": "not_evaluated",
-          "total": null,
-          "reason": "SCRUM-70"
+          "status": "evaluated",
+          "total": 0,
+          "incompatible": 0,
+          "unverified": 0,
+          "by_reason": {
+            "category_mismatch": 0,
+            "missing_driver_categories": 0,
+            "missing_vehicle_dmc": 0,
+            "missing_passenger_seats": 0,
+            "missing_vehicle_requirements": 0
+          },
+          "matrix_version": "pl-ustawa-o-kierujacych-v1-pending-po",
+          "po_confirmed": false
         },
         "scope": "current_source_and_filters"
       },
@@ -1410,9 +1434,19 @@
           "active_unassigned": 0,
           "active_missing_categories": 0,
           "assignments_to_check": {
-            "status": "not_evaluated",
-            "total": null,
-            "reason": "SCRUM-70"
+            "status": "evaluated",
+            "total": 0,
+            "incompatible": 0,
+            "unverified": 0,
+            "by_reason": {
+              "category_mismatch": 0,
+              "missing_driver_categories": 0,
+              "missing_vehicle_dmc": 0,
+              "missing_passenger_seats": 0,
+              "missing_vehicle_requirements": 0
+            },
+            "matrix_version": "pl-ustawa-o-kierujacych-v1-pending-po",
+            "po_confirmed": false
           },
           "scope": "current_source_and_filters"
         }
@@ -1427,6 +1461,7 @@
           "assigned": null,
           "category": null,
           "missing_categories": null,
+          "compatibility_status": null,
           "vehicle_id": null,
           "sort": "custom",
           "custom_order": [
@@ -1461,8 +1496,14 @@
         "vehicles_total": 0,
         "first_vehicle": null,
         "compatibility": {
-          "status": "not_evaluated",
-          "reason": "SCRUM-70"
+          "status": "unverified",
+          "reason": "missing_driver_categories",
+          "reasons": [
+            "missing_driver_categories"
+          ],
+          "incompatible_count": 0,
+          "unverified_count": 0,
+          "message": "Kierowca nie ma wpisanych kategorii prawa jazdy."
         }
       },
       "error_schema": {
@@ -1493,8 +1534,14 @@
         "vehicles_total": 0,
         "first_vehicle": null,
         "compatibility": {
-          "status": "not_evaluated",
-          "reason": "SCRUM-70"
+          "status": "unverified",
+          "reason": "missing_driver_categories",
+          "reasons": [
+            "missing_driver_categories"
+          ],
+          "incompatible_count": 0,
+          "unverified_count": 0,
+          "message": "Kierowca nie ma wpisanych kategorii prawa jazdy."
         }
       },
       "error_schema": {
@@ -1535,13 +1582,25 @@
             "id": "11111111-1111-4111-8111-111111111111",
             "name": "Pojazd syntetyczny",
             "license_plate": null,
-            "active": true
+            "active": true,
+            "archived": false
           },
           "active": true,
           "started_at": "2026-10-28T12:00:00+00:00",
           "ended_at": null,
           "recorded_at": "2026-10-28T12:00:00+00:00",
-          "start_known": true
+          "start_known": true,
+          "compatibility": {
+            "status": "unverified",
+            "reason": "missing_vehicle_dmc",
+            "reasons": [
+              "missing_vehicle_dmc"
+            ],
+            "required_category": null,
+            "accepted_categories": [],
+            "message": "Brak DMC (kg) w kartotece pojazdu — nie zgadujemy z samej nazwy typu.",
+            "historical_warning": null
+          }
         },
         "driver_version": 2
       },
@@ -1565,13 +1624,25 @@
             "id": "11111111-1111-4111-8111-111111111111",
             "name": "Pojazd syntetyczny",
             "license_plate": null,
-            "active": true
+            "active": true,
+            "archived": false
           },
           "active": false,
           "started_at": "2026-10-28T12:00:00+00:00",
           "ended_at": "2026-10-28T12:00:00+00:00",
           "recorded_at": "2026-10-28T12:00:00+00:00",
-          "start_known": true
+          "start_known": true,
+          "compatibility": {
+            "status": "unverified",
+            "reason": "missing_vehicle_dmc",
+            "reasons": [
+              "missing_vehicle_dmc"
+            ],
+            "required_category": null,
+            "accepted_categories": [],
+            "message": "Brak DMC (kg) w kartotece pojazdu — nie zgadujemy z samej nazwy typu.",
+            "historical_warning": "Aktualne prawo jazdy i kartoteka pojazdu nie potwierdzają uprawnień w dacie historycznego przypisania."
+          }
         },
         "driver_version": 3
       },
@@ -2281,6 +2352,46 @@
             }
           ]
         },
+        "gross_weight_kg": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 120000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "passenger_seats": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 120
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tows_heavy_trailer": {
+          "type": "boolean"
+        },
+        "required_category_override": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "license_requirement": {
+          "$ref": "#/$defs/VehicleLicenseRequirement"
+        },
         "link_candidates": {
           "type": "array",
           "items": {
@@ -2515,6 +2626,89 @@
       ],
       "additionalProperties": true
     },
+    "VehicleLicenseRequirement": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "determined",
+            "unverified"
+          ]
+        },
+        "required_category": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "accepted_categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "override",
+            "vehicle_type",
+            "passenger_seats",
+            "dmc",
+            "missing"
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "required_category",
+        "accepted_categories",
+        "reason",
+        "source"
+      ],
+      "additionalProperties": true
+    },
+    "AnnotationDriver": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "historical_warning": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "display_name"
+      ],
+      "additionalProperties": true
+    },
     "Annotation": {
       "type": "object",
       "properties": {
@@ -2534,6 +2728,27 @@
             {
               "type": "string",
               "maxLength": 2000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "driver_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "driver": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AnnotationDriver"
             },
             {
               "type": "null"
@@ -2570,6 +2785,8 @@
       "required": [
         "purpose",
         "description",
+        "driver_id",
+        "driver",
         "version",
         "updated_at",
         "updated_by"
@@ -3053,15 +3270,41 @@
       "type": "object",
       "properties": {
         "status": {
-          "const": "not_evaluated"
+          "type": "string",
+          "enum": [
+            "compatible",
+            "incompatible",
+            "unverified"
+          ]
         },
         "reason": {
-          "const": "SCRUM-70"
+          "type": "string"
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "incompatible_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unverified_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "message": {
+          "type": "string"
         }
       },
       "required": [
         "status",
-        "reason"
+        "reason",
+        "reasons",
+        "incompatible_count",
+        "unverified_count",
+        "message"
       ],
       "additionalProperties": true
     },
@@ -3243,19 +3486,68 @@
           "type": "object",
           "properties": {
             "status": {
-              "const": "not_evaluated"
+              "const": "evaluated"
             },
             "total": {
-              "type": "null"
+              "type": "integer",
+              "minimum": 0
             },
-            "reason": {
-              "const": "SCRUM-70"
+            "incompatible": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "unverified": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "by_reason": {
+              "type": "object",
+              "properties": {
+                "category_mismatch": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "missing_driver_categories": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "missing_vehicle_dmc": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "missing_passenger_seats": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "missing_vehicle_requirements": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "category_mismatch",
+                "missing_driver_categories",
+                "missing_vehicle_dmc",
+                "missing_passenger_seats",
+                "missing_vehicle_requirements"
+              ],
+              "additionalProperties": true
+            },
+            "matrix_version": {
+              "type": "string"
+            },
+            "po_confirmed": {
+              "type": "boolean"
             }
           },
           "required": [
             "status",
             "total",
-            "reason"
+            "incompatible",
+            "unverified",
+            "by_reason",
+            "matrix_version",
+            "po_confirmed"
           ],
           "additionalProperties": true
         },
@@ -3304,6 +3596,67 @@
         "total",
         "page",
         "page_size"
+      ],
+      "additionalProperties": true
+    },
+    "AssignmentCompatibility": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "compatible",
+            "incompatible",
+            "unverified"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "required_category": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "accepted_categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "message": {
+          "type": "string"
+        },
+        "historical_warning": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "reason",
+        "reasons",
+        "required_category",
+        "accepted_categories",
+        "message",
+        "historical_warning"
       ],
       "additionalProperties": true
     },
@@ -3387,6 +3740,9 @@
         },
         "start_known": {
           "type": "boolean"
+        },
+        "compatibility": {
+          "$ref": "#/$defs/AssignmentCompatibility"
         }
       },
       "required": [
@@ -3397,7 +3753,8 @@
         "started_at",
         "ended_at",
         "recorded_at",
-        "start_known"
+        "start_known",
+        "compatibility"
       ],
       "additionalProperties": true
     },
@@ -3509,13 +3866,21 @@
           }
         },
         "compatibility": {
-          "const": "not_evaluated"
+          "const": "evaluated"
+        },
+        "matrix_version": {
+          "type": "string"
+        },
+        "po_confirmed": {
+          "type": "boolean"
         }
       },
       "required": [
         "version",
         "items",
-        "compatibility"
+        "compatibility",
+        "matrix_version",
+        "po_confirmed"
       ],
       "additionalProperties": true
     },

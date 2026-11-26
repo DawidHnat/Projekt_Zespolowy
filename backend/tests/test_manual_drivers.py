@@ -53,7 +53,8 @@ def test_profiles_validation_unicode_identity_and_optimistic_edit(logged_in):
     assert first["display_name"] == "Jan Żółć" and first["version"] == 1
     assert first["categories"] == ["B", "C+E"] and first["vehicles_total"] == 0
     assert first["first_vehicle"] is None and not first["needs_completion"]
-    assert first["compatibility"]["status"] == "not_evaluated"
+    assert first["compatibility"]["status"] == "unverified"
+    assert first["compatibility"]["reason"] == "no_active_assignments"
     assert create(client, identifier="STRASSE").status_code == 409
     assert create(client).status_code == 201  # Shared contact is allowed.
     changed = client.patch(
@@ -185,7 +186,9 @@ def test_search_filters_summary_pagination_and_source_scope(logged_in):
         summary["active_unassigned"],
         summary["active_missing_categories"],
     ) == (2, 2, 1, 1)
-    assert summary["assignments_to_check"]["total"] is None
+    assert summary["assignments_to_check"]["status"] == "evaluated"
+    assert summary["assignments_to_check"]["total"] == 1
+    assert summary["assignments_to_check"]["by_reason"]["missing_vehicle_dmc"] == 1
     search = client.post(ROOT + "/search", headers=ORIGIN, json={"q": "STRASSE"})
     assert search.status_code == 200 and search.json()["total"] == 1
     assert search.json()["summary"]["total"] == 1
