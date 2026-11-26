@@ -280,6 +280,7 @@ def archive_vehicle(
             or_(Vehicle.active.is_(True), Vehicle.archived.is_(True)),
         )
         .with_for_update(of=Vehicle)
+        .execution_options(populate_existing=True)
     ).first()
     if not row:
         raise ApiError(404, "NOT_FOUND", "Pojazd nie istnieje")
@@ -289,22 +290,49 @@ def archive_vehicle(
     if vehicle.archived:
         raise ApiError(409, "ALREADY_ARCHIVED", "Pojazd znajduje się już w archiwum")
     now = datetime.now(UTC)
-    active_assignments = session.scalars(
-        select(DriverAssignment)
-        .where(DriverAssignment.vehicle_id == vehicle.id, DriverAssignment.active.is_(True))
-        .order_by(DriverAssignment.id)
-        .with_for_update()
-    ).all()
-    if active_assignments:
-        driver_ids = sorted({item.driver_id for item in active_assignments})
-        for assigned_driver in session.scalars(
-            select(Driver).where(Driver.id.in_(driver_ids)).order_by(Driver.id).with_for_update()
-        ):
-            assigned_driver.version += 1
-        for item in active_assignments:
-            item.active = False
-            item.ended_at = now
-        vehicle.driver_id = None
+    # Canonical lock order shared with driver endpoints: Vehicle -> Driver -> DriverAssignment.
+    candidate_driver_ids = sorted(
+        set(
+            session.scalars(
+                select(DriverAssignment.driver_id).where(
+                    DriverAssignment.vehicle_id == vehicle.id,
+                    DriverAssignment.active.is_(True),
+                )
+            ).all()
+        )
+    )
+    locked_drivers = (
+        {
+            assigned_driver.id: assigned_driver
+            for assigned_driver in session.scalars(
+                select(Driver)
+                .where(Driver.id.in_(candidate_driver_ids))
+                .order_by(Driver.id)
+                .with_for_update()
+                .execution_options(populate_existing=True)
+            )
+        }
+        if candidate_driver_ids
+        else {}
+    )
+    active_assignments = [
+        item
+        for item in session.scalars(
+            select(DriverAssignment)
+            .where(DriverAssignment.vehicle_id == vehicle.id, DriverAssignment.active.is_(True))
+            .order_by(DriverAssignment.id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        ).all()
+        if item.active
+    ]
+    for driver_id in sorted({item.driver_id for item in active_assignments}):
+        if driver_id in locked_drivers:
+            locked_drivers[driver_id].version += 1
+    for item in active_assignments:
+        item.active = False
+        item.ended_at = now
+    vehicle.driver_id = None
     vehicle.archived = True
     vehicle.archived_at = now
     vehicle.archived_by = user.id

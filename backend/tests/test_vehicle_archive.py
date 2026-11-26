@@ -3,13 +3,15 @@
 import os
 import subprocess
 import sys
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, delete, select
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
@@ -18,7 +20,7 @@ from app.core.models import Driver, Measurement, SyncState, Vehicle
 from app.core.settings import Settings
 from app.main import create_app
 from app.modules.analytics.models import Alert, DailyDistance, Rule
-from app.modules.auth.models import User
+from app.modules.auth.models import LoginSession, User
 from app.modules.auth.service import password_hasher
 from app.modules.drivers.models import DriverAssignment
 from app.modules.fleet.sync import account_key, apply_records, sync_once
@@ -304,6 +306,7 @@ def test_postgres_archive_sync_restore_and_migration_downgrade_guard():
     engine = create_engine(url)
     suffix = uuid4().hex
     account = f"archive-pg-{suffix}"
+    username = f"arch-editor-{suffix}"
     webfleet = WebfleetSettings(account, "u", "p", "k")
     source = account_key(account)
     now = datetime.now(UTC).replace(microsecond=0)
@@ -390,10 +393,228 @@ def test_postgres_archive_sync_restore_and_migration_downgrade_guard():
             assert client.get("/api/v1/fleet/vehicles").json()["total"] == 1
     finally:
         with Session(engine) as session:
-            for v in session.scalars(select(Vehicle).where(Vehicle.source_account == source)):
-                v.archived = False
-                v.archived_at = None
-                v.archived_by = None
-                v.archived_reason = None
+            veh_ids = session.scalars(
+                select(Vehicle.id).where(Vehicle.source_account == source)
+            ).all()
+            if veh_ids:
+                session.execute(
+                    delete(DriverAssignment).where(DriverAssignment.vehicle_id.in_(veh_ids))
+                )
+                session.execute(delete(Measurement).where(Measurement.vehicle_id.in_(veh_ids)))
+            session.execute(delete(Vehicle).where(Vehicle.source_account == source))
+            session.execute(delete(Driver).where(Driver.source_account == source))
+            session.execute(delete(SyncState).where(SyncState.source_account == source))
+            test_user_id = session.scalar(select(User.id).where(User.username == username))
+            if test_user_id:
+                session.execute(delete(LoginSession).where(LoginSession.user_id == test_user_id))
+                session.execute(delete(User).where(User.id == test_user_id))
+            session.commit()
+        engine.dispose()
+
+
+def test_postgres_concurrent_archive_with_driver_assign_and_close():
+    url = os.environ.get("TEST_DATABASE_URL")
+    if not url:
+        pytest.skip("Requires an isolated PostgreSQL database")
+    parsed = make_url(url)
+    assert parsed.host in ("127.0.0.1", "localhost")
+    assert parsed.database.startswith("fleet_flow_test")
+
+    migrate = subprocess.run(
+        [sys.executable, "-m", "alembic", "upgrade", "head"],
+        env={**os.environ, "DATABASE_URL": url, "SYNC_ENABLED": "false"},
+        capture_output=True,
+        text=True,
+    )
+    assert migrate.returncode == 0, migrate.stderr
+
+    engine = create_engine(url, pool_size=8, max_overflow=8)
+    suffix = uuid4().hex
+    account = f"archive-race-{suffix}"
+    source = account_key(account)
+    username = f"race-editor-{suffix}"
+    now = datetime.now(UTC).replace(microsecond=0)
+
+    try:
+        with Session(engine) as session:
+            session.add(
+                User(
+                    username=username,
+                    display_name="Edytor współbieżny",
+                    role="editor",
+                    password_hash=password_hasher.hash("synthetic-race-password"),
+                )
+            )
+            session.add(SyncState(source_account=source, last_success_at=now))
+            session.commit()
+
+        app = create_app(Settings(database_url=url, webfleet_account=account), engine=engine)
+        with TestClient(app) as client_a, TestClient(app) as client_b:
+            for cli in (client_a, client_b):
+                res = cli.post(
+                    "/api/v1/auth/login",
+                    headers=ORIGIN,
+                    json={"username": username, "password": "synthetic-race-password"},
+                )
+                assert res.status_code == 200
+
+            # 1) Archive concurrently with POST /drivers/{id}/assignments across two DB sessions.
+            for idx in range(5):
+                with Session(engine) as session:
+                    drv = Driver(
+                        source_account=source,
+                        first_name="Jan",
+                        last_name=f"Assign{idx}",
+                        display_name=f"Jan Assign{idx}",
+                        identifier=f"RACE-A-{idx}-{suffix[:6]}",
+                        active=True,
+                    )
+                    veh = Vehicle(
+                        source_account=source,
+                        external_uid=f"wf-race-a-{idx}",
+                        name=f"Pojazd A{idx}",
+                        license_plate=f"GDA{idx}00",
+                    )
+                    session.add_all([drv, veh])
+                    session.commit()
+                    drv_id, veh_id = str(drv.id), str(veh.id)
+                    veh_uuid, drv_uuid = veh.id, drv.id
+
+                barrier = threading.Barrier(2)
+
+                def do_archive(vid=veh_id, gate=barrier):
+                    gate.wait(timeout=5)
+                    return client_a.post(
+                        f"/api/v1/fleet/vehicles/{vid}/archive",
+                        headers=ORIGIN,
+                        json={"card_version": 1, "reason": "Test współbieżny assign"},
+                    )
+
+                def do_assign(did=drv_id, vid=veh_id, gate=barrier):
+                    gate.wait(timeout=5)
+                    return client_b.post(
+                        f"/api/v1/drivers/{did}/assignments",
+                        headers=ORIGIN,
+                        json={"version": 1, "vehicle_id": vid},
+                    )
+
+                with ThreadPoolExecutor(max_workers=2) as pool:
+                    fut_arch = pool.submit(do_archive)
+                    fut_assign = pool.submit(do_assign)
+                    arch_res = fut_arch.result(timeout=10)
+                    assign_res = fut_assign.result(timeout=10)
+
+                assert arch_res.status_code == 200, arch_res.text
+                assert assign_res.status_code in (201, 409), assign_res.text
+                if assign_res.status_code == 409:
+                    assert assign_res.json()["error"]["code"] == "VEHICLE_ARCHIVED"
+
+                with Session(engine) as session:
+                    refreshed_veh = session.get(Vehicle, veh_uuid)
+                    refreshed_drv = session.get(Driver, drv_uuid)
+                    rows = session.scalars(
+                        select(DriverAssignment).where(DriverAssignment.vehicle_id == veh_uuid)
+                    ).all()
+                    assert refreshed_veh.archived is True
+                    assert refreshed_veh.driver_id is None
+                    assert all(not r.active and r.ended_at is not None for r in rows)
+                    if assign_res.status_code == 201:
+                        assert len(rows) == 1
+                        assert refreshed_drv.version == 3
+                    else:
+                        assert len(rows) == 0
+                        assert refreshed_drv.version == 1
+
+            # 2) Archive concurrently with PATCH /drivers/{id}/assignments/{aid}/close.
+            for idx in range(5):
+                with Session(engine) as session:
+                    drv = Driver(
+                        source_account=source,
+                        first_name="Ewa",
+                        last_name=f"Close{idx}",
+                        display_name=f"Ewa Close{idx}",
+                        identifier=f"RACE-C-{idx}-{suffix[:6]}",
+                        active=True,
+                    )
+                    session.add(drv)
+                    session.flush()
+                    veh = Vehicle(
+                        source_account=source,
+                        external_uid=f"wf-race-c-{idx}",
+                        name=f"Pojazd C{idx}",
+                        license_plate=f"GDC{idx}00",
+                        driver_id=drv.id,
+                    )
+                    session.add(veh)
+                    session.flush()
+                    asgn = DriverAssignment(
+                        driver_id=drv.id,
+                        vehicle_id=veh.id,
+                        active=True,
+                        started_at=now - timedelta(days=1),
+                        recorded_at=now - timedelta(days=1),
+                    )
+                    session.add(asgn)
+                    session.commit()
+                    drv_id, veh_id, asgn_id = str(drv.id), str(veh.id), str(asgn.id)
+                    veh_uuid, drv_uuid = veh.id, drv.id
+
+                barrier = threading.Barrier(2)
+
+                def do_archive_c(vid=veh_id, gate=barrier):
+                    gate.wait(timeout=5)
+                    return client_a.post(
+                        f"/api/v1/fleet/vehicles/{vid}/archive",
+                        headers=ORIGIN,
+                        json={"card_version": 1, "reason": "Test współbieżny close"},
+                    )
+
+                def do_close_c(did=drv_id, aid=asgn_id, gate=barrier):
+                    gate.wait(timeout=5)
+                    return client_b.patch(
+                        f"/api/v1/drivers/{did}/assignments/{aid}/close",
+                        headers=ORIGIN,
+                        json={"version": 1},
+                    )
+
+                with ThreadPoolExecutor(max_workers=2) as pool:
+                    fut_arch = pool.submit(do_archive_c)
+                    fut_close = pool.submit(do_close_c)
+                    arch_res = fut_arch.result(timeout=10)
+                    close_res = fut_close.result(timeout=10)
+
+                assert arch_res.status_code == 200, arch_res.text
+                assert close_res.status_code in (200, 409), close_res.text
+                if close_res.status_code == 409:
+                    assert close_res.json()["error"]["code"] == "CONFLICT"
+
+                with Session(engine) as session:
+                    refreshed_veh = session.get(Vehicle, veh_uuid)
+                    refreshed_drv = session.get(Driver, drv_uuid)
+                    rows = session.scalars(
+                        select(DriverAssignment).where(DriverAssignment.vehicle_id == veh_uuid)
+                    ).all()
+                    assert refreshed_veh.archived is True
+                    assert refreshed_veh.driver_id is None
+                    assert len(rows) == 1
+                    assert rows[0].active is False and rows[0].ended_at is not None
+                    assert refreshed_drv.version == 2
+    finally:
+        with Session(engine) as session:
+            veh_ids = session.scalars(
+                select(Vehicle.id).where(Vehicle.source_account == source)
+            ).all()
+            if veh_ids:
+                session.execute(
+                    delete(DriverAssignment).where(DriverAssignment.vehicle_id.in_(veh_ids))
+                )
+                session.execute(delete(Measurement).where(Measurement.vehicle_id.in_(veh_ids)))
+            session.execute(delete(Vehicle).where(Vehicle.source_account == source))
+            session.execute(delete(Driver).where(Driver.source_account == source))
+            session.execute(delete(SyncState).where(SyncState.source_account == source))
+            test_user_id = session.scalar(select(User.id).where(User.username == username))
+            if test_user_id:
+                session.execute(delete(LoginSession).where(LoginSession.user_id == test_user_id))
+                session.execute(delete(User).where(User.id == test_user_id))
             session.commit()
         engine.dispose()
