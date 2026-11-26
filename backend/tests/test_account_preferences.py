@@ -13,7 +13,15 @@ def _dashboard_value():
         "visibleWidgets": widgets,
         "layouts": {
             "dashboard": {
-                profile: [{**item, "i": widget} for widget in widgets]
+                profile: [
+                    {
+                        **item,
+                        "x": 0,
+                        "w": 12 if profile == "desktop" else 1,
+                        "i": widget,
+                    }
+                    for widget in widgets
+                ]
                 for profile in ("desktop", "compact")
             }
         },
@@ -182,3 +190,130 @@ def test_unbounded_integer_dimensions_are_rejected_without_mutation(logged_in):
     )
     assert response.status_code == 422
     assert client.get("/api/v1/preferences/vehicles").json()["version"] == 0
+
+
+def test_dashboard_preferences_accept_account_appearance_and_map_layouts(logged_in):
+    _, client = logged_in
+    value = _dashboard_value()
+    value.update(
+        {
+            "theme": "dark",
+            "accent": "#123456",
+            "material": "solid",
+            "background": {
+                "kind": "custom",
+                "preset": "city",
+                "veil": 28,
+                "blur": 0,
+                "customId": str(uuid4()),
+            },
+        }
+    )
+    map_widgets = ["map", "vehicles"]
+    value["layouts"]["map"] = {
+        profile: [
+            {
+                "i": widget,
+                "x": index * 6 if profile == "desktop" else 0,
+                "y": 0,
+                "w": 6 if profile == "desktop" else 1,
+                "h": 12,
+            }
+            for index, widget in enumerate(map_widgets)
+        ]
+        for profile in ("desktop", "compact")
+    }
+
+    saved = client.put(
+        "/api/v1/preferences/dashboard",
+        headers=_origin(),
+        json={"version": 0, "value": value},
+    )
+    assert saved.status_code == 200
+    assert saved.json()["value"] == value
+
+    invalid = {**value, "layouts": {**value["layouts"]}}
+    invalid["layouts"]["map"] = {
+        "desktop": [{"i": "metrics", "x": 0, "y": 0, "w": 6, "h": 12}],
+        "compact": [{"i": "metrics", "x": 0, "y": 0, "w": 1, "h": 12}],
+    }
+    response = client.put(
+        "/api/v1/preferences/dashboard",
+        headers=_origin(),
+        json={"version": 1, "value": invalid},
+    )
+    assert response.status_code == 422
+    assert client.get("/api/v1/preferences/dashboard").json()["version"] == 1
+
+
+def test_custom_background_is_private_bounded_and_deletable(logged_in):
+    app, client = logged_in
+    image_id = uuid4()
+    image = b"RIFF" + (8).to_bytes(4, "little") + b"WEBP"
+    headers = {**_origin(), "Content-Type": "image/webp"}
+    uploaded = client.put(
+        f"/api/v1/preferences/background/{image_id}",
+        headers=headers,
+        content=image,
+    )
+    assert uploaded.status_code == 200
+    assert uploaded.json() == {"id": str(image_id)}
+
+    downloaded = client.get(f"/api/v1/preferences/background/{image_id}")
+    assert downloaded.status_code == 200
+    assert downloaded.headers["content-type"] == "image/webp"
+    assert downloaded.content == image
+
+    with app.state.sessions() as session:
+        session.add(
+            User(
+                id=uuid4(),
+                username="other-background-user",
+                display_name="Other",
+                role="editor",
+                password_hash=password_hasher.hash("synthetic-test-password"),
+            )
+        )
+        session.commit()
+    other = TestClient(app)
+    try:
+        assert _login(other, "other-background-user").status_code == 200
+        assert other.get(f"/api/v1/preferences/background/{image_id}").status_code == 404
+        assert (
+            other.put(
+                f"/api/v1/preferences/background/{image_id}",
+                headers=headers,
+                content=image,
+            ).status_code
+            == 409
+        )
+    finally:
+        other.close()
+
+    assert (
+        client.delete(
+            f"/api/v1/preferences/background/{image_id}",
+            headers=_origin(),
+        ).status_code
+        == 204
+    )
+    assert client.get(f"/api/v1/preferences/background/{image_id}").status_code == 404
+
+
+def test_custom_background_rejects_wrong_content_and_oversized_upload_without_mutation(logged_in):
+    _, client = logged_in
+    image_id = uuid4()
+    wrong_type = client.put(
+        f"/api/v1/preferences/background/{image_id}",
+        headers={**_origin(), "Content-Type": "image/png"},
+        content=b"not-webp",
+    )
+    assert wrong_type.status_code == 415
+
+    oversized = client.put(
+        f"/api/v1/preferences/background/{image_id}",
+        headers={**_origin(), "Content-Type": "image/webp"},
+        content=b"RIFF" + (8).to_bytes(4, "little") + b"WEBP" + b"x" * (8 * 1024 * 1024),
+    )
+    assert oversized.status_code == 413
+    assert client.get(f"/api/v1/preferences/background/{image_id}").status_code == 404

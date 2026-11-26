@@ -265,8 +265,7 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
         status,
         page,
         pageSize,
-        preferencesLoading:
-          preferences.cloud.loading || preferences.cloud.migrationAvailable,
+        preferencesLoading: preferences.cloud.loading,
         selectedId,
         selected: selected?.id === selectedId ? selected : null,
         detailsLoading: detailRequest?.id === selectedId && detailRequest.loading,

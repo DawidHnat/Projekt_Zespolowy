@@ -1,4 +1,4 @@
-import { api } from "./client";
+import { api, apiResponse } from "./client";
 
 export type PreferenceModule = "dashboard" | "vehicles";
 export type AccountPreference<T> = {
@@ -24,4 +24,21 @@ export function writeAccountPreference<T>(
     method: "PUT",
     body: JSON.stringify({ version, value }),
   });
+}
+
+export async function readAccountBackgroundImage(id: string, signal?: AbortSignal) {
+  const response = await apiResponse(`/preferences/background/${id}`, { signal });
+  return response.blob();
+}
+
+export async function writeAccountBackgroundImage(id: string, image: Blob) {
+  await apiResponse(`/preferences/background/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "image/webp" },
+    body: image,
+  });
+}
+
+export async function deleteAccountBackgroundImage(id: string) {
+  await apiResponse(`/preferences/background/${id}`, { method: "DELETE" });
 }

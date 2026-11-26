@@ -107,8 +107,13 @@ for (const theme of ["light", "dark"]) {
   test(`axe alerts and rule editor ${theme}`, async ({ page }) => {
     fixture("alerts-case", "single");
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.addInitScript(value => localStorage.setItem("fleet-flow.dashboard.v2", JSON.stringify({ theme: value })), theme);
     await login(page);
+    await page.goto("/#settings");
+    await page.getByRole("button", {
+      name: theme === "dark" ? "Ciemny" : "Jasny",
+      exact: true,
+    }).click();
+    await page.goto("/#alerts");
     await expect(rows(page).getByRole("listitem")).toHaveCount(1);
     const accessible = async () => expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
     await accessible();

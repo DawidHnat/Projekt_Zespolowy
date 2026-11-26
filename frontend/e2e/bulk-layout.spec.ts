@@ -76,8 +76,11 @@ async function fleet(page: Page, legacy = false) {
   }, { userId: user.id, first: id(1), second: id(11) });
   await page.reload();
   if (legacy) {
-    await page.getByRole("button", { name: "Przenieś z tej przeglądarki", exact: true }).click();
+    await page.goto("/#settings");
+    await page.getByRole("button", { name: /Układ i moduły/ }).click();
+    await page.getByRole("button", { name: "Importuj ustawienia pojazdów", exact: true }).click();
     await expect.poll(async () => (await savedPreferences(page))?.layout?.sizes?.[id(1)]).toEqual({ width: 400, height: 500 });
+    await page.goto("/#vehicles");
   }
   await expect(card(page, 1)).toBeVisible();
   await expect(search(page)).toBeEnabled();

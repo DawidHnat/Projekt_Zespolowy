@@ -178,7 +178,7 @@ export function VehicleCardsPage() {
           <select
             aria-label="Sortowanie pojazdów"
             value={p.sort}
-            disabled={p.cloud.loading || p.cloud.migrationAvailable}
+            disabled={p.cloud.loading}
             onChange={(event) => {
               p.updateSort(event.target.value as typeof p.sort);
               f.setPage(1);
@@ -202,11 +202,6 @@ export function VehicleCardsPage() {
           <span>
             Zdjęcia: tylko na tym urządzeniu i w tej przeglądarce. Układ zapisujesz na swoim koncie.
           </span>
-          {!p.persistent && (
-            <span role="status">
-              Układ działa w tej sesji — zapis przeglądarki jest niedostępny.
-            </span>
-          )}
         </div>
       </div>
       {!f.list?.items.length ? (

@@ -19,10 +19,9 @@ export function VehicleLayoutEditorControls() {
         loading={p.cloud.loading}
         error={p.cloud.error}
         saving={p.saving}
-        migrationAvailable={p.cloud.migrationAvailable}
+        migrationAvailable={false}
         conflict={p.cloud.conflict}
-        onImport={() => void p.chooseMigration(true)}
-        onDefaults={() => void p.chooseMigration(false)}
+        onRetry={() => void p.retrySave()}
         onReload={() => p.resolveConflict("reload")}
         onOverwrite={() => void p.resolveConflict("overwrite")}
       />
@@ -54,7 +53,7 @@ export function VehicleLayoutEditorControls() {
           onSave={() => void p.save()}
           onCancel={p.cancel}
           onReset={p.reset}
-          disabled={p.cloud.loading || p.cloud.migrationAvailable}
+          disabled={p.cloud.loading}
           saving={p.saving}
         />
       </div>

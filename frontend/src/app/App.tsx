@@ -35,6 +35,7 @@ import { VehicleDetailsDialog } from "../features/fleet/components/VehicleDetail
 import { AccountPreferenceNotice } from "../shared/components/AccountPreferenceNotice";
 import { AlertsPage } from "../features/analytics/components/AlertsPage";
 import { DriversPage } from "../features/drivers/DriversPage";
+import { useVehiclePreferences } from "../features/fleet/model/VehiclePreferences";
 
 const readSection = () => sectionFromHash(window.location.hash);
 
@@ -42,7 +43,13 @@ export function App() {
   const auth = useAuth();
   const [logoutError, setLogoutError] = useState(false);
   const settings = useDashboardPreferences();
-  const backgroundMedia = useBackgroundImage();
+  const vehicles = useVehiclePreferences();
+  const backgroundMedia = useBackgroundImage(
+    auth.user?.id,
+    settings.preferences.background.kind === "custom"
+      ? settings.preferences.background.customId
+      : null,
+  );
   const wallpaper = backgroundSource(
     settings.preferences.background,
     backgroundMedia,
@@ -58,6 +65,11 @@ export function App() {
     setSettingsCategory(category);
     window.location.hash = "settings";
     setSidebarOpen(false);
+  };
+  const importDashboardPreferences = async () => {
+    const imageId = settings.migrationBackgroundId;
+    if (imageId && !(await backgroundMedia.importLegacy(imageId))) return;
+    await settings.chooseMigration();
   };
   useEffect(() => {
     const handleHash = () => {
@@ -255,20 +267,19 @@ export function App() {
               loading={settings.cloud.loading}
               error={settings.cloud.error}
               saving={settings.cloud.saving}
-              migrationAvailable={settings.cloud.migrationAvailable}
+              migrationAvailable={
+                section === "settings" && settings.cloud.migrationAvailable
+              }
               conflict={settings.cloud.conflict}
-              onImport={() => void settings.chooseMigration(true)}
-              onDefaults={() => void settings.chooseMigration(false)}
+              onImport={() => void importDashboardPreferences()}
+              onRetry={() => void settings.retrySave()}
               onReload={() => {
                 settings.reloadRemoteArrangement();
                 editor.cancel("dashboard");
               }}
               onOverwrite={() => {
                 if (editor.drafts.dashboard) void editor.overwriteDashboard();
-                else void settings.saveArrangement({
-                  visibleWidgets: settings.preferences.visibleWidgets,
-                  layouts: { dashboard: settings.preferences.layouts.dashboard },
-                }, true);
+                else void settings.overwriteCurrent();
               }}
             />
           )}
@@ -300,8 +311,7 @@ export function App() {
                   editableView === "dashboard" &&
                   (
                     settings.cloud.loading ||
-                    settings.cloud.saving ||
-                    settings.cloud.migrationAvailable
+                    settings.cloud.saving
                   )
                 }
                 saving={editableView === "dashboard" && settings.cloud.saving}
@@ -371,7 +381,7 @@ export function App() {
               category={settingsCategory}
               onCategory={setSettingsCategory}
               preferences={effective}
-              persistent={settings.persistent}
+              saving={settings.cloud.saving}
               editing={Boolean(editor.drafts.dashboard)}
               backgroundMedia={backgroundMedia}
               onBackgroundChange={(background) =>
@@ -391,12 +401,22 @@ export function App() {
               onToggle={editor.toggleWidget}
               onReset={editor.resetAll}
               modulesDisabled={
-                settings.cloud.loading || settings.cloud.migrationAvailable
-                || settings.cloud.saving
+                settings.cloud.loading || settings.cloud.saving
               }
               resetDisabled={
-                settings.cloud.loading || settings.cloud.migrationAvailable
-                || settings.cloud.saving
+                settings.cloud.loading || settings.cloud.saving
+              }
+              controlsDisabled={settings.cloud.loading}
+              vehicleMigrationAvailable={vehicles.cloud.migrationAvailable}
+              onImportVehiclePreferences={() => void vehicles.chooseMigration()}
+              vehiclePreferenceError={vehicles.cloud.error}
+              vehiclePreferenceLoading={vehicles.cloud.loading}
+              vehiclePreferenceSaving={vehicles.saving}
+              vehiclePreferenceConflict={vehicles.cloud.conflict}
+              onRetryVehiclePreferences={() => void vehicles.retrySave()}
+              onReloadVehiclePreferences={() => vehicles.resolveConflict("reload")}
+              onOverwriteVehiclePreferences={() =>
+                void vehicles.resolveConflict("overwrite")
               }
             />
           ) : (

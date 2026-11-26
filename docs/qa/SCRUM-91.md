@@ -79,20 +79,26 @@ Końcowy niezależny QA poniższych AC nadal ma własny zakres i SHA.
 3. Zapisz zmianę B, wróć do niezależnego kontekstu A i sprawdź, że wartość A
    pozostała niezmieniona. Nie zapisuj tożsamości kont w raporcie.
 
-### E. Świadoma migracja `localStorage`
+### E. Jawny import starych ustawień — aktualizacja SCRUM-148
 
-1. W świeżym, odizolowanym profilu przygotuj istniejące ustawienia lokalne
-   przed logowaniem. Przy koncie bez preferencji sprawdź prompt migracji;
-   backend przed wyborem ma nadal zwracać wersję `0` i `value: null`.
-2. Wykonaj jawnie każdą decyzję w osobnym przebiegu: **Przenieś z tej
-   przeglądarki** oraz **Użyj domyślnych konta**. Sprawdź zapis i nową wersję.
-3. Dla konta z nowszą wartością w backendzie przygotuj różną wartość lokalną.
-   Prompt nie może zastąpić wartości konta ani pokazać ustawień poprzedniego
-   użytkownika. Samo odświeżenie i automatyczny polling nie są zgodą na import.
-4. Sprawdź także pierwsze logowanie A, kiedy odczyt ustawień zwraca błąd
-   albo zostaje przerwany przez wylogowanie. Bez przeładowania strony zaloguj B:
-   B ma własny domyślny układ, bez propozycji importu ustawień A. Po powrocie
-   na A jawny import jego lokalnego układu nadal jest dostępny i działa.
+1. W świeżym, odizolowanym profilu przygotuj stare ustawienia localStorage
+   przed logowaniem. Zwykłe logowanie ma pokazać ustawienia konta lub domyślne,
+   bez komunikatu ani blokady importu. API przed importem nadal zwraca wersję
+   `0` i `value: null`.
+2. Przejdź do **Ustawienia → Układ i moduły** i jawnie wybierz import. Sprawdź,
+   że zapis używa wersji `0`, obejmuje pola możliwe do migracji i odtwarza się
+   po odświeżeniu. Import Pojazdów jest osobną akcją w tym samym widoku.
+3. Dla konta z nowszą wartością w backendzie przygotuj różne stare ustawienia.
+   Nie pokazuj importu i nie zastępuj wartości konta. Samo odświeżenie ani
+   automatyczny zapis kolejnej zmiany nie może importować starego kandydata.
+4. Sprawdź pierwsze logowanie A, kiedy odczyt ustawień zwraca błąd albo zostaje
+   przerwany przez wylogowanie. Bez przeładowania strony zaloguj B: B ma
+   ustawienia domyślne, bez kandydata A. Po powrocie na A import może być
+   dostępny wyłącznie w Ustawieniach.
+5. Zapisz własne tło jako WebP, sprawdź chronione odczytanie przez
+   `/api/v1/preferences/background/{id}` w drugim kontekście tego samego konta,
+   brak dostępu drugiego konta oraz usunięcie. Zdjęcia pojazdów nadal są
+   lokalne i nie są objęte tym API.
 
 ## API i istniejące testy
 
@@ -110,9 +116,10 @@ tokeny lub pełne nagłówki.
 Regresje automatyczne:
 
 * `backend/tests/test_account_preferences.py` — izolacja kont/modułów,
-  compare-and-swap, Origin i granice wymiarów;
-* `frontend/e2e/critical-flow.spec.ts` — dwa konteksty, konflikt, przełączenie
-  konta, migracja i zapis;
+  compare-and-swap, Origin, tapeta konta i granice wymiarów;
+* `frontend/e2e/account-preferences.spec.ts` i
+  `frontend/e2e/critical-flow.spec.ts` — dwa konteksty, konflikt, przełączenie
+  konta, jawny import i zapis;
 * `frontend/tests/dashboard-preferences.test.mjs` oraz
   `frontend/tests/bulk-layout-pagination.test.mjs` — model układu i rozmiarów.
 

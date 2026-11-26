@@ -136,16 +136,17 @@ Zmiany wartości React, limitów i przycisków skrótów synchronizują się z t
 samą instancją; stan daty nie jest zapisywany w preferencjach wyglądu.
 
 `app/preference-model.ts` waliduje `theme`, `accent`, `material`, `background`,
-`visibleWidgets` i `layouts`. `app/preferences.tsx` zachowuje lokalny zapis
-`fleet-flow.dashboard.v2`; odczyt starszego klucza v1 zachowuje motyw,
-akcent i widoczność. Wygląd, tło i układ Mapy pozostają lokalne. Widoczność
-modułów oraz układ Pulpitu są dodatkowo zapisywane w backendowym module
-`dashboard` dla zalogowanego konta przez `shared/api/account-preferences.ts`;
-zapis lokalny jest kopią roboczą i nie może przejść na inne konto.
-SCRUM-91 wymaga jawnego wyboru przy migracji starego localStorage na puste konto;
-import używa wersji 0 i nie nadpisuje istniejących preferencji. Zapis ma kontrolę
-wersji, konflikt z wyborem ponownego wczytania lub świadomego zapisu oraz jawny
-błąd. Zablokowany lokalny zapis działa w pamięci sesji; nie zastępuje wyniku API.
+`visibleWidgets` i `layouts`. Zalogowane konto jest źródłem preferencji:
+moduł `dashboard` zapisuje wygląd, tło, widoczność modułów oraz układ Pulpitu
+i Mapy, a moduł `vehicles` zapisuje rozmiary, sortowanie, filtry i limit listy.
+Brak zapisu API oznacza ustawienia domyślne; zwykłe logowanie nie odczytuje
+preferencji z globalnego klucza localStorage.
+
+Stare zapisy są dostępne do jednorazowego, świadomego importu w Ustawieniach.
+Kandydat migracji jest przypisany do pierwszego konta, a import używa wersji 0
+i nie może nadpisać istniejących ustawień konta. Nie pokazuj wyboru migracji
+podczas logowania. Zapis API ma kontrolę wersji, konflikt z wyborem ponownego
+wczytania lub jawnego nadpisania oraz komunikaty o błędzie i ponowieniu.
 Nieznane ID, duplikaty i niepoprawne rozmiary są odrzucane lub ograniczane.
 Ukrycie wszystkich modułów jest dozwolone; można je ponownie włączyć.
 
@@ -158,11 +159,10 @@ sekcji planowanych. Logikę tych funkcji dodajemy w osobnych zadaniach.
 Nawigacja pobiera oznaczenie „Planowane” z obecności `placeholder` w rejestrze;
 to samo oznaczenie jest na stronie sekcji. Po implementacji usuń `placeholder`
 i podłącz rzeczywisty widok. Nie zmieniaj przy tym trwałego ID sekcji.
-Ustawienia, galeria pojazdów i dodawanie zdjęć jawnie informują o zapisie
-tylko na urządzeniu i w danej przeglądarce. Układ Pulpitu i Pojazdów zapisuje się
-na koncie; komunikaty muszą odróżniać te dwa zakresy. Zdjęcia pojazdów są dodatkowo
-rozdzielone według konta, a preferencje dashboardu i jego tło należą do
-przeglądarki. Nie obiecuj synchronizacji zdjęć, tła ani układu Mapy między urządzeniami.
+Układ pojazdów i zdjęcia pojazdów mają różne zakresy: układ jest na koncie,
+a zdjęcia pojazdów pozostają lokalne dla urządzenia i konta. Wygląd, tło,
+układ Mapy oraz filtry Pojazdów są preferencjami konta i odtwarzają się na
+innych urządzeniach. Nie obiecuj synchronizacji lokalnych zdjęć pojazdów.
 
 Rejestr stron jest niezależny od `SectionId` i grup zapisanych w preferencjach układu.
 Stare grupy `fleet`, `trips`, `analytics` pozostają w modelu, aby zachować
@@ -213,7 +213,7 @@ Moduł konta `vehicles` przechowuje w backendzie układ kafelków, sortowanie,
 filtry i limit strony. Odczyt oraz wersjonowany zapis są izolowane według konta
 i modułu; nie nadpisują otwartego szkicu. Starszy localStorage
 `fleet-flow.vehicles.v2.<user-id>` oraz `fleet-flow.list-page-size.v1.<user-id>`
-są źródłem jawnej migracji i lokalną kopią układu. IndexedDB
+są wyłącznie źródłem jawnej migracji, nie aktywną kopią układu. IndexedDB
 `fleet-flow.vehicle-photos.v1` nadal przechowuje wyłącznie lokalne zdjęcia
 i nie są one współdzielone z kontem. Wylogowanie zwalnia URL-e
 obiektowe; podmiana i usunięcie zdjęcia też je zwalniają. Upload zapisuje się
@@ -353,17 +353,20 @@ z localStorage. Galeria korzysta z lokalnych zdjęć i gradientów CSS;
 pochodzenie i prompty są w `frontend/public/backgrounds/README.md`.
 
 `background-image.ts` dekoduje plik JPG/PNG/WebP, ogranicza rozmiar do 10 MB,
-40 megapikseli i 2560 px na dłuższym boku. Canvas zapisuje nowy bitmapowy
-obraz bez metadanych oryginału. Blob trafia do IndexedDB `fleet-flow.media.v1`,
-do pojedynczego wpisu `custom`. URL obiektowy jest zwalniany po zmianie
-obrazu lub odmontowaniu. Preferencje przechowują UUID, a nie obraz.
+40 megapikseli i 2560 px na dłuższym boku. Canvas zapisuje nowy obraz WebP bez
+metadanych oryginału. Blob własnego tła jest wysyłany do chronionego API i
+trwale przechowywany per konto w PostgreSQL (maks. 8 MB); ustawienie konta
+przechowuje UUID obrazu. `GET`, `PUT` i `DELETE /api/v1/preferences/background/{id}`
+wymagają sesji, a zapis/usunięcie sprawdza Origin. Oryginalna nazwa pliku nie
+jest wysyłana. Lokalny wpis IndexedDB pozostaje wyłącznie źródłem do jawnego
+importu starej tapety.
 
 `useBackgroundImage` zarządza odtworzeniem, przygotowaniem i usunięciem
 obrazu; `BackgroundPicker` odpowiada za wybór i kontrolki. Błąd dekodowania
-nie usuwa wcześniejszego zdjęcia. Błąd zapisu pozwala używać nowego obrazu
-w sesji. UUID zapobiega przywróceniu starszego zdjęcia po nieudanym zapisie.
-Brak blobu pozostawia zwykłe tło i możliwość ponownego dodania obrazu.
-Reset przywraca preferencje, a przycisk usuwania osobno kasuje zapisany blob.
+lub zapisu nie usuwa wcześniejszego zdjęcia ani nie udaje synchronizacji.
+URL obiektowy jest zwalniany po zmianie obrazu lub odmontowaniu. Brak blobu
+pozostawia czytelny stan błędu i możliwość ponownego dodania obrazu. Reset
+zmienia preferencję; przycisk usuwania osobno kasuje zapisany blob.
 
 ### Szkło i czytelność
 

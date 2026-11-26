@@ -7,8 +7,8 @@ type Props<T> = {
   saving?: boolean;
   migrationAvailable: boolean;
   conflict: AccountPreference<T> | null;
-  onImport: () => void;
-  onDefaults: () => void;
+  onImport?: () => void;
+  onRetry?: () => void;
   onReload: () => void;
   onOverwrite: () => void;
 };
@@ -21,26 +21,36 @@ export function AccountPreferenceNotice<T>({
   migrationAvailable,
   conflict,
   onImport,
-  onDefaults,
+  onRetry,
   onReload,
   onOverwrite,
 }: Props<T>) {
   return (
     <div className="account-preference-notice">
       {loading && <p role="status">Pobieranie zapisanych ustawień: {title}…</p>}
-      {error && <p role="alert">{error}</p>}
+      {saving && <p role="status">Zapisywanie ustawień {title} na koncie…</p>}
+      {error && (
+        <div role="alert">
+          <p>{error}</p>
+          {onRetry && !conflict && (
+            <button type="button" onClick={onRetry} disabled={saving}>
+              Ponów zapis
+            </button>
+          )}
+        </div>
+      )}
       {migrationAvailable && (
         <section aria-label={`Migracja ustawień: ${title}`}>
           <p>
-            Znaleziono ustawienia {title} zapisane w tej przeglądarce. Wybierz,
-            czy przenieść je na konto, czy zacząć od ustawień domyślnych.
+            Znaleziono stare ustawienia {title} z tej przeglądarki. Możesz
+            zaimportować je jednorazowo; istniejące ustawienia konta nie zostaną
+            nadpisane.
           </p>
-          <button type="button" onClick={onImport} disabled={saving}>
-            Przenieś z tej przeglądarki
-          </button>
-          <button type="button" onClick={onDefaults} disabled={saving}>
-            Użyj domyślnych konta
-          </button>
+          {onImport && (
+            <button type="button" onClick={onImport} disabled={saving || loading}>
+              Importuj stare ustawienia
+            </button>
+          )}
         </section>
       )}
       {conflict && (

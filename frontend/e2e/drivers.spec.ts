@@ -409,18 +409,17 @@ for (const theme of ["light", "dark"]) {
   }) => {
     fixture("drivers-case");
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.addInitScript(
-      (value) =>
-        localStorage.setItem(
-          "fleet-flow.dashboard.v2",
-          JSON.stringify({
-            theme: value,
-            material: value === "light" ? "solid" : "glass",
-          }),
-        ),
-      theme,
-    );
     await login(page);
+    await page.goto("/#settings");
+    await page.getByRole("button", {
+      name: theme === "dark" ? "Ciemny" : "Jasny",
+      exact: true,
+    }).click();
+    await page.getByRole("button", {
+      name: theme === "light" ? "Klasyczny" : "Szkło",
+      exact: true,
+    }).click();
+    await page.goto("/#drivers");
     await expect(
       page.getByRole("button", { name: "Anna Test00", exact: true }),
     ).toBeVisible();

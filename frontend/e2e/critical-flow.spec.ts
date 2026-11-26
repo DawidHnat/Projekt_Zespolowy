@@ -151,10 +151,14 @@ test("dashboard preferences stay isolated when switching accounts in one browser
   }, localSettings);
   await login(page);
   await page.evaluate(() => { window.location.hash = "#dashboard"; });
+  await expect(page.locator("[data-widget]")).toHaveCount(6);
+  await expect(page.getByRole("region", { name: "Migracja ustawień: Pulpit" })).toHaveCount(0);
+  await page.evaluate(() => { window.location.hash = "#settings"; });
+  await page.getByRole("button", { name: /Układ i moduły/ }).click();
   const migration = page.getByRole("region", { name: "Migracja ustawień: Pulpit" });
   await expect(migration).toBeVisible();
   await migration.getByRole("button", {
-    name: "Przenieś z tej przeglądarki",
+    name: "Importuj stare ustawienia",
     exact: true,
   }).click();
   await expect.poll(async () => {
@@ -303,12 +307,15 @@ for (const initialRead of ["failed", "cancelled"] as const) {
       await page.evaluate(() => { window.location.hash = "#dashboard"; });
       await expect(page.getByText("Pobieranie zapisanych ustawień: Pulpit…")).toHaveCount(0);
       await expect(page.locator("[data-widget]")).toHaveCount(6);
+      await page.goto("/#settings");
+      await page.getByRole("button", { name: /Układ i moduły/ }).click();
       const migration = page.getByRole("region", { name: "Migracja ustawień: Pulpit" });
       await expect(migration).toHaveCount(0);
       expect(await (await page.request.get("/api/v1/preferences/dashboard")).json()).toMatchObject({
         version: 0,
         value: null,
       });
+      await page.goto("/#dashboard");
       await page.getByRole("button", { name: "Edytuj układ", exact: true }).click();
       await page.getByRole("button", { name: "Zapisz układ", exact: true }).click();
       await expect.poll(async () => {
@@ -318,8 +325,10 @@ for (const initialRead of ["failed", "cancelled"] as const) {
 
       await logout();
       await loginWithoutReload("editor");
+      await page.goto("/#settings");
+      await page.getByRole("button", { name: /Układ i moduły/ }).click();
       await expect(migration).toBeVisible();
-      await migration.getByRole("button", { name: "Przenieś z tej przeglądarki", exact: true }).click();
+      await migration.getByRole("button", { name: "Importuj stare ustawienia", exact: true }).click();
       await expect.poll(async () => {
         const { value } = await (await page.request.get("/api/v1/preferences/dashboard")).json();
         return value?.visibleWidgets;
@@ -331,7 +340,7 @@ for (const initialRead of ["failed", "cancelled"] as const) {
   });
 }
 
-test("local dashboard settings require explicit migration and cannot replace account settings", async ({ page, browser }) => {
+test("legacy preferences are imported only from Settings and cannot overwrite account settings", async ({ page, browser }) => {
   const widgets = ["metrics", "map", "activity", "vehicles", "utilization", "trips"];
   const localSettings = {
     theme: "light",
@@ -352,19 +361,20 @@ test("local dashboard settings require explicit migration and cannot replace acc
   }, { key: "fleet-flow.dashboard.v2", value: localSettings });
   await login(page);
   await page.evaluate(() => { window.location.hash = "#dashboard"; });
-  const migration = page.getByRole("region", { name: "Migracja ustawień: Pulpit" });
-  await expect(migration).toBeVisible();
+  await expect(page.locator("[data-widget]")).toHaveCount(6);
+  await expect(page.getByRole("region", { name: "Migracja ustawień: Pulpit" })).toHaveCount(0);
   await page.reload();
   await page.evaluate(() => { window.location.hash = "#dashboard"; });
-  await expect(migration).toBeVisible();
-  await page.evaluate(() => { window.location.hash = "#dashboard"; });
-  await expect(page.getByRole("button", { name: "Edytuj układ", exact: true })).toBeDisabled();
+  await expect(page.locator("[data-widget]")).toHaveCount(6);
+  await expect(page.getByRole("button", { name: "Edytuj układ", exact: true })).toBeEnabled();
   await page.evaluate(() => { window.location.hash = "#settings"; });
   await page.getByRole("button", { name: /Układ i moduły/ }).click();
-  await expect(page.getByRole("checkbox", { name: "Pokaż moduł: Pojazdy", exact: true })).toBeDisabled();
+  const migration = page.getByRole("region", { name: "Migracja ustawień: Pulpit" });
+  await expect(migration).toBeVisible();
+  await expect(page.getByRole("checkbox", { name: "Pokaż moduł: Pojazdy", exact: true })).toBeEnabled();
   const beforeMigration = await page.request.get("/api/v1/preferences/dashboard");
   expect((await beforeMigration.json()).version).toBe(0);
-  await migration.getByRole("button", { name: "Przenieś z tej przeglądarki", exact: true }).click();
+  await migration.getByRole("button", { name: "Importuj stare ustawienia", exact: true }).click();
   await expect.poll(async () => {
     const response = await page.request.get("/api/v1/preferences/dashboard");
     const { version, value } = await response.json();
@@ -392,7 +402,12 @@ test("local dashboard settings require explicit migration and cannot replace acc
       value: { ...localSettings, visibleWidgets: ["trips"] },
     });
     await login(secondPage);
+    await secondPage.goto("/#settings");
+    await secondPage.getByRole("button", { name: /Układ i moduły/ }).click();
     await expect(secondPage.getByRole("region", { name: "Migracja ustawień: Pulpit" })).toHaveCount(0);
+    await secondPage.goto("/#dashboard");
+    await expect(secondPage.locator("[data-widget]")).toHaveCount(1);
+    await expect(secondPage.locator('[data-widget="metrics"]')).toBeVisible();
     const remote = await secondPage.request.get("/api/v1/preferences/dashboard");
     expect((await remote.json()).value.visibleWidgets).toEqual(["metrics"]);
   } finally {
@@ -404,20 +419,20 @@ test("local dashboard settings require explicit migration and cannot replace acc
     localStorage.setItem(`fleet-flow.list-page-size.v1.${userId}`, "10");
   }, id);
   await page.reload();
-  await page.evaluate(() => { window.location.hash = "#vehicles"; });
-  const vehicleMigration = page.getByRole("region", { name: "Migracja ustawień: Pojazdy" });
+  await page.evaluate(() => { window.location.hash = "#settings"; });
+  await page.getByRole("button", { name: /Układ i moduły/ }).click();
   const pageSize = page.getByRole("combobox", { name: "Elementów na stronę: pojazdy", exact: true });
-  await expect(vehicleMigration).toBeVisible();
-  await expect(pageSize).toHaveValue("10");
-  await expect(pageSize).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Importuj ustawienia pojazdów", exact: true })).toBeVisible();
   const beforeVehicleMigration = await page.request.get("/api/v1/preferences/vehicles");
   expect((await beforeVehicleMigration.json()).version).toBe(0);
-  await vehicleMigration.getByRole("button", { name: "Przenieś z tej przeglądarki", exact: true }).click();
+  await page.getByRole("button", { name: "Importuj ustawienia pojazdów", exact: true }).click();
   await expect.poll(async () => {
     const response = await page.request.get("/api/v1/preferences/vehicles");
     const { version, value } = await response.json();
     return [version, value?.pageSize];
   }).toEqual([1, 10]);
+  await page.goto("/#vehicles");
+  await expect(pageSize).toHaveValue("10");
 });
 
 test("login, filter, map API and fallback, details, durable annotation, logout", async ({ page }) => {
@@ -1036,9 +1051,6 @@ async function accessible(page: Page, state: string) {
 for (const theme of ["light", "dark"]) {
   test(`axe ${theme}: login, list, map fallback, details, annotation and error`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.addInitScript(value => {
-      localStorage.setItem("fleet-flow.dashboard.v2", JSON.stringify({ theme: value }));
-    }, theme);
     await page.goto("/#vehicles");
     await expect(page.getByLabel("Login", { exact: true })).toBeVisible();
     await accessible(page, "login");
@@ -1048,6 +1060,12 @@ for (const theme of ["light", "dark"]) {
     await expect(page.getByRole("alert")).toBeVisible();
     await accessible(page, "login error");
     await login(page);
+    await page.goto("/#settings");
+    await page.getByRole("button", {
+      name: theme === "dark" ? "Ciemny" : "Jasny",
+      exact: true,
+    }).click();
+    await page.goto("/#vehicles");
     await expect(page.getByRole("heading", { name: "Pojazd E2E", exact: true })).toBeVisible();
     await accessible(page, "vehicle list: stopped");
     for (const status of ["moving", "offline", "unknown"] as const) {
@@ -1148,12 +1166,14 @@ test("multiple manual drivers are represented without an arbitrary primary drive
   await page.screenshot({ path: test.info().outputPath("multiple-drivers.png") });
 });
 for (const theme of ["light", "dark"]) {
-  test(`planned modules and local-only data ${theme}`, async ({ page }) => {
+  test(`planned modules and account preferences ${theme}`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.addInitScript(value => {
-      localStorage.setItem("fleet-flow.dashboard.v2", JSON.stringify({ theme: value }));
-    }, theme);
     await login(page);
+    await page.goto("/#settings");
+    await page.getByRole("button", {
+      name: theme === "dark" ? "Ciemny" : "Jasny",
+      exact: true,
+    }).click();
     const openMenu = async () => {
       const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
       if (await menu.isVisible()) await menu.click();
@@ -1172,12 +1192,12 @@ for (const theme of ["light", "dark"]) {
     }
     await openMenu();
     await page.getByRole("link", { name: "Ustawienia", exact: true }).click();
-    await expect(page.getByText(/Wygląd, tło i układ Mapy zapisują się tylko w tej przeglądarce/)).toBeVisible();
+    await expect(page.getByText(/Wygląd, tło, układy i zapisane filtry są powiązane z Twoim kontem/)).toBeVisible();
     await page.getByRole("navigation", { name: "Kategorie ustawień" }).getByRole("button", { name: /^Tło(?: |$)/ }).click();
     await page.getByRole("button", { name: "Własne", exact: true }).click();
-    await expect(page.getByText(/Tylko na tym urządzeniu i w tej przeglądarce\. Nie wysyłamy zdjęcia/)).toBeVisible();
-    await accessible(page, "local background and settings");
-    await page.screenshot({ path: test.info().outputPath(`local-settings-${theme}.png`) });
+    await expect(page.getByText(/Własne tło jest zapisane na koncie i dostępne na innych urządzeniach/)).toBeVisible();
+    await accessible(page, "account background and settings");
+    await page.screenshot({ path: test.info().outputPath(`account-settings-${theme}.png`) });
     await openMenu();
     await page.getByRole("navigation", { name: "Sekcje aplikacji" }).getByRole("link", { name: "Pojazdy", exact: true }).click();
     const opener = page.getByRole("button", { name: "Zdjęcie: Pojazd E2E", exact: true });

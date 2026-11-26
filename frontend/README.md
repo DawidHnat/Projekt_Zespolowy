@@ -40,10 +40,11 @@ npm run preview       # podgląd zbudowanego frontendu na 127.0.0.1:4173
 - Opcjonalne szkło z połyskiem na kartach, przyciskach i nawigacji oraz styl klasyczny.
 - Tło domyślne, galeria i własny obraz, z wyciszeniem i rozmyciem w obu stylach.
 - Układ i moduły Pulpitu oraz układ, sortowanie, filtry i paginacja Pojazdów
-  zapisują się na koncie i są dostępne po zalogowaniu w innej przeglądarce.
-  Wygląd i tło pozostają lokalne; ustawienia z localStorage można przenieść
-  na konto wyłącznie po jawnym wyborze. Przy równoległym zapisie można wczytać
-  wersję konta albo świadomie zapisać własne zmiany.
+  zapisują się na koncie i są dostępne po zalogowaniu na innym urządzeniu.
+  Wygląd, tło oraz układ Pulpitu i Mapy również należą do konta. Stare
+  ustawienia przeglądarki można zaimportować jednorazowo w Ustawieniach;
+  zwykłe logowanie nie pyta o migrację. Przy równoległym zapisie można wczytać
+  wersję konta albo jawnie zapisać własne zmiany.
 - Przywracanie ustawień domyślnych.
 - Osobna strona Ustawień (`#settings`): Wygląd, Tło oraz Układ i moduły.
   Koło zębate prowadzi do tej strony; edycja układu pozostaje przy każdym widoku.
@@ -92,15 +93,15 @@ w jasnym rozjaśnia zdjęcie, w ciemnym je przyciemnia. Rozmycie ma zakres
 0–16 px. Nagłówek i podpisy zachowują czytelne powierzchnie nawet przy 0% osłony.
 
 Własny obraz: JPG, PNG lub WebP, do 10 MB i 40 megapikseli. Aplikacja zmniejsza
-go do maksymalnie 2560 px na dłuższym boku i zapisuje przygotowany obraz
-w IndexedDB. Zdjęcie i jego nazwa nie są wysyłane na serwer. Preferencje
-zawierają tylko identyfikator obrazu i ustawienia wyglądu. Brak miejsca
-na zapis pozwala korzystać ze zdjęcia w bieżącej sesji; panel o tym informuje.
+go do maksymalnie 2560 px na dłuższym boku i zapisuje jako WebP. Własne tło
+jest przechowywane per konto w chronionym API (do 8 MB) i wraca na innym
+urządzeniu; nazwa pliku nie jest wysyłana. Stary obraz w IndexedDB może być
+źródłem wyłącznie jawnego importu z Ustawień. Błąd zapisu nie udaje
+synchronizacji z kontem i pozwala ponowić operację.
 
-„Usuń własne zdjęcie” usuwa zapisany obraz. „Domyślne” przywraca zwykłe tło,
+„Usuń własne zdjęcie” usuwa obraz z konta. „Domyślne” przywraca zwykłe tło,
 a „Przywróć domyślne” resetuje preferencje; zdjęcie można później ponownie
-wybrać w zakładce „Własne”. Wyczyszczenie danych przeglądarki usuwa również
-lokalne zdjęcie. Ustawienia zwiększonego kontrastu lub ograniczenia
+wybrać w zakładce „Własne”. Ustawienia zwiększonego kontrastu lub ograniczenia
 przezroczystości wyłączają dekoracyjne tło.
 
 ## Dalsza praca
@@ -239,12 +240,12 @@ niezależnie od szkicu układu. Nie trafiają do API ani Mapbox i nie są jeszcz
 współdzielone z zespołem. Usunięcie danych przeglądarki usuwa lokalne zdjęcia.
 Błąd zdjęcia przywraca ikonę samochodu; brak miejsca pozwala użyć zdjęcia w sesji.
 
-Ustawienia są osobną stroną z podziałem konfiguracji. Wygląd i tło pozostają
-lokalne. Widoczność modułów, układ Pulpitu, a także układ i zapisane widoki
-Pojazdów synchronizują się z kontem. Widoczność modułów podczas edycji Pulpitu
-pozostaje szkicem do zatwierdzenia na Pulpicie. Reset ustawień przywraca wygląd
-oraz układy Pulpitu i Mapy;
-rozmiary Pojazdów resetuje się osobno podczas edycji tej sekcji.
+Ustawienia są osobną stroną z podziałem konfiguracji. Wygląd, własne tło,
+widoczność modułów, układy Pulpitu/Mapy oraz układ i zapisane widoki Pojazdów
+synchronizują się z kontem. Widoczność modułów podczas edycji Pulpitu pozostaje
+szkicem do zatwierdzenia na Pulpicie. Reset ustawień przywraca wygląd oraz
+układy Pulpitu i Mapy; rozmiary Pojazdów resetuje się osobno podczas edycji tej
+sekcji. Stare zapisy przeglądarki można zaimportować jawnie z Ustawień.
 
 
 Sekcja Kierowcy (SCRUM-53) pobiera rzeczywiste profile i historię przypisań
