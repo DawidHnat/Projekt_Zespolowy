@@ -1,12 +1,13 @@
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import Annotated, Literal
+from urllib.parse import quote
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-from sqlalchemy import or_, select, text, update
+from sqlalchemy import func, or_, select, text, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -18,6 +19,14 @@ from app.modules.auth.models import User
 from app.modules.auth.service import check_origin, current_user, editor
 from app.modules.drivers.models import DriverAssignment
 from app.modules.drivers.service import project_vehicle_drivers
+from app.modules.fleet.documents import (
+    DOCUMENT_KINDS,
+    VehicleAttachment,
+    read_bounded_upload,
+    serialize_document_item,
+    serialize_photo_state,
+    validate_and_prepare_upload,
+)
 from app.modules.fleet.refresh import refresh_state, request_refresh
 from app.modules.fleet.service import (
     find_identity_conflicts,
@@ -176,6 +185,19 @@ class VehicleArchiveBody(BaseModel):
 class VehicleRestoreBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     card_version: int = Field(strict=True, ge=1, le=2147483646)
+
+
+class VehicleDocumentDatesBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    card_version: int = Field(strict=True, ge=1, le=2147483646)
+    inspection_due_on: date | None = None
+    insurance_due_on: date | None = None
+
+    @model_validator(mode="after")
+    def require_date_field(self):
+        if not self.model_fields_set - {"card_version"}:
+            raise ValueError("Podaj co najmniej jeden termin dokumentu")
+        return self
 
 
 def context(request, session):
@@ -817,7 +839,6 @@ def link_manual_vehicle_to_source(
         session.execute(
             update(Rule).where(Rule.vehicle_id == source_vehicle.id).values(vehicle_id=vehicle.id)
         )
-
         # Alerts have UniqueConstraint(rule_id, vehicle_id, event_day) and AlertReceipt FK.
         manual_alerts = {
             (alert.rule_id, alert.event_day): alert
@@ -856,6 +877,28 @@ def link_manual_vehicle_to_source(
                     session.delete(src_rec)
                 session.flush()
                 session.delete(src_alert)
+
+        orphan_photo_keys: list[str] = []
+        has_manual_photo = session.scalar(
+            select(VehicleAttachment.id).where(
+                VehicleAttachment.vehicle_id == vehicle.id,
+                VehicleAttachment.kind == "vehicle_photo",
+            )
+        )
+        if has_manual_photo is not None:
+            for extra_photo in session.scalars(
+                select(VehicleAttachment).where(
+                    VehicleAttachment.vehicle_id == source_vehicle.id,
+                    VehicleAttachment.kind == "vehicle_photo",
+                )
+            ).all():
+                orphan_photo_keys.append(extra_photo.storage_key)
+                session.delete(extra_photo)
+        session.execute(
+            update(VehicleAttachment)
+            .where(VehicleAttachment.vehicle_id == source_vehicle.id)
+            .values(vehicle_id=vehicle.id)
+        )
 
         now_link = datetime.now(UTC)
         for assignment in session.scalars(
@@ -900,6 +943,8 @@ def link_manual_vehicle_to_source(
             "LINK_CONFLICT",
             "Nie udało się bezpiecznie połączyć historii wskazanego pojazdu",
         ) from None
+    for storage_key in orphan_photo_keys:
+        request.app.state.attachment_store.remove(storage_key)
 
     now = datetime.now(UTC)
     metadata = write_metadata(session, source)
@@ -1066,3 +1111,516 @@ def restore_vehicle(
         ),
         drivers.get(vehicle_id),
     )
+
+
+def _find_vehicle_for_documents(session: Session, source: str, vehicle_id: UUID, *, lock: bool):
+    stmt = select(Vehicle).where(
+        Vehicle.id == vehicle_id,
+        Vehicle.source_account == source,
+        or_(Vehicle.active.is_(True), Vehicle.archived.is_(True)),
+    )
+    if lock:
+        stmt = stmt.with_for_update()
+    vehicle = session.scalar(stmt)
+    if not vehicle:
+        raise ApiError(404, "NOT_FOUND", "Pojazd nie istnieje")
+    return vehicle
+
+
+def _documents_state_payload(session: Session, settings, vehicle: Vehicle) -> dict:
+    attachments = session.scalars(
+        select(VehicleAttachment)
+        .where(VehicleAttachment.vehicle_id == vehicle.id)
+        .order_by(VehicleAttachment.created_at, VehicleAttachment.id)
+    ).all()
+    photo = next((item for item in attachments if item.kind == "vehicle_photo"), None)
+    docs = [serialize_document_item(item) for item in attachments if item.kind in DOCUMENT_KINDS]
+    return {
+        "vehicle_id": str(vehicle.id),
+        "card_version": vehicle.card_version,
+        "inspection_due_on": (
+            vehicle.inspection_due_on.isoformat() if vehicle.inspection_due_on else None
+        ),
+        "insurance_due_on": (
+            vehicle.insurance_due_on.isoformat() if vehicle.insurance_due_on else None
+        ),
+        "limits": {
+            "max_file_bytes": settings.upload_max_file_bytes,
+            "max_files_per_kind": settings.upload_max_files_per_kind,
+            "photo_max_edge_px": settings.upload_photo_max_edge_px,
+        },
+        "photo": serialize_photo_state(vehicle.photo_version, photo),
+        "items": docs,
+    }
+
+
+def _scan_quarantined_file(request: Request, storage_key: str, quarantine_path, mime_type: str):
+    store = request.app.state.attachment_store
+    scanner = request.app.state.malware_scanner
+    try:
+        verdict = scanner.scan(quarantine_path, mime_type=mime_type)
+    except Exception:
+        return "scanner_unavailable", "SCANNER_ERROR", storage_key
+    if verdict.status == "clean":
+        store.promote_to_clean(storage_key)
+        return "clean", None, storage_key
+    if verdict.status == "rejected":
+        store.remove(storage_key)
+        return "rejected", verdict.code or "MALWARE_DETECTED", None
+    if verdict.status == "quarantined":
+        return "quarantined", verdict.code or "SCAN_PENDING", storage_key
+    return "scanner_unavailable", verdict.code or "SCANNER_UNAVAILABLE", storage_key
+
+
+def _binary_attachment_headers(filename: str, *, inline: bool = False, etag: str | None = None):
+    ascii_fallback = "".join(
+        ch if 32 <= ord(ch) < 127 and ch not in ('"', "\\") else "_" for ch in filename
+    )
+    disposition_kind = "inline" if inline else "attachment"
+    disposition = (
+        f"{disposition_kind}; filename=\"{ascii_fallback}\"; filename*=UTF-8''{quote(filename)}"
+    )
+    headers = {
+        "Content-Disposition": disposition,
+        "Content-Security-Policy": "default-src 'none'; sandbox",
+        "X-Content-Type-Options": "nosniff",
+        "Cache-Control": "private, no-store",
+    }
+    if etag:
+        headers["ETag"] = etag
+    return headers
+
+
+@router.get("/vehicles/{vehicle_id}/documents")
+def list_vehicle_documents(vehicle_id: UUID, request: Request, session: SessionDep):
+    settings = request.app.state.settings
+    source = account_key(settings.webfleet_account)
+    vehicle = _find_vehicle_for_documents(session, source, vehicle_id, lock=False)
+    return _documents_state_payload(session, settings, vehicle)
+
+
+@router.patch("/vehicles/{vehicle_id}/documents/dates", dependencies=[Depends(check_origin)])
+def update_vehicle_document_dates(
+    vehicle_id: UUID,
+    payload: VehicleDocumentDatesBody,
+    request: Request,
+    session: SessionDep,
+    _: Annotated[User, Depends(editor)],
+):
+    settings = request.app.state.settings
+    source = account_key(settings.webfleet_account)
+    vehicle = _find_vehicle_for_documents(session, source, vehicle_id, lock=True)
+    if vehicle.archived:
+        raise ApiError(409, "VEHICLE_ARCHIVED", "Przywróć pojazd przed edycją terminów")
+    if vehicle.card_version != payload.card_version:
+        raise ApiError(409, "VERSION_CONFLICT", "Kartoteka pojazdu zmieniła się podczas edycji")
+    if "inspection_due_on" in payload.model_fields_set:
+        vehicle.inspection_due_on = payload.inspection_due_on
+    if "insurance_due_on" in payload.model_fields_set:
+        vehicle.insurance_due_on = payload.insurance_due_on
+    vehicle.locally_edited = True
+    vehicle.card_version += 1
+    session.commit()
+    return _documents_state_payload(session, settings, vehicle)
+
+
+@router.post(
+    "/vehicles/{vehicle_id}/documents", status_code=201, dependencies=[Depends(check_origin)]
+)
+async def upload_vehicle_document(
+    vehicle_id: UUID,
+    request: Request,
+    session: SessionDep,
+    user: Annotated[User, Depends(editor)],
+    kind: Annotated[Literal["inspection", "insurance"] | None, Query()] = None,
+):
+    settings = request.app.state.settings
+    source = account_key(settings.webfleet_account)
+    raw_name, declared_mime, raw_bytes, form_fields = await read_bounded_upload(
+        request, max_bytes=settings.upload_max_file_bytes
+    )
+    resolved_kind = kind or form_fields.get("kind")
+    if resolved_kind not in DOCUMENT_KINDS:
+        raise ApiError(422, "VALIDATION_ERROR", "Wskaż rodzaj dokumentu (inspection lub insurance)")
+
+    vehicle = _find_vehicle_for_documents(session, source, vehicle_id, lock=True)
+    if vehicle.archived:
+        raise ApiError(409, "VEHICLE_ARCHIVED", "Przywróć pojazd przed dodaniem dokumentu")
+
+    existing_count = session.scalar(
+        select(func.count())
+        .select_from(VehicleAttachment)
+        .where(VehicleAttachment.vehicle_id == vehicle.id, VehicleAttachment.kind == resolved_kind)
+    )
+    if (existing_count or 0) >= settings.upload_max_files_per_kind:
+        limit = settings.upload_max_files_per_kind
+        raise ApiError(
+            409,
+            "DOCUMENT_LIMIT_REACHED",
+            f"Osiągnięto limit {limit} plików dla tego rodzaju dokumentu",
+        )
+
+    validated = validate_and_prepare_upload(
+        kind=resolved_kind,
+        raw_filename=raw_name,
+        declared_mime=declared_mime,
+        raw_bytes=raw_bytes,
+        max_bytes=settings.upload_max_file_bytes,
+        max_pixels=settings.upload_max_image_pixels,
+        photo_max_edge_px=settings.upload_photo_max_edge_px,
+    )
+    store = request.app.state.attachment_store
+    candidate_key, qpath = store.write_quarantine(validated.payload)
+    try:
+        scan_status, scan_code, stored_key = _scan_quarantined_file(
+            request, candidate_key, qpath, validated.mime_type
+        )
+        if scan_status == "rejected":
+            raise ApiError(
+                422, "MALWARE_REJECTED", "Plik został odrzucony przez kontrolę bezpieczeństwa"
+            )
+        now = datetime.now(UTC)
+        record = VehicleAttachment(
+            vehicle_id=vehicle.id,
+            kind=resolved_kind,
+            original_name=validated.safe_name,
+            mime_type=validated.mime_type,
+            size_bytes=len(validated.payload),
+            sha256=validated.sha256,
+            storage_key=stored_key,
+            scan_status=scan_status,
+            scan_code=scan_code,
+            width_px=validated.width_px,
+            height_px=validated.height_px,
+            version=1,
+            uploaded_by=user.id,
+            created_at=now,
+            updated_at=now,
+        )
+        session.add(record)
+        session.commit()
+        return serialize_document_item(record)
+    except Exception:
+        session.rollback()
+        store.remove(candidate_key)
+        raise
+
+
+@router.get("/vehicles/{vehicle_id}/documents/{document_id}/content")
+def download_vehicle_document(
+    vehicle_id: UUID, document_id: UUID, request: Request, session: SessionDep
+):
+    settings = request.app.state.settings
+    source = account_key(settings.webfleet_account)
+    vehicle = _find_vehicle_for_documents(session, source, vehicle_id, lock=False)
+    record = session.scalar(
+        select(VehicleAttachment).where(
+            VehicleAttachment.id == document_id,
+            VehicleAttachment.vehicle_id == vehicle.id,
+            VehicleAttachment.kind.in_(DOCUMENT_KINDS),
+        )
+    )
+    if not record:
+        raise ApiError(404, "NOT_FOUND", "Dokument nie istnieje")
+    if record.scan_status != "clean" or not record.storage_key:
+        raise ApiError(
+            409, "FILE_NOT_AVAILABLE", "Plik nie przeszedł jeszcze pozytywnej weryfikacji skanera"
+        )
+    try:
+        content = request.app.state.attachment_store.read_clean(record.storage_key)
+    except FileNotFoundError:
+        raise ApiError(404, "NOT_FOUND", "Plik dokumentu jest niedostępny") from None
+    return Response(
+        content=content,
+        media_type=record.mime_type,
+        headers=_binary_attachment_headers(
+            record.original_name, inline=False, etag=f'"doc-v{record.version}"'
+        ),
+    )
+
+
+@router.put("/vehicles/{vehicle_id}/documents/{document_id}", dependencies=[Depends(check_origin)])
+async def replace_vehicle_document(
+    vehicle_id: UUID,
+    document_id: UUID,
+    request: Request,
+    session: SessionDep,
+    user: Annotated[User, Depends(editor)],
+):
+    settings = request.app.state.settings
+    source = account_key(settings.webfleet_account)
+    raw_name, declared_mime, raw_bytes, _ = await read_bounded_upload(
+        request, max_bytes=settings.upload_max_file_bytes
+    )
+    vehicle = _find_vehicle_for_documents(session, source, vehicle_id, lock=True)
+    if vehicle.archived:
+        raise ApiError(409, "VEHICLE_ARCHIVED", "Przywróć pojazd przed podmianą dokumentu")
+    record = session.scalar(
+        select(VehicleAttachment)
+        .where(
+            VehicleAttachment.id == document_id,
+            VehicleAttachment.vehicle_id == vehicle.id,
+            VehicleAttachment.kind.in_(DOCUMENT_KINDS),
+        )
+        .with_for_update()
+    )
+    if not record:
+        raise ApiError(404, "NOT_FOUND", "Dokument nie istnieje")
+
+    validated = validate_and_prepare_upload(
+        kind=record.kind,
+        raw_filename=raw_name,
+        declared_mime=declared_mime,
+        raw_bytes=raw_bytes,
+        max_bytes=settings.upload_max_file_bytes,
+        max_pixels=settings.upload_max_image_pixels,
+        photo_max_edge_px=settings.upload_photo_max_edge_px,
+    )
+    store = request.app.state.attachment_store
+    candidate_key, qpath = store.write_quarantine(validated.payload)
+    try:
+        scan_status, _, stored_key = _scan_quarantined_file(
+            request, candidate_key, qpath, validated.mime_type
+        )
+        if scan_status == "rejected":
+            raise ApiError(
+                422, "MALWARE_REJECTED", "Nowy plik został odrzucony — zachowano poprzedni dokument"
+            )
+        if scan_status == "scanner_unavailable":
+            store.remove(candidate_key)
+            raise ApiError(
+                503,
+                "SCANNER_UNAVAILABLE",
+                "Skaner bezpieczeństwa jest niedostępny — zachowano poprzedni dokument",
+            )
+        if scan_status != "clean" or not stored_key:
+            store.remove(candidate_key)
+            raise ApiError(
+                409,
+                "FILE_QUARANTINED",
+                "Nowy plik oczekuje w kwarantannie — zachowano poprzedni dokument",
+            )
+        previous_key = record.storage_key
+        record.original_name = validated.safe_name
+        record.mime_type = validated.mime_type
+        record.size_bytes = len(validated.payload)
+        record.sha256 = validated.sha256
+        record.storage_key = stored_key
+        record.scan_status = "clean"
+        record.scan_code = None
+        record.width_px = validated.width_px
+        record.height_px = validated.height_px
+        record.version += 1
+        record.uploaded_by = user.id
+        record.updated_at = datetime.now(UTC)
+        session.commit()
+    except Exception:
+        session.rollback()
+        store.remove(candidate_key)
+        raise
+
+    if previous_key and previous_key != stored_key:
+        store.remove(previous_key)
+    return serialize_document_item(record)
+
+
+@router.delete(
+    "/vehicles/{vehicle_id}/documents/{document_id}", dependencies=[Depends(check_origin)]
+)
+def delete_vehicle_document(
+    vehicle_id: UUID,
+    document_id: UUID,
+    request: Request,
+    session: SessionDep,
+    _: Annotated[User, Depends(editor)],
+):
+    settings = request.app.state.settings
+    source = account_key(settings.webfleet_account)
+    vehicle = _find_vehicle_for_documents(session, source, vehicle_id, lock=True)
+    if vehicle.archived:
+        raise ApiError(409, "VEHICLE_ARCHIVED", "Przywróć pojazd przed usunięciem dokumentu")
+    record = session.scalar(
+        select(VehicleAttachment)
+        .where(
+            VehicleAttachment.id == document_id,
+            VehicleAttachment.vehicle_id == vehicle.id,
+            VehicleAttachment.kind.in_(DOCUMENT_KINDS),
+        )
+        .with_for_update()
+    )
+    if not record:
+        raise ApiError(404, "NOT_FOUND", "Dokument nie istnieje")
+    old_key = record.storage_key
+    session.delete(record)
+    session.commit()
+    request.app.state.attachment_store.remove(old_key)
+    return {"ok": True}
+
+
+@router.put("/vehicles/{vehicle_id}/photo", dependencies=[Depends(check_origin)])
+async def put_vehicle_photo(
+    vehicle_id: UUID,
+    request: Request,
+    session: SessionDep,
+    user: Annotated[User, Depends(editor)],
+):
+    settings = request.app.state.settings
+    source = account_key(settings.webfleet_account)
+    raw_name, declared_mime, raw_bytes, _ = await read_bounded_upload(
+        request, max_bytes=settings.upload_max_file_bytes
+    )
+    vehicle = _find_vehicle_for_documents(session, source, vehicle_id, lock=True)
+    if vehicle.archived:
+        raise ApiError(409, "VEHICLE_ARCHIVED", "Przywróć pojazd przed zmianą zdjęcia")
+
+    validated = validate_and_prepare_upload(
+        kind="vehicle_photo",
+        raw_filename=raw_name,
+        declared_mime=declared_mime,
+        raw_bytes=raw_bytes,
+        max_bytes=settings.upload_max_file_bytes,
+        max_pixels=settings.upload_max_image_pixels,
+        photo_max_edge_px=settings.upload_photo_max_edge_px,
+    )
+    existing = session.scalar(
+        select(VehicleAttachment)
+        .where(
+            VehicleAttachment.vehicle_id == vehicle.id,
+            VehicleAttachment.kind == "vehicle_photo",
+        )
+        .with_for_update()
+    )
+    store = request.app.state.attachment_store
+    candidate_key, qpath = store.write_quarantine(validated.payload)
+    previous_key: str | None = None
+    try:
+        scan_status, scan_code, stored_key = _scan_quarantined_file(
+            request, candidate_key, qpath, validated.mime_type
+        )
+        if scan_status == "rejected":
+            raise ApiError(
+                422, "MALWARE_REJECTED", "Zdjęcie zostało odrzucone przez kontrolę bezpieczeństwa"
+            )
+        if existing is not None and existing.scan_status == "clean" and scan_status != "clean":
+            store.remove(candidate_key)
+            if scan_status == "scanner_unavailable":
+                raise ApiError(
+                    503,
+                    "SCANNER_UNAVAILABLE",
+                    "Skaner bezpieczeństwa jest niedostępny — zachowano poprzednie zdjęcie",
+                )
+            raise ApiError(
+                409,
+                "FILE_QUARANTINED",
+                "Nowe zdjęcie oczekuje w kwarantannie — zachowano poprzednie zdjęcie",
+            )
+
+        now = datetime.now(UTC)
+        if existing is None:
+            record = VehicleAttachment(
+                vehicle_id=vehicle.id,
+                kind="vehicle_photo",
+                original_name=validated.safe_name,
+                mime_type=validated.mime_type,
+                size_bytes=len(validated.payload),
+                sha256=validated.sha256,
+                storage_key=stored_key,
+                scan_status=scan_status,
+                scan_code=scan_code,
+                width_px=validated.width_px,
+                height_px=validated.height_px,
+                version=1,
+                uploaded_by=user.id,
+                created_at=now,
+                updated_at=now,
+            )
+            session.add(record)
+        else:
+            previous_key = existing.storage_key
+            existing.original_name = validated.safe_name
+            existing.mime_type = validated.mime_type
+            existing.size_bytes = len(validated.payload)
+            existing.sha256 = validated.sha256
+            existing.storage_key = stored_key
+            existing.scan_status = scan_status
+            existing.scan_code = scan_code
+            existing.width_px = validated.width_px
+            existing.height_px = validated.height_px
+            existing.version += 1
+            existing.uploaded_by = user.id
+            existing.updated_at = now
+            record = existing
+
+        if scan_status == "clean":
+            vehicle.photo_version += 1
+        session.commit()
+    except Exception:
+        session.rollback()
+        store.remove(candidate_key)
+        raise
+
+    if previous_key and previous_key != stored_key:
+        store.remove(previous_key)
+    return serialize_photo_state(vehicle.photo_version, record)
+
+
+@router.get("/vehicles/{vehicle_id}/photo/content")
+def get_vehicle_photo_content(vehicle_id: UUID, request: Request, session: SessionDep):
+    settings = request.app.state.settings
+    source = account_key(settings.webfleet_account)
+    vehicle = _find_vehicle_for_documents(session, source, vehicle_id, lock=False)
+    record = session.scalar(
+        select(VehicleAttachment).where(
+            VehicleAttachment.vehicle_id == vehicle.id,
+            VehicleAttachment.kind == "vehicle_photo",
+        )
+    )
+    if not record:
+        raise ApiError(404, "NOT_FOUND", "Pojazd nie posiada zapisanego zdjęcia")
+    if record.scan_status != "clean" or not record.storage_key:
+        raise ApiError(
+            409, "FILE_NOT_AVAILABLE", "Zdjęcie nie przeszło jeszcze pozytywnej weryfikacji skanera"
+        )
+    try:
+        content = request.app.state.attachment_store.read_clean(record.storage_key)
+    except FileNotFoundError:
+        raise ApiError(404, "NOT_FOUND", "Plik zdjęcia jest niedostępny") from None
+    return Response(
+        content=content,
+        media_type=record.mime_type,
+        headers=_binary_attachment_headers(
+            record.original_name, inline=True, etag=f'"photo-v{vehicle.photo_version}"'
+        ),
+    )
+
+
+@router.delete("/vehicles/{vehicle_id}/photo", dependencies=[Depends(check_origin)])
+def delete_vehicle_photo(
+    vehicle_id: UUID,
+    request: Request,
+    session: SessionDep,
+    _: Annotated[User, Depends(editor)],
+):
+    settings = request.app.state.settings
+    source = account_key(settings.webfleet_account)
+    vehicle = _find_vehicle_for_documents(session, source, vehicle_id, lock=True)
+    if vehicle.archived:
+        raise ApiError(409, "VEHICLE_ARCHIVED", "Przywróć pojazd przed usunięciem zdjęcia")
+    record = session.scalar(
+        select(VehicleAttachment)
+        .where(
+            VehicleAttachment.vehicle_id == vehicle.id,
+            VehicleAttachment.kind == "vehicle_photo",
+        )
+        .with_for_update()
+    )
+    if not record:
+        raise ApiError(404, "NOT_FOUND", "Pojazd nie posiada zapisanego zdjęcia")
+    old_key = record.storage_key
+    was_clean = record.scan_status == "clean"
+    session.delete(record)
+    if was_clean:
+        vehicle.photo_version += 1
+    session.commit()
+    request.app.state.attachment_store.remove(old_key)
+    return {"ok": True, "photo_version": vehicle.photo_version}

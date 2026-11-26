@@ -81,6 +81,7 @@ class Vehicle(Base):
             "AND manual_odometer_km <= 9999999.9 AND manual_odometer_date IS NOT NULL)",
             name="ck_vehicles_manual_odometer",
         ),
+        CheckConstraint("photo_version >= 0", name="ck_vehicles_photo_version"),
     )
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     source_account: Mapped[str] = mapped_column(String(64), index=True)
@@ -136,6 +137,7 @@ class Vehicle(Base):
     manual_license_plate: Mapped[bool] = mapped_column(default=False, server_default="false")
     manual_vehicle_type: Mapped[bool] = mapped_column(default=False, server_default="false")
     card_version: Mapped[int] = mapped_column(default=1, server_default="1")
+    photo_version: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
 
 @event.listens_for(Vehicle, "before_insert")
@@ -177,3 +179,4 @@ class SyncState(Base):
 
 
 import app.modules.auth.models  # noqa: E402, F401
+import app.modules.fleet.documents  # noqa: E402, F401

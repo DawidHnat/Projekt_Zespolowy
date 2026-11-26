@@ -150,3 +150,13 @@ zaczyna się w czasie zapisu, zamknięcie zachowuje wiersz. Profile i relacje
 nie są danymi WEBFLEET. Vehicle.driver_id jest projekcją zgodności dla
 jednego przypisania; przy wielu API zwraca driver=null, liczbę i podgląd osób.
 [API, migracja starych rekordów, ograniczenia i rollback](qa/SCRUM-52.md).
+
+## Dokumenty pojazdu i wspólne zdjęcie — SCRUM-58
+
+Migracja `0014_vehicle_documents` dodaje `vehicles.photo_version` oraz tabelę
+`vehicle_attachments` (`inspection`, `insurance`, `vehicle_photo`) z sumą `sha256`,
+rozmiarem, wymiarem obrazu, wersją oraz statusem skanowania (`quarantined`,
+`clean`, `rejected`, `scanner_unavailable`). Pliki są przechowywane poza webrootem
+pod losowymi kluczami i udostępniane wyłącznie po uwierzytelnieniu, weryfikacji
+`source_account` i pozytywnym statusie `clean`.
+[Model zagrożeń i zakres kopii SCRUM-84](security/SCRUM-58-upload-threat-model.md).

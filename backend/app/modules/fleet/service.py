@@ -211,6 +211,7 @@ def serialize_vehicle(
         "origin": "manual" if vehicle.is_manual else "webfleet",
         "name": vehicle.name,
         "card_version": vehicle.card_version,
+        "photo_version": vehicle.photo_version,
         "number": None if vehicle.is_manual else vehicle.number,
         "license_plate": vehicle.license_plate,
         "vehicle_type": vehicle.vehicle_type,

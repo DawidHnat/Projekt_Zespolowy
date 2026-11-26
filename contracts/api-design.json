@@ -1578,6 +1578,196 @@
       "error_schema": {
         "$ref": "#/$defs/Error"
       }
+    },
+    {
+      "method": "GET",
+      "path": "/fleet/vehicles/{id}/documents",
+      "delivery": "SCRUM-58",
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/VehicleDocumentsState"
+      },
+      "response_example": {
+        "vehicle_id": "11111111-1111-4111-8111-111111111111",
+        "card_version": 1,
+        "inspection_due_on": "2027-06-15",
+        "insurance_due_on": "2027-06-01",
+        "limits": {
+          "max_file_bytes": 10485760,
+          "max_files_per_kind": 3,
+          "photo_max_edge_px": 1024
+        },
+        "photo": {
+          "available": false,
+          "version": 0,
+          "status": "none",
+          "code": null,
+          "mime_type": null,
+          "size_bytes": null,
+          "width_px": null,
+          "height_px": null,
+          "updated_at": null
+        },
+        "items": []
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/fleet/vehicles/{id}/documents/dates",
+      "delivery": "SCRUM-58",
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/VehicleDocumentsState"
+      },
+      "response_example": {
+        "vehicle_id": "11111111-1111-4111-8111-111111111111",
+        "card_version": 2,
+        "inspection_due_on": "2027-07-01",
+        "insurance_due_on": "2027-06-01",
+        "limits": {
+          "max_file_bytes": 10485760,
+          "max_files_per_kind": 3,
+          "photo_max_edge_px": 1024
+        },
+        "photo": {
+          "available": false,
+          "version": 0,
+          "status": "none",
+          "code": null,
+          "mime_type": null,
+          "size_bytes": null,
+          "width_px": null,
+          "height_px": null,
+          "updated_at": null
+        },
+        "items": []
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/fleet/vehicles/{id}/documents",
+      "delivery": "SCRUM-58",
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/VehicleDocumentItem"
+      },
+      "response_example": {
+        "id": "44444444-4444-4444-8444-444444444444",
+        "vehicle_id": "11111111-1111-4111-8111-111111111111",
+        "kind": "inspection",
+        "name": "badanie.pdf",
+        "mime_type": "application/pdf",
+        "size_bytes": 512,
+        "status": "clean",
+        "available": true,
+        "code": null,
+        "version": 1,
+        "created_at": "2026-10-28T12:00:00Z",
+        "updated_at": "2026-10-28T12:00:00Z"
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/fleet/vehicles/{id}/documents/{document_id}/content",
+      "delivery": "SCRUM-58",
+      "implementation_status": "implemented-binary",
+      "implementation_note": "Streams private PDF/JPG/PNG bytes only when scan_status=='clean'; fail-closed 409 otherwise."
+    },
+    {
+      "method": "PUT",
+      "path": "/fleet/vehicles/{id}/documents/{document_id}",
+      "delivery": "SCRUM-58",
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/VehicleDocumentItem"
+      },
+      "response_example": {
+        "id": "44444444-4444-4444-8444-444444444444",
+        "vehicle_id": "11111111-1111-4111-8111-111111111111",
+        "kind": "inspection",
+        "name": "badanie_nowe.pdf",
+        "mime_type": "application/pdf",
+        "size_bytes": 640,
+        "status": "clean",
+        "available": true,
+        "code": null,
+        "version": 2,
+        "created_at": "2026-10-28T12:00:00Z",
+        "updated_at": "2026-10-28T12:05:00Z"
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/fleet/vehicles/{id}/documents/{document_id}",
+      "delivery": "SCRUM-58",
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/OkResponse"
+      },
+      "response_example": {
+        "ok": true
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/fleet/vehicles/{id}/photo",
+      "delivery": "SCRUM-58",
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/VehiclePhotoState"
+      },
+      "response_example": {
+        "available": true,
+        "version": 1,
+        "status": "clean",
+        "code": null,
+        "mime_type": "image/png",
+        "size_bytes": 128,
+        "width_px": 16,
+        "height_px": 16,
+        "updated_at": "2026-10-28T12:00:00Z"
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/fleet/vehicles/{id}/photo/content",
+      "delivery": "SCRUM-58",
+      "implementation_status": "implemented-binary",
+      "implementation_note": "Streams stripped JPG/PNG/WebP bytes only when scan_status=='clean'; fail-closed 409 otherwise."
+    },
+    {
+      "method": "DELETE",
+      "path": "/fleet/vehicles/{id}/photo",
+      "delivery": "SCRUM-58",
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/VehiclePhotoDeleteResult"
+      },
+      "response_example": {
+        "ok": true,
+        "photo_version": 2
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
+      }
     }
   ],
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -2133,6 +2323,10 @@
         "card_version": {
           "type": "integer",
           "minimum": 1
+        },
+        "photo_version": {
+          "type": "integer",
+          "minimum": 0
         },
         "archived": {
           "type": "boolean"
@@ -3324,6 +3518,288 @@
         "compatibility"
       ],
       "additionalProperties": true
+    },
+    "VehicleDocumentLimits": {
+      "type": "object",
+      "properties": {
+        "max_file_bytes": {
+          "type": "integer",
+          "minimum": 1024
+        },
+        "max_files_per_kind": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "photo_max_edge_px": {
+          "type": "integer",
+          "minimum": 128
+        }
+      },
+      "required": [
+        "max_file_bytes",
+        "max_files_per_kind",
+        "photo_max_edge_px"
+      ]
+    },
+    "VehiclePhotoState": {
+      "type": "object",
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "none",
+            "quarantined",
+            "clean",
+            "rejected",
+            "scanner_unavailable"
+          ]
+        },
+        "code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mime_type": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "image/jpeg",
+                "image/png",
+                "image/webp"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "size_bytes": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "width_px": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "height_px": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "updated_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "(Z|\\+00:00)$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "available",
+        "version",
+        "status",
+        "code",
+        "mime_type",
+        "size_bytes",
+        "width_px",
+        "height_px",
+        "updated_at"
+      ]
+    },
+    "VehicleDocumentItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "vehicle_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "inspection",
+            "insurance"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "mime_type": {
+          "type": "string",
+          "enum": [
+            "application/pdf",
+            "image/jpeg",
+            "image/png"
+          ]
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "quarantined",
+            "clean",
+            "rejected",
+            "scanner_unavailable"
+          ]
+        },
+        "available": {
+          "type": "boolean"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "(Z|\\+00:00)$"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "(Z|\\+00:00)$"
+        }
+      },
+      "required": [
+        "id",
+        "vehicle_id",
+        "kind",
+        "name",
+        "mime_type",
+        "size_bytes",
+        "status",
+        "available",
+        "code",
+        "version",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    "VehicleDocumentsState": {
+      "type": "object",
+      "properties": {
+        "vehicle_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "card_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "inspection_due_on": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "insurance_due_on": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "limits": {
+          "$ref": "#/$defs/VehicleDocumentLimits"
+        },
+        "photo": {
+          "$ref": "#/$defs/VehiclePhotoState"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/VehicleDocumentItem"
+          }
+        }
+      },
+      "required": [
+        "vehicle_id",
+        "card_version",
+        "inspection_due_on",
+        "insurance_due_on",
+        "limits",
+        "photo",
+        "items"
+      ]
+    },
+    "VehiclePhotoDeleteResult": {
+      "type": "object",
+      "properties": {
+        "ok": {
+          "const": true
+        },
+        "photo_version": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "ok",
+        "photo_version"
+      ]
     }
   }
 }

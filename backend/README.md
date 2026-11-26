@@ -279,6 +279,27 @@ Migracja `0013_manual_vehicles` chroni dane przed stratnym downgrade'em; poniewa
 wywołałby `INCOMPLETE_REPORT`), przy aktywnych pojazdach ręcznych obowiązuje naprawa w przód
 (**forward fix**) na schemacie `0013+` zgodnie z [instrukcją wdrożenia](../infra/deploy/README.md).
 
+### Dokumenty pojazdu, skany i wspólne zdjęcie — SCRUM-58
+
+- Terminy `inspection_due_on` i `insurance_due_on` w `vehicles` stanowią jedyne źródło
+  dat badania technicznego oraz polisy OC (`PATCH /api/v1/fleet/vehicles/{UUID}/documents/dates`
+  oraz `PATCH /api/v1/fleet/vehicles/{UUID}`) i nie są nadpisywane przez synchronizację WEBFLEET.
+- Wspólny prywatny magazyn (`FLEET_FLOW_UPLOAD_DIR`, poza webrootem i repozytorium,
+  losowe klucze w `quarantine/` i `clean/`, migracja `0014_vehicle_documents`) obsługuje:
+  - skany `inspection` i `insurance` (`POST/PUT/DELETE /vehicles/{UUID}/documents...`,
+    `GET .../content`, formaty `PDF`/`JPG`/`PNG`, limit `UPLOAD_MAX_FILES_PER_KIND=3`
+    i `UPLOAD_MAX_FILE_BYTES=10 MB`, odrzucenie aktywnych elementów PDF),
+  - wspólne zdjęcie pojazdu (`PUT/DELETE /vehicles/{UUID}/photo`, `GET .../photo/content`,
+    formaty `JPG`/`PNG`/`WebP` do `10 MB`, `40 MP` i maksymalnego boku
+    `UPLOAD_PHOTO_MAX_EDGE_PX=1024`, wycinanie metadanych EXIF/XMP/IPTC/komentarzy
+    oraz wersjonowanie `photo_version`).
+- Kontrola malware działa w trybie **fail-closed**: domyślny adapter `UnconfiguredMalwareScanner`
+  utrzymuje status `scanner_unavailable` i blokuje pobranie (`409 FILE_NOT_AVAILABLE`)
+  do czasu zatwierdzenia silnika skanowania i jego kosztu przez właściciela.
+  Błąd walidacji lub skanera podczas podmiany zachowuje wcześniejszy opublikowany plik.
+- Model zagrożeń, wymagania kopii (`SCRUM-84`) i prywatności (`SCRUM-94`):
+  [SCRUM-58 upload threat model](../docs/security/SCRUM-58-upload-threat-model.md).
+
 ## Ręczne odświeżanie floty — SCRUM-150
 
 `GET /api/v1/fleet/refresh` zwraca `enabled`, `running`, `server_time`,

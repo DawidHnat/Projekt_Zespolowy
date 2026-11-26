@@ -1,8 +1,10 @@
 """Application settings; credentials never appear in repr or error messages."""
 
 import json
+import tempfile
 from collections.abc import Mapping
 from dataclasses import dataclass, field
+from pathlib import Path
 from urllib.parse import urlsplit
 
 from app.core.config import ConfigurationError, load_environment
@@ -33,6 +35,13 @@ class Settings:
     stale_seconds: int = DEFAULT_STALE_SECONDS
     webfleet_account: str = field(default="", repr=False)
     api_docs_enabled: bool = True
+    upload_storage_dir: str = field(
+        default_factory=lambda: str(Path(tempfile.gettempdir()) / "fleet-flow-private-uploads")
+    )
+    upload_max_file_bytes: int = 10 * 1024 * 1024
+    upload_max_files_per_kind: int = 3
+    upload_photo_max_edge_px: int = 1024
+    upload_max_image_pixels: int = 40_000_000
 
     @property
     def local_api_docs(self) -> bool:
@@ -78,6 +87,7 @@ class Settings:
             raise ConfigurationError("API_DOCS_ENABLED: wymagane true albo false")
         if docs == "true" and not local:
             raise ConfigurationError("Dokumentacja API jest dostępna wyłącznie lokalnie")
+        default_uploads = str(Path(tempfile.gettempdir()) / "fleet-flow-private-uploads")
         return cls(
             database_url=database_url,
             origins=origins,
@@ -87,4 +97,14 @@ class Settings:
             stale_seconds=_seconds(values, "STALE_SECONDS", DEFAULT_STALE_SECONDS, 1, 604800),
             webfleet_account=values.get("WEBFLEET_ACCOUNT", ""),
             api_docs_enabled=docs == "true",
+            upload_storage_dir=values.get("FLEET_FLOW_UPLOAD_DIR", default_uploads).strip()
+            or default_uploads,
+            upload_max_file_bytes=_seconds(
+                values, "UPLOAD_MAX_FILE_BYTES", 10 * 1024 * 1024, 1024, 50 * 1024 * 1024
+            ),
+            upload_max_files_per_kind=_seconds(values, "UPLOAD_MAX_FILES_PER_KIND", 3, 1, 20),
+            upload_photo_max_edge_px=_seconds(values, "UPLOAD_PHOTO_MAX_EDGE_PX", 1024, 128, 4096),
+            upload_max_image_pixels=_seconds(
+                values, "UPLOAD_MAX_IMAGE_PIXELS", 40_000_000, 65536, 100_000_000
+            ),
         )

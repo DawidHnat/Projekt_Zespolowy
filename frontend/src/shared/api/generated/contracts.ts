@@ -11,7 +11,7 @@ export type VehicleStatus = "moving" | "stopped" | "offline" | "unknown";
 export type Source = { "status": "ok" | "degraded"; "last_success_at": string | null; "error_code": string | null; };
 export type VehicleArchiveInfo = { "archived_at": string; "archived_by": Author | null; "reason": string | null; };
 export type VehicleLinkCandidate = { "id": string; "name": string; "number": string | null; "license_plate": string | null; "vin": string | null; "matched_by": Array<"license_plate" | "vin">; };
-export type Vehicle = { "id": string; "origin"?: "webfleet" | "manual"; "name": string; "number": string | null; "license_plate": string | null; "vehicle_type": string | null; "status": VehicleStatus; "driver": Driver | null; "latitude": number | null; "longitude": number | null; "position_at": string | null; "received_at": string | null; "is_stale": boolean; "odometer_km": number | null; "speed_kmh": number | null; "ignition_on": boolean | null; "standing_still": boolean | null; "make"?: string | null; "model"?: string | null; "vin"?: string | null; "fuel_type"?: string | null; "leasing_company"?: string | null; "leasing_contract_no"?: string | null; "leasing_end_on"?: string | null; "inspection_due_on"?: string | null; "insurance_due_on"?: string | null; "manual_odometer_km"?: number | null; "manual_odometer_date"?: string | null; "link_candidates"?: Array<VehicleLinkCandidate>; "position_address"?: string | null; "year"?: number | null; "driver_count"?: number; "driver_preview"?: Array<Driver>; "card_version"?: number; "archived"?: boolean; "archive"?: VehicleArchiveInfo | null; };
+export type Vehicle = { "id": string; "origin"?: "webfleet" | "manual"; "name": string; "number": string | null; "license_plate": string | null; "vehicle_type": string | null; "status": VehicleStatus; "driver": Driver | null; "latitude": number | null; "longitude": number | null; "position_at": string | null; "received_at": string | null; "is_stale": boolean; "odometer_km": number | null; "speed_kmh": number | null; "ignition_on": boolean | null; "standing_still": boolean | null; "make"?: string | null; "model"?: string | null; "vin"?: string | null; "fuel_type"?: string | null; "leasing_company"?: string | null; "leasing_contract_no"?: string | null; "leasing_end_on"?: string | null; "inspection_due_on"?: string | null; "insurance_due_on"?: string | null; "manual_odometer_km"?: number | null; "manual_odometer_date"?: string | null; "link_candidates"?: Array<VehicleLinkCandidate>; "position_address"?: string | null; "year"?: number | null; "driver_count"?: number; "driver_preview"?: Array<Driver>; "card_version"?: number; "photo_version"?: number; "archived"?: boolean; "archive"?: VehicleArchiveInfo | null; };
 export type FleetFeature = { "type": "Feature"; "geometry": { "type": "Point"; "coordinates": [number, number]; }; "properties": { "id": string; "name": string; "status": VehicleStatus; "is_stale": boolean; "position_at": string | null; }; };
 export type FleetMap = { "type": "FeatureCollection"; "features": Array<FleetFeature>; "located": number; "total": number; "source": Source; };
 export type Summary = { "total": number; "moving": number; "stopped": number; "offline": number; "unknown": number; "source": Source; };
@@ -36,6 +36,11 @@ export type DriverAssignment = { "id": string; "driver_id": string; "vehicle": {
 export type DriverAssignmentList = { "items": Array<DriverAssignment>; "total": number; "page": number; "page_size": number; };
 export type DriverAssignmentResult = { "assignment": DriverAssignment; "driver_version": number; };
 export type DriverCategoryCatalog = { "version": "pl-driving-categories-v1"; "items": Array<{ "id": "AM" | "A1" | "A2" | "A" | "B1" | "B" | "B+E" | "C1" | "C1+E" | "C" | "C+E" | "D1" | "D1+E" | "D" | "D+E" | "T"; "label": "AM" | "A1" | "A2" | "A" | "B1" | "B" | "B+E" | "C1" | "C1+E" | "C" | "C+E" | "D1" | "D1+E" | "D" | "D+E" | "T"; }>; "compatibility": "not_evaluated"; };
+export type VehicleDocumentLimits = { "max_file_bytes": number; "max_files_per_kind": number; "photo_max_edge_px": number; };
+export type VehiclePhotoState = { "available": boolean; "version": number; "status": "none" | "quarantined" | "clean" | "rejected" | "scanner_unavailable"; "code": string | null; "mime_type": "image/jpeg" | "image/png" | "image/webp" | null; "size_bytes": number | null; "width_px": number | null; "height_px": number | null; "updated_at": string | null; };
+export type VehicleDocumentItem = { "id": string; "vehicle_id": string; "kind": "inspection" | "insurance"; "name": string; "mime_type": "application/pdf" | "image/jpeg" | "image/png"; "size_bytes": number; "status": "quarantined" | "clean" | "rejected" | "scanner_unavailable"; "available": boolean; "code": string | null; "version": number; "created_at": string; "updated_at": string; };
+export type VehicleDocumentsState = { "vehicle_id": string; "card_version": number; "inspection_due_on": string | null; "insurance_due_on": string | null; "limits": VehicleDocumentLimits; "photo": VehiclePhotoState; "items": Array<VehicleDocumentItem>; };
+export type VehiclePhotoDeleteResult = { "ok": true; "photo_version": number; };
 
 export type Responses = {
   "GET /fleet/refresh": SourceRefreshState;
@@ -73,4 +78,11 @@ export type Responses = {
   "GET /drivers/{id}/assignments": DriverAssignmentList;
   "POST /drivers/{id}/assignments": DriverAssignmentResult;
   "PATCH /drivers/{id}/assignments/{assignment_id}/close": DriverAssignmentResult;
+  "GET /fleet/vehicles/{id}/documents": VehicleDocumentsState;
+  "PATCH /fleet/vehicles/{id}/documents/dates": VehicleDocumentsState;
+  "POST /fleet/vehicles/{id}/documents": VehicleDocumentItem;
+  "PUT /fleet/vehicles/{id}/documents/{document_id}": VehicleDocumentItem;
+  "DELETE /fleet/vehicles/{id}/documents/{document_id}": OkResponse;
+  "PUT /fleet/vehicles/{id}/photo": VehiclePhotoState;
+  "DELETE /fleet/vehicles/{id}/photo": VehiclePhotoDeleteResult;
 };
