@@ -28,19 +28,18 @@ export function RulesPanel({ onChanged }: { onChanged: () => void }) {
   const thresholdInput = useRef<HTMLInputElement>(null);
   const write = useRef<AbortController | null>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
+  const addButton = useRef<HTMLButtonElement>(null);
   useEffect(() => () => write.current?.abort(), []);
   useEffect(() => { if (editing) thresholdInput.current?.focus(); }, [editing]);
   useLayoutEffect(() => {
     if (editing || busy) return;
     const button = opener.current;
-    if (button?.isConnected && !button.disabled) button.focus();
-  }, [editing, busy]);
-  useEffect(() => {
-    if (editing || busy) return;
-    const button = opener.current;
-    if (!button?.isConnected || button.disabled) return;
-    if (document.activeElement !== button) button.focus();
     opener.current = null;
+    if (!button) return;
+    const focused = document.activeElement;
+    if (focused && focused !== document.body && focused !== document.documentElement && focused !== button) return;
+    const target = button.isConnected && !button.disabled ? button : addButton.current;
+    if (target?.isConnected && !target.disabled) target.focus();
   }, [editing, busy]);
   useEffect(() => {
     const controller = new AbortController();
@@ -87,7 +86,7 @@ export function RulesPanel({ onChanged }: { onChanged: () => void }) {
     {saved && <p role="status">Reguła została zapisana.</p>}
     <div className="alert-controls">
       <button type="button" className="button button-secondary" disabled={loading || busy || !!editing} onClick={() => setRevision(v => v + 1)}>Odśwież reguły</button>
-      {canEdit && <button className="button button-primary" disabled={busy || !!editing} onClick={e => edit("new", e.currentTarget)}>Dodaj regułę</button>}
+      {canEdit && <button ref={addButton} className="button button-primary" disabled={busy || !!editing} onClick={e => edit("new", e.currentTarget)}>Dodaj regułę</button>}
     </div>
     {data && <>
       {!data.items.length && <p>Brak reguł dziennego dystansu.</p>}
