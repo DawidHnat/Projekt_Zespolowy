@@ -46,12 +46,7 @@ export const sections = [
     id: "mileage",
     title: "Ewidencja przebiegu",
     icon: BookOpen,
-    description: "Kilometrówka i dokumentowanie przebiegu pojazdów.",
-    placeholder: {
-      title: "Każdy kilometr na swoim miejscu",
-      description:
-        "Tu przygotujesz ewidencję przebiegu: daty, trasy, cele przejazdów i kilometry przypisane do pojazdu.",
-    },
+    description: "Zapisane przejazdy, cele i suma kilometrów pojazdu za okres.",
   },
   {
     id: "drivers",

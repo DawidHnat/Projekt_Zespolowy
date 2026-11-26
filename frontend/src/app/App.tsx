@@ -35,6 +35,7 @@ import { VehicleDetailsDialog } from "../features/fleet/components/VehicleDetail
 import { AccountPreferenceNotice } from "../shared/components/AccountPreferenceNotice";
 import { AlertsPage } from "../features/analytics/components/AlertsPage";
 import { DriversPage } from "../features/drivers/DriversPage";
+import { MileagePage } from "../features/trips/components/MileagePage";
 
 const readSection = () => sectionFromHash(window.location.hash);
 
@@ -364,6 +365,8 @@ export function App() {
             <ProfilePage />
           ) : section === "alerts" ? (
             <AlertsPage />
+          ) : section === "mileage" ? (
+            <MileagePage />
           ) : section === "drivers" ? (
             <DriversPage />
           ) : section === "settings" ? (

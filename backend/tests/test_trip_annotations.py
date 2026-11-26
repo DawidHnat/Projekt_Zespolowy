@@ -59,6 +59,50 @@ def patch(client, trip_id, **fields):
     )
 
 
+def test_mileage_period_sums_without_pagination_and_tracks_missing_purpose(logged_in):
+    app, client = logged_in
+    with app.state.sessions() as session:
+        vehicle, trip = add_trip(session, account_key(app.state.settings.webfleet_account))
+        second = Trip(
+            vehicle_id=vehicle.id,
+            external_uid=uuid4().hex,
+            start_at=START + timedelta(hours=2),
+            end_at=START + timedelta(hours=3),
+            distance_km=Decimal("7.655"),
+        )
+        session.add(second)
+        session.flush()
+        session.add(
+            TripAnnotation(
+                trip_id=trip.id,
+                purpose="Serwis",
+                version=2,
+                updated_by=session.scalar(select(User).limit(1)).id,
+                updated_at=datetime.now(UTC),
+            )
+        )
+        session.commit()
+        vehicle_id = str(vehicle.id)
+
+    response = client.get(
+        "/api/v1/trips/mileage",
+        params={
+            "vehicle_id": vehicle_id,
+            "from_day": "2026-01-10",
+            "through": "2026-01-10",
+            "page": 1,
+            "page_size": 1,
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 2
+    assert body["summary"]["distance_km"] == 20.0
+    assert body["summary"]["documented_km"] == 12.345
+    assert body["summary"]["missing_purpose"] == 1
+    assert body["summary"]["missing_distance"] == 0
+
+
 def test_annotation_is_durable_audited_and_separate_from_source(stored_trip):
     app, client, vehicle_id, trip_id = stored_trip
     original = client.get(f"/api/v1/trips/{trip_id}").json()
