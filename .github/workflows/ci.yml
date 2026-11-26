@@ -260,29 +260,10 @@ jobs:
         env:
           PROFILE: ${{ matrix.profile }}
           TEST_OUTCOME: ${{ steps.browser-tests.outcome }}
-        run: |
-          python3 - <<'PYTHON'
-          import json, os
-          import xml.etree.ElementTree as ET
-          from pathlib import Path
-          report = Path("frontend/test-results/results.xml")
-          cases = ET.parse(report).findall(".//testcase") if report.is_file() else []
-          failed = sum(any(case.find(tag) is not None for tag in ("failure", "error")) for case in cases)
-          skipped = sum(case.find("skipped") is not None for case in cases)
-          summary = {
-              "profile": os.environ["PROFILE"],
-              "sha": os.environ["GITHUB_SHA"],
-              "outcome": os.environ.get("TEST_OUTCOME", "skipped"),
-              "total": len(cases),
-              "passed": len(cases) - failed - skipped,
-              "failed": failed,
-              "skipped": skipped,
-          }
-          output = Path("e2e-proof/summary.json")
-          output.parent.mkdir(parents=True, exist_ok=True)
-          output.write_text(json.dumps(summary) + "\n", encoding="utf-8")
-          print(json.dumps(summary))
-          PYTHON
+        run: >-
+          python3 tools/validate_e2e_evidence.py summarize
+          --profile "$PROFILE" --report frontend/test-results/results.xml
+          --output e2e-proof/summary.json
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
@@ -334,32 +315,18 @@ jobs:
           if failed:
               raise SystemExit("Required jobs failed or were skipped: " + ", ".join(failed))
           PYTHON
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Test evidence validator, including excessive skipped tests
+        run: python3 -m unittest discover -s tools -p test_validate_e2e_evidence.py -v
       - name: Download independent desktop and mobile evidence
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: e2e-results-*-${{ github.sha }}
           path: e2e-proof
-      - name: Require successful execution of both E2E profiles
-        run: |
-          python3 - <<'PYTHON'
-          import json, os
-          from pathlib import Path
-          sha = os.environ["GITHUB_SHA"]
-          for profile in ("desktop", "mobile"):
-              path = Path("e2e-proof") / f"e2e-results-{profile}-{sha}" / "summary.json"
-              if not path.is_file():
-                  raise SystemExit(f"Missing E2E evidence for {profile}")
-              evidence = json.loads(path.read_text(encoding="utf-8"))
-              if (
-                  evidence.get("profile") != profile
-                  or evidence.get("sha") != sha
-                  or evidence.get("outcome") != "success"
-                  or evidence.get("passed", 0) < 1
-                  or evidence.get("failed") != 0
-              ):
-                  raise SystemExit(f"Unsuccessful E2E profile: {profile}")
-              print(f"{profile}: {evidence['passed']} PASS, {evidence['skipped']} SKIP")
-          PYTHON
+      - name: Require successful execution of both full E2E profiles
+        run: python3 tools/validate_e2e_evidence.py validate --proof e2e-proof
 
   deploy:
     name: Deploy development server
