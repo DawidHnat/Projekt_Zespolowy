@@ -11,21 +11,24 @@ Sprint Review. Zasady odbioru sprintu opisuje
 | Warunek | Jedno sprawdzenie / dowód | Kto i kiedy sprawdza |
 | --- | --- | --- |
 | Cały zakres zadania jest dostarczony i zrecenzowany. | PR wskazuje kryteria zadania, zakres zmiany i dowody wymaganych sprawdzeń. | **człowiek** — reviewer potwierdza zakres i wyniki przed **Approved**. |
-| Zmiana trafiła do `main` przez PR z zatwierdzeniem innego developera. | PR ma co najmniej jedno aktualne **Approved** i stan **Merged**. | **reguła ochrony** — istniejąca ochrona `main`: PR i approval innego developera; reviewer (Dawid Hnat lub Jakub Nazarewicz) sprawdza ostatnią zmianę. Właściciel potwierdza egzekwowanie reguły. |
-| Obowiązkowe CI przeszło dla ostatniej wersji PR. | Wszystkie wymagane kontrole w sekcji Checks są zielone; zatwierdzenie starszego commita nie wystarcza. | **reguła ochrony** — `main`, wymagane `Required CI`, `Backend (3.13)` i `Lint`; **pipeline** — `Required CI` odrzuca failure/skipped zależności. Odczyt API 19.11.2026 potwierdził wszystkie trzy konteksty; dowód SCRUM-140/10320 i docs/COURSE_READINESS.md. |
+| Zmiana trafiła do `main` przez PR z zatwierdzeniem innego developera. | PR ma co najmniej jedno aktualne **Approved** i stan **Merged**. | **warunek odbioru** — niezależny reviewer sprawdza ostatnią zmianę; właściciel potwierdza egzekwowanie PR i approval w aktualnych ustawieniach ochrony `main`. |
+| Obowiązkowe CI przeszło dla ostatniej wersji PR. | Wszystkie wymagane kontrole w sekcji Checks są zielone; zatwierdzenie starszego commita nie wystarcza. | **pipeline** — `Required CI` odrzuca failure/skipped zależności; **warunek odbioru** — reviewer sprawdza listę wymaganych kontekstów w aktualnych ustawieniach ochrony `main` i zapisuje dowód. |
 | Zmieniony frontend przechodzi testy i budowę. | `npm --prefix frontend test && npm --prefix frontend run build` kończy się kodem `0`. | **pipeline** — `Frontend build`, przy każdym PR i pushu do main: npm test, typecheck i build. |
 | Zmieniony backend przechodzi kontrole kodu i testy bez żywych integracji. | W aktywnym środowisku Pythona: `cd backend && ruff check . && ruff format --check . && pytest` kończy się kodem `0`; CI dostarcza osobną bazę testową. | **pipeline** — `Backend (3.12)`, `Backend (3.13)` i `Lint`: pytest z izolowaną bazą, Ruff check i format --check; bez żywego WEBFLEET/SMTP. |
-| Frontend przechodzi automatyczną regresję przeglądarkową. | Kontrola `Critical browser flows` w CI jest zielona. | **pipeline** — testy w widoku komputerowym i mobilnym. |
+| Frontend przechodzi automatyczną regresję przeglądarkową. | `Critical browser flows` albo oba joby `Critical browser flows (desktop)` i `Critical browser flows (mobile)` są zielone dla aktualnego SHA, zależnie od wersji workflow. | **pipeline** — oba profile muszą się wykonać. |
 | Repozytorium nie zawiera sekretów ani danych klientów. | Przegląd zakładki Files changed potwierdza brak prywatnych kluczy, haseł, rzeczywistych `.env` i danych floty; sekrety wdrożenia pozostają w GitHub Actions. | **człowiek** — niezależny reviewer (Dawid Hnat lub Jakub Nazarewicz) przed approval sprawdza Files changed; developer sprawdza zakres przed push. Nie jest to deklaracja automatycznego skanera sekretów. |
 | Dokumentacja odpowiada dostarczonej zmianie. | Zmienione instrukcje, zakres funkcji i kontrakty są aktualne. | **człowiek** — autor aktualizuje dokumentację, reviewer sprawdza ją razem z PR. |
 | Zmiana schematu lub wdrożenia ma sprawdzone odtworzenie. | W PR/Jirze jest wynik próby przywrócenia kopii albo powrotu do wcześniejszego wydania, odpowiednio do zmiany. | **człowiek** — Dawid Hnat przed wdrożeniem zmian schematu/infrastruktury zapisuje próbę restore/rollback; Marcel w odbiorze sprawdza dowód i ograniczenia. |
 
 ## Ochrona gałęzi
 
-Właściciel repozytorium wymusza PR, co najmniej jedno zatwierdzenie i zielone
-CI również dla administratorów. Bezpośredni push do `main`, force push,
-usuwanie gałęzi i pominięcie wymaganych kontroli są zabronione. W prywatnym
-repozytorium wymaga to planu obsługującego ochronę gałęzi u jego właściciela.
+Polityka projektu wymaga ochrony `main`: PR, co najmniej jedno aktualne
+niezależne zatwierdzenie i zielone wymagane CI również dla administratorów.
+Bezpośredni push do `main`, force push, usuwanie gałęzi i pominięcie
+wymaganych kontroli są zabronione. Właściciel potwierdza rzeczywistą
+konfigurację przy odbiorze (data, osoba, wymagane konteksty i dowód
+w Jira/PR). Brak dostępu do ustawień lub rozbieżność oznacza BLOCKED;
+sam dokument i szablon PR nie egzekwują tych wymagań.
 
 ## Odbiór i status zadania
 
@@ -75,12 +78,11 @@ potwierdza zaległych odbiorów.
 
 ## Bramy jakości Sprintu 2
 
-Odczyt 19.11.2026: `Lint` i `Post-deploy smoke` są na main, a ochrona wymaga
-`Required CI`, `Backend (3.13)` i `Lint`. Rozszerzenie już wykonano w SCRUM-140
-(dowód właściciela 10320); nie jest kolejną otwartą pracą. Run `44386951054`
-dla `cb634da` ma wszystkie 10 jobów SUCCESS, w tym deploy/smoke.
-Nie potwierdza to pełnego odbioru Story przez człowieka. `Post-deploy smoke`
-nie jest wymaganym checkiem PR, bo dla PR deploy/smoke są pomijane.
+Historia weryfikacji ochrony i wdrożenia jest udokumentowana w SCRUM-140
+oraz w [ewidencji oddania](docs/COURSE_READINESS.md). Nie zastępuje
+aktualnego odczytu ustawień ochrony. `Post-deploy smoke` jest kontrolą
+wdrożenia po pushu do main; nie wymagamy go dla PR, jeśli workflow
+pomija deployment zgodnie z warunkiem uruchomienia.
 [Bieżące dowody i braki oddania](docs/COURSE_READINESS.md).
 
 ## SCRUM-101 — bezpieczeństwo przyrostu (ASVS 5.0.0)
@@ -124,12 +126,32 @@ Bieżące statusy PR-ów, wyniki CI, blokady i decyzje
 zapisujemy w Jira lub opisie właściwego PR,
 a nie w Definition of Done.
 
+### Obowiązkowe bramy przed merge — bez N/A
+
+Dla każdego PR obowiązują niezależny review i sprawdzenie aktualnego
+SHA, rzeczywistej ochrony gałęzi oraz wszystkich jobów wymaganych
+przez ustawienia i agregator `Required CI`. Dla każdego obowiązkowego
+checka wpisujemy nazwę, wynik, link do jobu lub review i aktualny
+head SHA (oraz testowany merge SHA, jeżeli inny).
+
+Zgodnie z workflow CI zestaw obejmuje `Required CI`, `Lint`,
+`Backend (3.12)`, `Backend (3.13)`, `Frontend build`, `Backend image`,
+`Dependency security`, `Source security`, `Secret security`,
+`Markdown links` oraz `Critical browser flows` dla obu profili
+(w jednym jobie lub osobnych jobach z nazwą profilu).
+
+Nie oznaczamy obowiązkowych jobów N/A. Failure, skipped albo brak
+aktualnego dowodu blokują merge. Zmiana nazw jobów wymaga sprawdzenia
+agregatora i rzeczywistych kontekstów ochrony main. Checklistę traktujemy
+jako zapis dowodów, a nie mechanizm egzekwowania.
+
 ### Zakres kontroli i wyjątki
 
 - PR wskazuje konkretne identyfikatory OWASP ASVS v5.0.0
   z macierzy SCRUM-101/SCRUM-120, których dotyczy zmiana.
-- Dla każdej kontroli zapisujemy PASS, FAIL, BLOCKED
-  albo N/A z uzasadnieniem i osobą akceptującą wyjątek.
+- Dla każdej kontroli zależnej od zakresu zapisujemy PASS, FAIL,
+  BLOCKED albo N/A tylko jeżeli nie dotyczy zmiany, z uzasadnieniem
+  i osobą akceptującą wyjątek. Brak dowodu nie jest N/A.
 - Wynik zawiera SHA badanego commita, środowisko,
   scenariusz, datę, wykonawcę i link do dowodu.
 - PASS z przeglądu kodu odróżniamy od PASS testu.
