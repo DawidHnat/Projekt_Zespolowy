@@ -100,6 +100,22 @@ def serialize_vehicle(vehicle, measurement, driver, now, stale_seconds, source_d
         "model": vehicle.model,
         "year": vehicle.year,
         "vin": vehicle.vin,
+        "ownership_category": vehicle.ownership_category,
+        "purchase_date": vehicle.purchase_date.isoformat() if vehicle.purchase_date else None,
+        "first_registration": vehicle.first_registration.isoformat()
+        if vehicle.first_registration
+        else None,
+        "first_registration_poland": vehicle.first_registration_poland.isoformat()
+        if vehicle.first_registration_poland
+        else None,
+        "fuel_type": vehicle.fuel_type,
+        "engine_capacity_cc": vehicle.engine_capacity_cc,
+        "power_kw": vehicle.power_kw,
+        "dmc_kg": vehicle.dmc_kg,
+        "curb_weight_kg": vehicle.curb_weight_kg,
+        "payload_kg": vehicle.payload_kg,
+        "seats": vehicle.seats,
+        "axles": vehicle.axles,
         "status": status,
         "driver": {"id": str(driver.id), "display_name": driver.display_name} if driver else None,
         "latitude": measurement.latitude if located else None,

@@ -2,7 +2,8 @@ import { useEffect, useId, useState, type FormEvent } from "react";
 import { api, ApiError } from "../../../shared/api/client";
 import { useAuth } from "../../auth/AuthProvider";
 import { useFleet } from "../model/FleetProvider";
-import type { Vehicle } from "../model/types";
+import { measurementLabel, updateTime, type Vehicle } from "../model/types";
+import { DatePicker } from "../../../shared/components/DatePicker";
 
 const fields = [
   { key: "name", label: "Nazwa", max: 200 },
@@ -12,6 +13,18 @@ const fields = [
   { key: "year", label: "Rok produkcji", max: undefined },
   { key: "vin", label: "VIN", max: 100 },
   { key: "vehicle_type", label: "Typ pojazdu", max: 100 },
+  { key: "ownership_category", label: "Kategoria", max: undefined },
+  { key: "purchase_date", label: "Data wykupu leasingu", max: undefined },
+  { key: "first_registration", label: "Pierwsza rejestracja", max: undefined },
+  { key: "first_registration_poland", label: "Pierwsza rejestracja w Polsce", max: undefined },
+  { key: "fuel_type", label: "Paliwo", max: 50 },
+  { key: "engine_capacity_cc", label: "Pojemność silnika (cm³)", max: undefined },
+  { key: "power_kw", label: "Moc (kW)", max: undefined },
+  { key: "dmc_kg", label: "DMC (kg)", max: undefined },
+  { key: "curb_weight_kg", label: "Masa własna (kg)", max: undefined },
+  { key: "payload_kg", label: "Ładowność (kg)", max: undefined },
+  { key: "seats", label: "Liczba miejsc", max: undefined },
+  { key: "axles", label: "Liczba osi", max: undefined },
 ] as const;
 
 type Field = typeof fields[number]["key"];
@@ -58,7 +71,12 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
     event.preventDefault();
     if (!draft || !dirty || !editable || saving || conflict) return;
     const body = Object.fromEntries(Object.entries(draft.changes).map(([key, value]) =>
-      [key, key === "year" && value ? Number(value) : value.trim() || null],
+      [
+        key,
+        ["year", "engine_capacity_cc", "power_kw", "dmc_kg", "curb_weight_kg", "payload_kg", "seats", "axles"].includes(key)
+          ? (value ? Number(value) : null)
+          : value.trim() || null,
+      ],
     ));
     if ("name" in body && !body.name) {
       setError("Podaj nazwę pojazdu.");
@@ -111,17 +129,40 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
             {fields.map(({ key, label, max }) => (
               <label key={key} htmlFor={`${id}-${key}`}>
                 {label}
-                <input
-                  id={`${id}-${key}`}
-                  value={draft.changes[key] ?? fieldValue(draft.base, key)}
-                  onChange={event => change(key, event.target.value)}
-                  type={key === "year" ? "number" : "text"}
-                  min={key === "year" ? 1900 : undefined}
-                  max={key === "year" ? 2100 : undefined}
-                  maxLength={max}
-                  required={key === "name"}
-                  readOnly={saving}
-                />
+                {key === "ownership_category" ? (
+                  <select
+                    id={`${id}-${key}`}
+                    value={draft.changes[key] ?? fieldValue(draft.base, key)}
+                    onChange={event => change(key, event.target.value)}
+                    disabled={saving}
+                  >
+                    <option value="">Brak danych</option>
+                    <option value="Firmowe">Firmowe</option>
+                    <option value="Prywatne">Prywatne</option>
+                    <option value="Leasing">Leasing</option>
+                  </select>
+                ) : key === "purchase_date" || key === "first_registration" || key === "first_registration_poland" ? (
+                  <DatePicker
+                    value={draft.changes[key] ?? fieldValue(draft.base, key)}
+                    label={label}
+                    maxDate={key === "purchase_date" ? undefined : new Date().toISOString().slice(0, 10)}
+                    disabled={saving}
+                    allowClear
+                    onChange={value => change(key, value)}
+                  />
+                ) : (
+                  <input
+                    id={`${id}-${key}`}
+                    value={draft.changes[key] ?? fieldValue(draft.base, key)}
+                    onChange={event => change(key, event.target.value)}
+                    type={["year", "engine_capacity_cc", "power_kw", "dmc_kg", "curb_weight_kg", "payload_kg", "seats", "axles"].includes(key) ? "number" : "text"}
+                    min={key === "year" ? 1900 : ["power_kw", "curb_weight_kg", "payload_kg"].includes(key) ? 0 : 1}
+                    max={key === "year" ? 2100 : undefined}
+                    maxLength={max}
+                    required={key === "name"}
+                    readOnly={saving}
+                  />
+                )}
               </label>
             ))}
           </div>
@@ -144,6 +185,8 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
             {fields.map(({ key, label }) => (
               <div key={key}><dt>{label}</dt><dd>{fieldValue(visible, key) || "Brak danych"}</dd></div>
             ))}
+            <div><dt>Przebieg ze źródła</dt><dd>{measurementLabel(visible.odometer_km, "km", 1)}</dd></div>
+            <div><dt>Ostatnia aktualizacja przebiegu</dt><dd>{updateTime(visible.received_at)}</dd></div>
           </dl>
           {editable && visible.card_version && (
             <button type="button" className="button button-secondary"

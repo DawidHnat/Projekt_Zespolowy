@@ -1,10 +1,11 @@
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
+    Date,
     DateTime,
     ForeignKey,
     Integer,
@@ -72,6 +73,18 @@ class Vehicle(Base):
     model: Mapped[str | None] = mapped_column(String(100))
     year: Mapped[int | None] = mapped_column(Integer)
     vin: Mapped[str | None] = mapped_column(String(100))
+    ownership_category: Mapped[str | None] = mapped_column(String(20))
+    purchase_date: Mapped[date | None] = mapped_column(Date)
+    first_registration: Mapped[date | None] = mapped_column(Date)
+    first_registration_poland: Mapped[date | None] = mapped_column(Date)
+    fuel_type: Mapped[str | None] = mapped_column(String(50))
+    engine_capacity_cc: Mapped[int | None] = mapped_column(Integer)
+    power_kw: Mapped[int | None] = mapped_column(Integer)
+    dmc_kg: Mapped[int | None] = mapped_column(Integer)
+    curb_weight_kg: Mapped[int | None] = mapped_column(Integer)
+    payload_kg: Mapped[int | None] = mapped_column(Integer)
+    seats: Mapped[int | None] = mapped_column(Integer)
+    axles: Mapped[int | None] = mapped_column(Integer)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     # Private, derived values keep Unicode search identical to the UI.
     search_name: Mapped[str] = mapped_column(

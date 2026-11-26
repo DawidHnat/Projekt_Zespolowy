@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Annotated, Literal
 from uuid import UUID
 
@@ -40,6 +41,18 @@ class VehicleCardUpdate(BaseModel):
     vin: Annotated[str | None, Field(default=None, max_length=100)] = None
     license_plate: Annotated[str | None, Field(default=None, max_length=100)] = None
     vehicle_type: Annotated[str | None, Field(default=None, max_length=100)] = None
+    ownership_category: Literal["Firmowe", "Prywatne", "Leasing"] | None = None
+    purchase_date: date | None = None
+    first_registration: date | None = None
+    first_registration_poland: date | None = None
+    fuel_type: Annotated[str | None, Field(default=None, max_length=50)] = None
+    engine_capacity_cc: Annotated[int | None, Field(default=None, ge=1, le=100000)] = None
+    power_kw: Annotated[int | None, Field(default=None, ge=0, le=10000)] = None
+    dmc_kg: Annotated[int | None, Field(default=None, ge=1, le=1000000)] = None
+    curb_weight_kg: Annotated[int | None, Field(default=None, ge=0, le=1000000)] = None
+    payload_kg: Annotated[int | None, Field(default=None, ge=0, le=1000000)] = None
+    seats: Annotated[int | None, Field(default=None, ge=1, le=100)] = None
+    axles: Annotated[int | None, Field(default=None, ge=1, le=20)] = None
 
     @field_validator("name")
     @classmethod
@@ -48,7 +61,7 @@ class VehicleCardUpdate(BaseModel):
             raise ValueError("Nazwa pojazdu nie może być pusta")
         return value.strip()
 
-    @field_validator("make", "model", "vin", "license_plate", "vehicle_type")
+    @field_validator("make", "model", "vin", "license_plate", "vehicle_type", "fuel_type")
     @classmethod
     def clean_optional_strings(cls, value: str | None) -> str | None:
         if value is None:
