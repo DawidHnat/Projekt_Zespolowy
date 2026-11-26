@@ -15,6 +15,7 @@ from app.core.database import get_session
 from app.core.errors import ApiError
 from app.core.models import Driver, Measurement, SyncState, Vehicle
 from app.modules.analytics.models import Alert, AlertReceipt, DailyDistance, Rule
+from app.modules.audit.service import build_diff, record_audit_event, vehicle_card_snapshot
 from app.modules.auth.models import User
 from app.modules.auth.service import check_origin, current_user, editor
 from app.modules.drivers.compatibility import evaluate_driver_vehicle
@@ -341,7 +342,7 @@ def create_manual_vehicle(
     payload: VehicleManualCreate,
     request: Request,
     session: SessionDep,
-    _: Annotated[User, Depends(editor)],
+    user: Annotated[User, Depends(editor)],
 ):
     settings = request.app.state.settings
     source = account_key(settings.webfleet_account)
@@ -450,17 +451,46 @@ def create_manual_vehicle(
     try:
         session.flush()
         if assigned_driver is not None:
-            session.add(
-                DriverAssignment(
-                    driver_id=assigned_driver.id,
-                    vehicle_id=vehicle.id,
-                    active=True,
-                    started_at=now,
-                    recorded_at=now,
-                )
+            new_assign = DriverAssignment(
+                driver_id=assigned_driver.id,
+                vehicle_id=vehicle.id,
+                active=True,
+                started_at=now,
+                recorded_at=now,
             )
+            session.add(new_assign)
+            session.flush()
             assigned_driver.version += 1
             vehicle.driver_id = assigned_driver.id
+            record_audit_event(
+                session,
+                entity_type="driver_assignment",
+                entity_id=new_assign.id,
+                vehicle_id=vehicle.id,
+                operation="driver_assignment.created",
+                actor_id=user.id,
+                source_account=source,
+                changes={
+                    "driver_id": {"before": None, "after": assigned_driver.id},
+                    "vehicle_id": {"before": None, "after": vehicle.id},
+                    "active": {"before": None, "after": True},
+                    "started_at": {"before": None, "after": now},
+                },
+                request=request,
+                occurred_at=now,
+            )
+        record_audit_event(
+            session,
+            entity_type="vehicle",
+            entity_id=vehicle.id,
+            vehicle_id=vehicle.id,
+            operation="vehicle.created",
+            actor_id=user.id,
+            source_account=source,
+            changes=build_diff("vehicle", {}, vehicle_card_snapshot(vehicle)),
+            request=request,
+            occurred_at=now,
+        )
         session.commit()
     except IntegrityError:
         session.rollback()
@@ -568,7 +598,7 @@ def update_vehicle_card(
     payload: VehicleCardUpdate,
     request: Request,
     session: SessionDep,
-    _: Annotated[User, Depends(editor)],
+    user: Annotated[User, Depends(editor)],
 ):
     settings = request.app.state.settings
     source = account_key(settings.webfleet_account)
@@ -628,6 +658,7 @@ def update_vehicle_card(
         if conflict_resp is not None:
             return conflict_resp
 
+    before_card = vehicle_card_snapshot(vehicle)
     if "tows_heavy_trailer" in changes:
         changes["tows_heavy_trailer"] = bool(changes["tows_heavy_trailer"])
     for field, value in changes.items():
@@ -637,6 +668,17 @@ def update_vehicle_card(
     vehicle.locally_edited = True
     vehicle.card_version += 1
     try:
+        record_audit_event(
+            session,
+            entity_type="vehicle",
+            entity_id=vehicle.id,
+            vehicle_id=vehicle.id,
+            operation="vehicle.updated",
+            actor_id=user.id,
+            source_account=source,
+            changes=build_diff("vehicle", before_card, vehicle_card_snapshot(vehicle)),
+            request=request,
+        )
         session.commit()
     except IntegrityError:
         session.rollback()
@@ -672,7 +714,7 @@ def update_manual_odometer(
     payload: VehicleOdometerBody,
     request: Request,
     session: SessionDep,
-    _: Annotated[User, Depends(editor)],
+    user: Annotated[User, Depends(editor)],
 ):
     settings = request.app.state.settings
     source = account_key(settings.webfleet_account)
@@ -697,10 +739,32 @@ def update_manual_odometer(
         raise ApiError(409, "VEHICLE_ARCHIVED", "Przywróć pojazd przed zapisem przebiegu")
     if vehicle.card_version != payload.card_version:
         raise ApiError(409, "VERSION_CONFLICT", "Kartoteka pojazdu zmieniła się podczas edycji")
+    before_odo = {
+        "manual_odometer_km": vehicle.manual_odometer_km,
+        "manual_odometer_date": vehicle.manual_odometer_date,
+    }
     vehicle.manual_odometer_km = payload.odometer_km
     vehicle.manual_odometer_date = payload.recorded_on
     vehicle.locally_edited = True
     vehicle.card_version += 1
+    record_audit_event(
+        session,
+        entity_type="vehicle_odometer",
+        entity_id=vehicle.id,
+        vehicle_id=vehicle.id,
+        operation="vehicle.odometer_updated",
+        actor_id=user.id,
+        source_account=source,
+        changes=build_diff(
+            "vehicle_odometer",
+            before_odo,
+            {
+                "manual_odometer_km": vehicle.manual_odometer_km,
+                "manual_odometer_date": vehicle.manual_odometer_date,
+            },
+        ),
+        request=request,
+    )
     session.commit()
     metadata = write_metadata(session, source)
     drivers = fleet_driver_summaries(session, [vehicle_id], source)
@@ -724,7 +788,7 @@ def link_manual_vehicle_to_source(
     payload: VehicleLinkSourceBody,
     request: Request,
     session: SessionDep,
-    _: Annotated[User, Depends(editor)],
+    user: Annotated[User, Depends(editor)],
 ):
     if vehicle_id == payload.source_vehicle_id:
         raise ApiError(422, "VALIDATION_ERROR", "Wskaż odrębny pojazd źródłowy WEBFLEET")
@@ -776,6 +840,8 @@ def link_manual_vehicle_to_source(
             "IDENTITY_MISMATCH",
             "Pojazd źródłowy nie pasuje znormalizowaną rejestracją ani numerem VIN",
         )
+
+    before_link = vehicle_card_snapshot(vehicle)
 
     # Canonical lock order: Vehicle (already locked) -> Driver -> DriverAssignment.
     candidate_driver_ids = sorted(
@@ -980,6 +1046,17 @@ def link_manual_vehicle_to_source(
         vehicle.manual_vehicle_type = bool(vehicle.vehicle_type)
         vehicle.card_version += 1
         project_vehicle_drivers(session, [vehicle.id], source)
+        record_audit_event(
+            session,
+            entity_type="vehicle",
+            entity_id=vehicle.id,
+            vehicle_id=vehicle.id,
+            operation="vehicle.source_linked",
+            actor_id=user.id,
+            source_account=source,
+            changes=build_diff("vehicle", before_link, vehicle_card_snapshot(vehicle)),
+            request=request,
+        )
         session.commit()
     except IntegrityError:
         session.rollback()
@@ -1082,12 +1159,42 @@ def archive_vehicle(
     for item in active_assignments:
         item.active = False
         item.ended_at = now
+        record_audit_event(
+            session,
+            entity_type="driver_assignment",
+            entity_id=item.id,
+            vehicle_id=vehicle.id,
+            operation="driver_assignment.closed",
+            actor_id=user.id,
+            source_account=source,
+            changes={
+                "active": {"before": True, "after": False},
+                "ended_at": {"before": None, "after": now},
+            },
+            request=request,
+            occurred_at=now,
+        )
     vehicle.driver_id = None
     vehicle.archived = True
     vehicle.archived_at = now
     vehicle.archived_by = user.id
     vehicle.archived_reason = payload.reason
     vehicle.card_version += 1
+    record_audit_event(
+        session,
+        entity_type="vehicle",
+        entity_id=vehicle.id,
+        vehicle_id=vehicle.id,
+        operation="vehicle.archived",
+        actor_id=user.id,
+        source_account=source,
+        changes={
+            "archived": {"before": False, "after": True},
+            "archived_reason": {"before": None, "after": payload.reason},
+        },
+        request=request,
+        occurred_at=now,
+    )
     session.commit()
     metadata = write_metadata(session, source)
     drivers = fleet_driver_summaries(session, [vehicle_id], source)
@@ -1111,7 +1218,7 @@ def restore_vehicle(
     payload: VehicleRestoreBody,
     request: Request,
     session: SessionDep,
-    _: Annotated[User, Depends(editor)],
+    user: Annotated[User, Depends(editor)],
 ):
     settings = request.app.state.settings
     source = account_key(settings.webfleet_account)
@@ -1136,11 +1243,26 @@ def restore_vehicle(
         raise ApiError(409, "VERSION_CONFLICT", "Kartoteka pojazdu zmieniła się podczas edycji")
     if not vehicle.archived:
         raise ApiError(409, "NOT_ARCHIVED", "Pojazd nie znajduje się w archiwum")
+    prev_reason = vehicle.archived_reason
     vehicle.archived = False
     vehicle.archived_at = None
     vehicle.archived_by = None
     vehicle.archived_reason = None
     vehicle.card_version += 1
+    record_audit_event(
+        session,
+        entity_type="vehicle",
+        entity_id=vehicle.id,
+        vehicle_id=vehicle.id,
+        operation="vehicle.restored",
+        actor_id=user.id,
+        source_account=source,
+        changes={
+            "archived": {"before": True, "after": False},
+            "archived_reason": {"before": prev_reason, "after": None},
+        },
+        request=request,
+    )
     session.commit()
     metadata = write_metadata(session, source)
     drivers = fleet_driver_summaries(session, [vehicle_id], source)
@@ -1250,7 +1372,7 @@ def update_vehicle_document_dates(
     payload: VehicleDocumentDatesBody,
     request: Request,
     session: SessionDep,
-    _: Annotated[User, Depends(editor)],
+    user: Annotated[User, Depends(editor)],
 ):
     settings = request.app.state.settings
     source = account_key(settings.webfleet_account)
@@ -1259,12 +1381,34 @@ def update_vehicle_document_dates(
         raise ApiError(409, "VEHICLE_ARCHIVED", "Przywróć pojazd przed edycją terminów")
     if vehicle.card_version != payload.card_version:
         raise ApiError(409, "VERSION_CONFLICT", "Kartoteka pojazdu zmieniła się podczas edycji")
+    before_dates = {
+        "inspection_due_on": vehicle.inspection_due_on,
+        "insurance_due_on": vehicle.insurance_due_on,
+    }
     if "inspection_due_on" in payload.model_fields_set:
         vehicle.inspection_due_on = payload.inspection_due_on
     if "insurance_due_on" in payload.model_fields_set:
         vehicle.insurance_due_on = payload.insurance_due_on
     vehicle.locally_edited = True
     vehicle.card_version += 1
+    record_audit_event(
+        session,
+        entity_type="vehicle_document",
+        entity_id=vehicle.id,
+        vehicle_id=vehicle.id,
+        operation="vehicle.document_dates_updated",
+        actor_id=user.id,
+        source_account=source,
+        changes=build_diff(
+            "vehicle_document",
+            before_dates,
+            {
+                "inspection_due_on": vehicle.inspection_due_on,
+                "insurance_due_on": vehicle.insurance_due_on,
+            },
+        ),
+        request=request,
+    )
     session.commit()
     return _documents_state_payload(session, settings, vehicle)
 
@@ -1343,6 +1487,26 @@ async def upload_vehicle_document(
             updated_at=now,
         )
         session.add(record)
+        session.flush()
+        record_audit_event(
+            session,
+            entity_type="vehicle_document",
+            entity_id=record.id,
+            vehicle_id=vehicle.id,
+            operation="vehicle.document_uploaded",
+            actor_id=user.id,
+            source_account=source,
+            changes={
+                "kind": {"before": None, "after": resolved_kind},
+                "name": {"before": None, "after": record.original_name},
+                "mime_type": {"before": None, "after": record.mime_type},
+                "size_bytes": {"before": None, "after": record.size_bytes},
+                "scan_status": {"before": None, "after": record.scan_status},
+                "version": {"before": None, "after": 1},
+            },
+            request=request,
+            occurred_at=now,
+        )
         session.commit()
         return serialize_document_item(record)
     except Exception:
@@ -1446,6 +1610,8 @@ async def replace_vehicle_document(
                 "Nowy plik oczekuje w kwarantannie — zachowano poprzedni dokument",
             )
         previous_key = record.storage_key
+        prev_name = record.original_name
+        prev_ver = record.version
         record.original_name = validated.safe_name
         record.mime_type = validated.mime_type
         record.size_bytes = len(validated.payload)
@@ -1458,6 +1624,21 @@ async def replace_vehicle_document(
         record.version += 1
         record.uploaded_by = user.id
         record.updated_at = datetime.now(UTC)
+        record_audit_event(
+            session,
+            entity_type="vehicle_document",
+            entity_id=record.id,
+            vehicle_id=vehicle.id,
+            operation="vehicle.document_replaced",
+            actor_id=user.id,
+            source_account=source,
+            changes={
+                "name": {"before": prev_name, "after": record.original_name},
+                "version": {"before": prev_ver, "after": record.version},
+            },
+            request=request,
+            occurred_at=record.updated_at,
+        )
         session.commit()
     except Exception:
         session.rollback()
@@ -1477,7 +1658,7 @@ def delete_vehicle_document(
     document_id: UUID,
     request: Request,
     session: SessionDep,
-    _: Annotated[User, Depends(editor)],
+    user: Annotated[User, Depends(editor)],
 ):
     settings = request.app.state.settings
     source = account_key(settings.webfleet_account)
@@ -1496,7 +1677,25 @@ def delete_vehicle_document(
     if not record:
         raise ApiError(404, "NOT_FOUND", "Dokument nie istnieje")
     old_key = record.storage_key
+    doc_id = record.id
+    doc_kind = record.kind
+    doc_name = record.original_name
     session.delete(record)
+    record_audit_event(
+        session,
+        entity_type="vehicle_document",
+        entity_id=doc_id,
+        vehicle_id=vehicle.id,
+        operation="vehicle.document_deleted",
+        actor_id=user.id,
+        source_account=source,
+        changes={
+            "kind": {"before": doc_kind, "after": None},
+            "name": {"before": doc_name, "after": None},
+            "deleted": {"before": False, "after": True},
+        },
+        request=request,
+    )
     session.commit()
     request.app.state.attachment_store.remove(old_key)
     return {"ok": True}
@@ -1598,6 +1797,24 @@ async def put_vehicle_photo(
 
         if scan_status == "clean":
             vehicle.photo_version += 1
+        session.flush()
+        record_audit_event(
+            session,
+            entity_type="vehicle_document",
+            entity_id=record.id,
+            vehicle_id=vehicle.id,
+            operation="vehicle.photo_updated",
+            actor_id=user.id,
+            source_account=source,
+            changes={
+                "kind": {"before": None, "after": "vehicle_photo"},
+                "mime_type": {"before": None, "after": record.mime_type},
+                "scan_status": {"before": None, "after": record.scan_status},
+                "version": {"before": None, "after": record.version},
+            },
+            request=request,
+            occurred_at=now,
+        )
         session.commit()
     except Exception:
         session.rollback()
@@ -1644,7 +1861,7 @@ def delete_vehicle_photo(
     vehicle_id: UUID,
     request: Request,
     session: SessionDep,
-    _: Annotated[User, Depends(editor)],
+    user: Annotated[User, Depends(editor)],
 ):
     settings = request.app.state.settings
     source = account_key(settings.webfleet_account)
@@ -1662,10 +1879,22 @@ def delete_vehicle_photo(
     if not record:
         raise ApiError(404, "NOT_FOUND", "Pojazd nie posiada zapisanego zdjęcia")
     old_key = record.storage_key
+    photo_id = record.id
     was_clean = record.scan_status == "clean"
     session.delete(record)
     if was_clean:
         vehicle.photo_version += 1
+    record_audit_event(
+        session,
+        entity_type="vehicle_document",
+        entity_id=photo_id,
+        vehicle_id=vehicle.id,
+        operation="vehicle.photo_deleted",
+        actor_id=user.id,
+        source_account=source,
+        changes={"deleted": {"before": False, "after": True}},
+        request=request,
+    )
     session.commit()
     request.app.state.attachment_store.remove(old_key)
     return {"ok": True, "photo_version": vehicle.photo_version}

@@ -12,6 +12,7 @@ from app.core.config import SmtpSettings, load_environment
 from app.core.database import get_session
 from app.core.errors import ApiError
 from app.integrations.mail.client import send_password_reset
+from app.modules.audit.service import record_audit_event
 from app.modules.auth.models import PasswordReset, User
 from app.modules.auth.router import count_attempt
 from app.modules.auth.service import (
@@ -157,5 +158,14 @@ def confirm_reset(body: ConfirmReset, request: Request, session: SessionDep):
     user.password_hash = password_hasher.hash(body.password.get_secret_value())
     revoke_sessions(session, user)
     session.execute(delete(PasswordReset).where(PasswordReset.user_id == user.id))
+    record_audit_event(
+        session,
+        entity_type="user_account",
+        entity_id=user.id,
+        operation="auth.password_reset_confirmed",
+        actor_id=user.id,
+        changes={"password_reset": {"before": False, "after": True}},
+        request=request,
+    )
     session.commit()
     return {"ok": True}

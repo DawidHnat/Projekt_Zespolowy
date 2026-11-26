@@ -7,6 +7,7 @@ test("page navigation supports direct links and safely falls back for unknown ha
   assert.equal(sectionFromHash("#vehicles"), "vehicles");
   assert.equal(sectionFromHash("#settings"), "settings");
   assert.equal(sectionFromHash("#fuel-cards"), "fuel-cards");
+  assert.equal(sectionFromHash("#audit"), "audit");
   for (const hash of [
     "",
     "#",

@@ -3,6 +3,7 @@ import {
   CarFront,
   BookOpen,
   CreditCard,
+  History,
   LayoutDashboard,
   MapPinned,
   Users,
@@ -75,6 +76,12 @@ export const sections = [
     title: "Alerty",
     icon: Bell,
     description: "Przekroczenia dziennego dystansu, reguły i Twój stan odczytu.",
+  },
+  {
+    id: "audit",
+    title: "Historia zmian",
+    icon: History,
+    description: "Wspólny dziennik zmian pojazdów, przypisań, ewidencji i kont.",
   },
   {
     id: "profile",

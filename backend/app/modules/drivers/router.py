@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_session
 from app.core.errors import ApiError
 from app.core.models import Driver, Vehicle
+from app.modules.audit.service import build_diff, driver_audit_snapshot, record_audit_event
 from app.modules.auth.models import User
 from app.modules.auth.service import check_origin, current_user, editor
 from app.modules.drivers.compatibility import (
@@ -330,7 +331,7 @@ def driver(driver_id: UUID, request: Request, session: SessionDep, _: UserDep):
 
 
 @router.post("", status_code=201)
-def create_driver(body: DriverFields, request: Request, session: SessionDep, _: EditorDep):
+def create_driver(body: DriverFields, request: Request, session: SessionDep, user: EditorDep):
     source = source_for(request)
     fields = body.model_dump(exclude={"categories"})
     driver = Driver(
@@ -340,6 +341,17 @@ def create_driver(body: DriverFields, request: Request, session: SessionDep, _: 
     try:
         session.flush()
         replace_categories(session, driver, body.categories)
+        after_snap = driver_audit_snapshot(driver, body.categories)
+        record_audit_event(
+            session,
+            entity_type="driver",
+            entity_id=driver.id,
+            operation="driver.created",
+            actor_id=user.id,
+            source_account=source,
+            changes=build_diff("driver", {}, after_snap),
+            request=request,
+        )
         commit_profile(session)
     except IntegrityError:
         session.rollback()
@@ -349,7 +361,7 @@ def create_driver(body: DriverFields, request: Request, session: SessionDep, _: 
 
 @router.patch("/{driver_id}")
 def patch_driver(
-    driver_id: UUID, body: DriverPatch, request: Request, session: SessionDep, _: EditorDep
+    driver_id: UUID, body: DriverPatch, request: Request, session: SessionDep, user: EditorDep
 ):
     source = source_for(request)
     if body.active is False:
@@ -376,6 +388,12 @@ def patch_driver(
                 .execution_options(populate_existing=True)
             ).all()
     driver = find_driver(session, source, driver_id, version=body.version)
+    prev_cats = list(
+        session.scalars(
+            select(DriverCategory.category).where(DriverCategory.driver_id == driver.id)
+        ).all()
+    )
+    before_snap = driver_audit_snapshot(driver, [c for c in CATEGORIES if c in prev_cats])
     changes = body.model_dump(exclude_unset=True, exclude={"categories", "version"})
     for field, value in changes.items():
         setattr(driver, field, value)
@@ -383,10 +401,47 @@ def patch_driver(
         driver.display_name = f"{driver.first_name} {driver.last_name}"
     driver.version += 1
     try:
+        next_cats = (
+            body.categories
+            if "categories" in body.model_fields_set and body.categories is not None
+            else [c for c in CATEGORIES if c in prev_cats]
+        )
         if "categories" in body.model_fields_set:
             replace_categories(session, driver, body.categories)
         if body.active is False:
+            open_rows = session.scalars(
+                select(DriverAssignment).where(
+                    DriverAssignment.driver_id == driver.id,
+                    DriverAssignment.active.is_(True),
+                )
+            ).all()
             close_driver_assignments(session, driver, source)
+            for closed_row in open_rows:
+                record_audit_event(
+                    session,
+                    entity_type="driver_assignment",
+                    entity_id=closed_row.id,
+                    vehicle_id=closed_row.vehicle_id,
+                    operation="driver_assignment.closed",
+                    actor_id=user.id,
+                    source_account=source,
+                    changes={
+                        "active": {"before": True, "after": False},
+                        "ended_at": {"before": None, "after": closed_row.ended_at},
+                    },
+                    request=request,
+                )
+        after_snap = driver_audit_snapshot(driver, next_cats)
+        record_audit_event(
+            session,
+            entity_type="driver",
+            entity_id=driver.id,
+            operation="driver.updated",
+            actor_id=user.id,
+            source_account=source,
+            changes=build_diff("driver", before_snap, after_snap),
+            request=request,
+        )
         commit_profile(session)
     except IntegrityError:
         session.rollback()
@@ -434,7 +489,7 @@ def assignments(
 
 @router.post("/{driver_id}/assignments", status_code=201)
 def assign(
-    driver_id: UUID, body: AssignmentBody, request: Request, session: SessionDep, _: EditorDep
+    driver_id: UUID, body: AssignmentBody, request: Request, session: SessionDep, user: EditorDep
 ):
     source = source_for(request)
     # Canonical lock order: Vehicle -> Driver -> DriverAssignment.
@@ -480,6 +535,22 @@ def assign(
     try:
         session.flush()
         project_vehicle_drivers(session, [vehicle.id], source)
+        record_audit_event(
+            session,
+            entity_type="driver_assignment",
+            entity_id=assignment.id,
+            vehicle_id=vehicle.id,
+            operation="driver_assignment.created",
+            actor_id=user.id,
+            source_account=source,
+            changes={
+                "driver_id": {"before": None, "after": driver_id},
+                "vehicle_id": {"before": None, "after": vehicle.id},
+                "active": {"before": None, "after": True},
+                "started_at": {"before": None, "after": assignment.started_at},
+            },
+            request=request,
+        )
         session.commit()
     except IntegrityError:
         session.rollback()
@@ -499,7 +570,7 @@ def close(
     body: CloseAssignmentBody,
     request: Request,
     session: SessionDep,
-    _: EditorDep,
+    user: EditorDep,
 ):
     source = source_for(request)
     # Canonical lock order: Vehicle -> Driver -> DriverAssignment.
@@ -544,6 +615,20 @@ def close(
     driver.version += 1
     session.flush()
     project_vehicle_drivers(session, [vehicle.id], source)
+    record_audit_event(
+        session,
+        entity_type="driver_assignment",
+        entity_id=assignment.id,
+        vehicle_id=assignment.vehicle_id,
+        operation="driver_assignment.closed",
+        actor_id=user.id,
+        source_account=source,
+        changes={
+            "active": {"before": True, "after": False},
+            "ended_at": {"before": None, "after": assignment.ended_at},
+        },
+        request=request,
+    )
     session.commit()
     driver_cats = list(
         session.scalars(

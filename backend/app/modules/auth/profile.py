@@ -9,6 +9,7 @@ from app.core.config import SmtpSettings, load_environment
 from app.core.database import get_session
 from app.core.errors import ApiError
 from app.integrations.mail.client import send_password_changed
+from app.modules.audit.service import record_audit_event
 from app.modules.auth.models import LoginSession, PasswordReset, User
 from app.modules.auth.router import count_attempt
 from app.modules.auth.service import (
@@ -122,6 +123,15 @@ def change_password(
     revoke_sessions(session, locked)
     session.execute(delete(PasswordReset).where(PasswordReset.user_id == locked.id))
     issue_session(request, response, session, locked)
+    record_audit_event(
+        session,
+        entity_type="user_account",
+        entity_id=locked.id,
+        operation="auth.password_changed",
+        actor_id=locked.id,
+        changes={"password_changed": {"before": False, "after": True}},
+        request=request,
+    )
     recipient = locked.email
     session.commit()
     background.add_task(notify_password_changed, recipient)
@@ -132,6 +142,15 @@ def change_password(
 def logout_all(request: Request, response: Response, session: SessionDep, user: UserDep):
     locked = locked_current_user(session, request, user)
     revoke_sessions(session, locked)
+    record_audit_event(
+        session,
+        entity_type="user_session",
+        entity_id=locked.id,
+        operation="auth.sessions_revoked",
+        actor_id=locked.id,
+        changes={"revoked_all": {"before": False, "after": True}},
+        request=request,
+    )
     session.commit()
     response.delete_cookie(
         COOKIE_NAME,

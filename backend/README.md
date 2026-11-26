@@ -449,3 +449,14 @@ etykieta `"ciężarowy"` bez DMC pozostaje `unverified`). Potwierdzona niezgodno
 blokuje nowe przypisanie (`POST /api/v1/drivers/{id}/assignments`), przypisanie przy
 tworzeniu pojazdu oraz wybór kierowcy w ewidencji (`PATCH /api/v1/trips/{id}/annotation`)
 błędem `409 LICENSE_INCOMPATIBLE`, nie usuwając historycznych przypisań i przejazdów.
+
+## Wspólny dziennik zmian (SCRUM-87)
+
+Chronione endpointy tylko do odczytu `GET /api/v1/audit/events` oraz `GET /api/v1/audit/actors`
+udostępniają paginowany ślad zmian kartoteki pojazdu, przebiegu ręcznego, dokumentów i zdjęć,
+kierowców, przypisań kierowca–pojazd, adnotacji podróży oraz operacji bezpieczeństwa kont i sesji.
+Wpisy powstają w jednej transakcji ze zmianą biznesową; tabela `audit_events` (migracja
+`0016_audit_events`) ma bazodanowy wyzwalacz `append-only` blokujący `UPDATE` i `DELETE`.
+Import WEBFLEET jest oznaczony `actor_type = "import"`. Hasła, tokeny, klucze API, PIN, pełne
+numery kart i surowe współrzędne GPS są wykluczone białą listą pól.
+[Polityka bezpieczeństwa i retencji](../docs/security/SCRUM-87-audit-log.md).

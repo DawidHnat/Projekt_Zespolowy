@@ -1,5 +1,6 @@
 from datetime import timedelta
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request, Response
 from pydantic import BaseModel, Field, SecretStr, field_validator
@@ -8,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_session
 from app.core.errors import ApiError
+from app.modules.audit.service import record_audit_event
 from app.modules.auth.models import LoginAttempt, LoginSession, User
 from app.modules.auth.policies import can_authenticate
 from app.modules.auth.service import (
@@ -95,6 +97,17 @@ def login(
         body.password.get_secret_value(), user.password_hash if user else dummy_hash
     )
     if not valid or not user or not user.active or not can_authenticate(user.role):
+        record_audit_event(
+            session,
+            entity_type="user_session",
+            entity_id=user.id if user else UUID(int=0),
+            operation="auth.login_failed",
+            actor_id=user.id if user else None,
+            outcome="denied",
+            changes={"action": {"before": None, "after": "login_failed"}},
+            request=request,
+        )
+        session.commit()
         raise ApiError(401, "INVALID_CREDENTIALS", "Niepoprawny login lub hasło")
     now = now_utc()
     session.execute(delete(LoginAttempt).where(LoginAttempt.window_start < now - timedelta(days=1)))
@@ -105,6 +118,16 @@ def login(
         if row:
             session.delete(row)
     issue_session(request, response, session, user)
+    record_audit_event(
+        session,
+        entity_type="user_session",
+        entity_id=user.id,
+        operation="auth.login_succeeded",
+        actor_id=user.id,
+        changes={"action": {"before": None, "after": "login_succeeded"}},
+        request=request,
+        occurred_at=now,
+    )
     session.commit()
     return user_payload(user)
 
@@ -120,7 +143,17 @@ def logout(request: Request, response: Response, session: Annotated[Session, Dep
     if token:
         row = session.get(LoginSession, digest(token))
         if row:
+            uid = row.user_id
             session.delete(row)
+            record_audit_event(
+                session,
+                entity_type="user_session",
+                entity_id=uid,
+                operation="auth.logout",
+                actor_id=uid,
+                changes={"action": {"before": "authenticated", "after": "logged_out"}},
+                request=request,
+            )
             session.commit()
     response.delete_cookie(
         COOKIE_NAME,

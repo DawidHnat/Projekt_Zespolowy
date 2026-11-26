@@ -169,3 +169,13 @@ o opcjonalne `driver_id`. Ocena zgodności rozróżnia `compatible`, `incompatib
 i `unverified`, blokując nowe niezgodne przypisania oraz wybór kierowcy w ewidencji
 przy zachowaniu historycznych rekordów z jawnym ostrzeżeniem.
 [Macierz reguł SCRUM-70](SCRUM-70-license-matrix.md).
+
+## Wspólny dziennik zmian — SCRUM-87
+
+Migracja `0016_audit_events` wprowadza tabelę `audit_events` z wyzwalaczem `append-only`
+(`trg_audit_events_append_only`) chroniącym rekordy przed `UPDATE` i `DELETE` z poziomu
+aplikacji. Wpisy powstają w jednej transakcji ze zmianą biznesową i przechowują autora,
+`actor_type` (`user` / `import` / `system`), czas UTC, obiekt (`entity_type`, wewnętrzny
+UUID `entity_id`, opcjonalny `vehicle_id`), `operation`, `outcome`, `correlation_id` oraz
+zmianę wyłącznie dozwolonych pól (`changes`) bez haseł, tokenów, PIN, numerów kart ani GPS.
+[Polityka bezpieczeństwa i retencji dziennika](security/SCRUM-87-audit-log.md).
