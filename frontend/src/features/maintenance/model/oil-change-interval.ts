@@ -1,4 +1,5 @@
 export interface OilChangeIntervalInput {
+  // Odometer readings and the interval use kilometres with one decimal place.
   lastChangeOdometerKm?: number | null;
   currentOdometerKm?: number | null;
   lastChangeDay?: string | null;
@@ -23,6 +24,15 @@ export interface OilChangeIntervalResult {
 }
 
 const MILLISECONDS_PER_DAY = 86_400_000;
+// Fleet odometer values use Numeric(14, 1). Compare whole tenths of a kilometre.
+const ODOMETER_UNITS_PER_KM = 10;
+
+function odometerUnits(km: number): number {
+  const units = Math.round(km * ODOMETER_UNITS_PER_KM);
+  return Number.isSafeInteger(units) && units >= 0 && units / ODOMETER_UNITS_PER_KM === km
+    ? units
+    : NaN;
+}
 
 // Input is already a Warsaw calendar day. UTC midnight is used only to assign
 // each civil date an ordinal, so 23- and 25-hour days count as one day.
@@ -42,22 +52,22 @@ export function calculateOilChangeInterval({
   intervalDays = 365,
 }: OilChangeIntervalInput): OilChangeIntervalResult {
   const warnings: Warning[] = [];
-  const validKmInterval = Number.isFinite(intervalKm) && intervalKm > 0;
+  const kmInterval = odometerUnits(intervalKm);
+  const validKmInterval = kmInterval > 0;
   const validDayInterval = Number.isSafeInteger(intervalDays) && intervalDays > 0;
   if (!validKmInterval) warnings.push("invalid_interval_km");
   if (!validDayInterval) warnings.push("invalid_interval_days");
 
-  const invalidOdometer = [lastChangeOdometerKm, currentOdometerKm].some(
-    value => value != null && (!Number.isFinite(value) || value < 0),
-  );
+  const lastOdometer = lastChangeOdometerKm == null ? null : odometerUnits(lastChangeOdometerKm);
+  const currentOdometer = currentOdometerKm == null ? null : odometerUnits(currentOdometerKm);
   let remainingKm: number | null = null;
-  if (invalidOdometer) {
+  if (Number.isNaN(lastOdometer) || Number.isNaN(currentOdometer)) {
     warnings.push("invalid_odometer");
-  } else if (lastChangeOdometerKm != null && currentOdometerKm != null) {
-    if (currentOdometerKm < lastChangeOdometerKm) {
+  } else if (lastOdometer !== null && currentOdometer !== null) {
+    if (currentOdometer < lastOdometer) {
       warnings.push("odometer_before_last_change");
     } else if (validKmInterval) {
-      remainingKm = intervalKm - (currentOdometerKm - lastChangeOdometerKm);
+      remainingKm = (kmInterval - (currentOdometer - lastOdometer)) / ODOMETER_UNITS_PER_KM;
     }
   }
 

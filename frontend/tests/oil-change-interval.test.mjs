@@ -10,6 +10,25 @@ const baseline = {
 };
 const boundaries = [[-1, "in_time"], [0, "due"], [1, "overdue"]];
 
+test("fractional odometer values distinguish both sides of the exact threshold", () => {
+  for (const [currentOdometerKm, remainingKm, status] of [
+    [0.2, 0.1, "in_time"],
+    [0.3, 0, "due"],
+    [0.4, -0.1, "overdue"],
+  ]) {
+    const result = calculate({ ...baseline, lastChangeOdometerKm: 0.1, currentOdometerKm, intervalKm: 0.2 });
+    assert.deepEqual(result, { remainingKm, remainingDays: 365, status, warnings: [] });
+  }
+  assert.equal(calculate({ lastChangeOdometerKm: 0.1, currentOdometerKm: 0.3, intervalKm: 0.2 }).status, "due");
+});
+
+test("kilometres beyond odometer precision or safe integer units produce warnings", () => {
+  for (const currentOdometerKm of [100_000.01, Number.MAX_SAFE_INTEGER, Infinity]) {
+    assert.deepEqual(calculate({ ...baseline, currentOdometerKm }).warnings, ["invalid_odometer"]);
+  }
+  assert.deepEqual(calculate({ ...baseline, intervalKm: 0.01 }).warnings, ["invalid_interval_km"]);
+});
+
 test("default distance threshold preserves signed remaining kilometres", () => {
   for (const [offset, status] of boundaries) {
     const result = calculate({ ...baseline, currentOdometerKm: 110_000 + offset });
