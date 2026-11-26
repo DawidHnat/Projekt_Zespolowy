@@ -123,14 +123,15 @@
   justify-self: start;
   min-height: 36px;
   padding: 4px 0;
-  color: var(--accent);
+  color: var(--text);
   font-size: 13px;
   font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .login-page-composed .login-card .logout-button:hover {
   color: var(--text);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  background: var(--surface-hover);
 }
 .login-page-composed .login-card .form-error,
 .login-page-composed .auth-notice {
