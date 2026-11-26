@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Settings2 } from "lucide-react";
 import { api, ApiError } from "../../../shared/api/client";
 import type { Rule, RuleList } from "../../../shared/api/generated/contracts";
@@ -31,7 +31,7 @@ export function RulesPanel({ onChanged }: { onChanged: () => void }) {
   const addButton = useRef<HTMLButtonElement>(null);
   useEffect(() => () => write.current?.abort(), []);
   useEffect(() => { if (editing) thresholdInput.current?.focus(); }, [editing]);
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (editing || busy) return;
     const button = opener.current;
     opener.current = null;
