@@ -2,11 +2,16 @@ import { validTripDay } from "./trip-day.ts";
 
 import type { Annotation } from "../../../shared/api/generated/contracts";
 export type { Annotation, Trip, TripList } from "../../../shared/api/generated/contracts";
-export type AnnotationDraft = { purpose: string; description: string };
+export type AnnotationDraft = {
+  purpose: string;
+  description: string;
+  driver_id?: string;
+};
 
 export const annotationDraft = (value: Annotation): AnnotationDraft => ({
   purpose: value.purpose ?? "",
   description: value.description ?? "",
+  ...(value.driver_id ? { driver_id: value.driver_id } : {}),
 });
 export function annotationValidation(draft: AnnotationDraft): string | null {
   if (Array.from(draft.purpose).length > 200) return "Cel może mieć najwyżej 200 znaków.";
@@ -45,6 +50,7 @@ export function tripListPath(vehicleId: string, day: string, page: number, pageS
 }
 export function annotationError(error: unknown): string {
   const code = error && typeof error === "object" && "code" in error ? error.code : null;
+  if (code === "LICENSE_INCOMPATIBLE") return "Wybrany kierowca nie posiada wymaganej kategorii prawa jazdy dla tego pojazdu. Wybór został zablokowany.";
   if (code === "VERSION_CONFLICT") return "Ktoś zmienił tę notatkę. Twój tekst pozostał w formularzu. Sprawdź bieżącą wersję przed ponownym zapisem.";
   if (code === "FORBIDDEN") return "Nie masz uprawnień do zapisu. Twój tekst pozostał w formularzu.";
   if (code === "VALIDATION_ERROR") return "Sprawdź cel i opis. Twój tekst pozostał w formularzu.";

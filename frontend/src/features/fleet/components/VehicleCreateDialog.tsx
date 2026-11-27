@@ -6,6 +6,10 @@ import { DatePicker } from "../../../shared/components/DatePicker";
 import { trapDialogFocus } from "../../../shared/components/dialog-focus";
 import type { Vehicle } from "../model/types";
 
+const LICENSE_CATEGORIES = [
+  "AM", "A1", "A2", "A", "B1", "B", "B+E", "C1", "C1+E", "C", "C+E", "D1", "D1+E", "D", "D+E", "T",
+] as const;
+
 type ManualDraft = {
   name: string;
   license_plate: string;
@@ -22,6 +26,10 @@ type ManualDraft = {
   insurance_due_on: string;
   manual_odometer_km: string;
   manual_odometer_date: string;
+  gross_weight_kg: string;
+  passenger_seats: string;
+  tows_heavy_trailer: boolean;
+  required_category_override: string;
   driver_id: string;
 };
 
@@ -41,6 +49,10 @@ const emptyDraft = (): ManualDraft => ({
   insurance_due_on: "",
   manual_odometer_km: "",
   manual_odometer_date: "",
+  gross_weight_kg: "",
+  passenger_seats: "",
+  tows_heavy_trailer: false,
+  required_category_override: "",
   driver_id: "",
 });
 
@@ -62,7 +74,9 @@ export function VehicleCreateDialog({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [sourceConflict, setSourceConflict] = useState(false);
 
-  const dirty = Object.values(draft).some((v) => v.trim().length > 0);
+  const dirty = Object.entries(draft).some(([key, v]) =>
+    key === "tows_heavy_trailer" ? Boolean(v) : String(v).trim().length > 0,
+  );
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -99,7 +113,7 @@ export function VehicleCreateDialog({
     }
   };
 
-  const setField = (key: keyof ManualDraft, value: string) => {
+  const setField = <K extends keyof ManualDraft>(key: K, value: ManualDraft[K]) => {
     setDraft((prev) => ({ ...prev, [key]: value }));
     setFieldErrors((prev) => ({ ...prev, [key]: "" }));
     if (key === "license_plate" || key === "vin") setSourceConflict(false);
@@ -151,6 +165,14 @@ export function VehicleCreateDialog({
             ? Number(draft.manual_odometer_km.replace(",", "."))
             : null,
           manual_odometer_date: draft.manual_odometer_date || null,
+          gross_weight_kg: draft.gross_weight_kg.trim()
+            ? Number(draft.gross_weight_kg)
+            : null,
+          passenger_seats: draft.passenger_seats.trim()
+            ? Number(draft.passenger_seats)
+            : null,
+          tows_heavy_trailer: draft.tows_heavy_trailer,
+          required_category_override: draft.required_category_override || null,
           driver_id: draft.driver_id || null,
           allow_source_duplicate: allowSourceDuplicate,
         }),
@@ -311,6 +333,58 @@ export function VehicleCreateDialog({
                   <span className="form-error">{fieldErrors.manual_odometer_date}</span>
                 )}
               </div>
+              <label htmlFor={`${id}-dmc`}>
+                DMC w kg (opcjonalnie)
+                <input
+                  id={`${id}-dmc`}
+                  type="number"
+                  step="1"
+                  min={1}
+                  max={120000}
+                  value={draft.gross_weight_kg}
+                  readOnly={saving}
+                  onChange={(event) => setField("gross_weight_kg", event.target.value)}
+                />
+              </label>
+              <label htmlFor={`${id}-seats`}>
+                Miejsca pasażerskie (opcjonalnie)
+                <input
+                  id={`${id}-seats`}
+                  type="number"
+                  step="1"
+                  min={0}
+                  max={120}
+                  value={draft.passenger_seats}
+                  readOnly={saving}
+                  onChange={(event) => setField("passenger_seats", event.target.value)}
+                />
+              </label>
+              <label htmlFor={`${id}-cat-override`}>
+                Wymagana kategoria — wyjątek (opcjonalnie)
+                <select
+                  id={`${id}-cat-override`}
+                  value={draft.required_category_override}
+                  disabled={saving}
+                  onChange={(event) => setField("required_category_override", event.target.value)}
+                >
+                  <option value="">Wg DMC / liczby miejsc</option>
+                  {LICENSE_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label htmlFor={`${id}-trailer`} className="driver-checkbox">
+                <input
+                  id={`${id}-trailer`}
+                  type="checkbox"
+                  checked={draft.tows_heavy_trailer}
+                  disabled={saving}
+                  onChange={(event) => setField("tows_heavy_trailer", event.target.checked)}
+                />
+                Przyczepa ciężka (+E)
+              </label>
               <label htmlFor={`${id}-driver`}>
                 Przypisz kierowcę (opcjonalnie)
                 <select

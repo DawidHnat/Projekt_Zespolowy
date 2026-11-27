@@ -65,6 +65,7 @@ export async function api<T>(
       UNAUTHENTICATED: "Sesja wygasła. Zaloguj się ponownie.",
       INVALID_RESET: "Link jest niepoprawny lub wygasł. Poproś o nowy link.",
       DATABASE_UNAVAILABLE: "Baza danych jest chwilowo niedostępna.",
+      VALIDATION_ERROR: "Popraw zaznaczone pola formularza.",
       VEHICLE_ARCHIVED: "Pojazd jest zarchiwizowany. Przywróć go przed wykonaniem tej operacji.",
       ALREADY_ARCHIVED: "Pojazd znajduje się już w archiwum.",
       NOT_ARCHIVED: "Pojazd nie znajduje się w archiwum.",
@@ -74,6 +75,8 @@ export async function api<T>(
       NOT_SOURCE_VEHICLE: "Wskazany rekord nie jest pojazdem WEBFLEET.",
       IDENTITY_MISMATCH: "Wskazany pojazd WEBFLEET ma niezgodną rejestrację lub sprzeczny numer VIN.",
       LINK_CONFLICT: "Nie udało się bezpiecznie połączyć historii wybranego pojazdu.",
+      LICENSE_INCOMPATIBLE:
+        "Kierowca nie posiada kategorii prawa jazdy wymaganej dla tego pojazdu.",
     };
     throw new ApiError(
       response.status,

@@ -22,9 +22,10 @@ from app.modules.analytics.models import Alert, AlertReceipt, DailyDistance, Rul
 from app.modules.auth.models import LoginAttempt, LoginSession, User
 from app.modules.auth.service import password_hasher
 from app.modules.drivers.models import DriverAssignment, DriverCategory
+from app.modules.fleet.documents import VehicleAttachment
 from app.modules.fleet.sync import account_key
 from app.modules.preferences.models import AccountPreference
-from app.modules.trips.models import Trip
+from app.modules.trips.models import Trip, TripAnnotation
 
 ACCOUNT = "synthetic-e2e-source"
 VEHICLE = UUID("11111111-1111-4111-8111-111111111111")
@@ -144,8 +145,15 @@ def main():
                     archived_at=None,
                     archived_by=None,
                     archived_reason=None,
+                    photo_version=0,
+                    gross_weight_kg=None,
+                    passenger_seats=None,
+                    tows_heavy_trailer=False,
+                    required_category_override=None,
                 )
             )
+            session.execute(delete(TripAnnotation))
+            session.execute(delete(VehicleAttachment))
             session.flush()
             for model in (DriverAssignment, DriverCategory, Driver):
                 session.execute(delete(model))
