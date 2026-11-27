@@ -18,6 +18,14 @@ test.beforeEach(() => {
   resetDatabase();
 });
 
+test.afterEach(() => {
+  resetDatabase();
+});
+
+test.afterEach(() => {
+  resetDatabase();
+});
+
 test("SCRUM-88: editor archives and restores vehicle while preserving trip history and blocking viewer", async ({ page }) => {
   await page.goto("/#vehicles");
   await page.getByLabel("Login").fill("e2e-editor");
@@ -54,6 +62,7 @@ test("SCRUM-88: editor archives and restores vehicle while preserving trip histo
   await expect(dialog.getByText("Pojazd w archiwum")).toBeVisible();
   await expect(dialog.getByRole("button", { name: "Przywróć pojazd" })).toHaveCount(0);
   await dialog.getByRole("button", { name: "Zamknij szczegóły pojazdu" }).click();
+  await page.getByLabel("Archiwum pojazdów").selectOption("active");
 
   await logout(page);
   await page.getByLabel("Login").fill("e2e-editor");

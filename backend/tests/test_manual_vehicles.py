@@ -742,3 +742,324 @@ def test_postgres_active_manual_and_active_source_vehicle_forward_fix_sync_probe
             session.execute(delete(SyncState).where(SyncState.source_account == source))
             session.commit()
         engine.dispose()
+
+
+def test_postgres_link_source_migrates_trips_stops_and_history_days_with_collision_resolution():
+    url = os.environ.get("TEST_DATABASE_URL")
+    if not url:
+        pytest.skip("Requires an isolated PostgreSQL database")
+    parsed = make_url(url)
+    assert parsed.host in ("127.0.0.1", "localhost")
+    assert parsed.database.startswith("fleet_flow_test")
+
+    migrate = subprocess.run(
+        [sys.executable, "-m", "alembic", "upgrade", "head"],
+        env={**os.environ, "DATABASE_URL": url, "SYNC_ENABLED": "false"},
+        capture_output=True,
+        text=True,
+    )
+    assert migrate.returncode == 0, migrate.stderr
+
+    from sqlalchemy import inspect, text
+
+    from app.modules.trips.models import Trip, TripAnnotation
+
+    engine = create_engine(url)
+    suffix = uuid4().hex
+    account = f"manual-th-{suffix}"
+    source = account_key(account)
+    username = f"manual-th-ed-{suffix}"
+    now = datetime.now(UTC).replace(microsecond=0)
+    day_1 = (now - timedelta(days=2)).date()
+    day_2 = (now - timedelta(days=1)).date()
+
+    inspector = inspect(engine)
+    existing_tables = set(inspector.get_table_names())
+    existing_trip_cols = {col["name"] for col in inspector.get_columns("trips")}
+    created_stops = "trip_stops" not in existing_tables
+    created_days = "trip_history_days" not in existing_tables
+
+    add_col_sql = {
+        "start_address": text("ALTER TABLE trips ADD COLUMN start_address VARCHAR(500)"),
+        "end_address": text("ALTER TABLE trips ADD COLUMN end_address VARCHAR(500)"),
+        "driver_id": text("ALTER TABLE trips ADD COLUMN driver_id UUID REFERENCES drivers(id)"),
+        "withdrawn_at": text("ALTER TABLE trips ADD COLUMN withdrawn_at TIMESTAMPTZ"),
+    }
+    drop_col_sql = {
+        "start_address": text("ALTER TABLE trips DROP COLUMN IF EXISTS start_address"),
+        "end_address": text("ALTER TABLE trips DROP COLUMN IF EXISTS end_address"),
+        "driver_id": text("ALTER TABLE trips DROP COLUMN IF EXISTS driver_id"),
+        "withdrawn_at": text("ALTER TABLE trips DROP COLUMN IF EXISTS withdrawn_at"),
+    }
+    added_trip_cols: list[str] = []
+
+    with engine.begin() as conn:
+        for col_name, stmt in add_col_sql.items():
+            if col_name not in existing_trip_cols:
+                conn.execute(stmt)
+                added_trip_cols.append(col_name)
+        if created_stops:
+            conn.execute(
+                text(
+                    "CREATE TABLE trip_stops ("
+                    "  vehicle_id UUID NOT NULL REFERENCES vehicles(id),"
+                    "  start_at TIMESTAMPTZ NOT NULL,"
+                    "  end_at TIMESTAMPTZ NOT NULL,"
+                    "  duration_seconds INTEGER NOT NULL,"
+                    "  latitude DOUBLE PRECISION,"
+                    "  longitude DOUBLE PRECISION,"
+                    "  address VARCHAR(500),"
+                    "  PRIMARY KEY (vehicle_id, start_at)"
+                    ")"
+                )
+            )
+        if created_days:
+            conn.execute(
+                text(
+                    "CREATE TABLE trip_history_days ("
+                    "  vehicle_id UUID NOT NULL REFERENCES vehicles(id),"
+                    "  report_day DATE NOT NULL,"
+                    "  imported_at TIMESTAMPTZ,"
+                    "  error_code VARCHAR(80),"
+                    "  PRIMARY KEY (vehicle_id, report_day)"
+                    ")"
+                )
+            )
+
+    manual_id = None
+    source_id = None
+    try:
+        with Session(engine) as session:
+            editor_user = User(
+                username=username,
+                display_name="Edytor Historii PG",
+                role="editor",
+                password_hash=password_hasher.hash("synthetic-th-pass"),
+            )
+            manual_car = Vehicle(
+                source_account=source,
+                external_uid=None,
+                is_manual=True,
+                name="Ręczny z Historią",
+                license_plate="GD 910TH",
+                vin="WDB9066331S910910",
+                manual_name=True,
+                manual_license_plate=True,
+                locally_edited=True,
+                active=True,
+            )
+            source_car = Vehicle(
+                source_account=source,
+                external_uid="wf-th-910",
+                is_manual=False,
+                name="WEBFLEET z Historią",
+                number="WF-910",
+                license_plate="gd-910th",
+                vin="WDB9066331S910910",
+                active=True,
+            )
+            session.add_all(
+                [
+                    editor_user,
+                    SyncState(source_account=source, last_success_at=now),
+                    manual_car,
+                    source_car,
+                ]
+            )
+            session.flush()
+            manual_id, source_id = manual_car.id, source_car.id
+
+            shared_manual_trip = Trip(
+                vehicle_id=manual_id,
+                external_uid="trip-shared-910",
+                start_at=now - timedelta(days=2, hours=4),
+                end_at=now - timedelta(days=2, hours=3),
+                distance_km=Decimal("15.400"),
+            )
+            shared_source_trip = Trip(
+                vehicle_id=source_id,
+                external_uid="trip-shared-910",
+                start_at=now - timedelta(days=2, hours=4),
+                end_at=now - timedelta(days=2, hours=3),
+                distance_km=Decimal("15.400"),
+            )
+            only_source_trip = Trip(
+                vehicle_id=source_id,
+                external_uid="trip-wf-only-910",
+                start_at=now - timedelta(days=1, hours=3),
+                end_at=now - timedelta(days=1, hours=2),
+                distance_km=Decimal("28.900"),
+            )
+            session.add_all([shared_manual_trip, shared_source_trip, only_source_trip])
+            session.flush()
+            session.add(
+                TripAnnotation(
+                    trip_id=shared_manual_trip.id,
+                    purpose="Dostawa do klienta",
+                    description="Zachowana adnotacja ręczna",
+                    version=2,
+                    updated_by=editor_user.id,
+                    updated_at=now,
+                )
+            )
+            session.execute(
+                text("UPDATE trips SET start_address = :sa, end_address = :ea WHERE id = :tid"),
+                {
+                    "sa": "Gdańsk, Długa 1",
+                    "ea": "Sopot, Bohaterów Monte Cassino 10",
+                    "tid": shared_source_trip.id,
+                },
+            )
+            session.execute(
+                text("UPDATE trips SET start_address = :sa, end_address = :ea WHERE id = :tid"),
+                {
+                    "sa": "Sopot",
+                    "ea": "Gdynia Port",
+                    "tid": only_source_trip.id,
+                },
+            )
+
+            stop_shared_start = now - timedelta(days=2, hours=2)
+            stop_source_only_start = now - timedelta(days=1, hours=1)
+            session.execute(
+                text(
+                    "INSERT INTO trip_stops ("
+                    "vehicle_id, start_at, end_at, duration_seconds, latitude, longitude, address"
+                    ") VALUES "
+                    "(:mid, :s1, :e1_short, 600, NULL, NULL, NULL), "
+                    "(:sid, :s1, :e1_long, 900, 54.352, 18.646, 'Gdańsk Brama Wyżynna'), "
+                    "(:sid, :s2, :e2, 420, 54.518, 18.530, 'Gdynia Skwer')"
+                ),
+                {
+                    "mid": manual_id,
+                    "sid": source_id,
+                    "s1": stop_shared_start,
+                    "e1_short": stop_shared_start + timedelta(minutes=10),
+                    "e1_long": stop_shared_start + timedelta(minutes=15),
+                    "s2": stop_source_only_start,
+                    "e2": stop_source_only_start + timedelta(minutes=7),
+                },
+            )
+            session.execute(
+                text(
+                    "INSERT INTO trip_history_days "
+                    "(vehicle_id, report_day, imported_at, error_code) VALUES "
+                    "(:mid, :d1, NULL, 'RATE_LIMITED'), "
+                    "(:sid, :d1, :imp1, NULL), "
+                    "(:sid, :d2, :imp2, NULL)"
+                ),
+                {
+                    "mid": manual_id,
+                    "sid": source_id,
+                    "d1": day_1,
+                    "d2": day_2,
+                    "imp1": now - timedelta(days=1),
+                    "imp2": now,
+                },
+            )
+            card_version = manual_car.card_version
+            session.commit()
+
+        app = create_app(Settings(database_url=url, webfleet_account=account), engine=engine)
+        with TestClient(app) as client:
+            login = client.post(
+                "/api/v1/auth/login",
+                headers=ORIGIN,
+                json={"username": username, "password": "synthetic-th-pass"},
+            )
+            assert login.status_code == 200
+            linked = client.post(
+                f"/api/v1/fleet/vehicles/{manual_id}/link-source",
+                headers=ORIGIN,
+                json={"card_version": card_version, "source_vehicle_id": str(source_id)},
+            )
+            assert linked.status_code == 200, linked.text
+            assert linked.json()["origin"] == "webfleet"
+
+        with Session(engine) as session:
+            assert session.get(Vehicle, source_id) is None
+            trips_rows = (
+                session.execute(
+                    text(
+                        "SELECT external_uid, start_address, end_address FROM trips "
+                        "WHERE vehicle_id = :mid ORDER BY external_uid"
+                    ),
+                    {"mid": manual_id},
+                )
+                .mappings()
+                .all()
+            )
+            assert [r["external_uid"] for r in trips_rows] == [
+                "trip-shared-910",
+                "trip-wf-only-910",
+            ]
+            assert trips_rows[0]["start_address"] == "Gdańsk, Długa 1"
+            assert trips_rows[1]["end_address"] == "Gdynia Port"
+
+            stops_rows = (
+                session.execute(
+                    text(
+                        "SELECT duration_seconds, address FROM trip_stops "
+                        "WHERE vehicle_id = :mid ORDER BY start_at"
+                    ),
+                    {"mid": manual_id},
+                )
+                .mappings()
+                .all()
+            )
+            assert len(stops_rows) == 2
+            assert stops_rows[0]["duration_seconds"] == 900
+            assert stops_rows[0]["address"] == "Gdańsk Brama Wyżynna"
+            assert stops_rows[1]["address"] == "Gdynia Skwer"
+
+            days_rows = (
+                session.execute(
+                    text(
+                        "SELECT report_day, imported_at, error_code FROM trip_history_days "
+                        "WHERE vehicle_id = :mid ORDER BY report_day"
+                    ),
+                    {"mid": manual_id},
+                )
+                .mappings()
+                .all()
+            )
+            assert len(days_rows) == 2
+            assert days_rows[0]["report_day"] == day_1
+            assert days_rows[0]["imported_at"] is not None
+            assert days_rows[0]["error_code"] is None
+            assert days_rows[1]["report_day"] == day_2
+            assert days_rows[1]["imported_at"] is not None
+    finally:
+        with engine.begin() as conn:
+            for vid in [v for v in (manual_id, source_id) if v is not None]:
+                conn.execute(
+                    text(
+                        "DELETE FROM trip_annotations WHERE trip_id IN "
+                        "(SELECT id FROM trips WHERE vehicle_id = :vid)"
+                    ),
+                    {"vid": vid},
+                )
+                conn.execute(text("DELETE FROM trips WHERE vehicle_id = :vid"), {"vid": vid})
+                conn.execute(text("DELETE FROM trip_stops WHERE vehicle_id = :vid"), {"vid": vid})
+                conn.execute(
+                    text("DELETE FROM trip_history_days WHERE vehicle_id = :vid"), {"vid": vid}
+                )
+            conn.execute(text("DELETE FROM vehicles WHERE source_account = :src"), {"src": source})
+            conn.execute(
+                text("DELETE FROM sync_states WHERE source_account = :src"), {"src": source}
+            )
+            conn.execute(
+                text(
+                    "DELETE FROM login_sessions WHERE user_id IN "
+                    "(SELECT id FROM users WHERE username = :u)"
+                ),
+                {"u": username},
+            )
+            conn.execute(text("DELETE FROM users WHERE username = :u"), {"u": username})
+            if created_stops:
+                conn.execute(text("DROP TABLE IF EXISTS trip_stops"))
+            if created_days:
+                conn.execute(text("DROP TABLE IF EXISTS trip_history_days"))
+            for col_name in reversed(added_trip_cols):
+                conn.execute(drop_col_sql[col_name])
+        engine.dispose()

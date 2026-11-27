@@ -128,6 +128,32 @@ def test_bad_current_password_and_origin_do_not_revoke_sessions(logged_in):
 
 
 @pytest.mark.parametrize(
+    ("submit_credentials", "status_code", "error_code"),
+    [
+        (login, 401, "INVALID_CREDENTIALS"),
+        (change, 400, "INVALID_CURRENT_PASSWORD"),
+    ],
+    ids=["login", "password-change"],
+)
+def test_malformed_stored_password_hash_rejects_credentials(
+    logged_in, submit_credentials, status_code, error_code
+):
+    app, client = logged_in
+    with app.state.sessions() as session:
+        user = session.scalar(select(User))
+        hash_parts = user.password_hash.split("$")
+        hash_parts[-2] = "invalid%base64"
+        user.password_hash = "$".join(hash_parts)
+        session.commit()
+
+    response = submit_credentials(client)
+
+    assert response.status_code == status_code
+    assert response.json()["error"]["code"] == error_code
+    assert "set-cookie" not in response.headers
+
+
+@pytest.mark.parametrize(
     "fields",
     [
         {"new_password": "short"},

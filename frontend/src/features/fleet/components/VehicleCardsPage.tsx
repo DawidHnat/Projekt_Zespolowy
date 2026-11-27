@@ -71,7 +71,7 @@ const VehicleCard = memo(function VehicleCard({
             <span>
               {v.license_plate || v.number || "Brak rejestracji"}
               {v.origin === "manual" ? " · Ręczny" : ""}
-              {v.archived ? " · Archiwalny" : ""}
+              {v.archived ? " · Archiwalny" : v.source_active === false ? " · Poza raportem WEBFLEET" : ""}
             </span>
           </div>
           <span className={`vehicle-status status-${v.status}`}>

@@ -187,6 +187,11 @@ export function VehicleDetailsDialog() {
                       Archiwalny
                     </span>
                   )}
+                  {!vehicle.archived && vehicle.source_active === false && (
+                    <span className="vehicle-status status-offline">
+                      Poza raportem WEBFLEET
+                    </span>
+                  )}
                 </div>
               )}
             </div>

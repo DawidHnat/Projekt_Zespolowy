@@ -2547,6 +2547,9 @@
           "type": "integer",
           "minimum": 0
         },
+        "source_active": {
+          "type": "boolean"
+        },
         "archived": {
           "type": "boolean"
         },

@@ -280,7 +280,11 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
       });
       setLastSaved(saved);
       setConflict(false);
-      setNotice("Pojazd został przywrócony do bieżącej floty.");
+      setNotice(
+        saved.source_active === false
+          ? "Pojazd został przywrócony z archiwum. Nie jest obecnie aktywny w raporcie WEBFLEET — pozostaje dostępny w filtrze „Bieżące i archiwalne”."
+          : "Pojazd został przywrócony do bieżącej floty.",
+      );
       fleet.refresh();
     } catch (failure) {
       setError(
@@ -314,6 +318,16 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
   return (
     <div className="vehicle-card-details">
       <h3>Szczegóły pojazdu</h3>
+      {!visible.archived && visible.source_active === false && (
+        <section className="fleet-notice" aria-label="Stan pojazdu w źródle WEBFLEET">
+          <div>
+            <strong>Poza raportem WEBFLEET</strong>
+            <p>
+              Pojazd nie występuje obecnie w aktywnym raporcie źródła. Kartoteka oraz historia przejazdów pozostają dostępne w filtrze „Bieżące i archiwalne”.
+            </p>
+          </div>
+        </section>
+      )}
       {visible.archived && visible.archive && (
         <section className="fleet-notice" aria-label="Stan archiwizacji pojazdu">
           <div>
