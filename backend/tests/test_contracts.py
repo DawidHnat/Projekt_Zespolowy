@@ -199,6 +199,13 @@ def test_every_implemented_operation_has_a_real_success_response(logged_in, monk
             "to": now.isoformat(),
         },
     )
+    day = now.astimezone(ZoneInfo("Europe/Warsaw")).date().isoformat()
+    mileage = check(
+        "GET",
+        "/trips/mileage",
+        params={"vehicle_id": vehicle, "from_day": day, "through": day},
+    )
+    assert mileage["summary"]["missing_purpose"] == mileage["total"]
     detail = check("GET", "/trips/{id}", f"/trips/{trip}")
     assert detail["duration_seconds"] == 600 and detail["distance_km"] == 12.5
     assert detail["annotation"]["updated_at"] is None and detail["geometry"] is None

@@ -59,6 +59,71 @@ def patch(client, trip_id, **fields):
     )
 
 
+def test_mileage_period_sums_without_pagination_and_tracks_missing_purpose(logged_in):
+    app, client = logged_in
+    with app.state.sessions() as session:
+        vehicle, trip = add_trip(session, account_key(app.state.settings.webfleet_account))
+        second = Trip(
+            vehicle_id=vehicle.id,
+            external_uid=uuid4().hex,
+            start_at=START + timedelta(hours=2),
+            end_at=START + timedelta(hours=3),
+            distance_km=Decimal("7.655"),
+        )
+        session.add(second)
+        # Unknown distance and a withdrawn trip are not part of the known-km sum.
+        session.add(
+            Trip(
+                vehicle_id=vehicle.id,
+                external_uid=uuid4().hex,
+                start_at=START + timedelta(hours=4),
+                end_at=None,
+                distance_km=None,
+            )
+        )
+        session.add(
+            Trip(
+                vehicle_id=vehicle.id,
+                external_uid=uuid4().hex,
+                start_at=START + timedelta(hours=5),
+                end_at=START + timedelta(hours=6),
+                distance_km=Decimal("100"),
+                withdrawn_at=datetime.now(UTC),
+            )
+        )
+        session.flush()
+        session.add(
+            TripAnnotation(
+                trip_id=trip.id,
+                purpose="Serwis",
+                version=2,
+                updated_by=session.scalar(select(User).limit(1)).id,
+                updated_at=datetime.now(UTC),
+            )
+        )
+        session.commit()
+        vehicle_id = str(vehicle.id)
+
+    response = client.get(
+        "/api/v1/trips/mileage",
+        params={
+            "vehicle_id": vehicle_id,
+            "from_day": "2026-01-10",
+            "through": "2026-01-10",
+            "page": 1,
+            "page_size": 1,
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 3
+    assert len(body["items"]) == 1
+    assert body["summary"] == {"known_km": 20.0, "missing_purpose": 2, "missing_distance": 1}
+    assert "documented_km" not in body["summary"]
+    assert body["coverage"]["state"] == "unavailable"
+    assert body["coverage"]["requested_days"] == 1
+
+
 def test_annotation_is_durable_audited_and_separate_from_source(stored_trip):
     app, client, vehicle_id, trip_id = stored_trip
     original = client.get(f"/api/v1/trips/{trip_id}").json()
