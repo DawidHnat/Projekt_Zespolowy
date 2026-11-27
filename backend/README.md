@@ -300,6 +300,23 @@ wywołałby `INCOMPLETE_REPORT`), przy aktywnych pojazdach ręcznych obowiązuje
 - Model zagrożeń, wymagania kopii (`SCRUM-84`) i prywatności (`SCRUM-94`):
   [SCRUM-58 upload threat model](../docs/security/SCRUM-58-upload-threat-model.md).
 
+### Pomiar zapytań i odpowiedzi HTTP — SCRUM-123
+
+Na lokalnej syntetycznej bazie PostgreSQL `fleet_flow_test_benchmark` uruchom
+migracje (`alembic upgrade head`). Z katalogu `backend` uruchom oba narzędzia
+z `TEST_DATABASE_URL` wskazującym tę bazę i `PYTHONPATH=.`.
+
+```shell
+python tools/benchmark_fleet_queries.py
+python tools/benchmark_fleet_http.py
+```
+
+Każdy pomiar ma rozgrzewkę i 20 kolejnych prób dla 100, 1 000 oraz 10 000
+syntetycznych pojazdów. Pierwszy raport porównuje SQL historycznego i obecnego
+odczytu w tym samym procesie. Drugi mierzy p95 oraz bajty JSON osobno dla listy
+25 pojazdów, mapy i podsumowania, z prawdziwym HTTP na loopback. Do porównania
+na hostingu trzeba dodać kompresję, profil sieci i współbieżność użytkowników.
+
 ## Ręczne odświeżanie floty — SCRUM-150
 
 `GET /api/v1/fleet/refresh` zwraca `enabled`, `running`, `server_time`,
