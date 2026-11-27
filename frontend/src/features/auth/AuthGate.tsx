@@ -143,93 +143,195 @@ export function AuthGate({ children }: { children: ReactNode }) {
     }
   };
   return (
-    <main className="login-page">
-      <section className="login-card">
-        <Brand />
-        <span className="login-symbol">
-          <LockKeyhole size={28} />
-        </span>
-        <h1>
-          {forgot
-            ? "Nie pamiętasz hasła?"
-            : emailToken !== null
-              ? "Zaloguj się, aby potwierdzić e-mail"
-              : "Twoja flota, pod kontrolą."}
-        </h1>
-        <p>
-          {forgot
-            ? "Podaj login swojego konta."
-            : emailToken !== null
-              ? "Użyj dotychczasowego loginu lub adresu e-mail."
-              : "Zaloguj się za pomocą loginu lub adresu e-mail."}
-        </p>
-        {notice && (
-          <p className="auth-notice" role="status">
-            {notice}
+    <main className="login-page login-page-composed">
+      <div className="login-layout">
+        <div className="login-intro">
+          <Brand />
+          <div className="login-intro-copy">
+            <p className="login-eyebrow">Zarządzanie flotą, prościej</p>
+            <h1>Twoja flota, pod kontrolą.</h1>
+            <p>
+              Ważne informacje o pojazdach i ich użytkowaniu — w jednym
+              przejrzystym miejscu.
+            </p>
+          </div>
+          <svg
+            className="login-art"
+            viewBox="0 0 640 320"
+            fill="none"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <defs>
+              <pattern
+                id="login-grid"
+                width="28"
+                height="28"
+                patternUnits="userSpaceOnUse"
+              >
+                <path
+                  d="M28 0H0V28"
+                  stroke="var(--border)"
+                  strokeOpacity=".7"
+                />
+              </pattern>
+              <linearGradient
+                id="login-route"
+                gradientUnits="userSpaceOnUse"
+                x1="120"
+                y1="250"
+                x2="526"
+                y2="70"
+              >
+                <stop stopColor="var(--accent)" stopOpacity=".4" />
+                <stop offset="1" stopColor="var(--brand-wordmark)" />
+              </linearGradient>
+            </defs>
+            <rect
+              x="1"
+              y="1"
+              width="638"
+              height="318"
+              rx="24"
+              fill="var(--surface)"
+              stroke="var(--border)"
+            />
+            <rect
+              x="1"
+              y="1"
+              width="638"
+              height="318"
+              rx="24"
+              fill="url(#login-grid)"
+            />
+            <path
+              d="M74 247C139 247 148 193 213 193S292 249 350 201 426 111 482 133 531 94 570 74"
+              stroke="var(--border)"
+              strokeWidth="18"
+              strokeLinecap="round"
+            />
+            <path
+              d="M74 247C139 247 148 193 213 193S292 249 350 201 426 111 482 133 531 94 570 74"
+              stroke="url(#login-route)"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeDasharray="1 11"
+            />
+            <circle
+              cx="74"
+              cy="247"
+              r="13"
+              fill="var(--surface)"
+              stroke="var(--accent)"
+              strokeWidth="4"
+            />
+            <circle
+              cx="350"
+              cy="201"
+              r="13"
+              fill="var(--surface)"
+              stroke="var(--brand-wordmark)"
+              strokeWidth="4"
+            />
+            <circle
+              cx="570"
+              cy="74"
+              r="13"
+              fill="var(--surface)"
+              stroke="var(--accent)"
+              strokeWidth="4"
+            />
+            <circle cx="570" cy="74" r="4" fill="var(--accent)" />
+          </svg>
+        </div>
+        <section className="login-card">
+          <span className="login-symbol">
+            <LockKeyhole size={24} />
+          </span>
+          <p className="login-form-eyebrow">
+            {forgot ? "Odzyskiwanie dostępu" : "Witamy z powrotem"}
           </p>
-        )}
-        {auth.loading ? (
-          <p role="status">Sprawdzanie sesji…</p>
-        ) : (
-          <form onSubmit={submit}>
-            <label>
-              Login
-              <input
-                autoComplete="username"
-                required
-                maxLength={forgot ? 100 : 254}
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                autoFocus
-              />
-            </label>
-            {!forgot && (
+          <h2>
+            {forgot
+              ? "Nie pamiętasz hasła?"
+              : emailToken !== null
+                ? "Zaloguj się, aby potwierdzić e-mail"
+                : "Zaloguj się"}
+          </h2>
+          <p className="login-form-description">
+            {forgot
+              ? "Podaj login swojego konta."
+              : emailToken !== null
+                ? "Użyj dotychczasowego loginu lub adresu e-mail."
+                : "Zaloguj się za pomocą loginu lub adresu e-mail."}
+          </p>
+          {notice && (
+            <p className="auth-notice" role="status">
+              {notice}
+            </p>
+          )}
+          {auth.loading ? (
+            <p className="login-loading" role="status">Sprawdzanie sesji…</p>
+          ) : (
+            <form onSubmit={submit} aria-busy={busy}>
               <label>
-                Hasło
+                Login
                 <input
-                  type="password"
-                  autoComplete="current-password"
+                  autoComplete="username"
                   required
-                  maxLength={1024}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  maxLength={forgot ? 100 : 254}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                 />
               </label>
-            )}
-            {(error || auth.error) && (
-              <p className="form-error" role="alert">
-                {error || auth.error}
-              </p>
-            )}
-            <button className="button button-primary" disabled={busy}>
-              {busy ? "Proszę czekać…" : forgot ? "Wyślij link" : "Zaloguj się"}
-              <ArrowRight size={18} />
-            </button>
-            <button
-              type="button"
-              className="logout-button"
-              onClick={() => {
-                setForgot(!forgot);
-                setError(null);
-                setNotice(null);
-                setPassword("");
-              }}
-            >
-              {forgot ? "Wróć do logowania" : "Nie pamiętam hasła"}
-            </button>
-            {auth.error && (
+              {!forgot && (
+                <label>
+                  Hasło
+                  <input
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    maxLength={1024}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </label>
+              )}
+              {(error || auth.error) && (
+                <p className="form-error" role="alert">
+                  {error || auth.error}
+                </p>
+              )}
+              <button className="button button-primary" disabled={busy}>
+                {busy ? "Proszę czekać…" : forgot ? "Wyślij link" : "Zaloguj się"}
+                <ArrowRight size={18} />
+              </button>
               <button
                 type="button"
-                className="button button-secondary"
-                onClick={auth.retry}
+                className="logout-button"
+                onClick={() => {
+                  setForgot(!forgot);
+                  setError(null);
+                  setNotice(null);
+                  setPassword("");
+                }}
               >
-                Sprawdź połączenie
+                {forgot ? "Wróć do logowania" : "Nie pamiętam hasła"}
               </button>
-            )}
-          </form>
-        )}
-        <small>Dostęp nadaje administrator zespołu.</small>
-      </section>
+              {auth.error && (
+                <button
+                  type="button"
+                  className="button button-secondary"
+                  onClick={auth.retry}
+                >
+                  Sprawdź połączenie
+                </button>
+              )}
+            </form>
+          )}
+          <small>Dostęp nadaje administrator zespołu.</small>
+        </section>
+      </div>
     </main>
   );
 }

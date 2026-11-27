@@ -24,6 +24,8 @@ else
 fi
 passwd -l fleetdeploy >/dev/null
 install -d -m 755 -o root -g root /opt/fleet-flow
+install -m 755 -o root -g root "$scripts/load_backend_image.sh" \
+  /usr/local/sbin/fleet-flow-load-backend-image
 install -m 755 -o root -g root "$scripts/deploy.sh" /usr/local/sbin/fleet-flow-deploy
 install -m 755 -o root -g root "$scripts/validate_release.py" \
   /usr/local/sbin/fleet-flow-validate-release
