@@ -1,7 +1,8 @@
 import io
+import json
 import os
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from unittest.mock import patch
 from urllib.error import URLError
 
@@ -150,6 +151,50 @@ class Sprint3SmokeTests(unittest.TestCase):
                 ],
             ) as fetch,
             self.assertRaises(ValueError),
+        ):
+            sprint3.verify(self.base_url, "viewer", "synthetic")
+        self.assertEqual(fetch.call_args.args[2], "/api/v1/auth/logout")
+
+    def test_invalid_login_json_still_attempts_logout(self):
+        error = json.JSONDecodeError("Invalid response", "", 0)
+        with (
+            patch.object(sprint3, "fetch_json", side_effect=[error, {}]) as fetch,
+            self.assertRaises(json.JSONDecodeError) as raised,
+        ):
+            sprint3.verify(self.base_url, "viewer", "synthetic")
+        self.assertIs(raised.exception, error)
+        self.assertEqual(fetch.call_args.args[2], "/api/v1/auth/logout")
+
+    def test_cleanup_failure_preserves_the_primary_error(self):
+        error = ValueError("Invalid driver page")
+        with (
+            patch.object(
+                sprint3,
+                "fetch_json",
+                side_effect=[
+                    {"user": self.viewer},
+                    self.viewer,
+                    error,
+                    ValueError("private"),
+                ],
+            ),
+            redirect_stderr(io.StringIO()) as output,
+            self.assertRaises(ValueError) as raised,
+        ):
+            sprint3.verify(self.base_url, "viewer", "synthetic")
+        self.assertIs(raised.exception, error)
+        self.assertIn("viewer session cleanup", output.getvalue())
+        self.assertNotIn("private", output.getvalue())
+
+    def test_different_viewer_is_rejected_even_if_login_and_profile_agree(self):
+        other_viewer = {**self.viewer, "username": "other-viewer"}
+        with (
+            patch.object(
+                sprint3,
+                "fetch_json",
+                side_effect=[{"user": other_viewer}, other_viewer, {}],
+            ) as fetch,
+            self.assertRaisesRegex(ValueError, "dedicated viewer"),
         ):
             sprint3.verify(self.base_url, "viewer", "synthetic")
         self.assertEqual(fetch.call_args.args[2], "/api/v1/auth/logout")

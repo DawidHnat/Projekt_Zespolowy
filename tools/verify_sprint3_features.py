@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import sys
 from http.cookiejar import CookieJar
 from urllib.error import HTTPError, URLError
 from urllib.request import (
@@ -13,6 +14,8 @@ from urllib.request import (
 )
 
 from verify_deployment import origin
+
+SMOKE_ERRORS = (HTTPError, URLError, ValueError, TypeError, TimeoutError)
 
 
 class RejectRedirects(HTTPRedirectHandler):
@@ -41,13 +44,13 @@ def fetch_json(client, base_url, path, payload=None):
 def verify(app_origin, username, password):
     base_url = origin(app_origin, https=True)
     client = build_opener(RejectRedirects(), HTTPCookieProcessor(CookieJar()))
-    login = fetch_json(
-        client,
-        base_url,
-        "/api/v1/auth/login",
-        {"username": username, "password": password},
-    )
     try:
+        login = fetch_json(
+            client,
+            base_url,
+            "/api/v1/auth/login",
+            {"username": username, "password": password},
+        )
         viewer = login.get("user")
         profile = fetch_json(client, base_url, "/api/v1/auth/profile")
         if (
@@ -55,7 +58,7 @@ def verify(app_origin, username, password):
             or viewer.get("role") != "viewer"
             or profile.get("role") != "viewer"
             or profile.get("username") != viewer.get("username")
-            or not isinstance(profile.get("username"), str)
+            or profile.get("username") != username.strip().lower()
             or not isinstance(profile.get("display_name"), str)
             or "email" not in profile
         ):
@@ -71,7 +74,13 @@ def verify(app_origin, username, password):
             or not isinstance(drivers.get("summary"), dict)
         ):
             raise ValueError("Expected a page of driver records")
-    finally:
+    except SMOKE_ERRORS:
+        try:
+            fetch_json(client, base_url, "/api/v1/auth/logout", {})
+        except SMOKE_ERRORS:
+            print("FAIL SCRUM-42 + SCRUM-49: viewer session cleanup", file=sys.stderr)
+        raise
+    else:
         fetch_json(client, base_url, "/api/v1/auth/logout", {})
     print(
         "PASS SCRUM-42 + SCRUM-49: driver directory and profile in the same viewer session"
@@ -89,7 +98,7 @@ def main(argv=None):
         return 1
     try:
         verify(args.app_origin, username, password)
-    except (HTTPError, URLError, ValueError, TypeError, TimeoutError):
+    except SMOKE_ERRORS:
         print("FAIL SCRUM-42 + SCRUM-49: authenticated development smoke")
         return 1
     return 0
