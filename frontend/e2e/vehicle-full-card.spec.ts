@@ -66,13 +66,20 @@ test("SCRUM-68: category, leasing buyout, technical data, validation and persist
   await pickToday(dialog, "Data wykupu");
   await dialog.getByLabel("Pojemność silnika (cm³)").fill("1997");
   await dialog.getByLabel("Moc (kW)").fill("110");
-  await dialog.getByLabel("DMC w kg", { exact: true }).fill("3500");
+  const grossWeight = dialog.getByLabel("DMC w kg", { exact: true });
+  for (const invalid of ["0", "120001"]) {
+    await grossWeight.fill(invalid);
+    await dialog.getByRole("button", { name: "Zapisz kartotekę", exact: true }).click();
+    await expect(grossWeight).toHaveAttribute("aria-invalid", "true");
+  }
+  await grossWeight.fill("3500");
+
   await dialog.getByLabel("Masa własna (kg)").fill("4000");
   await dialog.getByLabel("Ładowność (kg)").fill("1300");
   await dialog.getByLabel("Miejsca pasażerskie (bez kierowcy)").fill("2");
   await dialog.getByLabel("Liczba osi").fill("2");
 
-  // The server rejects curb weight above DMC; the draft stays in the form.
+  // The form rejects curb weight above DMC; the draft stays in the form.
   await dialog.getByRole("button", { name: "Zapisz kartotekę", exact: true }).click();
   await expect(dialog.getByText("Masa własna nie może przekraczać DMC.")).toBeVisible();
   await expect(dialog.getByLabel("Masa własna (kg)")).toHaveAttribute("aria-invalid", "true");

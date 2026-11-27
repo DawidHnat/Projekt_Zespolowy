@@ -72,7 +72,9 @@ export function vehicleCardFieldMessages(values: Parameters<typeof validateVehic
       const [min, max] = vehicleCardNumberBounds[field];
       messages[field] = `Podaj wartość z zakresu ${min}–${max}.`;
     } else {
-      messages[field] = fieldMessages[error];
+      messages[field] = error === "exceeds_gross_weight"
+        ? (field === "curb_weight_kg" ? "Masa własna" : "Ładowność") + " nie może przekraczać DMC."
+        : fieldMessages[error];
     }
   }
   return messages;
