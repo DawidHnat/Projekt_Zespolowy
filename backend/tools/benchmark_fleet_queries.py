@@ -9,11 +9,12 @@ import os
 import statistics
 import time
 from datetime import UTC, datetime
+from math import ceil
 from uuid import uuid4
 
 from sqlalchemy import create_engine, event, insert, select
 from sqlalchemy.engine import make_url
-from sqlalchemy.orm import Session, load_only
+from sqlalchemy.orm import Session
 
 from app.core.models import Driver, Measurement, Vehicle
 from app.modules.fleet.service import fleet_markers, fleet_page, fleet_summary, serialize_vehicle
@@ -63,21 +64,10 @@ def main():
             session.flush()
             connection.exec_driver_sql("ANALYZE vehicles")
             connection.exec_driver_sql("ANALYZE measurements")
+            # Select the mapped columns consumed by serialize_vehicle eagerly. Deferring
+            # them here would benchmark one additional SQL query for each field and vehicle.
             legacy_statement = (
                 select(Vehicle, Measurement, Driver)
-                .options(
-                    load_only(
-                        Vehicle.id,
-                        Vehicle.source_account,
-                        Vehicle.external_uid,
-                        Vehicle.name,
-                        Vehicle.number,
-                        Vehicle.license_plate,
-                        Vehicle.vehicle_type,
-                        Vehicle.active,
-                        Vehicle.driver_id,
-                    )
-                )
                 .outerjoin(Measurement, Measurement.vehicle_id == Vehicle.id)
                 .outerjoin(Driver, Driver.id == Vehicle.driver_id)
                 .where(Vehicle.source_account == source, Vehicle.active.is_(True))
@@ -106,8 +96,14 @@ def main():
                     captured.append((statement, parameters))
 
             event.listen(connection, "before_cursor_execute", capture)
+            legacy()
+            legacy_selects = len(captured)
+            captured.clear()
             optimized()
+            optimized_selects = len(captured)
             event.remove(connection, "before_cursor_execute", capture)
+            if legacy_selects != 3:
+                raise RuntimeError(f"Expected 3 legacy queries, measured {legacy_selects}")
             plans = []
             for statement, parameters in captured:
                 plan = connection.exec_driver_sql(
@@ -118,15 +114,19 @@ def main():
             for name, operation in (("legacy", legacy), ("sql", optimized)):
                 operation()  # Warm cache and query compilation.
                 samples = []
-                for _ in range(5):
+                for _ in range(20):
                     start = time.perf_counter()
                     operation()
                     samples.append((time.perf_counter() - start) * 1000)
                 timings[name + "_median_ms"] = round(statistics.median(samples), 2)
+                p95 = sorted(samples)[ceil(len(samples) * 0.95) - 1]
+                timings[name + "_p95_ms"] = round(p95, 2)
             results.append(
                 {
                     "vehicles": size,
                     "legacy_orm_rows": size * 3,
+                    "legacy_selects": legacy_selects,
+                    "sql_selects": optimized_selects,
                     "sql_orm_rows": 25,
                     "sql_marker_rows": size,
                     "sql_aggregate_rows": 3,
