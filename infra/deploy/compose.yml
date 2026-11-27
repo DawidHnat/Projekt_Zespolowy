@@ -16,9 +16,6 @@ services:
 
   api:
     image: fleet-flow-api:${FLEET_FLOW_BUILD_SHA:?Set FLEET_FLOW_BUILD_SHA}
-    build:
-      context: ../..
-      dockerfile: infra/deploy/backend.Dockerfile
     restart: unless-stopped
     env_file: ${FLEET_FLOW_ENV_FILE:?Set FLEET_FLOW_ENV_FILE}
     environment:
