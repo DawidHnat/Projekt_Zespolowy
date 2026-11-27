@@ -146,6 +146,24 @@
 }
 .trip-annotation-form .form-error { color: var(--danger); }
 .trip-annotation-form .auth-notice { color: var(--success); }
+.trip-facts { display: grid; gap: 4px; }
+.trip-facts p { margin: 0; overflow-wrap: anywhere; }
+.trip-stop-list {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+.trip-stop-list li {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+.trip-stop-list span { color: var(--muted); }
+
 .mileage-page { display: grid; gap: 16px; }
 .mileage-filters { display: grid; gap: 12px; max-width: 760px; }
 .mileage-results { display: grid; gap: 12px; min-width: 0; }

@@ -190,6 +190,15 @@ def test_every_implemented_operation_has_a_real_success_response(logged_in, monk
             "page_size": 1,
         },
     )
+    check(
+        "GET",
+        "/trips/stops",
+        params={
+            "vehicle_id": vehicle,
+            "from": (now - timedelta(hours=1)).isoformat(),
+            "to": now.isoformat(),
+        },
+    )
     detail = check("GET", "/trips/{id}", f"/trips/{trip}")
     assert detail["duration_seconds"] == 600 and detail["distance_km"] == 12.5
     assert detail["annotation"]["updated_at"] is None and detail["geometry"] is None

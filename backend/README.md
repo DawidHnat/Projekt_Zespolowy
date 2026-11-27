@@ -210,8 +210,44 @@ z co najmniej 10 s przerwy wymaganej przez raport i z uwzględnieniem `Retry-Aft
 do 60 s. Adapter i diagnostyka pozostają bez automatycznych ponowień. Po
 wyczerpaniu prób API nadal udostępnia ostatni zapisany cache ze statusem źródła
 `degraded` i czasem ostatniego sukcesu.
-Historia przejazdów nie jest jeszcze synchronizowana. Jej import, postoje
-i harmonogram należą do SCRUM-24; adnotacje są kolejnym przyrostem.
+### Import historii pojazdu — SCRUM-24
+
+Importer działa jako oddzielny proces operatora. Po migracji 0012 i uzgodnieniu
+próby dostawcy operator wskazuje wewnętrzne UUID pojazdu oraz od jednego do 93
+zakończonych dni w Europe/Warsaw. Przykład poniżej jest poleceniem **żywego**
+odczytu. W testach używamy wyłącznie atrapy.
+
+```shell
+python -m app.trip_history_control --vehicle 11111111-1111-4111-8111-111111111111   --from 2026-10-24 --through 2026-10-25
+```
+
+Jedna próba przetwarza jeden najwcześniejszy dzień wymagający pobrania. Kolejne
+uruchomienie wznawia pracę po wspólnym limicie 60 s na konto i uwzględnia
+`Retry-After`. PostgreSQL blokuje drugi proces dla konta. Doba liczy 23, 24 lub
+25 godzin. Raport dostawcy filtruje po czasie końca, a API historii pokazuje
+zdarzenia pokrywające wybrany okres. Pokrycie informuje, które dobowe raporty
+odebrano i które mają błąd. Opóźnione zgłoszenie można pobrać ponownie dla jednego
+dnia z `--refresh`; pełna ciągła replikacja pozostaje dalszym zakresem SCRUM-24.
+
+Przejazd zachowuje UUID, adnotację i identyfikację wynikającą z pojedynczego
+znanego przypisania w chwili rozpoczęcia. Przy niejednoznaczności identyfikacja
+pozostaje pusta. Korekty licznika nie są przejazdami. Dystans jest w kilometrach,
+postój ma czasy, czas trwania w sekundach i dostępny opis miejsca. Odczyt
+`/trips/stops` domyślnie obejmuje postoje od 300 s, parametr
+`min_duration_seconds=0` pozwala zobaczyć także krótsze. Zakres operacji i
+jednostki opisuje [dokumentacja WEBFLEET](https://media.webfleet.com/fl_attachment/media/doc/documentations/webfleet.connect-doc-1.74.0.pdf#page=244).
+Ponowny import zakończonego dnia traktuje raport jako kompletny: postoje i przejazdy
+bez lokalnej adnotacji, których nowy raport już nie zawiera, są usuwane, a przejazd
+z celem lub opisem zostaje zachowany i oznaczony `withdrawn_at` („Wycofany z raportu
+źródła”). Powrót przejazdu do raportu czyści oznaczenie, zachowując UUID i adnotację.
+Rollback aplikacji zachowuje nowe kolumny i tabele; poprzednia wersja aplikacji
+działa na rozszerzonym schemacie. Downgrade poniżej `0012_trip_history` jest
+blokowany, gdy istnieją zaimportowane postoje, pokrycie raportów, adresy lub
+kierowcy przejazdów, bo usunąłby te dane. Przy wycofaniu zachowaj schemat
+i cofnij tylko aplikację; DDL cofaj wyłącznie na bazie bez zaimportowanej historii.
+Przed downgrade zatrzymaj worker importu historii. Migracja i tak pobiera blokady
+`ACCESS EXCLUSIVE` na tabelach historii przed sprawdzeniem, więc równoległy import
+czeka i nie może zapisać danych pomiędzy kontrolą a usunięciem tabel.
 
 ## API floty — SCRUM-19
 

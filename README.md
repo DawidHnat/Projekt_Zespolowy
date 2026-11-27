@@ -163,9 +163,9 @@ przyrostem tej Story. [Zakres i scenariusze odbioru](docs/qa/SCRUM-49.md).
 
 SCRUM-26 dodaje edycję celu i opisu zapisanych przejazdów: **Pojazdy → Szczegóły
 (ikona informacji) → Podróże → dzień → przejazd**. Zapis ma autora, datę i
-ochronę przed równoczesnym nadpisaniem; viewer ma tylko odczyt. Import historii
-WEBFLEET jest osobnym zadaniem SCRUM-24, więc bez zapisanych przejazdów widok
-pokazuje pustą listę. [Scenariusze QA i zależność importera](docs/qa/SCRUM-26.md).
+ochronę przed równoczesnym nadpisaniem; viewer ma tylko odczyt. Zamknięty dzień
+historii i postoje zapisuje osobny importer operatora SCRUM-24. Widok wskazuje
+pokrycie raportami, pokazuje ostatnie zapisane dane i zawiera pusty stan. [Scenariusze QA i zależność importera](docs/qa/SCRUM-26.md).
 
 Frontend ma Pulpit, motywy, edytor układu, logowanie, listę i kafelki pojazdów
 oraz Mapbox bez grupowania znaczników. Osobna strona Ustawień obejmuje wygląd,
@@ -182,8 +182,8 @@ pasujące pojazdy z GPS.
 [Zakres i procedura niezależnego QA preferencji SCRUM-91](docs/qa/SCRUM-91.md).
 Kliknięcie pojazdu na mapie pokazuje mały podgląd; przycisk Szczegóły otwiera
 panel z zakładkami Pojazd, Kierowca, Przegląd i Podróże.
-Panel i kafelek Ostatnie przejazdy mają wybór dnia;
-treść zakładek oraz synchronizacja historii są kolejnym przyrostem.
+Zakładka Podróże pokazuje zapisany zakres zdarzeń i postoje od pięciu minut.
+Kafelek Ostatnie przejazdy ma wybór dnia i listę zapisanych przejazdów floty.
 Backend ma FastAPI, PostgreSQL, migracje, sesje i synchronizację pojazdów WEBFLEET.
 Ma też API reguł dziennego dystansu i trwałych alertów z ochroną przed duplikatami
 (SCRUM-31). Dystans obejmuje odebrane pomiary, z jawnym niepełnym pokryciem dnia;
