@@ -115,6 +115,12 @@ nie deklaruje odbycia Planningu, Review, retro ani zaliczenia QA.
   Pełny formularz, leasing i dodatkowe dane są w SCRUM-68 (Sprint 2).
 - SCRUM-42/52/53/54: ręczna kartoteka i przypisania w Sprincie 2.
   Egzekwowanie macierzy uprawnień kierowca–pojazd: SCRUM-70 (Sprint 4).
+  Kierowca tworzy i edytuje wyłącznie operator; WEBFLEET nie importuje
+  kierowców ani nie nadpisuje ich przypisań. Jeden kierowca może mieć wiele
+  bieżących pojazdów i jeden pojazd może mieć wielu bieżących kierowców.
+  Relacje mają daty obowiązywania i historię; zmiana przypisania nie
+  podmienia kierowcy dawnych przejazdów, a wyłączenie kierowcy nie usuwa
+  historycznych powiązań.
 - SCRUM-62/26/27: trwały cel/opis i podstawowe sumy w Sprincie 2.
   Rozbudowane CRUD, filtry i KPI: SCRUM-71; kolejność i ostrzeżenia:
   SCRUM-72 (Sprint 4).
