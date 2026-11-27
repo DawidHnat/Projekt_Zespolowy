@@ -3,17 +3,9 @@ import { api, ApiError } from "../../../shared/api/client";
 import { DatePicker } from "../../../shared/components/DatePicker";
 import { ListPagination } from "../../../shared/components/ListPagination";
 import { VehiclePicker } from "../../fleet/components/VehiclePicker";
-import type { TripList } from "../model/annotations";
+import type { MileagePeriod } from "../../../shared/api/generated/contracts";
+import { TripCoverageNote } from "./TripCoverageNote";
 import { initialPeriod, periodError } from "../model/mileage-period";
-
-type MileagePeriod = TripList & {
-  summary: {
-    distance_km: number | null;
-    documented_km: number | null;
-    missing_purpose: number;
-    missing_distance: number;
-  };
-};
 
 const formatKm = (value: number | null) =>
   value === null ? "Brak danych" : `${value.toLocaleString("pl-PL", { maximumFractionDigits: 3 })} km`;
@@ -33,7 +25,11 @@ export function MileagePage() {
   const [revision, setRevision] = useState(0);
 
   useEffect(() => {
-    if (!vehicle || rangeError) return;
+    // An invalid range or no vehicle means no active request: clear any pending status.
+    if (!vehicle || rangeError) {
+      setLoading(false);
+      return;
+    }
     const controller = new AbortController();
     const query = new URLSearchParams({
       vehicle_id: vehicle.id, from_day: from, through,
@@ -67,20 +63,22 @@ export function MileagePage() {
       </div>
       {rangeError && <p className="form-error" role="alert">{rangeError}</p>}
       {!vehicle && <p>Wybierz pojazd, aby obliczyć ewidencję.</p>}
-      {loading && <p role="status">Pobieranie ewidencji…</p>}
+      {loading && !rangeError && <p role="status">Pobieranie ewidencji…</p>}
       {error && <div role="alert"><p>{error}</p><button type="button" className="button button-secondary"
         onClick={() => setRevision((value) => value + 1)}>Ponów odczyt</button></div>}
       {data && <section aria-label="Podsumowanie ewidencji" className="mileage-results">
         <h2>{vehicle?.name}</h2>
         <dl className="mileage-stats">
           <div><dt>Przejazdy</dt><dd>{data.total}</dd></div>
-          <div><dt>Zapisany dystans</dt><dd>{formatKm(data.summary.distance_km)}</dd></div>
-          <div><dt>Rozpisane kilometry</dt><dd>{formatKm(data.summary.documented_km)}</dd></div>
+          <div><dt>Suma znanych kilometrów</dt><dd>{formatKm(data.summary.known_km)}</dd></div>
           <div><dt>Brak celu</dt><dd>{data.summary.missing_purpose}</dd></div>
           <div><dt>Brak dystansu</dt><dd>{data.summary.missing_distance}</dd></div>
         </dl>
-        <p className="trip-time-hint">Przejazdy liczone według dnia rozpoczęcia; okres do 93 dni.</p>
-        {!data.total && <p>Brak zapisanych przejazdów w tym okresie.</p>}
+        <p className="trip-time-hint">Przejazdy liczone według dnia rozpoczęcia; okres do 93 dni. Suma obejmuje tylko przejazdy ze znanym dystansem.</p>
+        <TripCoverageNote coverage={data.coverage} />
+        {!data.total && (data.coverage.state === "complete"
+          ? <p>Brak przejazdów w tym okresie.</p>
+          : <p>Brak przejazdów w dotychczas pobranych raportach. Część dni nie została jeszcze zsynchronizowana, więc wynik może być niepełny.</p>)}
         {data.items.length > 0 && <ul className="trip-annotation-list" aria-label="Przejazdy w ewidencji">
           {data.items.map((trip) => <li key={trip.id}>
             <strong>{new Date(trip.start_at).toLocaleString("pl-PL", { timeZone: "Europe/Warsaw" })}</strong>

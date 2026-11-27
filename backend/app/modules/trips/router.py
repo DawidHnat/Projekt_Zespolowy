@@ -212,30 +212,30 @@ def mileage(
     if vehicle is None or vehicle.source_account != source:
         raise ApiError(404, "NOT_FOUND", "Pojazd nie istnieje")
 
+    # PO decision 27.11 (SCRUM-62): sum of known distances and trips without a purpose
+    # over the whole range; trips withdrawn by the source report are not current data.
     filters = (
         Trip.vehicle_id == vehicle_id,
         Trip.start_at >= lower,
         Trip.start_at < upper,
+        Trip.withdrawn_at.is_(None),
     )
     missing_purpose = or_(
         TripAnnotation.purpose.is_(None),
         func.trim(TripAnnotation.purpose) == "",
     )
+    known_distance = and_(Trip.distance_km.is_not(None), Trip.distance_km >= 0)
     result = session.execute(
         select(
             func.count(Trip.id).label("total"),
-            func.sum(Trip.distance_km).label("distance"),
-            func.sum(Trip.distance_km)
-            .filter(~missing_purpose, Trip.distance_km.is_not(None))
-            .label("documented"),
+            func.sum(Trip.distance_km).filter(known_distance).label("known"),
             func.count(Trip.id).filter(missing_purpose).label("missing_purpose"),
-            func.count(Trip.id).filter(Trip.distance_km.is_(None)).label("missing_distance"),
+            func.count(Trip.id).filter(~known_distance).label("missing_distance"),
         )
         .outerjoin(TripAnnotation, TripAnnotation.trip_id == Trip.id)
         .where(*filters)
     ).one()
 
-    total = result.total
     rows = session.execute(
         select(Trip, TripAnnotation, User)
         .outerjoin(TripAnnotation, TripAnnotation.trip_id == Trip.id)
@@ -247,15 +247,15 @@ def mileage(
     )
     return {
         "items": [trip_payload(*row) for row in rows],
-        "total": total,
+        "total": result.total,
         "page": page,
         "page_size": page_size,
         "summary": {
-            "distance_km": float(result.distance) if result.distance is not None else None,
-            "documented_km": float(result.documented) if result.documented is not None else None,
+            "known_km": float(result.known) if result.known is not None else None,
             "missing_purpose": result.missing_purpose,
             "missing_distance": result.missing_distance,
         },
+        "coverage": report_coverage(session, vehicle_id, lower, upper),
     }
 
 

@@ -36,7 +36,11 @@ const partial = {
   total: 2,
   page: 1,
   page_size: 10,
-  summary: { distance_km: 12.5, documented_km: 12.5, missing_purpose: 1, missing_distance: 1 },
+  summary: { known_km: 12.5, missing_purpose: 1, missing_distance: 1 },
+  coverage: {
+    basis: "report_end_day", state: "partial", requested_days: 27,
+    covered_days: ["2026-11-03"], failed_days: [], last_success_at: "2026-11-04T00:00:00Z",
+  },
 };
 
 async function openMileage(page: Page) {
@@ -90,7 +94,35 @@ test("SCRUM-27: mileage view shows the current month, partial data and recovers 
   await expect(summary.locator("dd").nth(0)).toHaveText("2");
   await expect(summary.getByText("Brak danych · Brak celu")).toBeVisible();
   await expect(summary.locator("dt", { hasText: "Brak dystansu" }).locator("+ dd")).toHaveText("1");
+  await expect(summary.locator("dt", { hasText: "Suma znanych kilometrów" }).locator("+ dd")).toHaveText("12,5 km");
+  await expect(summary.getByText(/Raporty według daty zakończenia przejazdu: 1 z 27 dni/)).toBeVisible();
 
   const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
   expect(result.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) }))).toEqual([]);
+});
+
+test("SCRUM-27: an invalid range during a slow read clears the loading status", async ({ page }) => {
+  let release: () => void = () => {};
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  await page.route("**/api/v1/trips/mileage?*", async route => {
+    await gate;
+    await route.fulfill({ json: partial }).catch(() => {});
+  });
+  await openMileage(page);
+  await page.getByRole("radio", { name: /Pojazd E2E/ }).check();
+  await expect(page.getByRole("status").filter({ hasText: "Pobieranie ewidencji" })).toBeVisible();
+
+  // While the read is pending, move the start date more than 93 days back.
+  await page.getByRole("button", { name: /^Od dnia:/ }).click();
+  const calendar = page.getByRole("dialog", { name: /Wybierz datę: Od dnia/ });
+  for (let month = 0; month < 4; month += 1) await calendar.locator(".flatpickr-prev-month").click();
+  await calendar.locator(".flatpickr-day:not(.prevMonthDay):not(.nextMonthDay)").first().click();
+
+  await expect(page.getByRole("alert").filter({ hasText: /najwyżej 93 dni/ })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Pobieranie ewidencji" })).toHaveCount(0);
+  release();
+  // The aborted response must not bring back stale results for the invalid range.
+  await page.waitForTimeout(300);
+  await expect(page.getByRole("region", { name: "Podsumowanie ewidencji" })).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: "Pobieranie ewidencji" })).toHaveCount(0);
 });

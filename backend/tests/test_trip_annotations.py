@@ -71,6 +71,26 @@ def test_mileage_period_sums_without_pagination_and_tracks_missing_purpose(logge
             distance_km=Decimal("7.655"),
         )
         session.add(second)
+        # Unknown distance and a withdrawn trip are not part of the known-km sum.
+        session.add(
+            Trip(
+                vehicle_id=vehicle.id,
+                external_uid=uuid4().hex,
+                start_at=START + timedelta(hours=4),
+                end_at=None,
+                distance_km=None,
+            )
+        )
+        session.add(
+            Trip(
+                vehicle_id=vehicle.id,
+                external_uid=uuid4().hex,
+                start_at=START + timedelta(hours=5),
+                end_at=START + timedelta(hours=6),
+                distance_km=Decimal("100"),
+                withdrawn_at=datetime.now(UTC),
+            )
+        )
         session.flush()
         session.add(
             TripAnnotation(
@@ -96,11 +116,12 @@ def test_mileage_period_sums_without_pagination_and_tracks_missing_purpose(logge
     )
     assert response.status_code == 200
     body = response.json()
-    assert body["total"] == 2
-    assert body["summary"]["distance_km"] == 20.0
-    assert body["summary"]["documented_km"] == 12.345
-    assert body["summary"]["missing_purpose"] == 1
-    assert body["summary"]["missing_distance"] == 0
+    assert body["total"] == 3
+    assert len(body["items"]) == 1
+    assert body["summary"] == {"known_km": 20.0, "missing_purpose": 2, "missing_distance": 1}
+    assert "documented_km" not in body["summary"]
+    assert body["coverage"]["state"] == "unavailable"
+    assert body["coverage"]["requested_days"] == 1
 
 
 def test_annotation_is_durable_audited_and_separate_from_source(stored_trip):
