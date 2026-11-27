@@ -6,7 +6,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-from sqlalchemy import or_, select, text, update
+from sqlalchemy import MetaData, Table, delete, inspect, select, text, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -15,7 +15,7 @@ from app.core.errors import ApiError
 from app.core.models import Driver, Measurement, SyncState, Vehicle
 from app.modules.analytics.models import Alert, AlertReceipt, DailyDistance, Rule
 from app.modules.auth.models import User
-from app.modules.auth.service import check_origin, current_user, editor
+from app.modules.auth.service import aware, check_origin, current_user, editor
 from app.modules.drivers.models import DriverAssignment
 from app.modules.drivers.service import project_vehicle_drivers
 from app.modules.fleet.refresh import refresh_state, request_refresh
@@ -608,6 +608,161 @@ def update_vehicle_card(
     )
 
 
+def _relink_trip_history_tables(
+    session: Session,
+    source_vehicle_id: UUID,
+    target_vehicle_id: UUID,
+) -> None:
+    """Migrate SCRUM-24 trip_stops and trip_history_days rows when present in schema."""
+    conn = session.connection()
+    inspector = inspect(conn)
+    table_names = set(inspector.get_table_names())
+    metadata = MetaData()
+
+    if "trip_stops" in table_names:
+        trip_stops = Table("trip_stops", metadata, autoload_with=conn)
+        target_stops = {
+            aware(row["start_at"]): dict(row)
+            for row in session.execute(
+                select(trip_stops).where(trip_stops.c.vehicle_id == target_vehicle_id)
+            ).mappings()
+        }
+        src_stops = list(
+            session.execute(
+                select(trip_stops).where(trip_stops.c.vehicle_id == source_vehicle_id)
+            ).mappings()
+        )
+        for src in src_stops:
+            key = aware(src["start_at"])
+            existing = target_stops.get(key)
+            if existing is None:
+                continue
+            existing_end = aware(existing["end_at"])
+            src_end = aware(src["end_at"])
+            merged_end = existing["end_at"] if existing_end >= src_end else src["end_at"]
+            merged_duration = max(existing["duration_seconds"], src["duration_seconds"])
+            merged_lat = (
+                existing["latitude"] if existing["latitude"] is not None else src["latitude"]
+            )
+            merged_lon = (
+                existing["longitude"] if existing["longitude"] is not None else src["longitude"]
+            )
+            merged_addr = existing["address"] or src["address"]
+            session.execute(
+                update(trip_stops)
+                .where(
+                    trip_stops.c.vehicle_id == target_vehicle_id,
+                    trip_stops.c.start_at == existing["start_at"],
+                )
+                .values(
+                    end_at=merged_end,
+                    duration_seconds=merged_duration,
+                    latitude=merged_lat,
+                    longitude=merged_lon,
+                    address=merged_addr,
+                )
+            )
+            session.execute(
+                delete(trip_stops).where(
+                    trip_stops.c.vehicle_id == source_vehicle_id,
+                    trip_stops.c.start_at == src["start_at"],
+                )
+            )
+        session.execute(
+            update(trip_stops)
+            .where(trip_stops.c.vehicle_id == source_vehicle_id)
+            .values(vehicle_id=target_vehicle_id)
+        )
+
+    if "trip_history_days" in table_names:
+        trip_days = Table("trip_history_days", metadata, autoload_with=conn)
+        target_days = {
+            row["report_day"]: dict(row)
+            for row in session.execute(
+                select(trip_days).where(trip_days.c.vehicle_id == target_vehicle_id)
+            ).mappings()
+        }
+        src_days = list(
+            session.execute(
+                select(trip_days).where(trip_days.c.vehicle_id == source_vehicle_id)
+            ).mappings()
+        )
+        for src in src_days:
+            existing = target_days.get(src["report_day"])
+            if existing is None:
+                continue
+            t_imp = aware(existing["imported_at"]) if existing["imported_at"] else None
+            s_imp = aware(src["imported_at"]) if src["imported_at"] else None
+            if t_imp and s_imp:
+                merged_imp = existing["imported_at"] if t_imp >= s_imp else src["imported_at"]
+            else:
+                merged_imp = existing["imported_at"] or src["imported_at"]
+            if (t_imp is not None and existing["error_code"] is None) or (
+                s_imp is not None and src["error_code"] is None
+            ):
+                merged_err = None
+            else:
+                merged_err = existing["error_code"] or src["error_code"]
+            session.execute(
+                update(trip_days)
+                .where(
+                    trip_days.c.vehicle_id == target_vehicle_id,
+                    trip_days.c.report_day == existing["report_day"],
+                )
+                .values(imported_at=merged_imp, error_code=merged_err)
+            )
+            session.execute(
+                delete(trip_days).where(
+                    trip_days.c.vehicle_id == source_vehicle_id,
+                    trip_days.c.report_day == src["report_day"],
+                )
+            )
+        session.execute(
+            update(trip_days)
+            .where(trip_days.c.vehicle_id == source_vehicle_id)
+            .values(vehicle_id=target_vehicle_id)
+        )
+
+
+def _merge_extended_trip_columns_if_present(
+    session: Session,
+    source_trip_id: UUID,
+    target_trip_id: UUID,
+) -> None:
+    conn = session.connection()
+    trip_cols = {col["name"] for col in inspect(conn).get_columns("trips")}
+    optional_cols = [c for c in ("start_address", "end_address", "driver_id") if c in trip_cols]
+    if not optional_cols and "withdrawn_at" not in trip_cols:
+        return
+    trips_table = Table("trips", MetaData(), autoload_with=conn)
+    src_row = (
+        session.execute(select(trips_table).where(trips_table.c.id == source_trip_id))
+        .mappings()
+        .first()
+    )
+    dst_row = (
+        session.execute(select(trips_table).where(trips_table.c.id == target_trip_id))
+        .mappings()
+        .first()
+    )
+    if not src_row or not dst_row:
+        return
+    updates = {}
+    for col in optional_cols:
+        if dst_row[col] is None and src_row[col] is not None:
+            updates[col] = src_row[col]
+    if (
+        "withdrawn_at" in trip_cols
+        and dst_row["withdrawn_at"] is not None
+        and src_row["withdrawn_at"] is None
+    ):
+        updates["withdrawn_at"] = None
+    if updates:
+        session.execute(
+            update(trips_table).where(trips_table.c.id == target_trip_id).values(**updates)
+        )
+
+
 @router.put("/vehicles/{vehicle_id}/odometer", dependencies=[Depends(check_origin)])
 def update_manual_odometer(
     vehicle_id: UUID,
@@ -627,7 +782,6 @@ def update_manual_odometer(
         .where(
             Vehicle.id == vehicle_id,
             Vehicle.source_account == source,
-            or_(Vehicle.active.is_(True), Vehicle.archived.is_(True)),
         )
         .with_for_update(of=Vehicle)
         .execution_options(populate_existing=True)
@@ -773,13 +927,15 @@ def link_manual_vehicle_to_source(
         if source_measurement is not None:
             session.delete(source_measurement)
 
-        existing_trip_uids = set(
-            session.scalars(select(Trip.external_uid).where(Trip.vehicle_id == vehicle.id)).all()
-        )
+        existing_trips = {
+            t.external_uid: t
+            for t in session.scalars(select(Trip).where(Trip.vehicle_id == vehicle.id)).all()
+        }
         for trip in session.scalars(select(Trip).where(Trip.vehicle_id == source_vehicle.id)).all():
-            if trip.external_uid not in existing_trip_uids:
+            target_trip = existing_trips.get(trip.external_uid)
+            if target_trip is None:
                 trip.vehicle_id = vehicle.id
-                existing_trip_uids.add(trip.external_uid)
+                existing_trips[trip.external_uid] = trip
             elif session.get(TripAnnotation, trip.id) is not None:
                 session.rollback()
                 raise ApiError(
@@ -788,7 +944,10 @@ def link_manual_vehicle_to_source(
                     "Wykryto konflikt adnotacji przejazdu podczas łączenia pojazdów",
                 )
             else:
+                _merge_extended_trip_columns_if_present(session, trip.id, target_trip.id)
                 session.delete(trip)
+
+        _relink_trip_history_tables(session, source_vehicle.id, vehicle.id)
 
         manual_distances = {
             row.event_day: row
