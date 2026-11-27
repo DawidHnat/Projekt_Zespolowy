@@ -1,10 +1,17 @@
 export class ApiError extends Error {
   status: number;
   code: string;
-  constructor(status: number, code: string, message: string) {
+  fields: Record<string, string>;
+  constructor(
+    status: number,
+    code: string,
+    message: string,
+    fields: Record<string, string> = {},
+  ) {
     super(message);
     this.status = status;
     this.code = code;
+    this.fields = fields;
   }
 }
 const expiredListeners = new Set<() => void>();
@@ -42,8 +49,12 @@ export async function api<T>(
     )
       expiredListeners.forEach((listener) => listener());
     let code = "UNAVAILABLE";
+    let fields: Record<string, string> = {};
     try {
-      code = (await response.json()).error?.code || code;
+      const payload = await response.json();
+      code = payload.error?.code || code;
+      if (payload.error?.fields && typeof payload.error.fields === "object")
+        fields = payload.error.fields as Record<string, string>;
     } catch {
       /* Non-JSON proxy failure. */
     }
@@ -57,11 +68,18 @@ export async function api<T>(
       VEHICLE_ARCHIVED: "Pojazd jest zarchiwizowany. Przywróć go przed wykonaniem tej operacji.",
       ALREADY_ARCHIVED: "Pojazd znajduje się już w archiwum.",
       NOT_ARCHIVED: "Pojazd nie znajduje się w archiwum.",
+      DUPLICATE_VEHICLE_IDENTITY: "Numer rejestracyjny lub VIN jest już przypisany do innego pojazdu w kartotece.",
+      SOURCE_VEHICLE_EXISTS: "Wykryto istniejący pojazd WEBFLEET o tej samej rejestracji lub VIN.",
+      ALREADY_LINKED: "Pojazd jest już powiązany ze źródłem WEBFLEET.",
+      NOT_SOURCE_VEHICLE: "Wskazany rekord nie jest pojazdem WEBFLEET.",
+      IDENTITY_MISMATCH: "Wskazany pojazd WEBFLEET ma niezgodną rejestrację lub sprzeczny numer VIN.",
+      LINK_CONFLICT: "Nie udało się bezpiecznie połączyć historii wybranego pojazdu.",
     };
     throw new ApiError(
       response.status,
       code,
       messages[code] || "Nie udało się pobrać danych. Spróbuj ponownie.",
+      fields,
     );
   }
   return response.json() as Promise<T>;

@@ -1,10 +1,12 @@
-from datetime import datetime
+import re
+from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
+    Date,
     DateTime,
     ForeignKey,
     Integer,
@@ -62,15 +64,28 @@ class Vehicle(Base):
     __tablename__ = "vehicles"
     __table_args__ = (
         UniqueConstraint("source_account", "external_uid"),
+        UniqueConstraint("source_account", "manual_plate_key", name="uq_vehicles_manual_plate_key"),
+        UniqueConstraint("source_account", "manual_vin_key", name="uq_vehicles_manual_vin_key"),
         CheckConstraint(
             "(NOT archived AND archived_at IS NULL AND archived_by IS NULL "
             "AND archived_reason IS NULL) OR (archived AND archived_at IS NOT NULL)",
             name="ck_vehicles_archive_state",
         ),
+        CheckConstraint(
+            "(is_manual AND external_uid IS NULL) OR (NOT is_manual AND external_uid IS NOT NULL)",
+            name="ck_vehicles_origin_uid",
+        ),
+        CheckConstraint(
+            "(manual_odometer_km IS NULL AND manual_odometer_date IS NULL) "
+            "OR (manual_odometer_km IS NOT NULL AND manual_odometer_km >= 0 "
+            "AND manual_odometer_km <= 9999999.9 AND manual_odometer_date IS NOT NULL)",
+            name="ck_vehicles_manual_odometer",
+        ),
     )
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     source_account: Mapped[str] = mapped_column(String(64), index=True)
-    external_uid: Mapped[str] = mapped_column(String(200))
+    external_uid: Mapped[str | None] = mapped_column(String(200))
+    is_manual: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     name: Mapped[str] = mapped_column(String(200))
     number: Mapped[str | None] = mapped_column(String(200))
     license_plate: Mapped[str | None] = mapped_column(String(100))
@@ -79,6 +94,14 @@ class Vehicle(Base):
     model: Mapped[str | None] = mapped_column(String(100))
     year: Mapped[int | None] = mapped_column(Integer)
     vin: Mapped[str | None] = mapped_column(String(100))
+    fuel_type: Mapped[str | None] = mapped_column(String(50))
+    leasing_company: Mapped[str | None] = mapped_column(String(200))
+    leasing_contract_no: Mapped[str | None] = mapped_column(String(100))
+    leasing_end_on: Mapped[date | None] = mapped_column(Date)
+    inspection_due_on: Mapped[date | None] = mapped_column(Date)
+    insurance_due_on: Mapped[date | None] = mapped_column(Date)
+    manual_odometer_km: Mapped[Decimal | None] = mapped_column(Numeric(14, 1))
+    manual_odometer_date: Mapped[date | None] = mapped_column(Date)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     archived: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -103,6 +126,8 @@ class Vehicle(Base):
     search_vin: Mapped[str] = mapped_column(
         String(300), default=folded_default("vin"), server_default=""
     )
+    manual_plate_key: Mapped[str | None] = mapped_column(String(300))
+    manual_vin_key: Mapped[str | None] = mapped_column(String(300))
     # This local field belongs to Fleet-Flow and is never written by WEBFLEET.
     driver_id: Mapped[UUID | None] = mapped_column(ForeignKey("drivers.id"))
     # Retained for application rollback; current writes track the three shared fields separately.
@@ -118,6 +143,14 @@ class Vehicle(Base):
 def update_vehicle_search(mapper, connection, vehicle):
     for field in ("name", "number", "license_plate", "make", "model", "vin"):
         setattr(vehicle, "search_" + field, (getattr(vehicle, field) or "").casefold())
+    if vehicle.is_manual:
+        plate_norm = re.sub(r"[\s\-]+", "", vehicle.license_plate or "").casefold()
+        vin_norm = re.sub(r"[\s\-]+", "", vehicle.vin or "").casefold()
+        vehicle.manual_plate_key = plate_norm or None
+        vehicle.manual_vin_key = vin_norm or None
+    else:
+        vehicle.manual_plate_key = None
+        vehicle.manual_vin_key = None
 
 
 class Measurement(Base):
