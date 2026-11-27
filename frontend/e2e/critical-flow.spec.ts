@@ -1177,8 +1177,8 @@ for (const theme of ["light", "dark"]) {
     await expect(mileageLink).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(page.getByRole("heading", { name: /^Ewidencja przebiegu\.?$/, level: 1 })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Od dnia", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Do dnia", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Od dnia:/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Do dnia:/ })).toBeVisible();
     await expect(page.getByText("Wybierz pojazd, aby obliczyć ewidencję.", { exact: true })).toBeVisible();
 
     await openMenu();
