@@ -168,9 +168,9 @@ po potwierdzeniu linku z nowej skrzynki na swoim koncie.
 
 SCRUM-26 dodaje edycję celu i opisu zapisanych przejazdów: **Pojazdy → Szczegóły
 (ikona informacji) → Podróże → dzień → przejazd**. Zapis ma autora, datę i
-ochronę przed równoczesnym nadpisaniem; viewer ma tylko odczyt. Import historii
-WEBFLEET jest osobnym zadaniem SCRUM-24, więc bez zapisanych przejazdów widok
-pokazuje pustą listę. [Scenariusze QA i zależność importera](docs/qa/SCRUM-26.md).
+ochronę przed równoczesnym nadpisaniem; viewer ma tylko odczyt. Zamknięty dzień
+historii i postoje zapisuje osobny importer operatora SCRUM-24. Widok wskazuje
+pokrycie raportami, pokazuje ostatnie zapisane dane i zawiera pusty stan. [Scenariusze QA i zależność importera](docs/qa/SCRUM-26.md).
 
 Frontend ma Pulpit, motywy, edytor układu, logowanie, listę i kafelki pojazdów
 oraz Mapbox bez grupowania znaczników. Osobna strona Ustawień obejmuje wygląd,
@@ -187,12 +187,17 @@ pasujące pojazdy z GPS.
 [Zakres i procedura niezależnego QA preferencji SCRUM-91](docs/qa/SCRUM-91.md).
 Kliknięcie pojazdu na mapie pokazuje mały podgląd; przycisk Szczegóły otwiera
 panel z zakładkami Pojazd, Kierowca, Przegląd i Podróże.
-Panel i kafelek Ostatnie przejazdy mają wybór dnia;
-treść zakładek oraz synchronizacja historii są kolejnym przyrostem.
+Zakładka Podróże pokazuje zapisany zakres zdarzeń i postoje od pięciu minut.
+Kafelek Ostatnie przejazdy ma wybór dnia i listę zapisanych przejazdów floty.
+Ewidencja przebiegu pokazuje cel oraz sumę za zakres dat wybranego pojazdu.
+Przejazd przez północ jest liczony w okresie jego rozpoczęcia w Europe/Warsaw.
+Widok podaje pokrycie raportami i ułatwia uzupełnienie brakującego celu.
 Backend ma FastAPI, PostgreSQL, migracje, sesje i synchronizację pojazdów WEBFLEET.
 Ma też API reguł dziennego dystansu i trwałych alertów z ochroną przed duplikatami
 (SCRUM-31). Dystans obejmuje odebrane pomiary, z jawnym niepełnym pokryciem dnia;
-widok Alerty umożliwia tworzenie, zmianę i wyłączanie reguł dla floty lub pojazdu,
+zakładka Analityka porównuje dystans, liczbę przejazdów i dni z przejazdem
+dla wybranego okresu i pojazdów. Pokazuje pokrycie zapisanej historii.
+Widok Alerty umożliwia tworzenie, zmianę i wyłączanie reguł dla floty lub pojazdu,
 a także listowanie i trwały odczyt per konto (SCRUM-32). Terminy, wspólny stan
 obsługi i e-mail są kolejnymi przyrostami SCRUM-69/73.
 Sekcja Kierowcy ma listę/kafelki, ręczne formularze i historię wielu przypisań

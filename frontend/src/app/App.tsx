@@ -36,7 +36,9 @@ import { VehicleLayoutEditorControls } from "../features/fleet/components/Vehicl
 import { VehicleDetailsDialog } from "../features/fleet/components/VehicleDetailsDialog";
 import { AccountPreferenceNotice } from "../shared/components/AccountPreferenceNotice";
 import { AlertsPage } from "../features/analytics/components/AlertsPage";
+import { AnalyticsPage } from "../features/analytics/components/AnalyticsPage";
 import { DriversPage } from "../features/drivers/DriversPage";
+import { MileagePage } from "../features/trips/components/MileagePage";
 import { EmptyState } from "../shared/components/EmptyState";
 import "./accounts.css";
 
@@ -368,6 +370,8 @@ export function App() {
             <VehicleCardsPage />
           ) : section === "profile" ? (
             <ProfilePage />
+          ) : section === "analytics" ? (
+            <AnalyticsPage />
           ) : section === "users" ? (
             managesAccounts
               ? <UsersPage key={auth.user?.id} />
@@ -375,6 +379,8 @@ export function App() {
                   description="Do zarządzania kontami potrzebujesz roli Administrator." />
           ) : section === "alerts" ? (
             <AlertsPage />
+          ) : section === "mileage" ? (
+            <MileagePage />
           ) : section === "drivers" ? (
             <DriversPage />
           ) : section === "settings" ? (

@@ -1,6 +1,7 @@
 import {
   Bell,
   CarFront,
+  ChartColumn,
   BookOpen,
   CreditCard,
   LayoutDashboard,
@@ -47,12 +48,7 @@ export const sections = [
     id: "mileage",
     title: "Ewidencja przebiegu",
     icon: BookOpen,
-    description: "Kilometrówka i dokumentowanie przebiegu pojazdów.",
-    placeholder: {
-      title: "Każdy kilometr na swoim miejscu",
-      description:
-        "Tu przygotujesz ewidencję przebiegu: daty, trasy, cele przejazdów i kilometry przypisane do pojazdu.",
-    },
+    description: "Zapisane przejazdy, cele i suma kilometrów pojazdu za okres.",
   },
   {
     id: "drivers",
@@ -70,6 +66,12 @@ export const sections = [
       description:
         "Tu znajdą się informacje o kartach paliwowych, ich operatorach, ważności i przypisaniach do pojazdów lub kierowców.",
     },
+  },
+  {
+    id: "analytics",
+    title: "Analityka",
+    icon: ChartColumn,
+    description: "Porównaj dystans, przejazdy i dni aktywne pojazdów.",
   },
   {
     id: "alerts",
@@ -103,7 +105,6 @@ export type AppSectionId = AppSection["id"];
 const legacySections: Record<string, AppSectionId> = {
   fleet: "map",
   trips: "mileage",
-  analytics: "dashboard",
 };
 
 export function sectionFromHash(hash: string): AppSectionId {
