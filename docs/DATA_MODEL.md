@@ -36,18 +36,35 @@ User oznacza osobę korzystającą z aplikacji, Driver — ręcznie opisany wpis
   mieć wielu bieżących kierowców. Relacje są osobnymi rekordami
   `DriverAssignment`; nie wybiera się ani nie utrzymuje globalnego kierowcy
   głównego.
-- Przypisanie i jego zakończenie mają czas `valid_from` i `valid_to`.
-  Zmiana bieżącego przypisania nie zmienia osoby zapisanej przy dawnych
-  przejazdach ani nie usuwa historii relacji.
-- Wyłączenie kierowcy zamyka jego bieżące przypisania. Zachowuje stabilny UUID,
+- `DriverAssignment` ma pola kontraktu `started_at` i `ended_at` (znacznik czasu
+  UTC) oraz `active`. Bieżące przypisanie ma `active=true` i `ended_at=null`;
+  zakończenie ustawia `ended_at` na czas zamknięcia. Okres jest półotwarty
+  `[started_at, ended_at)`. Przypisania przeniesione ze starego wskaźnika mają
+  `started_at=null` (nieznany początek, `start_known=false`), bez zgadywania historii.
+- Para kierowca–pojazd może mieć tylko jedno aktywne przypisanie (unikalny
+  indeks częściowy); ponowne przypisanie po zakończeniu tworzy nowy rekord.
+  Zamknięcie i dezaktywacja blokują wiersze (`SELECT … FOR UPDATE`), więc
+  równoczesna zmiana kończy się konfliktem 409 zamiast podwójnego zamknięcia.
+- Zmiana bieżącego przypisania nie zmienia kierowcy zapisanego przy dawnych
+  przejazdach ani nie usuwa historii relacji. Kierowca przejazdu w ewidencji
+  jest utrwalany osobno, w adnotacji przejazdu (SCRUM-70), a nie wyliczany
+  z bieżących przypisań.
+- Wyłączenie kierowcy zamyka jego bieżące przypisania. Zachowuje UUID rekordu,
   dane ręczne i dane historyczne; ponowna aktywacja nie przywraca relacji
   automatycznie.
 - Formularz i API nie zbierają numerów PESEL ani dokumentów. Wymagane jest
-  imię i nazwisko/nazwa oraz stabilny wewnętrzny identyfikator; opcjonalny
-  kontakt i kategorie prawa jazdy podlegają walidacji po wpisaniu.
+  imię i nazwisko/nazwa oraz wewnętrzne pole `identifier`, unikalne w koncie,
+  ale edytowalne (`DriverPatch`). Historię i relacje wiąże wyłącznie stały
+  UUID rekordu, nigdy `identifier`. Opcjonalny kontakt i kategorie prawa jazdy
+  podlegają walidacji po wpisaniu.
 - Kontrola zgodności kategorii kierowcy z wymaganiami pojazdu nie jest
   wykonywana automatycznie w tym przyroście. Brak danych oznacza
   `Do sprawdzenia`, a nie zgodność; osobną blokadę opisuje SCRUM-70.
+- Import historii przejazdów nie wybiera kierowcy z bieżących przypisań. Gdy
+  pojazd ma kilku kierowców, kierowcę przejazdu wskazuje operator w ewidencji.
+- Testy akceptacyjne: [API i model](../backend/tests/test_manual_drivers.py),
+  [PostgreSQL](../backend/tests/test_manual_drivers_postgres.py),
+  [przeglądarka](../frontend/e2e/drivers.spec.ts).
 
 ## Jednostki, czas i jakość
 
