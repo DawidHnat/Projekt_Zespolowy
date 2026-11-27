@@ -18,12 +18,18 @@
   --glass-shine: #ffffff23;
   --glass-reflection: #ffffff0c;
 }
-:root[data-material="glass"] body {
+/* A fixed layer instead of background-attachment: fixed, which WebKit on
+   iOS ignores and which stretches with the document at scroll edges. */
+:root[data-material="glass"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background:
     radial-gradient(ellipse at 25% 0%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 55%),
     radial-gradient(ellipse at 100% 35%, #28c1c612, transparent 50%),
     var(--background);
-  background-attachment: fixed;
 }
 :root[data-material="glass"] .main-shell {
   background: transparent;
@@ -86,7 +92,7 @@
     --glass-reflection: transparent;
     --glass-shine: transparent;
   }
-  :root[data-material="glass"] body {
+  :root[data-material="glass"] body::before {
     background: var(--background);
   }
   :root[data-material="glass"] :is(.sidebar, .topbar, .widget-settings-dialog, .map-vehicle-preview, .material-preview-glass svg) {

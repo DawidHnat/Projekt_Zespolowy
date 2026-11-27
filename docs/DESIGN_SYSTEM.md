@@ -365,6 +365,31 @@ w sesji. UUID zapobiega przywróceniu starszego zdjęcia po nieudanym zapisie.
 Brak blobu pozostawia zwykłe tło i możliwość ponownego dodania obrazu.
 Reset przywraca preferencje, a przycisk usuwania osobno kasuje zapisany blob.
 
+### Granice przewijania — SCRUM-149
+
+Na granicach przewijania tło, powłoka i nieruchome elementy nie mogą się
+rozciągać ani odskakiwać. Zasady są w `styles.css` i `glass.css`:
+
+- `html` ma kolor `--background`, `overscroll-behavior-y: none` (bez gumki
+  i bez pull-to-refresh w Chrome na Androidzie) oraz `scrollbar-gutter: stable`.
+  Poziomy gest wstecz przeglądarki pozostaje dostępny.
+- Dekoracja szkła leży na nieruchomej warstwie `body::before`. Nie używaj
+  `background-attachment: fixed`: WebKit na iOS go ignoruje, a tło rozciąga się
+  wtedy z dokumentem.
+- Otwarty modalny `dialog` blokuje przewijanie strony (`html:has(dialog:modal)`).
+  Stały margines paska przewijania sprawia, że powłoka się nie przesuwa,
+  a pozycja czytania wraca po zamknięciu dialogu.
+- Każda reguła z `overflow: auto|scroll` jawnie deklaruje `overscroll-behavior`
+  (sprawdza to `tests/scroll-boundaries.test.mjs`). `contain` stosuj tylko do
+  ograniczonych list, dialogów i popoverów: listy pojazdów w kafelku i na
+  mapie, treści dialogów, kalendarza i podglądów mapy. Ramy kafelków
+  (`.widget-content`), boczna nawigacja i karty dopasowane do treści mają `auto`.
+  Chromium stosuje `contain` także wtedy, gdy nic się nie przelewa, więc strona
+  nie przewijałaby się kółkiem nad takim kafelkiem. Tabele na pełną wysokość
+  strony mają tylko `overscroll-behavior-x: contain`.
+- Nowy przewijany kontener ma być mniejszy od ekranu telefonu, żeby obok niego
+  zawsze dało się przewinąć stronę.
+
 ### Szkło i czytelność
 
 `data-material` przełącza `glass` / `solid`. Arkusz `app/glass.css` stosuje

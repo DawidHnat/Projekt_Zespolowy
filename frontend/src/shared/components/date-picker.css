@@ -60,6 +60,7 @@
   margin: 0;
   padding: 12px;
   overflow: auto;
+  overscroll-behavior: contain;
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   background: var(--surface);

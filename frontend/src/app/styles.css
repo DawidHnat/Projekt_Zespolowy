@@ -3,10 +3,19 @@
 * {
   box-sizing: border-box;
 }
+/* SCRUM-149: the canvas owns the colour and the root does not rubber-band.
+   The stable gutter keeps the shell still when a modal locks the page. */
+html {
+  background: var(--background);
+  overscroll-behavior-y: none;
+  scrollbar-gutter: stable;
+}
+html:has(dialog:modal) {
+  overflow: hidden;
+}
 body {
   margin: 0;
   min-width: 0;
-  background: var(--background);
   color: var(--text);
   font-family: var(--font-sans);
   font-size: 13px;
@@ -101,6 +110,7 @@ svg {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overscroll-behavior: auto;
   z-index: 20;
 }
 .sidebar-brand {
@@ -594,6 +604,7 @@ svg {
 }
 .table-scroll {
   overflow-x: auto;
+  overscroll-behavior-x: contain;
 }
 .vehicle-table {
   width: 100%;
@@ -760,6 +771,7 @@ svg {
 }
 .panel-content {
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 24px;
   flex: 1;
 }
@@ -1044,7 +1056,6 @@ svg {
   .sidebar {
     transform: translateX(-100%);
     visibility: hidden;
-    overflow-y: auto;
     width: 235px;
     transition:
       transform 180ms ease,
