@@ -3,6 +3,7 @@ import { api, ApiError } from "../../../shared/api/client";
 import { useAuth } from "../../auth/AuthProvider";
 import { useFleet } from "../model/FleetProvider";
 import { measurementLabel, updateTime, type Vehicle } from "../model/types";
+import { isVehicleCardNumberField, validateVehicleCardFields, vehicleCardNumberBounds } from "../model/vehicle-card-validation";
 import { DatePicker } from "../../../shared/components/DatePicker";
 
 const fields = [
@@ -70,11 +71,21 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!draft || !dirty || !editable || saving || conflict) return;
+    const validationErrors = validateVehicleCardFields({ ...draft.base, ...draft.changes });
+    const invalidField = fields.find(({ key }) => Object.hasOwn(validationErrors, key));
+    if (invalidField) {
+      const message = validationErrors.first_registration_poland === "registration_order"
+        && invalidField.key === "first_registration_poland"
+        ? "Pierwsza rejestracja w Polsce nie może poprzedzać pierwszej rejestracji."
+        : `Sprawdź wartość pola „${invalidField.label}”.`;
+      setError(message);
+      return;
+    }
     const body = Object.fromEntries(Object.entries(draft.changes).map(([key, value]) =>
       [
         key,
-        ["year", "engine_capacity_cc", "power_kw", "dmc_kg", "curb_weight_kg", "payload_kg", "seats", "axles"].includes(key)
-          ? (value ? Number(value) : null)
+        isVehicleCardNumberField(key)
+          ? (value.trim() ? Number(value) : null)
           : value.trim() || null,
       ],
     ));
@@ -155,9 +166,9 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
                     id={`${id}-${key}`}
                     value={draft.changes[key] ?? fieldValue(draft.base, key)}
                     onChange={event => change(key, event.target.value)}
-                    type={["year", "engine_capacity_cc", "power_kw", "dmc_kg", "curb_weight_kg", "payload_kg", "seats", "axles"].includes(key) ? "number" : "text"}
-                    min={key === "year" ? 1900 : ["power_kw", "curb_weight_kg", "payload_kg"].includes(key) ? 0 : 1}
-                    max={key === "year" ? 2100 : undefined}
+                    type={isVehicleCardNumberField(key) ? "number" : "text"}
+                    min={isVehicleCardNumberField(key) ? vehicleCardNumberBounds[key][0] : undefined}
+                    max={isVehicleCardNumberField(key) ? vehicleCardNumberBounds[key][1] : undefined}
                     maxLength={max}
                     required={key === "name"}
                     readOnly={saving}
