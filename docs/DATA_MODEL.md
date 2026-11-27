@@ -60,8 +60,10 @@ User oznacza osobę korzystającą z aplikacji, Driver — ręcznie opisany wpis
 - Kontrola zgodności kategorii kierowcy z wymaganiami pojazdu nie jest
   wykonywana automatycznie w tym przyroście. Brak danych oznacza
   `Do sprawdzenia`, a nie zgodność; osobną blokadę opisuje SCRUM-70.
-- Import historii przejazdów nie wybiera kierowcy z bieżących przypisań. Gdy
-  pojazd ma kilku kierowców, kierowcę przejazdu wskazuje operator w ewidencji.
+- Import historii przejazdów (SCRUM-24) przypisuje kierowcę tylko wtedy, gdy
+  w chwili rozpoczęcia przejazdu pojazd miał dokładnie jedno znane przypisanie.
+  Przy kilku równoczesnych przypisaniach lub nieznanym początku pole zostaje
+  puste i kierowcę przejazdu wskazuje operator w ewidencji.
 - Testy akceptacyjne: [API i model](../backend/tests/test_manual_drivers.py),
   [PostgreSQL](../backend/tests/test_manual_drivers_postgres.py),
   [przeglądarka](../frontend/e2e/drivers.spec.ts).
