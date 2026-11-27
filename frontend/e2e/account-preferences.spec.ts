@@ -94,7 +94,8 @@ test("custom background is stored for the account and restored in a second brows
     name: "synthetic-wallpaper.png",
     mimeType: "image/png",
     buffer: Buffer.from(
-      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=",
+      // Valid 1×1 RGB PNG (correct chunk CRCs); Chromium rejects a corrupted IDAT.
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGPQyVsBAAIMAUNPmq6sAAAAAElFTkSuQmCC",
       "base64",
     ),
   });
