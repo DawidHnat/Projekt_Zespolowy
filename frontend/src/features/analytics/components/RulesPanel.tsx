@@ -28,8 +28,19 @@ export function RulesPanel({ onChanged }: { onChanged: () => void }) {
   const thresholdInput = useRef<HTMLInputElement>(null);
   const write = useRef<AbortController | null>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
+  const addButton = useRef<HTMLButtonElement>(null);
   useEffect(() => () => write.current?.abort(), []);
   useEffect(() => { if (editing) thresholdInput.current?.focus(); }, [editing]);
+  useEffect(() => {
+    if (editing || busy) return;
+    const button = opener.current;
+    opener.current = null;
+    if (!button) return;
+    const focused = document.activeElement;
+    if (focused && focused !== document.body && focused !== document.documentElement && focused !== button) return;
+    const target = button.isConnected && !button.disabled ? button : addButton.current;
+    if (target?.isConnected && !target.disabled) target.focus();
+  }, [editing, busy]);
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true); setError(null);
@@ -60,7 +71,6 @@ export function RulesPanel({ onChanged }: { onChanged: () => void }) {
       });
       if (controller.signal.aborted) return;
       setEditing(null); setSaved(true); setRevision(v => v + 1); onChanged();
-      requestAnimationFrame(() => opener.current?.focus());
     } catch (err) {
       if (controller.signal.aborted) return;
       setError(err instanceof ApiError && err.status === 404 ? "Pojazd lub reguła są niedostępne. Wybierz aktywny pojazd i ponów zapis." :
@@ -76,7 +86,7 @@ export function RulesPanel({ onChanged }: { onChanged: () => void }) {
     {saved && <p role="status">Reguła została zapisana.</p>}
     <div className="alert-controls">
       <button type="button" className="button button-secondary" disabled={loading || busy || !!editing} onClick={() => setRevision(v => v + 1)}>Odśwież reguły</button>
-      {canEdit && <button className="button button-primary" disabled={busy || !!editing} onClick={e => edit("new", e.currentTarget)}>Dodaj regułę</button>}
+      {canEdit && <button ref={addButton} className="button button-primary" disabled={busy || !!editing} onClick={e => edit("new", e.currentTarget)}>Dodaj regułę</button>}
     </div>
     {data && <>
       {!data.items.length && <p>Brak reguł dziennego dystansu.</p>}
@@ -96,7 +106,7 @@ export function RulesPanel({ onChanged }: { onChanged: () => void }) {
       {scope === "vehicle" && <RuleVehiclePicker selected={vehicle} onSelect={setVehicle} disabled={busy} />}
       <label className="rule-active"><input type="checkbox" checked={active} disabled={busy} onChange={e => setActive(e.target.checked)} />Reguła włączona</label>
       <div className="alert-controls"><button type="submit" className="button button-primary" disabled={busy}>{busy ? "Zapisywanie…" : "Zapisz regułę"}</button>
-        <button type="button" className="button button-secondary" disabled={busy} onClick={() => { setEditing(null); requestAnimationFrame(() => opener.current?.focus()); }}>Anuluj regułę</button></div>
+        <button type="button" className="button button-secondary" disabled={busy} onClick={() => setEditing(null)}>Anuluj regułę</button></div>
     </form>}
   </WidgetFrame>;
 }
