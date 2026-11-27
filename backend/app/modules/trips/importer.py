@@ -5,7 +5,7 @@ from datetime import UTC, date, datetime, timedelta
 from hashlib import sha256
 from uuid import UUID
 
-from sqlalchemy import or_, select, text
+from sqlalchemy import delete, func, or_, select, text, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
@@ -15,7 +15,13 @@ from app.integrations.webfleet.history import stop_values, trip_values
 from app.modules.auth.service import aware
 from app.modules.drivers.models import DriverAssignment
 from app.modules.fleet.sync import account_key, source_lock_id
-from app.modules.trips.models import Trip, TripHistoryDay, TripHistorySource, TripStop
+from app.modules.trips.models import (
+    Trip,
+    TripAnnotation,
+    TripHistoryDay,
+    TripHistorySource,
+    TripStop,
+)
 from app.modules.trips.service import WARSAW, polish_day
 
 REPORT_INTERVAL = timedelta(seconds=REQUEST_INTERVALS["showTripReportExtern"])
@@ -97,7 +103,7 @@ def import_pending_day(session, settings, vehicle, first, last, refresh, factory
     start, end = polish_day(day)
     try:
         trips, stops = asyncio.run(fetch_day(factory, settings, vehicle.external_uid, start, end))
-        save_day(session, vehicle, start, end, trips, stops)
+        save_day(session, vehicle, start, end, trips, stops, clock())
         status.imported_at = clock()
         status.error_code = None
         session.commit()
@@ -114,7 +120,7 @@ def import_pending_day(session, settings, vehicle, first, last, refresh, factory
     return "imported"
 
 
-def save_day(session, vehicle, start, end, trips, stops):
+def save_day(session, vehicle, start, end, trips, stops, now):
     trip_rows = {}
     for row in trips:
         if str(row.get("tripmode")) == "4":
@@ -155,7 +161,11 @@ def save_day(session, vehicle, start, end, trips, stops):
         session.execute(
             write.on_conflict_do_update(
                 index_elements=[Trip.vehicle_id, Trip.external_uid],
-                set_={field: value for field, value in values.items() if field != "external_uid"},
+                set_={
+                    **{field: value for field, value in values.items() if field != "external_uid"},
+                    # A trip that is back in the complete report is current again.
+                    "withdrawn_at": None,
+                },
             )
         )
     for values in stop_rows.values():
@@ -166,3 +176,37 @@ def save_day(session, vehicle, start, end, trips, stops):
                 set_={field: value for field, value in values.items() if field != "start_at"},
             )
         )
+    reconcile_day(session, vehicle, start, end, set(trip_rows), set(stop_rows), now)
+
+
+def reconcile_day(session, vehicle, start, end, trip_uids, stop_starts, now):
+    """A completed day's report is complete: drop what it no longer lists.
+
+    Stops hold only source data and are removed. Trips without a local annotation
+    are removed; annotated trips are kept and marked as withdrawn, so the user's
+    purpose and description are never lost.
+    """
+    trip_day = func.coalesce(Trip.end_at, Trip.start_at)
+    missing = select(Trip.id).where(
+        Trip.vehicle_id == vehicle.id, trip_day >= start, trip_day < end
+    )
+    if trip_uids:
+        missing = missing.where(Trip.external_uid.not_in(trip_uids))
+    annotated = select(TripAnnotation.trip_id).where(TripAnnotation.trip_id.in_(missing))
+    session.execute(
+        update(Trip)
+        .where(Trip.id.in_(annotated), Trip.withdrawn_at.is_(None))
+        .values(withdrawn_at=now)
+        .execution_options(synchronize_session=False)
+    )
+    session.execute(
+        delete(Trip)
+        .where(Trip.id.in_(missing), Trip.id.not_in(annotated))
+        .execution_options(synchronize_session=False)
+    )
+    stale_stops = delete(TripStop).where(
+        TripStop.vehicle_id == vehicle.id, TripStop.end_at >= start, TripStop.end_at < end
+    )
+    if stop_starts:
+        stale_stops = stale_stops.where(TripStop.start_at.not_in(stop_starts))
+    session.execute(stale_stops.execution_options(synchronize_session=False))

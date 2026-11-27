@@ -1995,6 +1995,18 @@
             }
           ]
         },
+        "withdrawn_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Set when a later complete report no longer lists this annotated trip."
+        },
         "vehicle_name": {
           "anyOf": [
             {

@@ -40,6 +40,7 @@ export function TripsWidget() {
             {data.items.map(trip => <li key={trip.id}>
               <strong>{trip.vehicle_name ?? "Pojazd"} · {tripTime(trip.start_at)}</strong>
               <span>{trip.start_address || "Brak adresu"} → {trip.end_address || "Brak adresu"}</span>
+              {trip.withdrawn_at && <small>Wycofany z raportu źródła</small>}
             </li>)}
           </ul>
         ) : <EmptyState icon={Route} title="Brak zapisanych przejazdów" description="Wybierz inny dzień." />}

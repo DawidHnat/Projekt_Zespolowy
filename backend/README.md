@@ -236,11 +236,18 @@ postój ma czasy, czas trwania w sekundach i dostępny opis miejsca. Odczyt
 `/trips/stops` domyślnie obejmuje postoje od 300 s, parametr
 `min_duration_seconds=0` pozwala zobaczyć także krótsze. Zakres operacji i
 jednostki opisuje [dokumentacja WEBFLEET](https://media.webfleet.com/fl_attachment/media/doc/documentations/webfleet.connect-doc-1.74.0.pdf#page=244).
+Ponowny import zakończonego dnia traktuje raport jako kompletny: postoje i przejazdy
+bez lokalnej adnotacji, których nowy raport już nie zawiera, są usuwane, a przejazd
+z celem lub opisem zostaje zachowany i oznaczony `withdrawn_at` („Wycofany z raportu
+źródła”). Powrót przejazdu do raportu czyści oznaczenie, zachowując UUID i adnotację.
 Rollback aplikacji zachowuje nowe kolumny i tabele; poprzednia wersja aplikacji
 działa na rozszerzonym schemacie. Downgrade poniżej `0012_trip_history` jest
 blokowany, gdy istnieją zaimportowane postoje, pokrycie raportów, adresy lub
 kierowcy przejazdów, bo usunąłby te dane. Przy wycofaniu zachowaj schemat
 i cofnij tylko aplikację; DDL cofaj wyłącznie na bazie bez zaimportowanej historii.
+Przed downgrade zatrzymaj worker importu historii. Migracja i tak pobiera blokady
+`ACCESS EXCLUSIVE` na tabelach historii przed sprawdzeniem, więc równoległy import
+czeka i nie może zapisać danych pomiędzy kontrolą a usunięciem tabel.
 
 ## API floty — SCRUM-19
 

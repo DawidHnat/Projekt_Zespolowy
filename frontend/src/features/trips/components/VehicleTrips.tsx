@@ -54,6 +54,7 @@ export function VehicleTrips({ vehicleId, day, today, onDay, onUnsaved }: {
               onClick={() => setSelected(item.id)}>
               <strong>{tripTime(item.start_at)} → {item.end_at ? tripTime(item.end_at) : "Brak czasu końca"}</strong>
               <span>{item.distance_km === null ? "Brak dystansu" : `${item.distance_km.toLocaleString("pl-PL", { maximumFractionDigits: 3 })} km`} · {item.annotation.purpose || "Brak celu"}</span>
+              {item.withdrawn_at && <small>Wycofany z raportu źródła · zachowano opis</small>}
             </button></li>
           ))}</ul>}
         <ListPagination page={page} pageSize={pageSize} total={data.total} loading={loading || dirty} label="Przejazdy pojazdu"
@@ -61,6 +62,7 @@ export function VehicleTrips({ vehicleId, day, today, onDay, onUnsaved }: {
         {trip && <div className="trip-facts">
           <p>Początek · {trip.start_address || "Brak adresu"}</p>
           <p>Koniec · {trip.end_address || "Brak adresu"}</p>
+          {trip.withdrawn_at && <p>Ten przejazd nie występuje już w kompletnym raporcie WEBFLEET. Zachowano go, bo ma zapisany cel lub opis.</p>}
           {trip.geometry === null && <p>Brak zapisanego śladu trasy.</p>}
         </div>}
         {trip && <TripAnnotationEditor key={trip.id} trip={trip} canEdit={user?.role === "admin" || user?.role === "editor"}

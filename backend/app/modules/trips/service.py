@@ -75,6 +75,7 @@ def trip_payload(trip, annotation, author, vehicle_name=None):
         "start_address": trip.start_address,
         "end_address": trip.end_address,
         "driver_id": str(trip.driver_id) if trip.driver_id else None,
+        "withdrawn_at": aware(trip.withdrawn_at).isoformat() if trip.withdrawn_at else None,
         "annotation": annotation_payload(annotation, author),
         "geometry": None,
     }
