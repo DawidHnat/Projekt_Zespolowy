@@ -61,12 +61,8 @@ export function VehicleListWidget({
                   <strong>{v.name}</strong>
                   <small>
                     {v.license_plate || v.number || "Brak rejestracji"}
-<<<<<<< HEAD
-                    {v.archived ? " · Archiwalny" : v.source_active === false ? " · Poza raportem WEBFLEET" : ""}
-=======
                     {v.origin === "manual" ? " · Ręczny" : ""}
-                    {v.archived ? " · Archiwalny" : ""}
->>>>>>> 5bb1578 (feat(SCRUM-85): add manual vehicles without WEBFLEET locator)
+                    {v.archived ? " · Archiwalny" : v.source_active === false ? " · Poza raportem WEBFLEET" : ""}
                   </small>
                 </div>
                 <span className={`vehicle-status status-${v.status}`}>
