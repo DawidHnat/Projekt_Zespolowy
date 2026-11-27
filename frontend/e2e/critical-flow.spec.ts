@@ -1158,7 +1158,7 @@ for (const theme of ["light", "dark"]) {
       const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
       if (await menu.isVisible()) await menu.click();
     };
-    for (const title of ["Serwis", "Ewidencja przebiegu", "Karty paliwowe"]) {
+    for (const title of ["Serwis", "Karty paliwowe"]) {
       await openMenu();
       const link = page.getByRole("navigation", { name: "Sekcje aplikacji" })
         .getByRole("link", { name: `${title} Planowane`, exact: true });
@@ -1170,6 +1170,17 @@ for (const theme of ["light", "dark"]) {
       await accessible(page, `planned ${title}`);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     }
+    await openMenu();
+    const mileageLink = page.getByRole("navigation", { name: "Sekcje aplikacji" })
+      .getByRole("link", { name: "Ewidencja przebiegu", exact: true });
+    await mileageLink.focus();
+    await expect(mileageLink).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("heading", { name: /^Ewidencja przebiegu\.?$/, level: 1 })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Od dnia", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Do dnia", exact: true })).toBeVisible();
+    await expect(page.getByText("Wybierz pojazd, aby obliczyć ewidencję.", { exact: true })).toBeVisible();
+
     await openMenu();
     await page.getByRole("link", { name: "Ustawienia", exact: true }).click();
     await expect(page.getByText(/Wygląd, tło i układ Mapy zapisują się tylko w tej przeglądarce/)).toBeVisible();
