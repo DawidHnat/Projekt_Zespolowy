@@ -66,7 +66,7 @@ test("SCRUM-68: category, leasing buyout, technical data, validation and persist
   await pickToday(dialog, "Data wykupu");
   await dialog.getByLabel("Pojemność silnika (cm³)").fill("1997");
   await dialog.getByLabel("Moc (kW)").fill("110");
-  const grossWeight = dialog.getByLabel("DMC w kg", { exact: true });
+  const grossWeight = dialog.getByRole("spinbutton", { name: /^DMC w kg/ });
   for (const invalid of ["0", "120001"]) {
     await grossWeight.fill(invalid);
     await dialog.getByRole("button", { name: "Zapisz kartotekę", exact: true }).click();
