@@ -7,13 +7,15 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request, Response
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sqlalchemy import select
+from sqlalchemy import delete, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.database import get_session
 from app.core.errors import ApiError
 from app.modules.auth.models import User
 from app.modules.auth.service import check_origin, current_user
+from app.modules.preferences.image import reencode_background
 from app.modules.preferences.models import AccountBackgroundImage, AccountPreference
 
 router = APIRouter(prefix="/api/v1/preferences", tags=["preferences"])
@@ -260,9 +262,7 @@ async def write_background_image(
         if size > MAX_BACKGROUND_BYTES:
             raise ApiError(413, "PAYLOAD_TOO_LARGE", "Plik tła przekracza limit 8 MB")
         chunks.append(chunk)
-    image = b"".join(chunks)
-    if len(image) < 12 or image[:4] != b"RIFF" or image[8:12] != b"WEBP":
-        raise ApiError(415, "UNSUPPORTED_MEDIA_TYPE", "Niepoprawny obraz WebP")
+    image = reencode_background(b"".join(chunks))
 
     locked_user = session.scalar(select(User).where(User.id == user.id).with_for_update())
     if locked_user is None:
@@ -288,7 +288,12 @@ async def write_background_image(
         record.image_id = image_id
         record.image = image
         record.updated_at = datetime.now(UTC)
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError:
+        # Another account claimed the same image_id concurrently (UNIQUE): no partial write.
+        session.rollback()
+        raise ApiError(409, "IMAGE_ID_CONFLICT", "Identyfikator obrazu jest już używany") from None
     return {"id": str(image_id)}
 
 
@@ -311,9 +316,19 @@ def delete_background_image(
     user: UserDep,
     _: Annotated[None, Depends(check_origin)],
 ):
-    record = session.get(AccountBackgroundImage, user.id)
-    if record is None or record.image_id != image_id:
+    # Same serialization as writes; delete only this account's current image_id, so a
+    # concurrently replaced background is never removed by a stale request.
+    locked_user = session.scalar(select(User).where(User.id == user.id).with_for_update())
+    if locked_user is None:
+        raise ApiError(401, "UNAUTHENTICATED", "Konto jest niedostępne")
+    removed = session.execute(
+        delete(AccountBackgroundImage).where(
+            AccountBackgroundImage.user_id == user.id,
+            AccountBackgroundImage.image_id == image_id,
+        )
+    ).rowcount
+    if not removed:
+        session.rollback()
         raise ApiError(404, "IMAGE_NOT_FOUND", "Nie znaleziono zapisanego tła")
-    session.delete(record)
     session.commit()
     return Response(status_code=204)

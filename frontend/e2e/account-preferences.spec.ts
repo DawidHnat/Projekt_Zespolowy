@@ -136,6 +136,18 @@ test("custom background is stored for the account and restored in a second brows
     await expect(secondPage.getByRole("img", { name: "Podgląd własnego tła" })).toBeVisible();
     const restored = await secondPage.request.get("/api/v1/preferences/dashboard");
     expect((await restored.json()).value.background.customId).toBe(selectedId);
+
+    // A different account in the same browser does not see or reuse this background.
+    const menu = secondPage.getByRole("button", { name: "Otwórz menu", exact: true });
+    if (await menu.isVisible()) await menu.click();
+    await secondPage.getByRole("button", { name: "Wyloguj się" }).click();
+    await secondPage.getByLabel("Login", { exact: true }).fill("e2e-viewer");
+    await secondPage.getByLabel("Hasło", { exact: true }).fill("synthetic-e2e-password");
+    await secondPage.getByRole("button", { name: "Zaloguj się", exact: true }).click();
+    await expect(secondPage.locator(".main-shell")).toBeVisible();
+    expect((await secondPage.request.get(`/api/v1/preferences/background/${selectedId}`)).status()).toBe(404);
+    const viewerPreferences = await (await secondPage.request.get("/api/v1/preferences/dashboard")).json();
+    expect(viewerPreferences.value?.background?.customId ?? null).not.toBe(selectedId);
   } finally {
     await secondContext.close();
   }
