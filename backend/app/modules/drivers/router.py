@@ -12,6 +12,13 @@ from app.core.errors import ApiError
 from app.core.models import Driver, Vehicle
 from app.modules.auth.models import User
 from app.modules.auth.service import check_origin, current_user, editor
+from app.modules.drivers.compatibility import (
+    MATRIX_VERSION,
+    PO_CONFIRMED,
+    REASON_CODES,
+    evaluate_driver_vehicle,
+    summarize_driver_compatibility,
+)
 from app.modules.drivers.models import DriverAssignment, DriverCategory
 from app.modules.drivers.schemas import (
     CATEGORIES,
@@ -53,8 +60,47 @@ def categories(_: UserDep):
     return {
         "version": CATEGORIES_VERSION,
         "items": [{"id": item, "label": item} for item in CATEGORIES],
-        "compatibility": "not_evaluated",
+        "compatibility": "evaluated",
+        "matrix_version": MATRIX_VERSION,
+        "po_confirmed": PO_CONFIRMED,
     }
+
+
+def _matching_compatibility_driver_ids(session: Session, query, source: str, mode: str):
+    scope = query.subquery()
+    driver_ids = list(session.scalars(select(scope.c.id)).all())
+    if not driver_ids:
+        return []
+    cats_by_driver: dict[UUID, list[str]] = {did: [] for did in driver_ids}
+    for did, cat in session.execute(
+        select(DriverCategory.driver_id, DriverCategory.category).where(
+            DriverCategory.driver_id.in_(driver_ids)
+        )
+    ):
+        cats_by_driver[did].append(cat)
+    vehicles_by_driver: dict[UUID, list[Vehicle]] = {did: [] for did in driver_ids}
+    for did, veh in session.execute(
+        select(DriverAssignment.driver_id, Vehicle)
+        .join(Vehicle, Vehicle.id == DriverAssignment.vehicle_id)
+        .where(
+            DriverAssignment.driver_id.in_(driver_ids),
+            DriverAssignment.active.is_(True),
+            Vehicle.source_account == source,
+        )
+    ):
+        vehicles_by_driver[did].append(veh)
+    matched: list[UUID] = []
+    for did in driver_ids:
+        active_vehs = vehicles_by_driver[did]
+        if mode == "attention":
+            if active_vehs and summarize_driver_compatibility(cats_by_driver[did], active_vehs)[
+                "status"
+            ] in ("incompatible", "unverified"):
+                matched.append(did)
+        else:
+            if summarize_driver_compatibility(cats_by_driver[did], active_vehs)["status"] == mode:
+                matched.append(did)
+    return matched
 
 
 @router.get("/summary")
@@ -67,6 +113,8 @@ def summary(
     category: str | None = None,
     vehicle_id: UUID | None = None,
     missing_categories: bool | None = None,
+    compatibility_status: Literal["compatible", "incompatible", "unverified", "attention"]
+    | None = None,
 ):
     require_post_for_search(request)
     source = source_for(request)
@@ -80,10 +128,19 @@ def summary(
         vehicle_id,
         missing_categories,
     )
-    return driver_summary(session, query)
+    if compatibility_status is not None:
+        allowed_ids = _matching_compatibility_driver_ids(
+            session, query, source, compatibility_status
+        )
+        query = (
+            query.where(Driver.id.in_(allowed_ids))
+            if allowed_ids
+            else query.where(Driver.id.is_(None))
+        )
+    return driver_summary(session, query, source)
 
 
-def driver_summary(session, query):
+def driver_summary(session, query, source: str):
     scope = query.subquery()
     active_count = func.count().filter(scope.c.active.is_(True))
     without = func.count().filter(scope.c.active.is_(True), scope.c.vehicle_count == 0)
@@ -94,12 +151,53 @@ def driver_summary(session, query):
     total, active_total, unassigned, missing = session.execute(
         select(func.count(), active_count, without, no_categories).select_from(scope)
     ).one()
+
+    assignment_rows = session.execute(
+        select(DriverAssignment.driver_id, Vehicle)
+        .join(Vehicle, Vehicle.id == DriverAssignment.vehicle_id)
+        .where(
+            DriverAssignment.driver_id.in_(select(scope.c.id)),
+            DriverAssignment.active.is_(True),
+            Vehicle.source_account == source,
+        )
+    ).all()
+    assigned_driver_ids = list({did for did, _ in assignment_rows})
+    cats_map: dict[UUID, list[str]] = {did: [] for did in assigned_driver_ids}
+    if assigned_driver_ids:
+        for did, cat in session.execute(
+            select(DriverCategory.driver_id, DriverCategory.category).where(
+                DriverCategory.driver_id.in_(assigned_driver_ids)
+            )
+        ):
+            cats_map[did].append(cat)
+
+    incompatible_rel = 0
+    unverified_rel = 0
+    by_reason = {code: 0 for code in REASON_CODES}
+    for did, veh in assignment_rows:
+        ev = evaluate_driver_vehicle(cats_map.get(did, ()), veh)
+        if ev["status"] == "incompatible":
+            incompatible_rel += 1
+        elif ev["status"] == "unverified":
+            unverified_rel += 1
+        for r in ev["reasons"]:
+            if r in by_reason:
+                by_reason[r] += 1
+
     return {
         "total": total,
         "active": active_total,
         "active_unassigned": unassigned,
         "active_missing_categories": missing,
-        "assignments_to_check": {"status": "not_evaluated", "total": None, "reason": "SCRUM-70"},
+        "assignments_to_check": {
+            "status": "evaluated",
+            "total": incompatible_rel + unverified_rel,
+            "incompatible": incompatible_rel,
+            "unverified": unverified_rel,
+            "by_reason": by_reason,
+            "matrix_version": MATRIX_VERSION,
+            "po_confirmed": PO_CONFIRMED,
+        },
         "scope": "current_source_and_filters",
     }
 
@@ -117,6 +215,8 @@ def drivers(
     page_size: PageSize = 25,
     vehicle_id: UUID | None = None,
     missing_categories: bool | None = None,
+    compatibility_status: Literal["compatible", "incompatible", "unverified", "attention"]
+    | None = None,
     custom_order: Annotated[list[UUID] | None, Query(max_length=2000)] = None,
 ):
     require_post_for_search(request)
@@ -131,6 +231,15 @@ def drivers(
         vehicle_id,
         missing_categories,
     )
+    if compatibility_status is not None:
+        allowed_ids = _matching_compatibility_driver_ids(
+            session, query, source, compatibility_status
+        )
+        query = (
+            query.where(Driver.id.in_(allowed_ids))
+            if allowed_ids
+            else query.where(Driver.id.is_(None))
+        )
     return driver_page(session, source, query, sort, page, page_size, custom_order)
 
 
@@ -192,10 +301,19 @@ def search_drivers(body: DriverSearch, request: Request, session: SessionDep, _:
         body.vehicle_id,
         body.missing_categories,
     )
+    if body.compatibility_status is not None:
+        allowed_ids = _matching_compatibility_driver_ids(
+            session, query, source, body.compatibility_status
+        )
+        query = (
+            query.where(Driver.id.in_(allowed_ids))
+            if allowed_ids
+            else query.where(Driver.id.is_(None))
+        )
     result = driver_page(
         session, source, query, body.sort, body.page, body.page_size, body.custom_order
     )
-    result["summary"] = driver_summary(session, query)
+    result["summary"] = driver_summary(session, query, source)
     return result
 
 
@@ -234,6 +352,29 @@ def patch_driver(
     driver_id: UUID, body: DriverPatch, request: Request, session: SessionDep, _: EditorDep
 ):
     source = source_for(request)
+    if body.active is False:
+        # Canonical lock order: Vehicle (by id) -> Driver -> DriverAssignment.
+        candidate_vehicle_ids = sorted(
+            set(
+                session.scalars(
+                    select(DriverAssignment.vehicle_id)
+                    .join(Vehicle, Vehicle.id == DriverAssignment.vehicle_id)
+                    .where(
+                        DriverAssignment.driver_id == driver_id,
+                        DriverAssignment.active.is_(True),
+                        Vehicle.source_account == source,
+                    )
+                ).all()
+            )
+        )
+        if candidate_vehicle_ids:
+            session.scalars(
+                select(Vehicle)
+                .where(Vehicle.id.in_(candidate_vehicle_ids), Vehicle.source_account == source)
+                .order_by(Vehicle.id)
+                .with_for_update()
+                .execution_options(populate_existing=True)
+            ).all()
     driver = find_driver(session, source, driver_id, version=body.version)
     changes = body.model_dump(exclude_unset=True, exclude={"categories", "version"})
     for field, value in changes.items():
@@ -278,8 +419,13 @@ def assignments(
         .offset((page - 1) * page_size)
         .limit(page_size)
     )
+    driver_cats = list(
+        session.scalars(
+            select(DriverCategory.category).where(DriverCategory.driver_id == driver_id)
+        ).all()
+    )
     return {
-        "items": [assignment_payload(*row) for row in rows],
+        "items": [assignment_payload(*row, driver_categories=driver_cats) for row in rows],
         "total": total,
         "page": page,
         "page_size": page_size,
@@ -291,20 +437,39 @@ def assign(
     driver_id: UUID, body: AssignmentBody, request: Request, session: SessionDep, _: EditorDep
 ):
     source = source_for(request)
-    driver = find_driver(session, source, driver_id, version=body.version)
+    # Canonical lock order: Vehicle -> Driver -> DriverAssignment.
     vehicle = session.scalar(
         select(Vehicle)
         .where(Vehicle.id == body.vehicle_id, Vehicle.source_account == source)
         .with_for_update()
+        .execution_options(populate_existing=True)
     )
+    driver = find_driver(session, source, driver_id, version=body.version)
     if not driver.active or not vehicle or not vehicle.active:
         raise ApiError(404, "NOT_FOUND", "Kierowca lub pojazd są niedostępne")
+    if vehicle.archived:
+        raise ApiError(
+            409,
+            "VEHICLE_ARCHIVED",
+            "Nie można przypisać kierowcy do zarchiwizowanego pojazdu",
+        )
+    driver_cats = list(
+        session.scalars(
+            select(DriverCategory.category).where(DriverCategory.driver_id == driver_id)
+        ).all()
+    )
+    comp = evaluate_driver_vehicle(driver_cats, vehicle)
+    if comp["status"] == "incompatible":
+        raise ApiError(409, "LICENSE_INCOMPATIBLE", comp["message"])
     if session.scalar(
-        select(DriverAssignment.id).where(
+        select(DriverAssignment.id)
+        .where(
             DriverAssignment.driver_id == driver_id,
             DriverAssignment.vehicle_id == vehicle.id,
             DriverAssignment.active.is_(True),
         )
+        .order_by(DriverAssignment.id)
+        .with_for_update()
     ):
         raise ApiError(409, "CONFLICT", "To przypisanie jest już aktywne")
     assignment = DriverAssignment(
@@ -321,7 +486,10 @@ def assign(
         raise ApiError(
             409, "CONFLICT", "Przypisanie zmieniło się. Pobierz bieżącą wersję"
         ) from None
-    return {"assignment": assignment_payload(assignment, vehicle), "driver_version": driver.version}
+    return {
+        "assignment": assignment_payload(assignment, vehicle, driver_categories=driver_cats),
+        "driver_version": driver.version,
+    }
 
 
 @router.patch("/{driver_id}/assignments/{assignment_id}/close")
@@ -334,15 +502,38 @@ def close(
     _: EditorDep,
 ):
     source = source_for(request)
-    driver = find_driver(session, source, driver_id, version=body.version)
-    assignment = session.scalar(
-        select(DriverAssignment)
+    # Canonical lock order: Vehicle -> Driver -> DriverAssignment.
+    vehicle_id = session.scalar(
+        select(DriverAssignment.vehicle_id)
         .join(Vehicle, Vehicle.id == DriverAssignment.vehicle_id)
         .where(
             DriverAssignment.id == assignment_id,
-            DriverAssignment.driver_id == driver.id,
+            DriverAssignment.driver_id == driver_id,
             Vehicle.source_account == source,
         )
+    )
+    vehicle = (
+        session.scalar(
+            select(Vehicle)
+            .where(Vehicle.id == vehicle_id, Vehicle.source_account == source)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+        if vehicle_id is not None
+        else None
+    )
+    driver = find_driver(session, source, driver_id, version=body.version)
+    if vehicle is None:
+        raise ApiError(404, "NOT_FOUND", "Przypisanie nie istnieje")
+    assignment = session.scalar(
+        select(DriverAssignment)
+        .where(
+            DriverAssignment.id == assignment_id,
+            DriverAssignment.driver_id == driver.id,
+            DriverAssignment.vehicle_id == vehicle.id,
+        )
+        .with_for_update()
+        .execution_options(populate_existing=True)
     )
     if not assignment:
         raise ApiError(404, "NOT_FOUND", "Przypisanie nie istnieje")
@@ -352,7 +543,14 @@ def close(
     assignment.ended_at = datetime.now(UTC)
     driver.version += 1
     session.flush()
-    project_vehicle_drivers(session, [assignment.vehicle_id], source)
+    project_vehicle_drivers(session, [vehicle.id], source)
     session.commit()
-    vehicle = session.get(Vehicle, assignment.vehicle_id)
-    return {"assignment": assignment_payload(assignment, vehicle), "driver_version": driver.version}
+    driver_cats = list(
+        session.scalars(
+            select(DriverCategory.category).where(DriverCategory.driver_id == driver_id)
+        ).all()
+    )
+    return {
+        "assignment": assignment_payload(assignment, vehicle, driver_categories=driver_cats),
+        "driver_version": driver.version,
+    }

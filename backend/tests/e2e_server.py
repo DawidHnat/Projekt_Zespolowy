@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 import uvicorn
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import create_engine, delete, select, update
+from sqlalchemy import create_engine, delete, or_, select, update
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
@@ -22,9 +22,10 @@ from app.modules.analytics.models import Alert, AlertReceipt, DailyDistance, Rul
 from app.modules.auth.models import LoginAttempt, LoginSession, User
 from app.modules.auth.service import password_hasher
 from app.modules.drivers.models import DriverAssignment, DriverCategory
+from app.modules.fleet.documents import VehicleAttachment
 from app.modules.fleet.sync import account_key
 from app.modules.preferences.models import AccountPreference
-from app.modules.trips.models import Trip
+from app.modules.trips.models import Trip, TripAnnotation
 
 ACCOUNT = "synthetic-e2e-source"
 VEHICLE = UUID("11111111-1111-4111-8111-111111111111")
@@ -137,11 +138,33 @@ def main():
                 )
             ):
                 user.password_hash = password_hasher.hash("synthetic-e2e-password")
-            session.execute(update(Vehicle).values(driver_id=None))
+            session.execute(
+                update(Vehicle).values(
+                    driver_id=None,
+                    archived=False,
+                    archived_at=None,
+                    archived_by=None,
+                    archived_reason=None,
+                    photo_version=0,
+                    gross_weight_kg=None,
+                    passenger_seats=None,
+                    tows_heavy_trailer=False,
+                    required_category_override=None,
+                )
+            )
+            session.execute(delete(TripAnnotation))
+            session.execute(delete(VehicleAttachment))
             session.flush()
             for model in (DriverAssignment, DriverCategory, Driver):
                 session.execute(delete(model))
-            session.execute(delete(Vehicle).where(Vehicle.external_uid.like("e2e-driver-car-%")))
+            session.execute(
+                delete(Vehicle).where(
+                    or_(
+                        Vehicle.external_uid.like("e2e-driver-car-%"),
+                        Vehicle.is_manual.is_(True),
+                    )
+                )
+            )
             for model in (AlertReceipt, Alert, Rule, DailyDistance):
                 session.execute(delete(model))
             measurement = session.get(Measurement, VEHICLE)

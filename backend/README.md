@@ -246,6 +246,60 @@ kopię rozszerzonego schematu.
 Publiczne API nie zwraca UID źródła.
 `/docs` pokazuje aktualny OpenAPI; plan kolejnych operacji jest w contracts/.
 
+### Archiwizacja i przywracanie pojazdów — SCRUM-88
+
+`POST /api/v1/fleet/vehicles/{UUID}/archive` oraz `POST /api/v1/fleet/vehicles/{UUID}/restore`
+wymagają roli `admin`/`editor`, poprawnego `Origin` oraz aktualnego `card_version`.
+Archiwizacja zapisuje `archived=true`, czas UTC, autora oraz opcjonalny powód (do 500 znaków)
+w migracji `0012_vehicle_archive`. Domyślne listy i mapa (`archive=active`) pomijają archiwum;
+filtr `archive=archived` lub `archive=all` pozwala odnaleźć wycofane pojazdy oraz odczytać ich
+historię przejazdów i przypisań. Archiwizacja kończy bieżące przypisania kierowców z zachowaniem
+historii i blokuje nowe przypisania oraz nowe reguły alertów (`409 VEHICLE_ARCHIVED`).
+Stan `archived` jest odrębny od `active` ze źródła WEBFLEET — kolejna synchronizacja nie
+przywraca zarchiwizowanego auta ani nie usuwa historii. Downgrade migracji `0012` blokuje
+utratę zapisanych stanów archiwum.
+
+### Ręczne dodawanie pojazdów bez lokalizatora — SCRUM-85
+
+`POST /api/v1/fleet/vehicles` tworzy pojazd ręczny (`origin: "manual"`, `external_uid = null`,
+stabilne UUID aplikacji) z wymaganą nazwą i numerem rejestracyjnym, polami kartoteki
+(marka, model, rok, VIN, typ, paliwo, dane leasingu), datami badania technicznego/OC oraz
+datowanym przebiegiem ręcznym (`PUT /api/v1/fleet/vehicles/{UUID}/odometer`) i opcjonalnym
+przypisaniem kierowcy. Pojazd ręczny nie otrzymuje fikcyjnego identyfikatora WEBFLEET, GPS
+ani żywej telemetrii. Synchronizacja pomija rekordy `is_manual=true` i nie scala ich
+automatycznie. Powtórzona rejestracja/VIN w obrębie pojazdów ręcznych jest blokowana na poziomie
+ograniczeń bazy (`uq_vehicles_manual_plate_key`, `uq_vehicles_manual_vin_key`) oraz blokady
+transakcyjnej i zwraca czytelny konflikt `409` (z zachowaniem wyjątku dla pary ręczny–WEBFLEET
+do czasu jawnego połączenia). Jawne połączenie z wykrytym pojazdem źródłowym realizuje
+`POST /api/v1/fleet/vehicles/{UUID}/link-source`, weryfikując zgodność znormalizowanej rejestracji
+lub VIN (`409 IDENTITY_MISMATCH` przy braku dopasowania lub sprzecznym VIN) i bezpiecznie scalając
+alerty po `(rule_id, vehicle_id, event_day)` wraz z potwierdzeniami odczytu `alert_receipts`.
+Migracja `0013_manual_vehicles` chroni dane przed stratnym downgrade'em; ponieważ wydania sprzed
+`SCRUM-85` nie miały filtra `is_manual` w `sync.py` (aktywny rekord z `external_uid IS NULL`
+wywołałby `INCOMPLETE_REPORT`), przy aktywnych pojazdach ręcznych obowiązuje naprawa w przód
+(**forward fix**) na schemacie `0013+` zgodnie z [instrukcją wdrożenia](../infra/deploy/README.md).
+
+### Dokumenty pojazdu, skany i wspólne zdjęcie — SCRUM-58
+
+- Terminy `inspection_due_on` i `insurance_due_on` w `vehicles` stanowią jedyne źródło
+  dat badania technicznego oraz polisy OC (`PATCH /api/v1/fleet/vehicles/{UUID}/documents/dates`
+  oraz `PATCH /api/v1/fleet/vehicles/{UUID}`) i nie są nadpisywane przez synchronizację WEBFLEET.
+- Wspólny prywatny magazyn (`FLEET_FLOW_UPLOAD_DIR`, poza webrootem i repozytorium,
+  losowe klucze w `quarantine/` i `clean/`, migracja `0014_vehicle_documents`) obsługuje:
+  - skany `inspection` i `insurance` (`POST/PUT/DELETE /vehicles/{UUID}/documents...`,
+    `GET .../content`, formaty `PDF`/`JPG`/`PNG`, limit `UPLOAD_MAX_FILES_PER_KIND=3`
+    i `UPLOAD_MAX_FILE_BYTES=10 MB`, odrzucenie aktywnych elementów PDF),
+  - wspólne zdjęcie pojazdu (`PUT/DELETE /vehicles/{UUID}/photo`, `GET .../photo/content`,
+    formaty `JPG`/`PNG`/`WebP` do `10 MB`, `40 MP` i maksymalnego boku
+    `UPLOAD_PHOTO_MAX_EDGE_PX=1024`, wycinanie metadanych EXIF/XMP/IPTC/komentarzy
+    oraz wersjonowanie `photo_version`).
+- Kontrola malware działa w trybie **fail-closed**: domyślny adapter `UnconfiguredMalwareScanner`
+  utrzymuje status `scanner_unavailable` i blokuje pobranie (`409 FILE_NOT_AVAILABLE`)
+  do czasu zatwierdzenia silnika skanowania i jego kosztu przez właściciela.
+  Błąd walidacji lub skanera podczas podmiany zachowuje wcześniejszy opublikowany plik.
+- Model zagrożeń, wymagania kopii (`SCRUM-84`) i prywatności (`SCRUM-94`):
+  [SCRUM-58 upload threat model](../docs/security/SCRUM-58-upload-threat-model.md).
+
 ## Ręczne odświeżanie floty — SCRUM-150
 
 `GET /api/v1/fleet/refresh` zwraca `enabled`, `running`, `server_time`,
@@ -382,3 +436,16 @@ przed paginacją, a pozostałe osoby mają stabilną kolejność A–Z. Obce UUI
 nie rozszerzają źródła. POST search zwraca te same filtry w agregatach, niezależnie
 od strony; kontakt nadal pozostaje w body. Telefon dopuszcza jeden opcjonalny
 plus na początku i 7–20 cyfr, ze spacjami/nawiasami/kropkami/myślnikami.
+
+### Zgodność kategorii prawa jazdy z pojazdem (SCRUM-70)
+
+Migracja `0015_license_compatibility` dodaje do `vehicles` pola `gross_weight_kg` (DMC),
+`passenger_seats`, `tows_heavy_trailer` oraz `required_category_override`, a do
+`trip_annotations` opcjonalne `driver_id`. Reguły macierzy
+`pl-ustawa-o-kierujacych-v1-pending-po` ([macierz SCRUM-70](../docs/SCRUM-70-license-matrix.md),
+oczekująca na końcowe zatwierdzenie PO) rozróżniają stany `compatible`, `incompatible`
+oraz `unverified` (brak kategorii lub brak DMC nigdy nie daje `compatible`, a sama
+etykieta `"ciężarowy"` bez DMC pozostaje `unverified`). Potwierdzona niezgodność
+blokuje nowe przypisanie (`POST /api/v1/drivers/{id}/assignments`), przypisanie przy
+tworzeniu pojazdu oraz wybór kierowcy w ewidencji (`PATCH /api/v1/trips/{id}/annotation`)
+błędem `409 LICENSE_INCOMPATIBLE`, nie usuwając historycznych przypisań i przejazdów.

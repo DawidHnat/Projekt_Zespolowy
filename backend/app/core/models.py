@@ -1,3 +1,4 @@
+import re
 from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID, uuid4
@@ -61,10 +62,62 @@ def folded_default(field):
 
 class Vehicle(Base):
     __tablename__ = "vehicles"
-    __table_args__ = (UniqueConstraint("source_account", "external_uid"),)
+    __table_args__ = (
+        UniqueConstraint("source_account", "external_uid"),
+        UniqueConstraint("source_account", "manual_plate_key", name="uq_vehicles_manual_plate_key"),
+        UniqueConstraint("source_account", "manual_vin_key", name="uq_vehicles_manual_vin_key"),
+        CheckConstraint(
+            "(NOT archived AND archived_at IS NULL AND archived_by IS NULL "
+            "AND archived_reason IS NULL) OR (archived AND archived_at IS NOT NULL)",
+            name="ck_vehicles_archive_state",
+        ),
+        CheckConstraint(
+            "(is_manual AND external_uid IS NULL) OR (NOT is_manual AND external_uid IS NOT NULL)",
+            name="ck_vehicles_origin_uid",
+        ),
+        CheckConstraint(
+            "(manual_odometer_km IS NULL AND manual_odometer_date IS NULL) "
+            "OR (manual_odometer_km IS NOT NULL AND manual_odometer_km >= 0 "
+            "AND manual_odometer_km <= 9999999.9 AND manual_odometer_date IS NOT NULL)",
+            name="ck_vehicles_manual_odometer",
+        ),
+        CheckConstraint("photo_version >= 0", name="ck_vehicles_photo_version"),
+        CheckConstraint(
+            "gross_weight_kg IS NULL OR (gross_weight_kg > 0 AND gross_weight_kg <= 120000)",
+            name="ck_vehicles_gross_weight_kg",
+        ),
+        CheckConstraint(
+            "passenger_seats IS NULL OR (passenger_seats >= 0 AND passenger_seats <= 120)",
+            name="ck_vehicles_passenger_seats",
+        ),
+        CheckConstraint(
+            "required_category_override IS NULL OR required_category_override IN "
+            "('AM','A1','A2','A','B1','B','B+E','C1','C1+E','C','C+E','D1','D1+E','D','D+E','T')",
+            name="ck_vehicles_req_cat_override",
+        ),
+        CheckConstraint(
+            "ownership_category IS NULL OR ownership_category IN ('Firmowe','Prywatne','Leasing')",
+            name="ck_vehicles_ownership_category",
+        ),
+        CheckConstraint(
+            "(engine_capacity_cc IS NULL "
+            "OR (engine_capacity_cc > 0 AND engine_capacity_cc <= 100000)) "
+            "AND (power_kw IS NULL OR (power_kw > 0 AND power_kw <= 10000)) "
+            "AND (curb_weight_kg IS NULL OR (curb_weight_kg > 0 AND curb_weight_kg <= 120000)) "
+            "AND (payload_kg IS NULL OR (payload_kg > 0 AND payload_kg <= 120000)) "
+            "AND (axles IS NULL OR (axles > 0 AND axles <= 20))",
+            name="ck_vehicles_card_technical",
+        ),
+        CheckConstraint(
+            "first_registration_on IS NULL OR first_registration_pl_on IS NULL "
+            "OR first_registration_pl_on >= first_registration_on",
+            name="ck_vehicles_first_registration_order",
+        ),
+    )
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     source_account: Mapped[str] = mapped_column(String(64), index=True)
-    external_uid: Mapped[str] = mapped_column(String(200))
+    external_uid: Mapped[str | None] = mapped_column(String(200))
+    is_manual: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     name: Mapped[str] = mapped_column(String(200))
     number: Mapped[str | None] = mapped_column(String(200))
     license_plate: Mapped[str | None] = mapped_column(String(100))
@@ -73,19 +126,19 @@ class Vehicle(Base):
     model: Mapped[str | None] = mapped_column(String(100))
     year: Mapped[int | None] = mapped_column(Integer)
     vin: Mapped[str | None] = mapped_column(String(100))
-    ownership_category: Mapped[str | None] = mapped_column(String(20))
-    purchase_date: Mapped[date | None] = mapped_column(Date)
-    first_registration: Mapped[date | None] = mapped_column(Date)
-    first_registration_poland: Mapped[date | None] = mapped_column(Date)
     fuel_type: Mapped[str | None] = mapped_column(String(50))
-    engine_capacity_cc: Mapped[int | None] = mapped_column(Integer)
-    power_kw: Mapped[int | None] = mapped_column(Integer)
-    dmc_kg: Mapped[int | None] = mapped_column(Integer)
-    curb_weight_kg: Mapped[int | None] = mapped_column(Integer)
-    payload_kg: Mapped[int | None] = mapped_column(Integer)
-    seats: Mapped[int | None] = mapped_column(Integer)
-    axles: Mapped[int | None] = mapped_column(Integer)
+    leasing_company: Mapped[str | None] = mapped_column(String(200))
+    leasing_contract_no: Mapped[str | None] = mapped_column(String(100))
+    leasing_end_on: Mapped[date | None] = mapped_column(Date)
+    inspection_due_on: Mapped[date | None] = mapped_column(Date)
+    insurance_due_on: Mapped[date | None] = mapped_column(Date)
+    manual_odometer_km: Mapped[Decimal | None] = mapped_column(Numeric(14, 1))
+    manual_odometer_date: Mapped[date | None] = mapped_column(Date)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+    archived: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    archived_by: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    archived_reason: Mapped[str | None] = mapped_column(String(500))
     # Private, derived values keep Unicode search identical to the UI.
     search_name: Mapped[str] = mapped_column(
         String(600), default=folded_default("name"), server_default=""
@@ -105,6 +158,8 @@ class Vehicle(Base):
     search_vin: Mapped[str] = mapped_column(
         String(300), default=folded_default("vin"), server_default=""
     )
+    manual_plate_key: Mapped[str | None] = mapped_column(String(300))
+    manual_vin_key: Mapped[str | None] = mapped_column(String(300))
     # This local field belongs to Fleet-Flow and is never written by WEBFLEET.
     driver_id: Mapped[UUID | None] = mapped_column(ForeignKey("drivers.id"))
     # Retained for application rollback; current writes track the three shared fields separately.
@@ -113,6 +168,21 @@ class Vehicle(Base):
     manual_license_plate: Mapped[bool] = mapped_column(default=False, server_default="false")
     manual_vehicle_type: Mapped[bool] = mapped_column(default=False, server_default="false")
     card_version: Mapped[int] = mapped_column(default=1, server_default="1")
+    photo_version: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    gross_weight_kg: Mapped[int | None] = mapped_column(Integer)
+    passenger_seats: Mapped[int | None] = mapped_column(Integer)
+    tows_heavy_trailer: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    required_category_override: Mapped[str | None] = mapped_column(String(5))
+    # SCRUM-68: remaining manual card fields; WEBFLEET sync never writes them.
+    ownership_category: Mapped[str | None] = mapped_column(String(20))
+    leasing_buyout_on: Mapped[date | None] = mapped_column(Date)
+    first_registration_on: Mapped[date | None] = mapped_column(Date)
+    first_registration_pl_on: Mapped[date | None] = mapped_column(Date)
+    engine_capacity_cc: Mapped[int | None] = mapped_column(Integer)
+    power_kw: Mapped[int | None] = mapped_column(Integer)
+    curb_weight_kg: Mapped[int | None] = mapped_column(Integer)
+    payload_kg: Mapped[int | None] = mapped_column(Integer)
+    axles: Mapped[int | None] = mapped_column(Integer)
 
 
 @event.listens_for(Vehicle, "before_insert")
@@ -120,6 +190,14 @@ class Vehicle(Base):
 def update_vehicle_search(mapper, connection, vehicle):
     for field in ("name", "number", "license_plate", "make", "model", "vin"):
         setattr(vehicle, "search_" + field, (getattr(vehicle, field) or "").casefold())
+    if vehicle.is_manual:
+        plate_norm = re.sub(r"[\s\-]+", "", vehicle.license_plate or "").casefold()
+        vin_norm = re.sub(r"[\s\-]+", "", vehicle.vin or "").casefold()
+        vehicle.manual_plate_key = plate_norm or None
+        vehicle.manual_vin_key = vin_norm or None
+    else:
+        vehicle.manual_plate_key = None
+        vehicle.manual_vin_key = None
 
 
 class Measurement(Base):
@@ -143,3 +221,7 @@ class SyncState(Base):
     last_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_success_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     error_code: Mapped[str | None] = mapped_column(String(80))
+
+
+import app.modules.auth.models  # noqa: E402, F401
+import app.modules.fleet.documents  # noqa: E402, F401

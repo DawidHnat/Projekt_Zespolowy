@@ -18,7 +18,7 @@ export function VehicleListWidget({
 }) {
   const f = useFleet();
   const items = f.list?.items || [];
-  const isFiltered = Boolean(f.q.trim() || f.status);
+  const isFiltered = Boolean(f.q.trim() || f.status || f.archive !== "active");
   const emptyTitle = f.loading
     ? "Pobieranie pojazdów…"
     : f.error
@@ -61,6 +61,8 @@ export function VehicleListWidget({
                   <strong>{v.name}</strong>
                   <small>
                     {v.license_plate || v.number || "Brak rejestracji"}
+                    {v.origin === "manual" ? " · Ręczny" : ""}
+                    {v.archived ? " · Archiwalny" : ""}
                   </small>
                 </div>
                 <span className={`vehicle-status status-${v.status}`}>
@@ -113,6 +115,8 @@ export function VehicleListWidget({
                         <strong>{v.name}</strong>
                         <small>
                           {v.license_plate || v.number || "Brak rejestracji"}
+                          {v.origin === "manual" ? " · Ręczny" : ""}
+                          {v.archived ? " · Archiwalny" : ""}
                         </small>
                       </button>
                     </td>

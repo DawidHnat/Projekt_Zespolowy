@@ -24,6 +24,7 @@ PROFILES = {"desktop", "compact"}
 VEHICLE_ID = re.compile(r"^[a-f\d]{8}-(?:[a-f\d]{4}-){3}[a-f\d]{12}$", re.I)
 CARD_SORTS = {"name-asc", "name-desc", "status", "odometer-asc", "odometer-desc"}
 VEHICLE_STATUSES = {"moving", "stopped", "offline", "unknown"}
+ARCHIVE_SCOPES = {"active", "archived", "all"}
 MAX_VALUE_BYTES = 128 * 1024
 
 
@@ -90,12 +91,14 @@ def _validate_vehicles(value: dict[str, Any]) -> None:
     ):
         raise ValueError("Invalid vehicle page size")
     filters = _object(value["filters"], "filters")
-    if set(filters) != {"q", "status"}:
+    if set(filters) not in ({"q", "status"}, {"q", "status", "archive"}):
         raise ValueError("Invalid vehicle filters")
     if not isinstance(filters["q"], str) or len(filters["q"]) > 100:
         raise ValueError("Invalid vehicle search")
     if filters["status"] not in VEHICLE_STATUSES | {""}:
         raise ValueError("Invalid vehicle status")
+    if "archive" in filters and filters["archive"] not in ARCHIVE_SCOPES:
+        raise ValueError("Invalid vehicle archive filter")
     layout = _object(value["layout"], "layout")
     if set(layout) != {"version", "defaultSize", "sizes"} or layout["version"] != 2:
         raise ValueError("Invalid vehicle layout")

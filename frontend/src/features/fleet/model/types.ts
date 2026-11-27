@@ -7,18 +7,6 @@ export type Vehicle = ApiVehicle & {
   model?: string | null;
   year?: number | null;
   vin?: string | null;
-  ownership_category?: "Firmowe" | "Prywatne" | "Leasing" | null;
-  purchase_date?: string | null;
-  first_registration?: string | null;
-  first_registration_poland?: string | null;
-  fuel_type?: string | null;
-  engine_capacity_cc?: number | null;
-  power_kw?: number | null;
-  dmc_kg?: number | null;
-  curb_weight_kg?: number | null;
-  payload_kg?: number | null;
-  seats?: number | null;
-  axles?: number | null;
   position_address?: string | null;
 };
 export function fleetPollInterval(value: string | undefined) {

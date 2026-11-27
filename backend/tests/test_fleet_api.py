@@ -236,18 +236,6 @@ def test_vehicle_card_patch_telemetry_and_stale_address(logged_in):
             "model": "Master",
             "year": 2023,
             "vin": "VF1MA000000000001",
-            "ownership_category": "Leasing",
-            "purchase_date": "2026-01-15",
-            "first_registration": "2023-02-10",
-            "first_registration_poland": "2023-03-01",
-            "fuel_type": "Diesel",
-            "engine_capacity_cc": 1997,
-            "power_kw": 110,
-            "dmc_kg": 3500,
-            "curb_weight_kg": 2200,
-            "payload_kg": 1300,
-            "seats": 3,
-            "axles": 2,
         },
     )
     assert patch_res.status_code == 200
@@ -262,10 +250,6 @@ def test_vehicle_card_patch_telemetry_and_stale_address(logged_in):
     assert patched["model"] == "Master"
     assert patched["year"] == 2023
     assert patched["vin"] == "VF1MA000000000001"
-    assert patched["ownership_category"] == "Leasing"
-    assert patched["purchase_date"] == "2026-01-15"
-    assert patched["dmc_kg"] == 3500
-    assert patched["payload_kg"] == 1300
 
     # Search matches make, model, vin
     for query in ("Renault", "Master", "VF1MA"):
@@ -276,12 +260,6 @@ def test_vehicle_card_patch_telemetry_and_stale_address(logged_in):
     # Validation errors
     bad_year = client.patch(path, headers=ORIGIN, json={"card_version": 2, "year": 1850})
     assert bad_year.status_code == 422
-    bad_category = client.patch(
-        path, headers=ORIGIN, json={"card_version": 2, "ownership_category": "Leased"}
-    )
-    assert bad_category.status_code == 422
-    bad_weight = client.patch(path, headers=ORIGIN, json={"card_version": 2, "dmc_kg": 0})
-    assert bad_weight.status_code == 422
     extra_field = client.patch(path, headers=ORIGIN, json={"card_version": 2, "extra": "val"})
     assert extra_field.status_code == 422
     not_found = client.patch(

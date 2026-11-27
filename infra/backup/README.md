@@ -93,18 +93,3 @@ Opcjonalny lokalny test z prawdziwym restic i Dockerem, wyłącznie syntetyczne 
 
 Źródła: [backup restic](https://restic.readthedocs.io/en/stable/040_backup.html),
 [backup PostgreSQL](https://www.postgresql.org/docs/17/backup-dump.html).
-
-### Sygnały odbioru operacyjnego — SCRUM-99
-
-`check_health.py` przyjmuje na stdin bezpieczny JSON polecenia
-`python -m app.sync_control status` i czyta atomowe znaczniki lokalnego backupu
-oraz odtworzenia. Przekaż JSON także wtedy, gdy polecenie synchronizacji
-zakończyło się kodem niezerowym. Kod 1 monitora oznacza co najmniej jeden
-sygnał. Domyślne progi to 180 s, 7 h i 32 dni. Wynik zawiera tylko stałe
-kody i nadaje się do odbioru przez mechanizm alertów operatora.
-
-Próba odbiorcza powinna obejmować zdrowy zestaw, źródło w degradacji, wiek
-ostatniego sukcesu i zabraknięcie kopii. Operator potwierdza częstotliwość
-odczytu, odbiorcę, deduplikację oraz czas od przekroczenia progu do przyjęcia
-i dostarczenia alarmu. Test lokalny używa sztucznych znaczników, bez SMTP
-i usług zewnętrznych.
