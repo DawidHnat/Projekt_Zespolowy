@@ -170,6 +170,19 @@ i `unverified`, blokując nowe niezgodne przypisania oraz wybór kierowcy w ewid
 przy zachowaniu historycznych rekordów z jawnym ostrzeżeniem.
 [Macierz reguł SCRUM-70](SCRUM-70-license-matrix.md).
 
+## Pełna kartoteka pojazdu — SCRUM-68
+
+Migracja `0016_vehicle_full_card` dodaje do `vehicles` tylko brakujące pola kartoteki:
+`ownership_category` (Firmowe/Prywatne/Leasing, ograniczenie w bazie), `leasing_buyout_on`
+(data wykupu), `first_registration_on`, `first_registration_pl_on`, `engine_capacity_cc`,
+`power_kw`, `curb_weight_kg`, `payload_kg` i `axles`. Paliwo, firma, umowa i koniec leasingu
+pochodzą z SCRUM-85 (`0013`), a DMC i miejsca pasażerskie (bez kierowcy) z SCRUM-70 (`0015`);
+kartoteka i ocena prawa jazdy czytają te same kolumny. Liczby są dodatnie lub puste
+(brak danych zamiast zera), masa własna i ładowność nie przekraczają DMC, a pierwsza
+rejestracja w Polsce nie poprzedza pierwszej rejestracji. Zmiana kategorii nie kasuje danych
+leasingu; interfejs je ukrywa poza kategorią Leasing. Synchronizacja WEBFLEET nie zapisuje
+tych pól. Downgrade poniżej `0016` jest blokowany, gdy którekolwiek z nich ma wartość.
+
 ## Wspólny dziennik zmian — SCRUM-87
 
 Migracja `0016_audit_events` wprowadza tabelę `audit_events` z wyzwalaczem `append-only`
@@ -179,3 +192,5 @@ aplikacji. Wpisy powstają w jednej transakcji ze zmianą biznesową i przechowu
 UUID `entity_id`, opcjonalny `vehicle_id`), `operation`, `outcome`, `correlation_id` oraz
 zmianę wyłącznie dozwolonych pól (`changes`) bez haseł, tokenów, PIN, numerów kart ani GPS.
 [Polityka bezpieczeństwa i retencji dziennika](security/SCRUM-87-audit-log.md).
+Migracja `0017_merge_vehicle_audit` łączy rewizję dziennika z rewizją pełnej
+kartoteki, zachowując identyfikatory obu istniejących migracji.

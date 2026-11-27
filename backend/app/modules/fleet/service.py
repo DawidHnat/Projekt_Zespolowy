@@ -238,6 +238,21 @@ def serialize_vehicle(
         "passenger_seats": vehicle.passenger_seats,
         "tows_heavy_trailer": vehicle.tows_heavy_trailer,
         "required_category_override": vehicle.required_category_override,
+        "ownership_category": vehicle.ownership_category,
+        "leasing_buyout_on": vehicle.leasing_buyout_on.isoformat()
+        if vehicle.leasing_buyout_on
+        else None,
+        "first_registration_on": vehicle.first_registration_on.isoformat()
+        if vehicle.first_registration_on
+        else None,
+        "first_registration_pl_on": vehicle.first_registration_pl_on.isoformat()
+        if vehicle.first_registration_pl_on
+        else None,
+        "engine_capacity_cc": vehicle.engine_capacity_cc,
+        "power_kw": vehicle.power_kw,
+        "curb_weight_kg": vehicle.curb_weight_kg,
+        "payload_kg": vehicle.payload_kg,
+        "axles": vehicle.axles,
         "license_requirement": vehicle_license_requirement(vehicle),
         "archived": vehicle.archived,
         "archive": archive_info,
