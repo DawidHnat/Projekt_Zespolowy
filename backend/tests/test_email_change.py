@@ -130,13 +130,17 @@ def test_email_change_requires_new_mailbox_and_same_accounts_session(email_chang
         assert session.scalar(select(User.version).where(User.username == "test-user")) == 2
 
 
-def test_malformed_stored_password_hash_rejects_email_change(email_change):
+@pytest.mark.parametrize("stored_format", ["invalid-argon2", "unsupported-hash"])
+def test_malformed_stored_password_hash_rejects_email_change(email_change, stored_format):
     app, owner, sent = email_change
     with app.state.sessions() as session:
         user = session.scalar(select(User))
-        hash_parts = user.password_hash.split("$")
-        hash_parts[-2] = "invalid%base64"
-        user.password_hash = "$".join(hash_parts)
+        if stored_format == "unsupported-hash":
+            user.password_hash = "not-a-supported-hash"
+        else:
+            hash_parts = user.password_hash.split("$")
+            hash_parts[-2] = "invalid%base64"
+            user.password_hash = "$".join(hash_parts)
         session.commit()
 
     cookie = owner.cookies.get(COOKIE_NAME)

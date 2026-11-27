@@ -136,15 +136,19 @@ def test_bad_current_password_and_origin_do_not_revoke_sessions(logged_in):
     ],
     ids=["login", "password-change"],
 )
+@pytest.mark.parametrize("stored_format", ["invalid-argon2", "unsupported-hash"])
 def test_malformed_stored_password_hash_rejects_credentials(
-    logged_in, submit_credentials, status_code, error_code
+    logged_in, submit_credentials, status_code, error_code, stored_format
 ):
     app, client = logged_in
     with app.state.sessions() as session:
         user = session.scalar(select(User))
-        hash_parts = user.password_hash.split("$")
-        hash_parts[-2] = "invalid%base64"
-        user.password_hash = "$".join(hash_parts)
+        if stored_format == "unsupported-hash":
+            user.password_hash = "not-a-supported-hash"
+        else:
+            hash_parts = user.password_hash.split("$")
+            hash_parts[-2] = "invalid%base64"
+            user.password_hash = "$".join(hash_parts)
         session.commit()
 
     response = submit_credentials(client)
