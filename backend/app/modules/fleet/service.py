@@ -130,6 +130,7 @@ def serialize_vehicle(
         "model": vehicle.model,
         "year": vehicle.year,
         "vin": vehicle.vin,
+        "source_active": vehicle.active,
         "archived": vehicle.archived,
         "archive": archive_info,
         "status": status,
@@ -202,7 +203,7 @@ def fleet_filters(source, q, status, status_expression, archive="active"):
     if archive == "archived":
         conditions.append(Vehicle.archived.is_(True))
     elif archive == "all":
-        conditions.append(or_(Vehicle.active.is_(True), Vehicle.archived.is_(True)))
+        pass
     else:
         conditions.extend((Vehicle.active.is_(True), Vehicle.archived.is_(False)))
     needle = q.strip().casefold()

@@ -61,7 +61,7 @@ export function VehicleListWidget({
                   <strong>{v.name}</strong>
                   <small>
                     {v.license_plate || v.number || "Brak rejestracji"}
-                    {v.archived ? " · Archiwalny" : ""}
+                    {v.archived ? " · Archiwalny" : v.source_active === false ? " · Poza raportem WEBFLEET" : ""}
                   </small>
                 </div>
                 <span className={`vehicle-status status-${v.status}`}>
@@ -114,7 +114,7 @@ export function VehicleListWidget({
                         <strong>{v.name}</strong>
                         <small>
                           {v.license_plate || v.number || "Brak rejestracji"}
-                          {v.archived ? " · Archiwalny" : ""}
+                          {v.archived ? " · Archiwalny" : v.source_active === false ? " · Poza raportem WEBFLEET" : ""}
                         </small>
                       </button>
                     </td>

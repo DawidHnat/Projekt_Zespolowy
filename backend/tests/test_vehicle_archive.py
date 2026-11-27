@@ -283,7 +283,125 @@ def test_archive_restore_permissions_filters_and_assignment_handling(logged_in):
     )
     assert restored.status_code == 200
     assert restored.json()["archived"] is False and restored.json()["archive"] is None
+    assert restored.json()["source_active"] is True
     assert client.get("/api/v1/fleet/vehicles").json()["total"] == 2
+
+
+def test_restore_source_inactive_vehicle_keeps_detail_and_all_filter_accessible(logged_in):
+    app, client = logged_in
+    now = datetime.now(UTC)
+    source = account_key(app.state.settings.webfleet_account)
+
+    with app.state.sessions() as session:
+        session.add(SyncState(source_account=source, last_success_at=now))
+        keep_a = Vehicle(
+            source_account=source,
+            external_uid="wf-keep-a",
+            name="Aktywny A",
+            license_plate="GD 101AA",
+        )
+        keep_b = Vehicle(
+            source_account=source,
+            external_uid="wf-keep-b",
+            name="Aktywny B",
+            license_plate="GD 102BB",
+        )
+        deactivated = Vehicle(
+            source_account=source,
+            external_uid="wf-gone-1",
+            name="Wycofany ze źródła",
+            license_plate="GD 909ZZ",
+        )
+        session.add_all([keep_a, keep_b, deactivated])
+        session.flush()
+        trip = Trip(
+            vehicle_id=deactivated.id,
+            external_uid="trip-gone-1",
+            start_at=now - timedelta(hours=4),
+            end_at=now - timedelta(hours=3),
+            distance_km=Decimal("18.4"),
+        )
+        session.add(trip)
+        deactivated_id = str(deactivated.id)
+        session.commit()
+
+    archived = client.post(
+        f"/api/v1/fleet/vehicles/{deactivated_id}/archive",
+        headers=ORIGIN,
+        json={"card_version": 1, "reason": "Zakończona umowa"},
+    )
+    assert archived.status_code == 200
+    assert archived.json()["archived"] is True
+    assert archived.json()["source_active"] is True
+
+    # Source record becomes inactive in DB and subsequent sync without wf-gone-1 keeps active=False.
+    with app.state.sessions() as session:
+        session.scalar(select(Vehicle).where(Vehicle.external_uid == "wf-gone-1")).active = False
+        apply_records(
+            session,
+            source,
+            {
+                "wf-keep-a": {"objectname": "Aktywny A", "licenseplatenumber": "GD 101AA"},
+                "wf-keep-b": {"objectname": "Aktywny B", "licenseplatenumber": "GD 102BB"},
+            },
+            {},
+            now + timedelta(minutes=5),
+        )
+        session.commit()
+
+    archived_inactive = client.get(f"/api/v1/fleet/vehicles/{deactivated_id}")
+    assert archived_inactive.status_code == 200
+    assert archived_inactive.json()["archived"] is True
+    assert archived_inactive.json()["source_active"] is False
+
+    # Restore clears archived without faking WEBFLEET source presence; card remains reachable.
+    restored = client.post(
+        f"/api/v1/fleet/vehicles/{deactivated_id}/restore",
+        headers=ORIGIN,
+        json={"card_version": archived_inactive.json()["card_version"]},
+    )
+    assert restored.status_code == 200
+    assert restored.json()["archived"] is False
+    assert restored.json()["source_active"] is False
+
+    detail_after = client.get(f"/api/v1/fleet/vehicles/{deactivated_id}")
+    assert detail_after.status_code == 200
+    assert detail_after.json()["archived"] is False
+    assert detail_after.json()["source_active"] is False
+
+    patched = client.patch(
+        f"/api/v1/fleet/vehicles/{deactivated_id}",
+        headers=ORIGIN,
+        json={"card_version": detail_after.json()["card_version"], "make": "Ford"},
+    )
+    assert patched.status_code == 200
+    assert patched.json()["make"] == "Ford"
+    assert patched.json()["source_active"] is False
+
+    # Hidden from active WEBFLEET fleet and archive-only filter, but exposed under archive=all.
+    active_ids = {item["id"] for item in client.get("/api/v1/fleet/vehicles").json()["items"]}
+    assert deactivated_id not in active_ids
+    archived_ids = {
+        item["id"] for item in client.get("/api/v1/fleet/vehicles?archive=archived").json()["items"]
+    }
+    assert deactivated_id not in archived_ids
+    all_items = {
+        item["id"]: item
+        for item in client.get("/api/v1/fleet/vehicles?archive=all").json()["items"]
+    }
+    assert deactivated_id in all_items
+    assert all_items[deactivated_id]["source_active"] is False
+    assert all_items[deactivated_id]["archived"] is False
+
+    trips = client.get(
+        "/api/v1/trips",
+        params={
+            "vehicle_id": deactivated_id,
+            "from": (now - timedelta(days=1)).isoformat(),
+            "to": now.isoformat(),
+        },
+    ).json()
+    assert trips["total"] == 1
 
 
 def test_postgres_archive_sync_restore_and_migration_downgrade_guard():

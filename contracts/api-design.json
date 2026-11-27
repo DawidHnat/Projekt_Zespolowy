@@ -1765,6 +1765,9 @@
           "type": "integer",
           "minimum": 1
         },
+        "source_active": {
+          "type": "boolean"
+        },
         "archived": {
           "type": "boolean"
         },

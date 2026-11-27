@@ -3,7 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-from sqlalchemy import or_, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.database import get_session
@@ -188,7 +188,6 @@ def vehicle_detail(vehicle_id: UUID, request: Request, session: SessionDep):
         .where(
             Vehicle.id == vehicle_id,
             Vehicle.source_account == source,
-            or_(Vehicle.active.is_(True), Vehicle.archived.is_(True)),
         )
     ).first()
     if not row:
@@ -226,7 +225,6 @@ def update_vehicle_card(
         .where(
             Vehicle.id == vehicle_id,
             Vehicle.source_account == source,
-            or_(Vehicle.active.is_(True), Vehicle.archived.is_(True)),
         )
         .with_for_update(of=Vehicle)
     ).first()
@@ -277,7 +275,6 @@ def archive_vehicle(
         .where(
             Vehicle.id == vehicle_id,
             Vehicle.source_account == source,
-            or_(Vehicle.active.is_(True), Vehicle.archived.is_(True)),
         )
         .with_for_update(of=Vehicle)
         .execution_options(populate_existing=True)
@@ -372,7 +369,6 @@ def restore_vehicle(
         .where(
             Vehicle.id == vehicle_id,
             Vehicle.source_account == source,
-            or_(Vehicle.active.is_(True), Vehicle.archived.is_(True)),
         )
         .with_for_update(of=Vehicle)
     ).first()
