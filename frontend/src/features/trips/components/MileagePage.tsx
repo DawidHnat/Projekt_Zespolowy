@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { api } from "../../../shared/api/client";
+import { api, ApiError } from "../../../shared/api/client";
 import { DatePicker } from "../../../shared/components/DatePicker";
 import { ListPagination } from "../../../shared/components/ListPagination";
 import { VehiclePicker } from "../../fleet/components/VehiclePicker";
 import type { TripList } from "../model/annotations";
+import { initialPeriod, periodError } from "../model/mileage-period";
 
 type MileagePeriod = TripList & {
   summary: {
@@ -18,12 +19,11 @@ const formatKm = (value: number | null) =>
   value === null ? "Brak danych" : `${value.toLocaleString("pl-PL", { maximumFractionDigits: 3 })} km`;
 
 export function MileagePage() {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Warsaw", year: "numeric", month: "2-digit", day: "2-digit",
-  });
-  const todayIso = formatter.format(new Date()).replace(/\//g, "-");
-  const [from, setFrom] = useState(`${todayIso.slice(0, 7)}-01`);
-  const [through, setThrough] = useState(todayIso);
+  const [initial] = useState(() => initialPeriod());
+  const todayIso = initial.through;
+  const [from, setFrom] = useState(initial.from);
+  const [through, setThrough] = useState(initial.through);
+  const rangeError = periodError(from, through);
   const [vehicle, setVehicle] = useState<{ id: string; name: string } | null>(null);
   const [data, setData] = useState<MileagePeriod | null>(null);
   const [page, setPage] = useState(1);
@@ -33,7 +33,7 @@ export function MileagePage() {
   const [revision, setRevision] = useState(0);
 
   useEffect(() => {
-    if (!vehicle) return;
+    if (!vehicle || rangeError) return;
     const controller = new AbortController();
     const query = new URLSearchParams({
       vehicle_id: vehicle.id, from_day: from, through,
@@ -43,10 +43,15 @@ export function MileagePage() {
     setError("");
     api<MileagePeriod>(`/trips/mileage?${query}`, { signal: controller.signal })
       .then((result) => { if (!controller.signal.aborted) setData(result); })
-      .catch(() => { if (!controller.signal.aborted) setError("Nie można pobrać ewidencji."); })
+      .catch((failure: unknown) => {
+        if (controller.signal.aborted) return;
+        setError(failure instanceof ApiError && failure.status === 422
+          ? "Wybierz prawidłowy okres do 93 dni."
+          : "Nie można pobrać ewidencji.");
+      })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [vehicle, from, through, page, pageSize, revision]);
+  }, [vehicle, from, through, page, pageSize, revision, rangeError]);
 
   const reset = () => { setData(null); setError(""); setPage(1); };
 
@@ -60,6 +65,7 @@ export function MileagePage() {
         <VehiclePicker selected={vehicle} disabled={false}
           onSelect={(next) => { reset(); setVehicle(next); }} />
       </div>
+      {rangeError && <p className="form-error" role="alert">{rangeError}</p>}
       {!vehicle && <p>Wybierz pojazd, aby obliczyć ewidencję.</p>}
       {loading && <p role="status">Pobieranie ewidencji…</p>}
       {error && <div role="alert"><p>{error}</p><button type="button" className="button button-secondary"
