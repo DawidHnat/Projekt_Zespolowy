@@ -1,16 +1,25 @@
+const CORRELATION_ID = /^[A-Za-z0-9._-]{8,64}$/;
+
+export function validCorrelationId(value: unknown): string | null {
+  return typeof value === "string" && CORRELATION_ID.test(value) ? value : null;
+}
+
 export class ApiError extends Error {
   status: number;
   code: string;
+  correlationId: string | null;
   fields: Record<string, string>;
   constructor(
     status: number,
     code: string,
     message: string,
+    correlationId: string | null = null,
     fields: Record<string, string> = {},
   ) {
     super(message);
     this.status = status;
     this.code = code;
+    this.correlationId = correlationId;
     this.fields = fields;
   }
 }
@@ -50,14 +59,18 @@ export async function api<T>(
       expiredListeners.forEach((listener) => listener());
     let code = "UNAVAILABLE";
     let fields: Record<string, string> = {};
+    let bodyCorrelationId: string | null = null;
     try {
       const payload = await response.json();
       code = payload.error?.code || code;
       if (payload.error?.fields && typeof payload.error.fields === "object")
         fields = payload.error.fields as Record<string, string>;
+      bodyCorrelationId = validCorrelationId(payload.error?.correlation_id);
     } catch {
       /* Non-JSON proxy failure. */
     }
+    const correlationId =
+      validCorrelationId(response.headers.get("X-Correlation-ID")) ?? bodyCorrelationId;
     const messages: Record<string, string> = {
       SOURCE_UNAVAILABLE: "Oczekiwanie na pierwszy odczyt WEBFLEET.",
       INVALID_CREDENTIALS: "Niepoprawny login lub hasło.",
@@ -75,12 +88,12 @@ export async function api<T>(
       IDENTITY_MISMATCH: "Wskazany pojazd WEBFLEET ma niezgodną rejestrację lub sprzeczny numer VIN.",
       LINK_CONFLICT: "Nie udało się bezpiecznie połączyć historii wybranego pojazdu.",
     };
-    throw new ApiError(
-      response.status,
-      code,
-      messages[code] || "Nie udało się pobrać danych. Spróbuj ponownie.",
-      fields,
-    );
+    const baseMessage = messages[code] || "Nie udało się pobrać danych. Spróbuj ponownie.";
+    const displayMessage =
+      response.status >= 500 && code !== "SOURCE_UNAVAILABLE" && correlationId
+        ? `${baseMessage} (ID zgłoszenia: ${correlationId})`
+        : baseMessage;
+    throw new ApiError(response.status, code, displayMessage, correlationId, fields);
   }
   return response.json() as Promise<T>;
 }
