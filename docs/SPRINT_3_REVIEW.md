@@ -21,10 +21,15 @@ sekrety `DEV_SPRINT3_SMOKE_USERNAME` i `DEV_SPRINT3_SMOKE_PASSWORD`
 w środowisku GitHub `development`.
 Smoke kończy wyłącznie własną sesję i wypisuje wynik bez treści odpowiedzi.
 
-Do oddania potrzebne są rzeczywiste wkłady **dwóch autorów** w Story
-Sprintu 3, z kodem dostępnym na `main`. W odczycie 23.11.2026 PR-y #50,
-#51 i #31 oraz przyrost #162 mają autora `jczaja51`. #162 jest scalony do
-gałęzi #161. Potrzebny jest wkład drugiego autora albo zatwierdzenie innej pary.
+Na `main` są rzeczywiste wkłady co najmniej dwóch osób z okna Sprintu 3:
+[Jakub Czaja, poprawka prywatności wyszukiwania kierowców](https://github.com/DawidHnat/Projekt_Zespolowy/commit/9892f87) i
+[Marcel Głowacki, automatyczny test odzyskania mapy](https://github.com/DawidHnat/Projekt_Zespolowy/commit/1e5c51d).
+Dla wymaganej pary funkcji **SCRUM-42 + SCRUM-49** podstawowe PR-y #50,
+#51 i #31 mają tego samego autora `jczaja51`. #162 również jest jego
+autorstwa i trafił do gałęzi #161. Uznanie współautorstwa tej konkretnej
+pary wymaga udokumentowanego wkładu drugiego autora z zakresu jednej z
+tych Story albo wyboru przez zespół innej, rzeczywiście dostarczonej pary
+i wspólnego scenariusza.
 
 ## Blokada
 
@@ -36,17 +41,32 @@ Komentarz określa, czego brakuje i od kogo.
 Po faktycznym odbiorze i scaleniu zależności odnotuj **Gotowe** w SCRUM-48,
 zdejmij flagę w SCRUM-49 i zachowaj link do dowodu w Jirze.
 
-## Stan wdrożenia 23.11.2026
+## Stan przed zjazdem, 27.11.2026
 
-Ostatni zakończony przebieg `main` **45250031627** na `524f30f` ma
-zielone testy, lint, wdrożenie i dotychczasowy smoke. Log potwierdza:
+- `main` i publiczna wersja wskazują `17ea095`. Gotowość API HTTP 200,
+  wymagane kontrole, deploy i dotychczasowy smoke są potwierdzone.
+  [Wersja](https://fleet-flow.pl/status.html) ·
+  [CI i deploy](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/46011237932) ·
+  [Smoke](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/46011237932/job/140553505637)
+- Kartoteka i podstawowy profil są na `main`. Właściwy odbiór kartoteki oraz
+  potwierdzanie zmiany e-maila pozostają otwarte. Wyniki Marcela dla Chromium
+  przyjęto jako dowód częściowy. [SCRUM-54](https://fleet-flow.atlassian.net/browse/SCRUM-54?focusedCommentId=10517) · [#31](https://github.com/DawidHnat/Projekt_Zespolowy/pull/31) · [#161](https://github.com/DawidHnat/Projekt_Zespolowy/pull/161)
+- PO potwierdził pomocniczą ewidencję z sumą znanych kilometrów i liczbą przejazdów
+  bez celu. Import i widok okresu wchodzą po uzgodnieniu grafu migracji i
+  kontraktu #191/#192. [SCRUM-62](https://fleet-flow.atlassian.net/browse/SCRUM-62?focusedCommentId=10514)
+- W próbie demonstracji #166 zapisz dwa profile CI i odczytowy smoke
+  wydzielonego `viewer` po wdrożeniu tej zmiany. Dawid sprawdza gotowość
+  środowiska, Marcel zapisuje niezależne QA, prowadzący spotkanie zapisuje
+  wynik faktycznego demo. [SCRUM-178](https://fleet-flow.atlassian.net/browse/SCRUM-178) · [SCRUM-152](https://fleet-flow.atlassian.net/browse/SCRUM-152)
 
-```text
-PASS deployed SHA 524f30f: HTTP status, HTTPS application, API readiness
-```
+## Zapis po Review 28.11
 
-Dowód dotyczy gotowości aplikacji i wersji serwera.
-[Przebieg bazowy](https://github.com/DawidHnat/Projekt_Zespolowy/actions/runs/45250031627).
+| Pole | Dowód do zebrania |
+| --- | --- |
+| Wersja i środowisko | Wdrożony SHA, adres, Actions i wynik readiness |
+| Funkcje i wkład | Dwie Story, autorzy, commity na main i wspólny scenariusz |
+| Rzeczywisty przebieg | Data, uczestnicy, co pokazano, wynik oraz uwagi |
+| Niedostarczone elementy | Właściciele, blokady, decyzje o przeniesieniu i dalszy plan |
 
 ## Polecenia do indywidualnego oddania
 

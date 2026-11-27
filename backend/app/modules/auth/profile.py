@@ -21,6 +21,7 @@ from app.modules.auth.service import (
     now_utc,
     password_hasher,
     revoke_sessions,
+    verify_password,
 )
 
 router = APIRouter(prefix="/api/v1/auth", tags=["profile"])
@@ -114,7 +115,7 @@ def change_password(
     locked = locked_current_user(session, request, user)
     current = body.current_password.get_secret_value()
     new = body.new_password.get_secret_value()
-    if not password_hasher.verify(current, locked.password_hash):
+    if not verify_password(current, locked.password_hash):
         raise ApiError(400, "INVALID_CURRENT_PASSWORD", "Niepoprawne aktualne hasło")
     if new == current:
         raise ApiError(422, "PASSWORD_UNCHANGED", "Wybierz inne nowe hasło")
