@@ -137,6 +137,39 @@ jobs:
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock:ro \
             aquasec/trivy@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c \
             image --scanners vuln --severity HIGH,CRITICAL --exit-code 1 fleet-flow-api:ci
+      - name: Export the scanned image and SBOM
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/backend-image"
+          mkdir -p "$out"
+          image="fleet-flow-api:$GITHUB_SHA"
+          docker tag fleet-flow-api:ci "$image"
+          docker image inspect --format '{{.Id}}' "$image" > "$out/backend-image-id"
+          docker save "$image" | gzip -n > "$out/backend-image.tar.gz"
+          sha256sum "$out/backend-image.tar.gz" | cut -d ' ' -f 1 > "$out/backend-image.sha256"
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock:ro \
+            -v "$out:/out" \
+            aquasec/trivy@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c \
+            image --format cyclonedx --output /out/backend-image.sbom.json "$image"
+          python3 - "$out" <<'PYIMAGE'
+          import json, os, pathlib, sys
+          directory = pathlib.Path(sys.argv[1])
+          meta = {
+              "commit": os.environ["GITHUB_SHA"],
+              "run": os.environ["GITHUB_RUN_ID"],
+              "image_id": (directory / "backend-image-id").read_text().strip(),
+              "archive_sha256": (directory / "backend-image.sha256").read_text().strip(),
+          }
+          (directory / "backend-image.provenance.json").write_text(json.dumps(meta) + "\n")
+          PYIMAGE
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: backend-image-${{ github.sha }}
+          path: ${{ runner.temp }}/backend-image/
+          if-no-files-found: error
+          retention-days: 5
       - name: Scan infrastructure configuration
         if: always()
         run: |
@@ -361,6 +394,10 @@ jobs:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: release-${{ github.sha }}
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: backend-image-${{ github.sha }}
+          path: checked-backend
       - name: Deploy checked artifact over verified SSH
         shell: bash
         run: |
@@ -381,6 +418,11 @@ jobs:
           trap 'rm -rf -- "$staging"' EXIT
           mkdir "$staging/release"
           tar -xzf release.tgz -C "$staging/release"
+          for file in backend-image.tar.gz backend-image-id backend-image.sha256 \
+            backend-image.sbom.json backend-image.provenance.json; do
+            test -s "checked-backend/$file"
+            cp "checked-backend/$file" "$staging/release/"
+          done
           for file in frontend/dist/index.html frontend/dist/status.html backend/app/main.py infra/deploy/compose.yml; do
             test -s "$staging/release/$file" || { echo "::error::Release artifact missing $file"; exit 1; }
           done
