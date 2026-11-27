@@ -26,6 +26,13 @@ async function parkDocumentMidway(page: Page) {
   return page.evaluate(() => scrollY);
 }
 
+/** Makes bounded lists short, so even the single synthetic fixture vehicle overflows. */
+async function shortenBoundedLists(page: Page) {
+  await page.addStyleTag({
+    content: ".fleet-list-content > .table-scroll, .vehicle-cards { max-height: 44px !important; }",
+  });
+}
+
 /** Marks visible bounded lists (overscroll contain) that really overflow vertically. */
 async function overflowingContainers(page: Page) {
   return page.evaluate(() => {
@@ -88,6 +95,7 @@ test("document and app shell do not rubber-band at the scroll edges", async ({ p
 for (const hash of ["dashboard", "map"])
 test(`bounded lists on the ${hash} page keep scrolling local at their edges`, async ({ page, isMobile }) => {
   await login(page, hash);
+  await shortenBoundedLists(page);
   const start = await parkDocumentMidway(page);
   await expect.poll(() => overflowingContainers(page).then(found => found.length), "expected an overflowing list").toBeGreaterThan(0);
   for (const probe of await page.locator("[data-scroll-probe]").all()) {
@@ -140,6 +148,7 @@ test("keyboard scrolling and list ends still work", async ({ page }) => {
   await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0);
   // The tile's vehicle list remains reachable to its last row.
   await page.evaluate(() => scrollTo(0, 0));
+  await shortenBoundedLists(page);
   await expect.poll(() => overflowingContainers(page).then(found => found.length)).toBeGreaterThan(0);
   const probe = page.locator("[data-scroll-probe]").first();
   await probe.hover();
