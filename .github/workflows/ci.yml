@@ -244,10 +244,50 @@ jobs:
       - run: python -m pip install -r backend/requirements-dev.txt
       - run: npm ci
         working-directory: frontend
-      - run: npx playwright install --with-deps chromium
+      - name: Report locked Playwright version
+        run: node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version"
         working-directory: frontend
-      - run: npm run test:e2e
+      - name: Restore Chromium binaries
+        id: chromium-cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('frontend/package-lock.json') }}
+      - name: Install Chromium system dependencies
+        run: npx playwright install-deps chromium
         working-directory: frontend
+      - name: Prepare Chromium binaries
+        run: |
+          echo "Chromium cache hit: $CACHE_HIT"
+          time npx playwright install chromium
+        env:
+          CACHE_HIT: ${{ steps.chromium-cache.outputs.cache-hit }}
+        working-directory: frontend
+      - name: Run and time critical browser flows
+        run: time npm run test:e2e
+        working-directory: frontend
+      - name: Build synthetic map test frontend
+        run: npm run build
+        env:
+          VITE_MAPBOX_TOKEN: pk.fleetflowsynthetic
+        working-directory: frontend
+      - name: Run and time synthetic map recovery (desktop and mobile)
+        run: time npx playwright test e2e/map-provider-recovery.spec.ts --project=desktop --project=mobile --reporter=list,junit --output=test-results/map-recovery
+        env:
+          E2E_SYNTHETIC_MAP: 'true'
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/map-recovery-results.xml
+        working-directory: frontend
+      - name: Require all four synthetic map recovery scenarios
+        working-directory: frontend
+        run: |
+          python - <<'PYTHON'
+          import xml.etree.ElementTree as ET
+          cases = ET.parse("test-results/map-recovery-results.xml").findall(".//testcase")
+          failed = [case for case in cases if any(case.find(tag) is not None for tag in ("failure", "error", "skipped"))]
+          print(f"Synthetic map recovery: {len(cases) - len(failed)} PASS / {len(cases)} cases")
+          if len(cases) != 4 or failed:
+              raise SystemExit("Expected four executed, passing map recovery cases")
+          PYTHON
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
