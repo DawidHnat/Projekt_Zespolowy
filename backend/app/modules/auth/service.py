@@ -5,6 +5,7 @@ from typing import Annotated
 
 from fastapi import Depends, Request, Response
 from pwdlib import PasswordHash
+from pwdlib.exceptions import HashVerificationError
 from sqlalchemy import delete, func, or_, select
 from sqlalchemy.orm import Session
 
@@ -22,6 +23,13 @@ from app.modules.auth.policies import can_authenticate, can_edit, can_manage_acc
 COOKIE_NAME = "fleet_flow_session"
 password_hasher = PasswordHash.recommended()
 dummy_hash = password_hasher.hash(secrets.token_urlsafe(32))
+
+
+def verify_password(password: str, encoded_hash: str) -> bool:
+    try:
+        return password_hasher.verify(password, encoded_hash)
+    except HashVerificationError:
+        return False
 
 
 def digest(value: str) -> str:

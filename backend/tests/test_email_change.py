@@ -130,6 +130,28 @@ def test_email_change_requires_new_mailbox_and_same_accounts_session(email_chang
         assert session.scalar(select(User.version).where(User.username == "test-user")) == 2
 
 
+def test_malformed_stored_password_hash_rejects_email_change(email_change):
+    app, owner, sent = email_change
+    with app.state.sessions() as session:
+        user = session.scalar(select(User))
+        hash_parts = user.password_hash.split("$")
+        hash_parts[-2] = "invalid%base64"
+        user.password_hash = "$".join(hash_parts)
+        session.commit()
+
+    cookie = owner.cookies.get(COOKIE_NAME)
+    response = request_change(owner)
+
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "INVALID_CURRENT_PASSWORD"
+    assert "set-cookie" not in response.headers
+    assert owner.cookies.get(COOKIE_NAME) == cookie
+    assert owner.get(PROFILE).json()["email"] == OLD_EMAIL
+    assert not sent
+    with app.state.sessions() as session:
+        assert session.scalar(select(EmailChange)) is None
+
+
 def test_request_checks_origin_current_password_and_throttles_without_sending(email_change):
     app, owner, sent = email_change
     assert request_change(TestClient(app)).status_code == 401

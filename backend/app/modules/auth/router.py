@@ -21,8 +21,8 @@ from app.modules.auth.service import (
     issue_session,
     lock_user,
     now_utc,
-    password_hasher,
     user_payload,
+    verify_password,
 )
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
@@ -99,7 +99,7 @@ def login(
     user = lock_user(session, candidate.id) if candidate else None
     if user and identifier not in (user.username, normalize_identifier(user.email or "")):
         user = None
-    valid = password_hasher.verify(
+    valid = verify_password(
         body.password.get_secret_value(), user.password_hash if user else dummy_hash
     )
     if not valid or not user or not user.active or not can_authenticate(user.role):
