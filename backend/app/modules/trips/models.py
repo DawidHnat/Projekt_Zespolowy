@@ -39,8 +39,12 @@ class Trip(Base):
 
 class TripAnnotation(Base):
     __tablename__ = "trip_annotations"
-    __table_args__ = (CheckConstraint("version >= 2", name="ck_trip_annotations_version"),)
+    __table_args__ = (
+        CheckConstraint("version >= 2", name="ck_trip_annotations_version"),
+        Index("ix_trip_annotations_driver_id", "driver_id"),
+    )
     trip_id: Mapped[UUID] = mapped_column(ForeignKey("trips.id"), primary_key=True)
+    driver_id: Mapped[UUID | None] = mapped_column(ForeignKey("drivers.id"))
     purpose: Mapped[str | None] = mapped_column(String(200))
     description: Mapped[str | None] = mapped_column(String(2000))
     version: Mapped[int]

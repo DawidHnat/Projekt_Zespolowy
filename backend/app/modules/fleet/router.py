@@ -17,7 +17,9 @@ from app.core.models import Driver, Measurement, SyncState, Vehicle
 from app.modules.analytics.models import Alert, AlertReceipt, DailyDistance, Rule
 from app.modules.auth.models import User
 from app.modules.auth.service import check_origin, current_user, editor
-from app.modules.drivers.models import DriverAssignment
+from app.modules.drivers.compatibility import evaluate_driver_vehicle
+from app.modules.drivers.models import DriverAssignment, DriverCategory
+from app.modules.drivers.schemas import CATEGORIES
 from app.modules.drivers.service import project_vehicle_drivers
 from app.modules.fleet.documents import (
     DOCUMENT_KINDS,
@@ -93,6 +95,22 @@ class VehicleCardFieldsMixin(BaseModel):
     insurance_due_on: date | None = None
     manual_odometer_km: Decimal | None = None
     manual_odometer_date: date | None = None
+    gross_weight_kg: Annotated[int | None, Field(default=None, strict=True, ge=1, le=120000)] = None
+    passenger_seats: Annotated[int | None, Field(default=None, strict=True, ge=0, le=120)] = None
+    tows_heavy_trailer: bool | None = Field(default=None, strict=True)
+    required_category_override: Annotated[str | None, Field(default=None, max_length=10)] = None
+    # SCRUM-68: DMC and seats reuse gross_weight_kg/passenger_seats above (SCRUM-70).
+    ownership_category: Literal["Firmowe", "Prywatne", "Leasing"] | None = None
+    leasing_buyout_on: date | None = None
+    first_registration_on: date | None = None
+    first_registration_pl_on: date | None = None
+    engine_capacity_cc: Annotated[int | None, Field(default=None, strict=True, ge=1, le=100000)] = (
+        None
+    )
+    power_kw: Annotated[int | None, Field(default=None, strict=True, ge=1, le=10000)] = None
+    curb_weight_kg: Annotated[int | None, Field(default=None, strict=True, ge=1, le=120000)] = None
+    payload_kg: Annotated[int | None, Field(default=None, strict=True, ge=1, le=120000)] = None
+    axles: Annotated[int | None, Field(default=None, strict=True, ge=1, le=20)] = None
 
     @field_validator(
         "make",
@@ -107,10 +125,55 @@ class VehicleCardFieldsMixin(BaseModel):
     def clean_optional_strings(cls, value: str | None) -> str | None:
         return _clean_plain_str(value)
 
+    @field_validator("required_category_override")
+    @classmethod
+    def check_category_override(cls, value: str | None) -> str | None:
+        cleaned = _clean_plain_str(value)
+        if cleaned is None:
+            return None
+        if cleaned not in CATEGORIES:
+            raise ValueError("Nieznana kategoria prawa jazdy")
+        return cleaned
+
     @field_validator("manual_odometer_km")
     @classmethod
     def check_manual_odometer(cls, value: Decimal | None) -> Decimal | None:
         return _validate_odometer_value(value)
+
+
+CARD_CONSISTENCY_FIELDS = (
+    "first_registration_on",
+    "first_registration_pl_on",
+    "gross_weight_kg",
+    "curb_weight_kg",
+    "payload_kg",
+)
+
+
+def card_consistency_errors(values: dict) -> dict[str, str]:
+    """Cross-field rules of the vehicle card, checked on the merged (stored + changed) values."""
+    errors: dict[str, str] = {}
+    first, first_pl = values.get("first_registration_on"), values.get("first_registration_pl_on")
+    if first and first_pl and first_pl < first:
+        errors["first_registration_pl_on"] = (
+            "Pierwsza rejestracja w Polsce nie może być wcześniejsza niż pierwsza rejestracja."
+        )
+    gross = values.get("gross_weight_kg")
+    if gross:
+        if values.get("curb_weight_kg") and values["curb_weight_kg"] > gross:
+            errors["curb_weight_kg"] = "Masa własna nie może przekraczać DMC."
+        if values.get("payload_kg") and values["payload_kg"] > gross:
+            errors["payload_kg"] = "Ładowność nie może przekraczać DMC."
+    return errors
+
+
+def card_consistency_response(values: dict):
+    errors = card_consistency_errors(values)
+    if not errors:
+        return None
+    return field_error_response(
+        422, "VALIDATION_ERROR", "Popraw niespójne dane kartoteki pojazdu", errors
+    )
 
 
 class VehicleManualCreate(VehicleCardFieldsMixin):
@@ -349,6 +412,11 @@ def create_manual_vehicle(
             field_errors["manual_odometer_km"] = "Podaj przebieg dla wybranej daty odczytu."
         else:
             field_errors["manual_odometer_date"] = "Wybierz datę ręcznego odczytu przebiegu."
+    field_errors.update(
+        card_consistency_errors(
+            {field: getattr(payload, field) for field in CARD_CONSISTENCY_FIELDS}
+        )
+    )
 
     if field_errors:
         return field_error_response(
@@ -408,12 +476,37 @@ def create_manual_vehicle(
         insurance_due_on=payload.insurance_due_on,
         manual_odometer_km=payload.manual_odometer_km,
         manual_odometer_date=payload.manual_odometer_date,
+        gross_weight_kg=payload.gross_weight_kg,
+        passenger_seats=payload.passenger_seats,
+        tows_heavy_trailer=bool(payload.tows_heavy_trailer),
+        required_category_override=payload.required_category_override,
+        ownership_category=payload.ownership_category,
+        leasing_buyout_on=payload.leasing_buyout_on,
+        first_registration_on=payload.first_registration_on,
+        first_registration_pl_on=payload.first_registration_pl_on,
+        engine_capacity_cc=payload.engine_capacity_cc,
+        power_kw=payload.power_kw,
+        curb_weight_kg=payload.curb_weight_kg,
+        payload_kg=payload.payload_kg,
+        axles=payload.axles,
         locally_edited=True,
         manual_name=True,
         manual_license_plate=True,
         manual_vehicle_type=bool(payload.vehicle_type),
         active=True,
     )
+    if assigned_driver is not None:
+        driver_cats = list(
+            session.scalars(
+                select(DriverCategory.category).where(
+                    DriverCategory.driver_id == assigned_driver.id
+                )
+            ).all()
+        )
+        comp = evaluate_driver_vehicle(driver_cats, vehicle)
+        if comp["status"] == "incompatible":
+            session.rollback()
+            raise ApiError(409, "LICENSE_INCOMPATIBLE", comp["message"])
     session.add(vehicle)
     try:
         session.flush()
@@ -582,6 +675,12 @@ def update_vehicle_card(
             {field: "Przebieg ręczny wymaga podania zarówno wartości, jak i daty."},
         )
 
+    consistency_resp = card_consistency_response(
+        {field: changes.get(field, getattr(vehicle, field)) for field in CARD_CONSISTENCY_FIELDS}
+    )
+    if consistency_resp is not None:
+        return consistency_resp
+
     next_plate = changes.get("license_plate", vehicle.license_plate)
     next_vin = changes.get("vin", vehicle.vin)
     if "license_plate" in changes or "vin" in changes:
@@ -596,6 +695,8 @@ def update_vehicle_card(
         if conflict_resp is not None:
             return conflict_resp
 
+    if "tows_heavy_trailer" in changes:
+        changes["tows_heavy_trailer"] = bool(changes["tows_heavy_trailer"])
     for field, value in changes.items():
         setattr(vehicle, field, value)
     for field in changes.keys() & {"name", "license_plate", "vehicle_type"}:
@@ -772,9 +873,29 @@ def link_manual_vehicle_to_source(
     try:
         saved_uid = source_vehicle.external_uid
         saved_number = source_vehicle.number
-        for optional_field in ("vehicle_type", "make", "model", "year", "vin"):
+        for optional_field in (
+            "vehicle_type",
+            "make",
+            "model",
+            "year",
+            "vin",
+            "gross_weight_kg",
+            "passenger_seats",
+            "required_category_override",
+            "ownership_category",
+            "leasing_buyout_on",
+            "first_registration_on",
+            "first_registration_pl_on",
+            "engine_capacity_cc",
+            "power_kw",
+            "curb_weight_kg",
+            "payload_kg",
+            "axles",
+        ):
             if getattr(vehicle, optional_field) is None:
                 setattr(vehicle, optional_field, getattr(source_vehicle, optional_field))
+        if not vehicle.tows_heavy_trailer and source_vehicle.tows_heavy_trailer:
+            vehicle.tows_heavy_trailer = True
 
         source_measurement = session.get(Measurement, source_vehicle.id)
         existing_measurement = session.get(Measurement, vehicle.id)

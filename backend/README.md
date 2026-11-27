@@ -436,3 +436,16 @@ przed paginacją, a pozostałe osoby mają stabilną kolejność A–Z. Obce UUI
 nie rozszerzają źródła. POST search zwraca te same filtry w agregatach, niezależnie
 od strony; kontakt nadal pozostaje w body. Telefon dopuszcza jeden opcjonalny
 plus na początku i 7–20 cyfr, ze spacjami/nawiasami/kropkami/myślnikami.
+
+### Zgodność kategorii prawa jazdy z pojazdem (SCRUM-70)
+
+Migracja `0015_license_compatibility` dodaje do `vehicles` pola `gross_weight_kg` (DMC),
+`passenger_seats`, `tows_heavy_trailer` oraz `required_category_override`, a do
+`trip_annotations` opcjonalne `driver_id`. Reguły macierzy
+`pl-ustawa-o-kierujacych-v1-pending-po` ([macierz SCRUM-70](../docs/SCRUM-70-license-matrix.md),
+oczekująca na końcowe zatwierdzenie PO) rozróżniają stany `compatible`, `incompatible`
+oraz `unverified` (brak kategorii lub brak DMC nigdy nie daje `compatible`, a sama
+etykieta `"ciężarowy"` bez DMC pozostaje `unverified`). Potwierdzona niezgodność
+blokuje nowe przypisanie (`POST /api/v1/drivers/{id}/assignments`), przypisanie przy
+tworzeniu pojazdu oraz wybór kierowcy w ewidencji (`PATCH /api/v1/trips/{id}/annotation`)
+błędem `409 LICENSE_INCOMPATIBLE`, nie usuwając historycznych przypisań i przejazdów.

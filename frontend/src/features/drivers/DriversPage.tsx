@@ -352,6 +352,26 @@ function DriverWorkspace({ preferences: p }: { preferences: Preferences }) {
             </select>
           </label>
           <label>
+            Zgodność uprawnień
+            <select
+              aria-label="Filtr zgodności uprawnień"
+              value={d.filters.compatibility}
+              disabled={editing}
+              onChange={(event) =>
+                d.change({
+                  compatibility: event.target
+                    .value as typeof d.filters.compatibility,
+                })
+              }
+            >
+              <option value="">Wszystkie stany</option>
+              <option value="attention">Do sprawdzenia (z pojazdem)</option>
+              <option value="compatible">Zgodne</option>
+              <option value="incompatible">Niezgodne</option>
+              <option value="unverified">Niezweryfikowane</option>
+            </select>
+          </label>
+          <label>
             Kolejność
             <select
               aria-label="Kolejność kierowców"
@@ -377,8 +397,8 @@ function DriverWorkspace({ preferences: p }: { preferences: Preferences }) {
           </button>
         </div>
         <p className="driver-note">
-          Kategorie są wpisane ręcznie. Ocena zgodności kierowca–pojazd nie jest
-          jeszcze dostępna.
+          Kategorie są wpisane ręcznie. Brak danych nie oznacza zgody; macierz
+          uprawnień oczekuje na potwierdzenie PO.
         </p>
         {d.catalogError && (
           <p role="alert">

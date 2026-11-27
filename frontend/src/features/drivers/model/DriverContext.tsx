@@ -28,6 +28,7 @@ export type DriverFilters = {
   active: "all" | "active" | "inactive";
   assigned: "all" | "with" | "without";
   category: string;
+  compatibility: "" | "compatible" | "incompatible" | "unverified" | "attention";
   sort: DriverSort;
 };
 const defaults: DriverFilters = {
@@ -35,6 +36,7 @@ const defaults: DriverFilters = {
   active: "all",
   assigned: "all",
   category: "",
+  compatibility: "",
   sort: "name_asc",
 };
 function useDriverData(customOrder: string[]) {
@@ -73,6 +75,7 @@ function useDriverData(customOrder: string[]) {
     assigned: filters.assigned === "all" ? null : filters.assigned === "with",
     category: filters.category === "missing" ? null : filters.category || null,
     missing_categories: filters.category === "missing" ? true : null,
+    compatibility_status: filters.compatibility || null,
     sort: filters.sort,
     custom_order: filters.sort === "custom" ? customOrder : [],
     page,

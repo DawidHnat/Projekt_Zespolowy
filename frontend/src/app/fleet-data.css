@@ -423,7 +423,8 @@ table.vehicle-table {
 }
 .vehicle-card-fields :is(dt, label) { font-size: .875rem; font-weight: 600; }
 .vehicle-card-fields dd { margin: 4px 0 0; overflow-wrap: anywhere; }
-.vehicle-card-fields input {
+/* The DatePicker keeps a technical <input hidden>; it must stay hidden. */
+.vehicle-card-fields :is(input:not([hidden], [type="checkbox"]), select) {
   display: block;
   width: 100%;
   margin-top: 5px;

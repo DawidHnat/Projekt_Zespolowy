@@ -1,5 +1,6 @@
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { api } from "../../../shared/api/client";
+import type { DriverList } from "../../../shared/api/generated/contracts";
 import { annotationDraft, annotationError, annotationValidation, type Annotation, type Trip } from "../model/annotations";
 
 const modifiedTime = (value: string) => new Intl.DateTimeFormat("pl-PL", {
@@ -20,7 +21,18 @@ export function TripAnnotationEditor({ trip, canEdit, onSaved, onDirty }: {
   const [notice, setNotice] = useState<string | null>(null);
   const [conflict, setConflict] = useState(false);
   const [latest, setLatest] = useState<Annotation | null>(null);
-  const dirty = draft.purpose !== (base.purpose ?? "") || draft.description !== (base.description ?? "");
+  const [drivers, setDrivers] = useState<Array<{ id: string; display_name: string }>>([]);
+  const dirty =
+    draft.purpose !== (base.purpose ?? "") ||
+    draft.description !== (base.description ?? "") ||
+    (draft.driver_id ?? "") !== (base.driver_id ?? "");
+  useEffect(() => {
+    const controller = new AbortController();
+    api<DriverList>("/drivers?active=true&page_size=100", { signal: controller.signal })
+      .then(res => { if (!controller.signal.aborted) setDrivers(res.items.map(d => ({ id: d.id, display_name: d.display_name }))); })
+      .catch(() => { if (!controller.signal.aborted) setDrivers([]); });
+    return () => controller.abort();
+  }, []);
   useEffect(() => {
     onDirty(dirty || busy);
     return () => onDirty(false);
@@ -39,7 +51,13 @@ export function TripAnnotationEditor({ trip, canEdit, onSaved, onDirty }: {
     setBusy(true); setError(null); setNotice(null);
     try {
       const saved = await api<Annotation>(`/trips/${encodeURIComponent(trip.id)}/annotation`, {
-        method: "PATCH", body: JSON.stringify({ ...draft, version: base.version }),
+        method: "PATCH",
+        body: JSON.stringify({
+          purpose: draft.purpose,
+          description: draft.description,
+          driver_id: draft.driver_id || null,
+          version: base.version,
+        }),
       });
       setBase(saved); setDraft(annotationDraft(saved)); onSaved(saved);
       setNotice("Cel i opis zostały zapisane.");
@@ -68,6 +86,15 @@ export function TripAnnotationEditor({ trip, canEdit, onSaved, onDirty }: {
       <label htmlFor={`${id}-description`}>Opis przejazdu <span>do 2000 znaków</span></label>
       <textarea id={`${id}-description`} rows={4} maxLength={2000} value={draft.description} readOnly={!canEdit || busy}
         onChange={e => { setDraft({ ...draft, description: e.target.value }); setNotice(null); }} />
+      <label htmlFor={`${id}-driver`}>Kierowca w ewidencji <span>opcjonalnie</span></label>
+      <select id={`${id}-driver`} value={draft.driver_id ?? ""} disabled={!canEdit || busy}
+        onChange={e => { setDraft({ ...draft, driver_id: e.target.value }); setNotice(null); }}>
+        <option value="">Brak wskazanego kierowcy</option>
+        {drivers.map(person => (
+          <option key={person.id} value={person.id}>{person.display_name}</option>
+        ))}
+      </select>
+      {base.driver?.historical_warning && <small>{base.driver.historical_warning}</small>}
       <small>Puste pole usuwa wcześniejszy wpis. Dane przejazdu pozostają bez zmian.</small>
       {base.updated_at && <small>Ostatnia zmiana: {base.updated_by?.display_name ?? "Użytkownik"} · {modifiedTime(base.updated_at)}</small>}
       {error && <p className="form-error" role="alert">{error}</p>}

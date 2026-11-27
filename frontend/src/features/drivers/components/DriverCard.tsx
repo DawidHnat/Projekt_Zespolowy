@@ -114,7 +114,15 @@ export function DriverCard({
         </div>
         <div>
           <dt>Wpisane kategorie</dt>
-          <dd>{profile.categories.join(", ") || "Brak wpisanych kategorii"}</dd>
+          <dd>
+            {profile.categories.join(", ") || "Brak wpisanych kategorii"}
+            {" · "}
+            {profile.compatibility.status === "compatible"
+              ? "Zgodne"
+              : profile.compatibility.status === "incompatible"
+                ? "Niezgodne"
+                : "Niezweryfikowane"}
+          </dd>
         </div>
         <div>
           <dt>Pojazdy ({profile.vehicles_total})</dt>
