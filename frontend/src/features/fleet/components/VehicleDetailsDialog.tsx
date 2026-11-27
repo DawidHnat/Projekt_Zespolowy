@@ -1,11 +1,12 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { CarFront, Users, Wrench, Route, X } from "lucide-react";
+import { CarFront, History, Users, Wrench, Route, X } from "lucide-react";
 import { useFleet } from "../model/FleetProvider";
 import { useVehiclePreferences } from "../model/VehiclePreferences";
 import { statusLabels, type Vehicle } from "../model/types";
 import { VehicleCardDetails } from "./VehicleCardDetails";
 import { VehiclePhoto } from "./VehiclePhoto";
 import { EmptyState } from "../../../shared/components/EmptyState";
+import { VehicleAuditHistory } from "../../audit/VehicleAuditHistory";
 import { VehicleTrips } from "../../trips/components/VehicleTrips";
 import { useTripDay } from "../../trips/model/useTripDay";
 
@@ -30,6 +31,13 @@ const tabs = [
     icon: Wrench,
     heading: "Przeglądy i serwis",
     description: "Tu znajdą się terminy i historia przeglądów tego pojazdu.",
+  },
+  {
+    id: "audit",
+    title: "Historia zmian",
+    icon: History,
+    heading: "Historia zmian pojazdu",
+    description: "Dziennik operacji na pojeździe, przypisaniach i ewidencji.",
   },
   {
     id: "trips",
@@ -104,6 +112,8 @@ function VehicleDetailsContent({ vehicle, unsaved, onUnsaved, mayLeave }: {
                 />
               ) : current.id === "vehicle" ? (
                 <VehicleCardDetails vehicle={vehicle} onUnsaved={onUnsaved} />
+              ) : current.id === "audit" ? (
+                <VehicleAuditHistory vehicleId={vehicle.id} />
               ) : <>
               <EmptyState
                 icon={current.icon}

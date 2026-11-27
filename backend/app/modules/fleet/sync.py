@@ -15,6 +15,7 @@ from app.core.settings import DEFAULT_STALE_SECONDS
 from app.integrations.webfleet.client import REQUEST_INTERVALS, WebfleetClient, WebfleetError
 from app.integrations.webfleet.models import MAX_ODOMETER_KM, ObjectSnapshot
 from app.modules.analytics.service import evaluate_distance_rules, record_distance_interval
+from app.modules.audit.service import build_diff, record_audit_event
 from app.modules.auth.service import aware
 
 MAX_READ_ATTEMPTS = 3
@@ -131,8 +132,27 @@ def apply_records(session, source, masters, readings, now):
     # cannot replace a known roster, even if its telemetry is internally consistent.
     if any(vehicle.active and uid not in masters for uid, vehicle in vehicles.items()):
         raise WebfleetError("INCOMPLETE_REPORT")
+    sync_correlation_id = uuid4().hex
     for uid, row in masters.items():
         vehicle = vehicles.get(uid)
+        is_new = vehicle is None
+        before_roster = (
+            {
+                "origin": "webfleet",
+                "name": vehicle.name,
+                "number": vehicle.number,
+                "license_plate": vehicle.license_plate,
+                "vehicle_type": vehicle.vehicle_type,
+            }
+            if vehicle is not None
+            else {
+                "origin": None,
+                "name": None,
+                "number": None,
+                "license_plate": None,
+                "vehicle_type": None,
+            }
+        )
         if not vehicle:
             vehicle = Vehicle(source_account=source, external_uid=uid, name="Bez nazwy")
             session.add(vehicle)
@@ -147,6 +167,28 @@ def apply_records(session, source, masters, readings, now):
         if not vehicle.manual_vehicle_type:
             vehicle.vehicle_type = str(row["vehicletype"])[:100] if row.get("vehicletype") else None
         vehicle.active = True
+        after_roster = {
+            "origin": "webfleet",
+            "name": vehicle.name,
+            "number": vehicle.number,
+            "license_plate": vehicle.license_plate,
+            "vehicle_type": vehicle.vehicle_type,
+        }
+        roster_diff = build_diff("vehicle", before_roster, after_roster)
+        if is_new or roster_diff:
+            record_audit_event(
+                session,
+                entity_type="vehicle",
+                entity_id=vehicle.id,
+                vehicle_id=vehicle.id,
+                operation="vehicle.imported",
+                actor_id=None,
+                actor_type="import",
+                source_account=source,
+                changes=roster_diff,
+                correlation_id=sync_correlation_id,
+                occurred_at=now,
+            )
         reading = readings.get(uid)
         if reading:
             position_at = reading.position_at

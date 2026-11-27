@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 import uvicorn
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import create_engine, delete, or_, select, update
+from sqlalchemy import create_engine, delete, or_, select, text, update
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
@@ -19,6 +19,7 @@ from app.core.models import Driver, Measurement, SyncState, Vehicle
 from app.core.settings import Settings
 from app.main import create_app
 from app.modules.analytics.models import Alert, AlertReceipt, DailyDistance, Rule
+from app.modules.audit.models import AuditEvent
 from app.modules.auth.models import LoginAttempt, LoginSession, User
 from app.modules.auth.service import password_hasher
 from app.modules.drivers.models import DriverAssignment, DriverCategory
@@ -129,6 +130,8 @@ def main():
     engine = create_engine(database_url)
     if sys.argv[1:] == ["reset-case"]:
         with Session(engine) as session:
+            session.execute(text("SET LOCAL fleet_flow.audit_maintenance = 'allow'"))
+            session.execute(delete(AuditEvent))
             session.execute(delete(LoginAttempt))
             session.execute(delete(LoginSession))
             session.execute(delete(AccountPreference))
@@ -141,6 +144,7 @@ def main():
             session.execute(
                 update(Vehicle).values(
                     driver_id=None,
+                    make=None,
                     archived=False,
                     archived_at=None,
                     archived_by=None,

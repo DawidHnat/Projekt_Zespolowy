@@ -370,6 +370,10 @@ def test_every_implemented_operation_has_a_real_success_response(logged_in, monk
         f"/drivers/{driver_id}/assignments/{assigned['assignment']['id']}/close",
         json={"version": assigned["driver_version"]},
     )
+    audit_actors = check("GET", "/audit/actors")
+    assert len(audit_actors["items"]) >= 1
+    audit_events = check("GET", "/audit/events")
+    assert audit_events["total"] >= 1
     check("POST", "/auth/logout")
     check(
         "POST", "/auth/password/request", json={"username": "nonexistent-synthetic-contract-user"}
@@ -459,6 +463,8 @@ def test_auth_validation_conflict_and_dependency_errors_have_the_contract_shape(
         f"/trips/{trip}",
         "/analytics/rules",
         "/analytics/alerts",
+        "/audit/events",
+        "/audit/actors",
     ):
         validate_error(client.get("/api/v1" + path), 401, "UNAUTHENTICATED")
 

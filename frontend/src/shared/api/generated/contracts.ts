@@ -44,6 +44,10 @@ export type VehiclePhotoState = { "available": boolean; "version": number; "stat
 export type VehicleDocumentItem = { "id": string; "vehicle_id": string; "kind": "inspection" | "insurance"; "name": string; "mime_type": "application/pdf" | "image/jpeg" | "image/png"; "size_bytes": number; "status": "quarantined" | "clean" | "rejected" | "scanner_unavailable"; "available": boolean; "code": string | null; "version": number; "created_at": string; "updated_at": string; };
 export type VehicleDocumentsState = { "vehicle_id": string; "card_version": number; "inspection_due_on": string | null; "insurance_due_on": string | null; "limits": VehicleDocumentLimits; "photo": VehiclePhotoState; "items": Array<VehicleDocumentItem>; };
 export type VehiclePhotoDeleteResult = { "ok": true; "photo_version": number; };
+export type AuditActorList = { "items": Array<Author>; };
+export type AuditVehicleRef = { "id": string; "name": string; "license_plate": string | null; };
+export type AuditEventItem = { "id": string; "occurred_at": string; "actor_type": "user" | "import" | "system"; "actor": Author | null; "entity_type": "vehicle" | "vehicle_odometer" | "vehicle_document" | "driver" | "driver_assignment" | "trip_annotation" | "user_account" | "user_session"; "entity_id": string; "vehicle_id": string | null; "vehicle": AuditVehicleRef | null; "operation": string; "outcome": "succeeded" | "denied" | "failed"; "correlation_id": string; "changes": {  }; };
+export type AuditEventList = { "items": Array<AuditEventItem>; "total": number; "page": number; "page_size": number; };
 
 export type Responses = {
   "GET /fleet/refresh": SourceRefreshState;
@@ -88,4 +92,6 @@ export type Responses = {
   "DELETE /fleet/vehicles/{id}/documents/{document_id}": OkResponse;
   "PUT /fleet/vehicles/{id}/photo": VehiclePhotoState;
   "DELETE /fleet/vehicles/{id}/photo": VehiclePhotoDeleteResult;
+  "GET /audit/actors": AuditActorList;
+  "GET /audit/events": AuditEventList;
 };

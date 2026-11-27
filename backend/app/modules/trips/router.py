@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_session
 from app.core.errors import ApiError
 from app.core.models import Driver, Vehicle
+from app.modules.audit.service import build_diff, record_audit_event
 from app.modules.auth.models import User
 from app.modules.auth.service import aware, current_user, editor, now_utc
 from app.modules.drivers.compatibility import evaluate_driver_vehicle
@@ -176,6 +177,12 @@ def patch_annotation(
         comp = evaluate_driver_vehicle(driver_cats, vehicle)
         if comp["status"] == "incompatible":
             raise ApiError(409, "LICENSE_INCOMPATIBLE", comp["message"])
+    before_ann = {
+        "purpose": annotation.purpose if annotation else None,
+        "description": annotation.description if annotation else None,
+        "driver_id": annotation.driver_id if annotation else None,
+        "version": version if annotation else None,
+    }
     if annotation is None:
         annotation = TripAnnotation(trip_id=trip.id)
         session.add(annotation)
@@ -185,6 +192,24 @@ def patch_annotation(
     annotation.version = version + 1
     annotation.updated_by = user.id
     annotation.updated_at = now_utc()
+    after_ann = {
+        "purpose": annotation.purpose,
+        "description": annotation.description,
+        "driver_id": annotation.driver_id,
+        "version": annotation.version,
+    }
+    record_audit_event(
+        session,
+        entity_type="trip_annotation",
+        entity_id=trip.id,
+        vehicle_id=trip.vehicle_id,
+        operation="trip_annotation.updated",
+        actor_id=user.id,
+        source_account=source,
+        changes=build_diff("trip_annotation", before_ann, after_ann),
+        request=request,
+        occurred_at=annotation.updated_at,
+    )
     session.commit()
     trip_driver = (
         selected_driver

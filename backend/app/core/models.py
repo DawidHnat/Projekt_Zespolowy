@@ -223,5 +223,6 @@ class SyncState(Base):
     error_code: Mapped[str | None] = mapped_column(String(80))
 
 
+import app.modules.audit.models  # noqa: E402, F401
 import app.modules.auth.models  # noqa: E402, F401
 import app.modules.fleet.documents  # noqa: E402, F401

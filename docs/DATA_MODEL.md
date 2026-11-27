@@ -182,3 +182,15 @@ kartoteka i ocena prawa jazdy czytają te same kolumny. Liczby są dodatnie lub 
 rejestracja w Polsce nie poprzedza pierwszej rejestracji. Zmiana kategorii nie kasuje danych
 leasingu; interfejs je ukrywa poza kategorią Leasing. Synchronizacja WEBFLEET nie zapisuje
 tych pól. Downgrade poniżej `0016` jest blokowany, gdy którekolwiek z nich ma wartość.
+
+## Wspólny dziennik zmian — SCRUM-87
+
+Migracja `0016_audit_events` wprowadza tabelę `audit_events` z wyzwalaczem `append-only`
+(`trg_audit_events_append_only`) chroniącym rekordy przed `UPDATE` i `DELETE` z poziomu
+aplikacji. Wpisy powstają w jednej transakcji ze zmianą biznesową i przechowują autora,
+`actor_type` (`user` / `import` / `system`), czas UTC, obiekt (`entity_type`, wewnętrzny
+UUID `entity_id`, opcjonalny `vehicle_id`), `operation`, `outcome`, `correlation_id` oraz
+zmianę wyłącznie dozwolonych pól (`changes`) bez haseł, tokenów, PIN, numerów kart ani GPS.
+[Polityka bezpieczeństwa i retencji dziennika](security/SCRUM-87-audit-log.md).
+Migracja `0017_merge_vehicle_audit` łączy rewizję dziennika z rewizją pełnej
+kartoteki, zachowując identyfikatory obu istniejących migracji.
