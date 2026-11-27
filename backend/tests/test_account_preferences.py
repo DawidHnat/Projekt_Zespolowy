@@ -443,6 +443,17 @@ def test_postgres_concurrent_accounts_cannot_share_an_image_id():
     from app.modules.preferences.models import AccountBackgroundImage
 
     assert make_url(url).database.startswith("fleet_flow_test")
+    import subprocess
+    import sys
+
+    # This file runs before the migration tests, so bring the schema up explicitly.
+    upgrade = subprocess.run(
+        [sys.executable, "-m", "alembic", "upgrade", "head"],
+        env={**os.environ, "DATABASE_URL": url, "SYNC_ENABLED": "false"},
+        capture_output=True,
+        text=True,
+    )
+    assert upgrade.returncode == 0, "alembic upgrade head failed"
     engine = create_engine(url)
     suffix = uuid4().hex[:8]
     names = [f"bg-race-{suffix}-{index}" for index in range(2)]
