@@ -220,3 +220,69 @@ def test_migration_0016_blocks_lossy_downgrade_on_postgres():
         run_alembic("downgrade", "base")
         run_alembic("upgrade", "head")
         engine.dispose()
+
+
+def test_migration_0016_downgrade_waits_for_a_concurrent_card_write():
+    db_url = os.environ.get("TEST_DATABASE_URL")
+    if not db_url or not db_url.startswith("postgresql"):
+        pytest.skip("PostgreSQL migration check")
+    assert make_url(db_url).database.startswith("fleet_flow_test")
+    environment = {**os.environ, "DATABASE_URL": db_url, "SYNC_ENABLED": "false"}
+    vehicle_id = "68686868-6868-4868-8868-686868686869"
+
+    def run_alembic(*args):
+        return subprocess.run(
+            [sys.executable, "-m", "alembic", *args],
+            env=environment,
+            capture_output=True,
+            text=True,
+        )
+
+    engine = create_engine(db_url)
+    assert run_alembic("downgrade", "base").returncode == 0
+    assert run_alembic("upgrade", "head").returncode == 0
+    try:
+        with engine.begin() as conn:
+            conn.execute(
+                text(
+                    "INSERT INTO vehicles (id, source_account, is_manual, name, active, archived, "
+                    "locally_edited, manual_name, manual_license_plate, manual_vehicle_type, "
+                    "card_version, photo_version, tows_heavy_trailer) "
+                    "VALUES (:id, 'syn', true, 'Kartoteka', true, false, true, true, true, "
+                    "false, 1, 0, false)"
+                ),
+                {"id": vehicle_id},
+            )
+        # A card edit is in flight (uncommitted) when the downgrade starts.
+        writer = engine.connect()
+        transaction = writer.begin()
+        writer.execute(text("UPDATE vehicles SET axles = 2 WHERE id = :id"), {"id": vehicle_id})
+        downgrade = subprocess.Popen(
+            [sys.executable, "-m", "alembic", "downgrade", "0015_license_compatibility"],
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        try:
+            with pytest.raises(subprocess.TimeoutExpired):
+                downgrade.wait(timeout=3)
+            transaction.commit()
+            output, errors = downgrade.communicate(timeout=60)
+        finally:
+            writer.close()
+            if downgrade.poll() is None:
+                downgrade.kill()
+        assert downgrade.returncode != 0
+        assert "SCRUM-68" in output + errors
+        with engine.connect() as conn:
+            axles = conn.scalar(
+                text("SELECT axles FROM vehicles WHERE id = :id"), {"id": vehicle_id}
+            )
+        assert axles == 2
+    finally:
+        with engine.begin() as conn:
+            conn.execute(text("DELETE FROM vehicles WHERE id = :id"), {"id": vehicle_id})
+        run_alembic("downgrade", "base")
+        run_alembic("upgrade", "head")
+        engine.dispose()

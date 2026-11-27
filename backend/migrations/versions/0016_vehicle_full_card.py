@@ -53,6 +53,10 @@ def upgrade():
 
 def downgrade():
     connection = op.get_bind()
+    if connection.dialect.name == "postgresql":
+        # Serialize with card writes: lock before checking, in the same transaction,
+        # so a concurrent PATCH either commits first (and is seen) or waits.
+        op.execute("LOCK TABLE vehicles IN ACCESS EXCLUSIVE MODE")
     filled = " OR ".join(f"{name} IS NOT NULL" for name, _ in COLUMNS)
     if connection.scalar(sa.text(f"SELECT count(*) FROM vehicles WHERE {filled}")):
         raise RuntimeError(

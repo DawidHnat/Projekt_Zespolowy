@@ -181,4 +181,7 @@ kartoteka i ocena prawa jazdy czytają te same kolumny. Liczby są dodatnie lub 
 (brak danych zamiast zera), masa własna i ładowność nie przekraczają DMC, a pierwsza
 rejestracja w Polsce nie poprzedza pierwszej rejestracji. Zmiana kategorii nie kasuje danych
 leasingu; interfejs je ukrywa poza kategorią Leasing. Synchronizacja WEBFLEET nie zapisuje
-tych pól. Downgrade poniżej `0016` jest blokowany, gdy którekolwiek z nich ma wartość.
+tych pól. Downgrade poniżej `0016` jest blokowany, gdy którekolwiek z nich ma wartość;
+na PostgreSQL migracja najpierw blokuje tabelę `vehicles` (`ACCESS EXCLUSIVE`), więc
+równoległy zapis kartoteki jest widoczny dla kontroli albo czeka. Przed downgrade
+wycisz ruch aplikacji (zatrzymaj backend i worker synchronizacji).
