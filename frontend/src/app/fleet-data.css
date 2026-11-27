@@ -468,8 +468,24 @@ table.vehicle-table {
     gap: 28px;
     width: min(100%, 440px);
   }
+  /* One column: the sign-in card follows the brand, and the copy and art
+     come after it, so the first field is reachable without scrolling.
+     DOM order is unchanged; nothing focusable sits between brand and form. */
+  .login-intro {
+    display: contents;
+  }
   .login-intro > .brand {
-    margin-bottom: 26px;
+    order: 0;
+    margin-bottom: 0;
+  }
+  .login-page-composed .login-card {
+    order: 1;
+  }
+  .login-intro-copy {
+    order: 2;
+  }
+  .login-art {
+    order: 3;
   }
   .login-intro-copy h1 {
     max-width: 14ch;
@@ -486,6 +502,21 @@ table.vehicle-table {
   }
   .login-page-composed .login-card {
     padding: clamp(24px, 7vw, 34px);
+  }
+}
+/* Short phone screens (e.g. landscape): drop card decoration, keep heading and fields. */
+@media (max-width: 680px) and (max-height: 520px) {
+  .login-page-composed {
+    padding-top: 16px;
+  }
+  .login-layout {
+    gap: 16px;
+  }
+  .login-page-composed :is(.login-symbol, .login-form-eyebrow, .login-form-description) {
+    display: none;
+  }
+  .login-page-composed .login-card {
+    padding: 18px 20px;
   }
 }
 @media (max-width: 360px) {
