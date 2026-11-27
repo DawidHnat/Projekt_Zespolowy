@@ -59,6 +59,24 @@ zdejmij flagę w SCRUM-49 i zachowaj link do dowodu w Jirze.
   środowiska, Marcel zapisuje niezależne QA, prowadzący spotkanie zapisuje
   wynik faktycznego demo. [SCRUM-178](https://fleet-flow.atlassian.net/browse/SCRUM-178) · [SCRUM-152](https://fleet-flow.atlassian.net/browse/SCRUM-152)
 
+## Kolejność integracji i stan otwartych review
+
+Poniżej odczyt 27.11. Na wszystkich wskazanych SHA przeszły `Required CI`,
+`Backend (3.13)` i `Lint`. Ponowny przegląd wykazał otwarte poprawki.
+Dawid potwierdza [kolejność i graf migracji](https://github.com/DawidHnat/Projekt_Zespolowy/pull/191#issuecomment-7222491233).
+Każdy przyrost wraca do review i QA po aktualizacji bazy.
+
+| Kolejność | PR i sprawdzony SHA | Blokada i właściciel |
+| --- | --- | --- |
+| 1 | [#191](https://github.com/DawidHnat/Projekt_Zespolowy/pull/191) · `df371ae` | Nazarewicz i Dawid. Blokada zapisów podczas downgrade, uzgodnienie wycofanych pozycji ze źródła z zachowaniem adnotacji, konflikt fixture E2E z #161. |
+| 2 | [#192](https://github.com/DawidHnat/Projekt_Zespolowy/pull/192) · `a10e638` | Nazarewicz. Zgodność z definicją MVP, anulowane ładowanie w niepoprawnym okresie i konflikt stylów z #191. Marcel odbiera pokrycie i trwałość danych. |
+| 3 | [#171](https://github.com/DawidHnat/Projekt_Zespolowy/pull/171) · `2e87bca` | Dawid. Przywrócony pojazd z flagą nieaktywny w źródle musi być dostępny w uzgodnionym widoku. Sprawdzić regresję historii. |
+| 4 | [#173](https://github.com/DawidHnat/Projekt_Zespolowy/pull/173) · `3e94d6e` | Dawid. Powiązanie pojazdów musi przenieść przejazdy, postoje i dni pokrycia oraz rozwiązać kolizje kluczy w transakcji. |
+| 5 | [#187](https://github.com/DawidHnat/Projekt_Zespolowy/pull/187) · `5b60b66` | Dawid. Trwały magazyn i wspólne odtworzenie bazy i plików, walidacja, skanowanie, limity i obsługa krótkiego zapisu. |
+| 6 | [#188](https://github.com/DawidHnat/Projekt_Zespolowy/pull/188) · `c0d2290` | Dawid. Reguła D1 uwzględnia długość i miejsca. Brak danych daje „do sprawdzenia”. Uzgodnić transakcję przypisań i właściciela rewizji pełnej kartoteki. [Decyzja macierzy](https://github.com/DawidHnat/Projekt_Zespolowy/pull/188#issuecomment-7222483093) |
+| 7 | [#204](https://github.com/DawidHnat/Projekt_Zespolowy/pull/204) · `096bbc8` | Nazarewicz i Dawid. Wydzielić pełną kartotekę po integracji stosu. Rewizja 0016 występuje także w #188. Przed downgrade zserializować kontrolę z zapisami. |
+| Niezależnie | [#168](https://github.com/DawidHnat/Projekt_Zespolowy/pull/168) · `61053bb` | Przyrost przeniesiono do [#206](https://github.com/DawidHnat/Projekt_Zespolowy/pull/206) pod kluczem [SCRUM-181](https://fleet-flow.atlassian.net/browse/SCRUM-181). Dawid przegląda nowy PR. Marcel nadal prowadzi retesty i pełny odbiór SCRUM-120/121. |
+
 ## Zapis po Review 28.11
 
 | Pole | Dowód do zebrania |

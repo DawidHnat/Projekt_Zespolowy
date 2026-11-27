@@ -7,7 +7,7 @@ Wersja końcowa wymaga odczytu rzeczywistego zamknięcia Sprintu 3.
 
 | Osoba | Login GitHub | Commity na `main` | Commity na gałęziach `origin` | PR do `main` | PR do gałęzi zależnych | Review cudzych PR-ów |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| Jakub Czaja | `jczaja51` | 17 | 46 | 14 | 6 | 110 |
+| Jakub Czaja | `jczaja51` | 17 | 45 | 14 | 6 | 110 |
 | Dawid Hnat | `DawidHnat` | 0 | 0 | 0 | 0 | 46 |
 | Autor zapisany w Git jako DawidHnat | `dawidhstud` | 0 | 10 | 0 | 0 | 0 |
 | Jakub Nazarewicz | `jnazarewiczs` | 0 | 13 | 0 | 1 | 12 |
