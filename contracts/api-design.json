@@ -2389,6 +2389,114 @@
             }
           ]
         },
+        "ownership_category": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "Firmowe",
+                "Prywatne",
+                "Leasing"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "leasing_buyout_on": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "first_registration_on": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "first_registration_pl_on": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "engine_capacity_cc": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "power_kw": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "curb_weight_kg": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 120000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "payload_kg": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 120000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "axles": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "license_requirement": {
           "$ref": "#/$defs/VehicleLicenseRequirement"
         },

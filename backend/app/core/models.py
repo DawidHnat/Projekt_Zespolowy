@@ -95,6 +95,24 @@ class Vehicle(Base):
             "('AM','A1','A2','A','B1','B','B+E','C1','C1+E','C','C+E','D1','D1+E','D','D+E','T')",
             name="ck_vehicles_req_cat_override",
         ),
+        CheckConstraint(
+            "ownership_category IS NULL OR ownership_category IN ('Firmowe','Prywatne','Leasing')",
+            name="ck_vehicles_ownership_category",
+        ),
+        CheckConstraint(
+            "(engine_capacity_cc IS NULL "
+            "OR (engine_capacity_cc > 0 AND engine_capacity_cc <= 100000)) "
+            "AND (power_kw IS NULL OR (power_kw > 0 AND power_kw <= 10000)) "
+            "AND (curb_weight_kg IS NULL OR (curb_weight_kg > 0 AND curb_weight_kg <= 120000)) "
+            "AND (payload_kg IS NULL OR (payload_kg > 0 AND payload_kg <= 120000)) "
+            "AND (axles IS NULL OR (axles > 0 AND axles <= 20))",
+            name="ck_vehicles_card_technical",
+        ),
+        CheckConstraint(
+            "first_registration_on IS NULL OR first_registration_pl_on IS NULL "
+            "OR first_registration_pl_on >= first_registration_on",
+            name="ck_vehicles_first_registration_order",
+        ),
     )
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     source_account: Mapped[str] = mapped_column(String(64), index=True)
@@ -155,6 +173,16 @@ class Vehicle(Base):
     passenger_seats: Mapped[int | None] = mapped_column(Integer)
     tows_heavy_trailer: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     required_category_override: Mapped[str | None] = mapped_column(String(5))
+    # SCRUM-68: remaining manual card fields; WEBFLEET sync never writes them.
+    ownership_category: Mapped[str | None] = mapped_column(String(20))
+    leasing_buyout_on: Mapped[date | None] = mapped_column(Date)
+    first_registration_on: Mapped[date | None] = mapped_column(Date)
+    first_registration_pl_on: Mapped[date | None] = mapped_column(Date)
+    engine_capacity_cc: Mapped[int | None] = mapped_column(Integer)
+    power_kw: Mapped[int | None] = mapped_column(Integer)
+    curb_weight_kg: Mapped[int | None] = mapped_column(Integer)
+    payload_kg: Mapped[int | None] = mapped_column(Integer)
+    axles: Mapped[int | None] = mapped_column(Integer)
 
 
 @event.listens_for(Vehicle, "before_insert")

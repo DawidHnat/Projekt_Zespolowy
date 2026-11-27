@@ -19,23 +19,44 @@ const textFields = [
   { key: "leasing_contract_no", label: "Nr umowy leasingu", max: 100 },
 ] as const;
 
+const OWNERSHIP_CATEGORIES = ["Firmowe", "Prywatne", "Leasing"] as const;
+// Leasing data stays stored when the category changes; it is only shown for leasing.
+const LEASING_KEYS = new Set<string>([
+  "leasing_company", "leasing_contract_no", "leasing_end_on", "leasing_buyout_on",
+]);
+
 const LICENSE_CATEGORIES = [
   "AM", "A1", "A2", "A", "B1", "B", "B+E", "C1", "C1+E", "C", "C+E", "D1", "D1+E", "D", "D+E", "T",
 ] as const;
 
 const dateFields = [
+  { key: "first_registration_on", label: "Pierwsza rejestracja" },
+  { key: "first_registration_pl_on", label: "Pierwsza rejestracja w Polsce" },
   { key: "leasing_end_on", label: "Koniec leasingu" },
+  { key: "leasing_buyout_on", label: "Data wykupu" },
   { key: "inspection_due_on", label: "Następne badanie techniczne" },
   { key: "insurance_due_on", label: "Koniec ważności OC" },
 ] as const;
 
+// DMC and passenger seats are the shared SCRUM-70 fields used by the licence check.
+const numberFields = [
+  { key: "engine_capacity_cc", label: "Pojemność silnika (cm³)", view: "Pojemność silnika", unit: "cm³", min: 1, max: 100000 },
+  { key: "power_kw", label: "Moc (kW)", view: "Moc", unit: "kW", min: 1, max: 10000 },
+  { key: "gross_weight_kg", label: "DMC w kg", view: "DMC", unit: "kg", min: 1, max: 120000 },
+  { key: "curb_weight_kg", label: "Masa własna (kg)", view: "Masa własna", unit: "kg", min: 1, max: 120000 },
+  { key: "payload_kg", label: "Ładowność (kg)", view: "Ładowność", unit: "kg", min: 1, max: 120000 },
+  { key: "passenger_seats", label: "Miejsca pasażerskie (bez kierowcy)", view: "Miejsca pasażerskie (bez kierowcy)", unit: "", min: 0, max: 120 },
+  { key: "axles", label: "Liczba osi", view: "Liczba osi", unit: "", min: 1, max: 20 },
+] as const;
+const NUMERIC_KEYS = new Set<string>(["year", ...numberFields.map(field => field.key)]);
+
 type EditableKey =
   | typeof textFields[number]["key"]
   | typeof dateFields[number]["key"]
+  | typeof numberFields[number]["key"]
+  | "ownership_category"
   | "manual_odometer_km"
   | "manual_odometer_date"
-  | "gross_weight_kg"
-  | "passenger_seats"
   | "tows_heavy_trailer"
   | "required_category_override";
 type Changes = Partial<Record<EditableKey, string>>;
@@ -44,6 +65,23 @@ type Draft = { base: Vehicle; changes: Changes };
 function fieldValue(vehicle: Vehicle, key: EditableKey) {
   if (key === "tows_heavy_trailer") return vehicle.tows_heavy_trailer ? "true" : "false";
   return String(vehicle[key] ?? "");
+}
+
+/** Leasing fields show for the leasing category, or for older cards that already hold them. */
+function showsLeasing(category: string, stored: Vehicle) {
+  if (category) return category === "Leasing";
+  return [...LEASING_KEYS].some(key => fieldValue(stored, key as EditableKey) !== "");
+}
+
+function hidesStoredLeasing(category: string, stored: Vehicle) {
+  return !showsLeasing(category, stored) &&
+    [...LEASING_KEYS].some(key => fieldValue(stored, key as EditableKey) !== "");
+}
+
+function formatNumber(value: number | null | undefined, unit: string) {
+  if (value == null) return "Brak danych";
+  const text = value.toLocaleString("pl-PL");
+  return unit ? `${text} ${unit}` : text;
 }
 
 function formatLicenseRequirement(vehicle: Vehicle): string {
@@ -87,6 +125,11 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
   const dirty = (!!draft && Object.keys(draft.changes).length > 0) || (archiving && archiveReason.trim().length > 0);
   const editable = user?.role === "admin" || user?.role === "editor";
   const path = `/fleet/vehicles/${encodeURIComponent(vehicle.id)}`;
+  const draftCategory = draft
+    ? draft.changes.ownership_category ?? fieldValue(draft.base, "ownership_category")
+    : "";
+  const draftLeasing = draft ? showsLeasing(draftCategory, draft.base) : false;
+  const visibleLeasing = showsLeasing(visible.ownership_category ?? "", visible);
 
   useEffect(() => {
     onUnsaved(dirty || saving);
@@ -115,7 +158,7 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
       return;
     }
     const body = Object.fromEntries(Object.entries(draft.changes).map(([key, value]) => {
-      if (key === "year" || key === "gross_weight_kg" || key === "passenger_seats")
+      if (NUMERIC_KEYS.has(key))
         return [key, value.trim() ? Number(value) : null];
       if (key === "tows_heavy_trailer")
         return [key, value === "true"];
@@ -330,7 +373,25 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
       {draft && !visible.archived ? (
         <form noValidate aria-label="Kartoteka pojazdu" aria-busy={saving} onSubmit={submit}>
           <div className="vehicle-card-fields">
-            {textFields.map(({ key, label, max }) => (
+            <label htmlFor={`${id}-ownership-category`}>
+              Kategoria pojazdu
+              <select
+                id={`${id}-ownership-category`}
+                value={draftCategory}
+                disabled={saving}
+                aria-invalid={Boolean(fieldErrors.ownership_category)}
+                onChange={event => change("ownership_category", event.target.value)}
+              >
+                <option value="">Brak danych</option>
+                {OWNERSHIP_CATEGORIES.map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+              {fieldErrors.ownership_category && (
+                <span className="form-error">{fieldErrors.ownership_category}</span>
+              )}
+            </label>
+            {textFields.filter(({ key }) => draftLeasing || !LEASING_KEYS.has(key)).map(({ key, label, max }) => (
               <label key={key} htmlFor={`${id}-${key}`}>
                 {label}
                 <input
@@ -348,9 +409,10 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
                 {fieldErrors[key] && <span className="form-error">{fieldErrors[key]}</span>}
               </label>
             ))}
-            {dateFields.map(({ key, label }) => (
+            {dateFields.filter(({ key }) => draftLeasing || !LEASING_KEYS.has(key)).map(({ key, label }) => (
               <div key={key}>
-                <span>{label}</span>
+                {/* DatePicker names its button itself; the caption is not a second <label>. */}
+                <span aria-hidden="true">{label}</span>
                 <DatePicker
                   id={`${id}-${key}`}
                   label={label}
@@ -359,6 +421,7 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
                   disabled={saving}
                   allowClear
                 />
+                {fieldErrors[key] && <span className="form-error">{fieldErrors[key]}</span>}
               </div>
             ))}
             <label htmlFor={`${id}-manual-odometer-km`}>
@@ -392,40 +455,24 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
                 <span className="form-error">{fieldErrors.manual_odometer_date}</span>
               )}
             </div>
-            <label htmlFor={`${id}-gross-weight-kg`}>
-              DMC w kg
-              <input
-                id={`${id}-gross-weight-kg`}
-                type="number"
-                step="1"
-                min={1}
-                max={120000}
-                value={draft.changes.gross_weight_kg ?? fieldValue(draft.base, "gross_weight_kg")}
-                onChange={event => change("gross_weight_kg", event.target.value)}
-                aria-invalid={Boolean(fieldErrors.gross_weight_kg)}
-                readOnly={saving}
-              />
-              {fieldErrors.gross_weight_kg && (
-                <span className="form-error">{fieldErrors.gross_weight_kg}</span>
-              )}
-            </label>
-            <label htmlFor={`${id}-passenger-seats`}>
-              Miejsca pasażerskie
-              <input
-                id={`${id}-passenger-seats`}
-                type="number"
-                step="1"
-                min={0}
-                max={120}
-                value={draft.changes.passenger_seats ?? fieldValue(draft.base, "passenger_seats")}
-                onChange={event => change("passenger_seats", event.target.value)}
-                aria-invalid={Boolean(fieldErrors.passenger_seats)}
-                readOnly={saving}
-              />
-              {fieldErrors.passenger_seats && (
-                <span className="form-error">{fieldErrors.passenger_seats}</span>
-              )}
-            </label>
+            {numberFields.map(({ key, label, min, max }) => (
+              <label key={key} htmlFor={`${id}-${key}`}>
+                {label}
+                <input
+                  id={`${id}-${key}`}
+                  type="number"
+                  inputMode="numeric"
+                  step="1"
+                  min={min}
+                  max={max}
+                  value={draft.changes[key] ?? fieldValue(draft.base, key)}
+                  onChange={event => change(key, event.target.value)}
+                  aria-invalid={Boolean(fieldErrors[key])}
+                  readOnly={saving}
+                />
+                {fieldErrors[key] && <span className="form-error">{fieldErrors[key]}</span>}
+              </label>
+            ))}
             <label htmlFor={`${id}-required-category-override`}>
               Wymagana kategoria (wyjątek)
               <select
@@ -459,6 +506,9 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
               Przyczepa ciężka (+E)
             </label>
           </div>
+          {hidesStoredLeasing(draftCategory, draft.base) && (
+            <small>Dane leasingu pozostają zapisane i są ukryte, dopóki kategoria pojazdu nie jest „Leasing”.</small>
+          )}
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="vehicle-card-actions">
             {conflict && <button type="button" className="button button-secondary" disabled={saving}
@@ -479,10 +529,14 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
               <dt>Pochodzenie</dt>
               <dd>{visible.origin === "manual" ? "Ręczny (bez lokalizatora WEBFLEET)" : "WEBFLEET"}</dd>
             </div>
-            {textFields.map(({ key, label }) => (
+            <div>
+              <dt>Kategoria pojazdu</dt>
+              <dd>{visible.ownership_category ?? "Brak danych"}</dd>
+            </div>
+            {textFields.filter(({ key }) => visibleLeasing || !LEASING_KEYS.has(key)).map(({ key, label }) => (
               <div key={key}><dt>{label}</dt><dd>{fieldValue(visible, key) || "Brak danych"}</dd></div>
             ))}
-            {dateFields.map(({ key, label }) => (
+            {dateFields.filter(({ key }) => visibleLeasing || !LEASING_KEYS.has(key)).map(({ key, label }) => (
               <div key={key}>
                 <dt>{label}</dt>
                 <dd>{displayCalendarDate(fieldValue(visible, key)) || "Brak danych"}</dd>
@@ -500,18 +554,9 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
                   : "Brak danych"}
               </dd>
             </div>
-            <div>
-              <dt>DMC</dt>
-              <dd>
-                {visible.gross_weight_kg != null
-                  ? `${visible.gross_weight_kg.toLocaleString("pl-PL")} kg`
-                  : "Brak danych"}
-              </dd>
-            </div>
-            <div>
-              <dt>Miejsca pasażerskie</dt>
-              <dd>{visible.passenger_seats != null ? String(visible.passenger_seats) : "Brak danych"}</dd>
-            </div>
+            {numberFields.map(({ key, view, unit }) => (
+              <div key={key}><dt>{view}</dt><dd>{formatNumber(visible[key], unit)}</dd></div>
+            ))}
             <div>
               <dt>Przyczepa ciężka (+E)</dt>
               <dd>{visible.tows_heavy_trailer ? "Tak" : "Nie"}</dd>
@@ -521,6 +566,9 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
               <dd>{formatLicenseRequirement(visible)}</dd>
             </div>
           </dl>
+          {hidesStoredLeasing(visible.ownership_category ?? "", visible) && (
+            <small>Dane leasingu pozostają zapisane i są ukryte, dopóki kategoria pojazdu nie jest „Leasing”.</small>
+          )}
           {error && !archiving && <p className="form-error" role="alert">{error}</p>}
           {editable && visible.card_version && !visible.archived && !archiving && (
             <div className="vehicle-card-actions">
