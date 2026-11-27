@@ -236,8 +236,11 @@ postój ma czasy, czas trwania w sekundach i dostępny opis miejsca. Odczyt
 `/trips/stops` domyślnie obejmuje postoje od 300 s, parametr
 `min_duration_seconds=0` pozwala zobaczyć także krótsze. Zakres operacji i
 jednostki opisuje [dokumentacja WEBFLEET](https://media.webfleet.com/fl_attachment/media/doc/documentations/webfleet.connect-doc-1.74.0.pdf#page=244).
-Rollback aplikacji zachowuje nowe kolumny i tabele. Przed cofnięciem DDL zachowaj
-kopię, ponieważ downgrade usuwa pokrycie, postoje i dodatkowe fakty przejazdu.
+Rollback aplikacji zachowuje nowe kolumny i tabele; poprzednia wersja aplikacji
+działa na rozszerzonym schemacie. Downgrade poniżej `0012_trip_history` jest
+blokowany, gdy istnieją zaimportowane postoje, pokrycie raportów, adresy lub
+kierowcy przejazdów, bo usunąłby te dane. Przy wycofaniu zachowaj schemat
+i cofnij tylko aplikację; DDL cofaj wyłącznie na bazie bez zaimportowanej historii.
 
 ## API floty — SCRUM-19
 

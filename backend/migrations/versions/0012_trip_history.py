@@ -38,6 +38,23 @@ def upgrade():
 
 
 def downgrade():
+    # Imported history cannot be represented by 0011; refuse instead of dropping it.
+    # Rollback path: keep this schema and roll back only the application.
+    connection = op.get_bind()
+    imported = connection.scalar(
+        sa.text(
+            "SELECT (SELECT count(*) FROM trip_stops) "
+            "+ (SELECT count(*) FROM trip_history_days) "
+            "+ (SELECT count(*) FROM trips WHERE start_address IS NOT NULL "
+            "OR end_address IS NOT NULL OR driver_id IS NOT NULL)"
+        )
+    )
+    if imported:
+        raise RuntimeError(
+            "SCRUM-24: imported trip history (stops, report coverage, addresses or trip "
+            "drivers) exists and cannot be represented by the 0011 schema; keep the schema "
+            "and roll back only the application"
+        )
     op.drop_table("trip_history_sources")
     op.drop_table("trip_history_days")
     op.drop_table("trip_stops")
