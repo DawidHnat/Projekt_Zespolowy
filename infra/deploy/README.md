@@ -1,7 +1,7 @@
 # Wdrożenie rozwojowe — SCRUM-18
 
 Stos pozostaje uzgodniony: React/TypeScript, FastAPI i PostgreSQL. Frontend
-buduje się w GitHub Actions, backend w obrazie Pythona na VPS. Caddy obsługuje
+i obraz backendu buduje GitHub Actions. Caddy obsługuje
 HTTPS i przekazuje `/api` do niepublicznego backendu. Baza nie publikuje portu.
 Synchronizacja WEBFLEET domyślnie pozostaje wyłączona. Compose respektuje
 `SYNC_ENABLED` z prywatnego środowiska; nie nadpisuje go stałym `false`.
@@ -35,9 +35,10 @@ wersji Pythona.
 Wymagaj jej w ochronie `main`; nazwy tej kontroli nie zmieniaj bez aktualizacji
 reguły. CI nie korzysta z kont WEBFLEET, SMTP ani danych klientów.
 
-Po pushu do `main` i zielonym CI job wdrożenia pobiera zbudowany artefakt tego
-samego commita, dodaje sekret środowiska dopiero w jobie deploymentu i wysyła
-go przez SSH. Sekret nie trafia do publicznego artefaktu Actions ani cache.
+Po pushu do `main` i zielonym CI job wdrożenia pobiera frontend i przeskanowany
+obraz backendu dla tego samego commita. Dołącza plik środowiska dopiero w jobie
+deploymentu i przesyła wydanie przez SSH. Sekret nie trafia do publicznego
+artefaktu Actions ani cache.
 PR nie uruchamia deploymentu i nie dostaje sekretów wdrożenia.
 
 Na VPS powstaje oddzielne wydanie w `/opt/fleet-flow/releases/`. Skrypt robi
@@ -46,6 +47,43 @@ migracje i usługi, a potem sprawdza HTTP z SHA i gotowość API przez HTTPS.
 Dopiero wtedy podmienia wskaźnik `current`. Przy błędzie próbuje przywrócić
 poprzednią aplikację i jej środowisko; migracji bazy nie cofa automatycznie.
 Zmiany niezgodne ze starym schematem wymagają osobnego planu migracji.
+
+### Odbiór obrazu i aktualizacja odbiornika na VPS (SCRUM-100)
+
+Artefakt `backend-image-<SHA>` zawiera archiwum obrazu, jego SHA-256, identyfikator
+obrazu Dockera, SBOM CycloneDX oraz metadane przebiegu CI i commita. Odbiornik
+sprawdza sumę archiwum i identyfikator po `docker load`. Po starcie porównuje
+identyfikator uruchomionego kontenera z tym samym plikiem z CI, a log wypisuje
+SHA wydania i identyfikator. Archiwum po załadowaniu jest usuwane. Lokalny obraz
+i manifesty wydania należy zachować na czas określony dla rollbacku.
+
+Przed aktywacją uzgodnij okno, wolne miejsce na przyjęcie archiwum i obraz,
+dostęp do artefaktów Actions oraz kopię bieżącego odbiornika. W tym samym oknie
+administrator instaluje `deploy.sh` i `load_backend_image.sh` z zatwierdzonego
+commita przez `bootstrap.sh` i uruchamia pierwsze zgodne wydanie. Nowy odbiornik
+wymaga nowych plików i odrzuci archiwum starszego workflow. W razie wycofania
+pierwszej zmiany przywróć poprzedni odbiornik przed uruchomieniem starszego
+workflow. Zwykły automatyczny rollback skryptu używa zachowanego obrazu
+poprzedniego wydania. Przetestuj rollback po migracji na kopii przed aktywacją.
+
+Protokół odbioru łączy commit, run CI, SBOM, wynik skanu, SHA archiwum,
+identyfikator obrazu z joba `Backend image`, identyfikator kontenera na VPS i
+publiczny smoke tego wydania. Właściciel operacyjny potwierdza okno aktywacji.
+
+### Wycofanie aplikacji po migracjach kartoteki i historii (SCRUM-18 / SCRUM-119)
+
+Próba syntetyczna 20.11.2026 objęła starszy backend `dff6240` i migracje
+0011–0012 z `a8af891`. Po rozszerzeniu schematu starsze API nadal potwierdziło
+gotowość, logowanie, odczyt floty i zapisanej historii. Te same odczyty przeszły
+po odtworzeniu kopii schematu 0010 do osobnej bazy.
+
+Stary zapis kartoteki może przejść na rozszerzonym schemacie bez ustawienia
+własności konkretnego pola. W próbie taki zapis zostałby zastąpiony przez
+następną synchronizację nowej aplikacji. Przy powrocie do wersji sprzed 0011
+operator wstrzymuje zapisy kartoteki i synchronizację do czasu ponownego
+wdrożenia albo uzgodnionego odtworzenia kopii. Jeśli stara wersja już przyjęła
+zapisy, operator najpierw je identyfikuje i uzgadnia ich zachowanie lub zakres
+odtworzenia z PO. Readiness i poprawny odczyt nie rozstrzygają zachowania zmian.
 
 ### Walidacja aktualności wydania i jawny rollback (SCRUM-137)
 
@@ -81,7 +119,7 @@ Przed rozpakowaniem artefaktu i jakąkolwiek zmianą stanu serwera (`releases/`,
    Alias `www` musi mieć rekord A tego samego VPS. Powrót do hostname VPS
    jako domeny kanonicznej wymaga poprzedniego wydania Caddyfile.
 2. Na VPS zainstaluj Docker z `docker compose`, Python 3.12+ i curl ze
-   wspieranych pakietów. Budowa obrazu wymaga też wtyczki Buildx.
+   wspieranych pakietów.
    Zachowaj działające konta SSH zespołu.
 3. Wygeneruj osobny klucz ED25519 dla Actions **poza repozytorium**. Nie używaj
    kluczy prywatnych członków zespołu. Klucz CI ma dostęp do wdrażania aplikacji;
@@ -126,6 +164,16 @@ Zmienna środowiska Actions `DEV_WEBFLEET_SYNC_ENABLED` ma domyślnie wartość
 `false` dla osobnego sekretu. Po odbiorze SCRUM-64 operator może ustawić
 `true` i wdrożyć zatwierdzoną wersję. Powrót do `false` zatrzymuje kolejne
 cykle po wdrożeniu bez czyszczenia zapisanych danych.
+
+Po uzgodnieniu uruchomienia SMTP administrator zapisuje konfigurację w
+`/opt/fleet-flow/shared/smtp.raw.env` na VPS. Plik należy do `root:root` i ma
+uprawnienia `0600`. Każde ustawienie wpisz w postaci `KLUCZ=wartość`.
+Docker Compose 2.30 lub nowszy przekazuje wartość dosłownie, łącznie ze
+znakami `$` i cudzysłowami należącymi do hasła. Dotychczasowy opcjonalny
+`smtp.env` zachowuje składnię dotenv. Ustawienia z `smtp.raw.env` mają
+pierwszeństwo dla tych samych kluczy. Po zmianie pliku odtwórz kontener API.
+[Konfiguracja i diagnostyka SMTP](../../backend/README.md#poczta-ovh--test-logowania-bez-wysyłki) ·
+[Format plików Compose](https://docs.docker.com/reference/compose-file/container-spec/#format).
 
 ## Ochrona main — wykonuje właściciel repozytorium
 
