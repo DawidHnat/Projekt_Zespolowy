@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { execFileSync } from "node:child_process";
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, request, type Page } from "@playwright/test";
+import { pauseBrowserClock } from "./fixtures/browser-clock";
 
 const origin = { Origin: "http://127.0.0.1:54173" };
 function fixture(command: string) {
@@ -57,6 +58,39 @@ test.beforeEach(async ({ page }) => {
       ? route.continue()
       : route.abort(),
   );
+});
+
+test("SCRUM-42 + SCRUM-49: profile sign-out revokes a session that can read driver assignments", async ({ page }) => {
+  fixture("drivers-case");
+  await login(page);
+  await page.getByRole("button", { name: "Anna Test00", exact: true }).click();
+  const card = page.getByRole("dialog");
+  await expect(card.getByRole("heading", { name: "Anna Test00", exact: true })).toBeVisible();
+  await expect(card.getByText(/Bieżące przypisania: [1-9]/)).toBeVisible();
+
+  const other = await request.newContext({ baseURL: origin.Origin, extraHTTPHeaders: origin });
+  try {
+    const signedIn = await other.post("/api/v1/auth/login", {
+      data: { username: "e2e-editor", password: "synthetic-e2e-password" },
+    });
+    expect(signedIn.status()).toBe(200);
+    const directory = "/api/v1/drivers/search";
+    const search = { data: { q: "Anna Test00", page: 1, page_size: 10 } };
+    const before = await other.post(directory, search);
+    expect(before.status()).toBe(200);
+    expect((await before.json()).items).toHaveLength(1);
+
+    await page.goto("/#profile");
+    await page.getByRole("button", { name: "Wyloguj wszystkie urządzenia", exact: true }).click();
+    await page.getByRole("button", { name: "Potwierdź wylogowanie wszystkich sesji", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Zaloguj się", exact: true })).toBeVisible();
+
+    const revoked = await other.post(directory, search);
+    expect(revoked.status()).toBe(401);
+    expect(await revoked.json()).not.toHaveProperty("items");
+  } finally {
+    await other.dispose();
+  }
 });
 
 test("drivers: create, inline validation, failed save retry, duplicate identifier and durable profile", async ({
@@ -284,8 +318,7 @@ test("drivers: closing a profile preserves focus on the next filter", async ({ p
   await page.getByRole("button", { name: "Anna Test00", exact: true }).click();
   await expect(page.getByRole("dialog").getByRole("heading", { name: "Anna Test00", exact: true })).toBeFocused();
   // A delayed frame must not move focus after the user starts another action.
-  await page.clock.install();
-  await page.clock.pauseAt(new Date());
+  await pauseBrowserClock(page);
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await search.fill("");

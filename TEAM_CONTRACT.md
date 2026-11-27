@@ -57,7 +57,7 @@ W przypadku decyzji wymagającej głosowania obowiązuje **większość 3 z 4 cz
 
 Drobne decyzje organizacyjne i techniczne, które nie wpływają istotnie na zakres produktu, może podejmować **lider projektu**.
 
-W przypadku remisu lub braku możliwości osiągnięcia porozumienia ostateczną decyzję podejmuje **lider/PO** po wysłuchaniu stanowisk pozostałych członków zespołu.
+Spory dotyczące zakresu i decyzji technicznych rozstrzygamy zgodnie z [procedurą sporów](#5-spory-i-nierówny-wkład).
 
 Istotne decyzje dotyczące:
 
@@ -98,7 +98,44 @@ Każda zmiana podziału odpowiedzialności powinna zostać zakomunikowana całem
 
 ---
 
-## 5. Członkowie zespołu i data przyjęcia kontraktu
+## 5. Spory i nierówny wkład
+
+### Spór w Pull Requeście
+
+Po **dwóch dniach roboczych bez uzgodnionego następnego kroku** lub po
+**sześciu merytorycznych komentarzach w tym samym wątku bez decyzji**,
+zależnie od tego, co nastąpi wcześniej, autor PR-u organizuje krótką rozmowę
+na Discordzie w najbliższym dniu roboczym. Do rozmowy zbiera warianty,
+ich konsekwencje i odnośniki do przykładów lub wyników testów.
+Po rozmowie zapisuje w PR decyzję, uzasadnienie i następny krok.
+
+- O celu, zakresie i kolejności dostarczenia funkcji decyduje **Właściciel Produktu**
+  po wysłuchaniu zespołu. Do Jira trafia ustalona zmiana zakresu.
+- O rozwiązaniu technicznym decyduje **zespół**. Porównuje warianty według
+  kolejności cech: bezpieczeństwo i prywatność, poprawność i integralność danych,
+  niezawodność i możliwość cofnięcia zmiany, utrzymywalność i testowalność,
+  wydajność, koszt i czas wdrożenia. Gdy warianty różnią się na kilku poziomach,
+  pierwszeństwo ma wyższa cecha. Przy braku konsensusu stosujemy głosowanie 3 z 4.
+
+Jeżeli do końca następnego dnia roboczego po rozmowie brakuje rozstrzygnięcia
+lub spór zagraża terminowi oddania, lider zgłasza go prowadzącemu przez
+uczelniany kanał zajęć. Dołącza link do PR-u i zgłoszenia w Jirze, zwięzły opis
+wariantów, wynik rozmowy oraz pytanie, które wymaga rozstrzygnięcia.
+Równolegle informuje zespół i zapisuje ustalenie po odpowiedzi.
+
+### Nierówny wkład
+
+Lider zaczyna od rozmowy z zainteresowaną osobą. Ustala z nią, czy przyczyną
+jest blokada, potrzeba wsparcia kompetencyjnego, dostępność albo trudność we
+współpracy i więzi z zespołem. Uzgadniają odpowiednio zdjęcie blokady,
+pracę w parze, zmianę zakresu lub terminu albo sposób kontaktu i włączenia
+w pracę zespołu. Przy utrzymującym się problemie stosujemy
+[postępowanie przy niedowiezionym zadaniu](#4-postępowanie-przy-niedowiezionym-zadaniu)
+i odnotowujemy zmianę odpowiedzialności w Jirze.
+
+---
+
+## 6. Członkowie zespołu i data przyjęcia kontraktu
 
 | Osoba | Login GitHub |
 |---|---|
