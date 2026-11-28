@@ -81,7 +81,7 @@ test("SCRUM-27: mileage view shows the current month, partial data and recovers 
   const { year, month, day } = warsawToday();
   await expect(page.getByRole("button", { name: `Od dnia: 01.${month}.${year}` })).toBeVisible();
   await expect(page.getByRole("button", { name: `Do dnia: ${day}.${month}.${year}` })).toBeVisible();
-  await expect(page.getByText("Wybierz pojazd, aby obliczyć ewidencję.")).toBeVisible();
+  await expect(page.getByText("Wybierz pojazd, aby obliczyć kilometry i sprawdzić wpisy.")).toBeVisible();
 
   await page.getByRole("radio", { name: /Pojazd E2E/ }).check();
   await expect(page.getByRole("alert").filter({ hasText: "Nie można pobrać ewidencji." })).toBeVisible();
@@ -92,7 +92,7 @@ test("SCRUM-27: mileage view shows the current month, partial data and recovers 
   const summary = page.getByRole("region", { name: "Podsumowanie ewidencji" });
   await expect(summary).toBeVisible();
   await expect(summary.locator("dd").nth(0)).toHaveText("2");
-  await expect(summary.getByText("Brak danych · Brak celu")).toBeVisible();
+  await expect(summary.getByRole("list", { name: "Przejazdy w ewidencji" })).toContainText("Brak celu · Brak kierowcy");
   await expect(summary.locator("dt", { hasText: "Brak dystansu" }).locator("+ dd")).toHaveText("1");
   await expect(summary.locator("dt", { hasText: "Suma znanych kilometrów" }).locator("+ dd")).toHaveText("12,5 km");
   await expect(summary.getByText(/Raporty według daty zakończenia przejazdu: 1 z 27 dni/)).toBeVisible();

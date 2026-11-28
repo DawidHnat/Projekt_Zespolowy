@@ -239,7 +239,8 @@ jednostki opisuje [dokumentacja WEBFLEET](https://media.webfleet.com/fl_attachme
 Ponowny import zakończonego dnia traktuje raport jako kompletny: postoje i przejazdy
 bez lokalnej adnotacji, których nowy raport już nie zawiera, są usuwane, a przejazd
 z celem lub opisem zostaje zachowany i oznaczony `withdrawn_at` („Wycofany z raportu
-źródła”). Powrót przejazdu do raportu czyści oznaczenie, zachowując UUID i adnotację.
+źródła”, kolumna z migracji `0016_trip_withdrawn`). Powrót przejazdu do raportu czyści
+oznaczenie, zachowując UUID i adnotację. Downgrade `0016` odmawia, gdy istnieją takie przejazdy.
 Rollback aplikacji zachowuje nowe kolumny i tabele; poprzednia wersja aplikacji
 działa na rozszerzonym schemacie. Downgrade poniżej `0012_trip_history` jest
 blokowany, gdy istnieją zaimportowane postoje, pokrycie raportów, adresy lub

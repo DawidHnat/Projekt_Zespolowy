@@ -54,13 +54,13 @@ def test_migration_0012_trip_history_blocks_lossy_downgrade_on_postgres():
                 ),
                 {"id": VEHICLE},
             )
-        failed = run_alembic("downgrade", "0011_vehicle_card_ownership")
+        failed = run_alembic("downgrade", "0014_merge_account_links")
         assert failed.returncode != 0
         assert "SCRUM-24" in (failed.stderr + failed.stdout)
         with engine.connect() as conn:
             assert conn.scalar(text("SELECT count(*) FROM trip_history_days")) == 1
         delete_history()
-        assert run_alembic("downgrade", "0011_vehicle_card_ownership").returncode == 0
+        assert run_alembic("downgrade", "0014_merge_account_links").returncode == 0
         assert run_alembic("upgrade", "head").returncode == 0
     finally:
         try:
@@ -112,7 +112,7 @@ def test_migration_0012_trip_history_downgrade_waits_for_a_concurrent_import():
             {"id": VEHICLE},
         )
         downgrade = subprocess.Popen(
-            [sys.executable, "-m", "alembic", "downgrade", "0011_vehicle_card_ownership"],
+            [sys.executable, "-m", "alembic", "downgrade", "0014_merge_account_links"],
             env=environment,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

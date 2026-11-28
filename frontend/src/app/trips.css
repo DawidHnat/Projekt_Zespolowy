@@ -146,6 +146,7 @@
 }
 .trip-annotation-form .form-error { color: var(--danger); }
 .trip-annotation-form .auth-notice { color: var(--success); }
+
 .trip-facts { display: grid; gap: 4px; }
 .trip-facts p { margin: 0; overflow-wrap: anywhere; }
 .trip-stop-list {
@@ -164,21 +165,23 @@
 }
 .trip-stop-list span { color: var(--muted); }
 
-.mileage-page { display: grid; gap: 16px; }
-.mileage-filters { display: grid; gap: 12px; max-width: 760px; }
-.mileage-results { display: grid; gap: 12px; min-width: 0; }
-.mileage-results h2 { margin: 0; }
-.mileage-stats {
+.mileage-page { display: grid; gap: 16px; min-width: 0; }
+.mileage-filters, .mileage-results {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 8px;
-  margin: 0;
-}
-.mileage-stats div {
-  padding: 12px;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: var(--surface-muted);
+  background: var(--surface);
 }
-.mileage-stats dt { color: var(--muted); }
-.mileage-stats dd { margin: 6px 0 0; font-size: 18px; font-weight: 700; }
+.mileage-dates { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+.mileage-results h2, .mileage-results p { margin: 0; }
+.mileage-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: 12px;
+  margin: 0;
+}
+.mileage-stats div { padding: 10px; border: 1px solid var(--border); border-radius: 10px; }
+.mileage-stats dd { margin: 4px 0 0; font-weight: 650; }

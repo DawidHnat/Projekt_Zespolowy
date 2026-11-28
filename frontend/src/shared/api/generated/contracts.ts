@@ -38,7 +38,10 @@ export type TripCoverage = { "basis": "report_end_day"; "state": "unavailable" |
 export type TripStop = { "start_at": string; "end_at": string; "duration_seconds": number; "address": string | null; "latitude": number | null; "longitude": number | null; };
 export type TripStopList = { "items": Array<TripStop>; "total": number; "page": number; "page_size": number; "coverage": TripCoverage | null; };
 export type MileageSummary = { "known_km": number | null; "missing_purpose": number; "missing_distance": number; };
-export type MileagePeriod = { "items": Array<Trip>; "total": number; "page": number; "page_size": number; "summary": MileageSummary; "coverage": TripCoverage; };
+export type MileagePeriod = { "items": Array<Trip>; "total": number; "page": number; "page_size": number; "coverage": TripCoverage | null; "summary": MileageSummary; };
+export type VehicleUsage = { "vehicle_id": string; "name": string; "coverage": TripCoverage; "distance_km": number | null; "trip_count": number | null; "active_days": number | null; "missing_distance": number; };
+export type UsageSummary = { "distance_km": number | null; "trip_count": number | null; "active_days": number | null; "missing_distance": number; "coverage_complete": boolean; };
+export type UsagePeriod = { "source": "webfleet_trip_history"; "timezone": "Europe/Warsaw"; "day_basis": "trip_start_day"; "items": Array<VehicleUsage>; "summary": UsageSummary; };
 export type ObservabilityMetrics = { "api_up": 0 | 1; "collected_at": string; "http": { "requests_total": number; "errors_5xx_total": number; "duration_p95_ms": number | null; "buckets_ms": { "10": number; "25": number; "50": number; "100": number; "250": number; "500": number; "1000": number; "2500": number; "5000": number; "10000": number; }; "by_route": Array<{ "method": string; "route": string; "status_class": "2xx" | "3xx" | "4xx" | "5xx"; "requests_total": number; "duration_p95_ms": number | null; }>; }; "db_pool": { "db_up": boolean; "pool_type": string; "size": number | null; "checked_in": number | null; "checked_out": number | null; "overflow": number | null; }; "sync": { "status": "not_configured" | "unavailable" | "ok" | "stale" | "degraded"; "last_success_age_seconds": number | null; "latest_measurement_age_seconds": number | null; "last_error_code": string | null; "max_age_seconds": number; "events_total": { "ok": number; "busy": number; "rate_limited": number; "timeout": number; "connection_failed": number; "provider_rate_limit": number; "local_rate_limit": number; "INVALID_RECORDS": number; "INCOMPLETE_REPORT": number; "SOURCE_DEGRADED": number; "SYNC_INTERNAL_ERROR": number; "SYNC_CONTROL_FAILED": number; "OTHER": number; }; }; "disk": { "status": "ok" | "warning" | "critical" | "error"; "total_bytes": number | null; "used_bytes": number | null; "free_bytes": number | null; "free_ratio": number | null; }; "backup": BackupMarkerMetrics; "restore": BackupMarkerMetrics; "tls": { "status": "not_configured" | "ok" | "warning" | "critical" | "error"; "days_remaining": number | null; "warning_days": number; "critical_days": number; }; "auth": { "events_total": { "login_failed": number; "rate_limited": number; "forbidden": number; "unauthenticated": number; "invalid_reset": number; "invalid_current_password": number; }; }; "mail": { "events_total": { "delivered": number; "setup_failed": number; "smtp_failed": number; "state_failed": number; "notification_failed": number; }; "queue": { "status": "not_configured" | "ok" | "degraded"; "deferred_to": string | null; "pending": number | null; "oldest_age_seconds": number | null; }; }; };
 export type BackupMarkerMetrics = { "status": "not_configured" | "missing" | "invalid" | "stale" | "ok"; "deferred_to": string | null; "last_success_age_seconds": number | null; "max_age_seconds": number; };
 
@@ -56,8 +59,8 @@ export type Responses = {
   "GET /drivers": DriverList;
   "POST /drivers": DriverProfile;
   "GET /trips": TripList;
-  "GET /trips/stops": TripStopList;
   "GET /trips/mileage": MileagePeriod;
+  "GET /trips/stops": TripStopList;
   "GET /trips/{id}": Trip;
   "PATCH /trips/{id}/annotation": Annotation;
   "GET /analytics/rules": RuleList;
@@ -75,5 +78,6 @@ export type Responses = {
   "GET /drivers/{id}/assignments": DriverAssignmentList;
   "POST /drivers/{id}/assignments": DriverAssignmentResult;
   "PATCH /drivers/{id}/assignments/{assignment_id}/close": DriverAssignmentResult;
+  "GET /analytics/usage": UsagePeriod;
   "GET /observability/metrics": ObservabilityMetrics;
 };

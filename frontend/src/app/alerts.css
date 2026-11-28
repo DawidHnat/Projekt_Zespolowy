@@ -90,3 +90,24 @@
   .alert-controls > label, .alert-controls select { width: 100%; }
   .alert-list .button { white-space: normal; text-align: start; }
 }
+
+
+.usage-page { display: grid; gap: 16px; min-width: 0; }
+.usage-controls, .usage-results {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.usage-controls > button { justify-self: start; }
+.usage-dates, .usage-selection { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
+.usage-selection { padding: 0; margin: 0; list-style: none; }
+.usage-results p { margin: 0; }
+.usage-metrics { display: flex; flex-wrap: wrap; gap: 16px 24px; margin: 0; }
+.usage-metrics dd { margin: 4px 0 0; font-weight: 650; }
+.usage-table-wrap { overflow-x: auto; }
+.usage-table-wrap table { width: 100%; border-collapse: collapse; text-align: left; }
+.usage-table-wrap :is(th, td) { border-bottom: 1px solid var(--border); padding: 8px; }

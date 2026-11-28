@@ -1,8 +1,10 @@
+from collections import defaultdict
 from datetime import UTC, date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 
+from app.core.errors import ApiError
 from app.modules.auth.service import aware
 from app.modules.trips.models import TripHistoryDay
 
@@ -15,19 +17,41 @@ def polish_day(day: date) -> tuple[datetime, datetime]:
     return start.astimezone(UTC), end.astimezone(UTC)
 
 
+def calendar_window(first: date, last: date) -> tuple[datetime, datetime]:
+    try:
+        if not 0 <= (last - first).days < 93:
+            raise ValueError
+        return polish_day(first)[0], polish_day(last)[1]
+    except (OverflowError, ValueError):
+        raise ApiError(422, "VALIDATION_ERROR", "Wybierz prawidłowy okres do 93 dni") from None
+
+
 def report_coverage(session, vehicle_id, lower, upper):
+    return report_coverages(session, [vehicle_id], lower, upper)[vehicle_id]
+
+
+def report_coverages(session, vehicle_ids, lower, upper):
     first = lower.astimezone(WARSAW).date()
     last = (upper - timedelta(microseconds=1)).astimezone(WARSAW).date()
-    rows = session.scalars(
+    by_vehicle = defaultdict(list)
+    for row in session.scalars(
         select(TripHistoryDay).where(
-            TripHistoryDay.vehicle_id == vehicle_id,
+            TripHistoryDay.vehicle_id.in_(vehicle_ids),
             TripHistoryDay.report_day.between(first, last),
         )
-    ).all()
+    ):
+        by_vehicle[row.vehicle_id].append(row)
+    requested = (last - first).days + 1
+    return {
+        vehicle_id: coverage_payload(by_vehicle[vehicle_id], requested)
+        for vehicle_id in vehicle_ids
+    }
+
+
+def coverage_payload(rows, requested):
     covered = sorted(row.report_day.isoformat() for row in rows if row.imported_at)
     failed = sorted(row.report_day.isoformat() for row in rows if row.error_code)
     last_success = max((aware(row.imported_at) for row in rows if row.imported_at), default=None)
-    requested = (last - first).days + 1
     state = "unavailable"
     if len(covered) == requested and not failed:
         state = "complete"
