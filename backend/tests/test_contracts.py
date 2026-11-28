@@ -202,8 +202,13 @@ def test_every_implemented_operation_has_a_real_success_response(logged_in, monk
             "to": now.isoformat(),
         },
     )
-    day = now.astimezone(ZoneInfo("Europe/Warsaw")).date()
-    check("GET", "/trips/mileage", params={"vehicle_id": vehicle, "from_day": day, "through": day})
+    day = now.astimezone(ZoneInfo("Europe/Warsaw")).date().isoformat()
+    mileage = check(
+        "GET",
+        "/trips/mileage",
+        params={"vehicle_id": vehicle, "from_day": day, "through": day},
+    )
+    assert mileage["summary"]["missing_purpose"] == mileage["total"]
     check(
         "GET", "/analytics/usage", params={"vehicle_ids": vehicle, "from_day": day, "through": day}
     )

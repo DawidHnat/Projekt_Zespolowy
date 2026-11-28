@@ -236,8 +236,23 @@ postój ma czasy, czas trwania w sekundach i dostępny opis miejsca. Odczyt
 `/trips/stops` domyślnie obejmuje postoje od 300 s, parametr
 `min_duration_seconds=0` pozwala zobaczyć także krótsze. Zakres operacji i
 jednostki opisuje [dokumentacja WEBFLEET](https://media.webfleet.com/fl_attachment/media/doc/documentations/webfleet.connect-doc-1.74.0.pdf#page=244).
-Rollback aplikacji zachowuje nowe kolumny i tabele. Przed cofnięciem DDL zachowaj
-kopię, ponieważ downgrade usuwa pokrycie, postoje i dodatkowe fakty przejazdu.
+Ponowny import zakończonego dnia traktuje raport jako kompletny: postoje i przejazdy
+bez lokalnej adnotacji, których nowy raport już nie zawiera, są usuwane, a przejazd
+z celem lub opisem zostaje zachowany i oznaczony `withdrawn_at` („Wycofany z raportu
+źródła”, kolumna z migracji `0016_trip_withdrawn`). Powrót przejazdu do raportu czyści
+oznaczenie, zachowując UUID i adnotację. Downgrade `0016` odmawia, gdy istnieją takie przejazdy.
+Rollback aplikacji zachowuje nowe kolumny i tabele; poprzednia wersja aplikacji
+działa na rozszerzonym schemacie. Downgrade poniżej `0012_trip_history` jest
+blokowany, gdy istnieją zaimportowane postoje, pokrycie raportów, adresy lub
+kierowcy przejazdów, bo usunąłby te dane. Przy wycofaniu zachowaj schemat
+i cofnij tylko aplikację; DDL cofaj wyłącznie na bazie bez zaimportowanej historii.
+Przed downgrade zatrzymaj worker importu historii. Migracja i tak pobiera blokady
+`ACCESS EXCLUSIVE` na tabelach historii przed sprawdzeniem, więc równoległy import
+czeka i nie może zapisać danych pomiędzy kontrolą a usunięciem tabel.
+`0012_trip_history` leży na równoległej gałęzi grafu (scalonej w `0015`), więc jej
+cofnięcie wymaga dwóch kroków: `alembic downgrade 0014_merge_account_links`
+(usuwa `0016` i `0015`), a potem `alembic downgrade 0012_trip_history@-1`.
+Samo `downgrade 0014_merge_account_links` nie cofa historii przejazdów.
 
 ## API floty — SCRUM-19
 

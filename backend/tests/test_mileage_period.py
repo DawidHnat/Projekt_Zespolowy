@@ -67,13 +67,8 @@ def test_period_uses_polish_start_day_and_sums_all_rows_before_pagination(logged
     data = result.json()
     assert data["total"] == 3 and len(data["items"]) == 1
     assert data["items"][0]["id"] == crossing_id
-    assert data["summary"] == {
-        "distance_km": 12.351,
-        "documented_km": 12.345,
-        "missing_purpose": 2,
-        "missing_driver": 2,
-        "missing_distance": 1,
-    }
+    # PO decision 27.11 (SCRUM-62): known-km sum; documented km is a separate extension.
+    assert data["summary"] == {"known_km": 12.351, "missing_purpose": 2, "missing_distance": 1}
     assert data["coverage"]["covered_days"] == [day.isoformat()]
     assert (
         client.get(path, params={**params, "page_size": 1, "page": 2}).json()["summary"]
@@ -88,7 +83,7 @@ def test_period_uses_polish_start_day_and_sums_all_rows_before_pagination(logged
             "through": following_day.isoformat(),
         },
     ).json()
-    assert second["items"] == [] and second["summary"]["distance_km"] is None
+    assert second["items"] == [] and second["summary"]["known_km"] is None
     assert second["coverage"]["state"] == "unavailable"
     assert client.get(path, params={**params, "vehicle_id": other_id}).status_code == 404
     assert (

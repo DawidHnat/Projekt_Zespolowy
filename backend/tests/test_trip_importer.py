@@ -63,6 +63,7 @@ def test_postgres_import_resumes_and_preserves_trip_identity_and_annotations():
     base_time = last_end + timedelta(hours=3)
     now = base_time
     fail_stops = False
+    source_report = {"trips": None, "stops": None}  # None = the default synthetic report
     requests = []
 
     def provider(request):
@@ -87,10 +88,14 @@ def test_postgres_import_resumes_and_preserves_trip_identity_and_annotations():
                 "start_postext": "Początek syntetyczny",
                 "drivername": "ignore",
             }
+            if source_report["trips"] is not None:
+                return httpx.Response(200, json=[{**trip, **row} for row in source_report["trips"]])
             return httpx.Response(200, json=[trip, trip, {**trip, "tripid": 102, "tripmode": 4}])
         assert action == "showStandStills"
         if fail_stops:
             return httpx.Response(429, headers={"Retry-After": "120"})
+        if source_report["stops"] is not None:
+            return httpx.Response(200, json=source_report["stops"])
         return httpx.Response(
             200,
             json=[
@@ -231,6 +236,37 @@ def test_postgres_import_resumes_and_preserves_trip_identity_and_annotations():
             assert restored["id"] == trip["id"] and restored["driver_id"] == trip["driver_id"]
             assert restored["annotation"] == annotation
             assert client.get(path + "/stops", params=query).json()["total"] == 1
+            assert restored["withdrawn_at"] is None
+
+            # A later complete report drops the annotated trip and the stop, adds trip 103.
+            source_report["trips"], source_report["stops"] = [{"tripid": "103"}], []
+            now += timedelta(minutes=1)
+            assert run(refresh=True) == "imported"
+            items = {item["id"]: item for item in client.get(path, params=query).json()["items"]}
+            kept = items[trip["id"]]
+            assert kept["withdrawn_at"] is not None and kept["annotation"] == annotation
+            assert len(items) == 2
+            assert (
+                client.get(path + "/stops", params={**query, "min_duration_seconds": 0}).json()[
+                    "total"
+                ]
+                == 0
+            )
+
+            # Trip 103 had no local annotation, so its withdrawal removes it.
+            source_report["trips"] = []
+            now += timedelta(minutes=1)
+            assert run(refresh=True) == "imported"
+            (only,) = client.get(path, params=query).json()["items"]
+            assert only["id"] == trip["id"] and only["withdrawn_at"] is not None
+
+            # The trip is back in the source report: same UUID, annotation kept, flag cleared.
+            source_report["trips"], source_report["stops"] = None, None
+            now += timedelta(minutes=1)
+            assert run(refresh=True) == "imported"
+            (back,) = client.get(path, params=query).json()["items"]
+            assert back["id"] == trip["id"] and back["withdrawn_at"] is None
+            assert back["annotation"] == annotation
 
             fleet = client.get(
                 path, params={k: v for k, v in query.items() if k != "vehicle_id"}

@@ -38,6 +38,8 @@ class Trip(Base):
     start_address: Mapped[str | None] = mapped_column(String(500))
     end_address: Mapped[str | None] = mapped_column(String(500))
     driver_id: Mapped[UUID | None] = mapped_column(ForeignKey("drivers.id"))
+    # Set when a later complete report no longer contains an annotated trip.
+    withdrawn_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class TripAnnotation(Base):

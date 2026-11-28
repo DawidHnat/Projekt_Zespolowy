@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { api } from "../../../shared/api/client";
+import { api, ApiError } from "../../../shared/api/client";
 import type { MileagePeriod } from "../../../shared/api/generated/contracts";
 import { DatePicker } from "../../../shared/components/DatePicker";
 import { ListPagination } from "../../../shared/components/ListPagination";
 import { useAuth } from "../../auth/AuthProvider";
 import { VehiclePicker } from "../../fleet/components/VehiclePicker";
 import { tripTime } from "../model/annotations";
-import { previousDay, warsawDay } from "../model/trip-day";
+import { initialPeriod, periodError } from "../model/mileage-period";
+import { previousDay } from "../model/trip-day";
 import { TripAnnotationEditor } from "./TripAnnotationEditor";
 import { TripCoverageNote } from "./TripCoverageNote";
 
@@ -14,10 +15,12 @@ const kmFormat = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 3 });
 const kilometres = (value: number | null) => value === null ? "Brak danych" : `${kmFormat.format(value)} km`;
 
 export function MileagePage() {
-  const today = warsawDay();
+  const [initial] = useState(() => initialPeriod());
+  const today = initial.through;
   const { user } = useAuth();
-  const [from, setFrom] = useState(`${today.slice(0, 7)}-01`);
-  const [through, setThrough] = useState(today);
+  const [from, setFrom] = useState(initial.from);
+  const [through, setThrough] = useState(initial.through);
+  const rangeError = periodError(from, through);
   const [vehicle, setVehicle] = useState<{ id: string; name: string } | null>(null);
   const vehicleId = vehicle?.id;
   const [data, setData] = useState<MileagePeriod | null>(null);
@@ -30,7 +33,11 @@ export function MileagePage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!vehicleId) return;
+    // An invalid range or no vehicle means no active request: clear any pending status.
+    if (!vehicleId || rangeError) {
+      setLoading(false);
+      return;
+    }
     const request = new AbortController();
     const query = new URLSearchParams({
       vehicle_id: vehicleId, from_day: from, through, page: String(page), page_size: String(pageSize),
@@ -39,12 +46,15 @@ export function MileagePage() {
     setError("");
     api<MileagePeriod>(`/trips/mileage?${query}`, { signal: request.signal })
       .then(value => { if (!request.signal.aborted) setData(value); })
-      .catch(() => {
-        if (!request.signal.aborted) setError("Nie można pobrać ewidencji. Sprawdź zakres do 93 dni.");
+      .catch((failure: unknown) => {
+        if (request.signal.aborted) return;
+        setError(failure instanceof ApiError && failure.status === 422
+          ? "Wybierz prawidłowy okres do 93 dni."
+          : "Nie można pobrać ewidencji.");
       })
       .finally(() => { if (!request.signal.aborted) setLoading(false); });
     return () => request.abort();
-  }, [vehicleId, from, through, page, pageSize, recheck]);
+  }, [vehicleId, from, through, page, pageSize, recheck, rangeError]);
 
   const resetView = () => {
     setData(null);
@@ -72,8 +82,9 @@ export function MileagePage() {
         onSelect={next => { resetView(); setVehicle(next); }} />
     </div>
 
+    {rangeError && <p className="form-error" role="alert">{rangeError}</p>}
     {!vehicle && <p>Wybierz pojazd, aby obliczyć kilometry i sprawdzić wpisy.</p>}
-    {loading && <p role="status">Pobieranie ewidencji…</p>}
+    {loading && !rangeError && <p role="status">Pobieranie ewidencji…</p>}
     {error && <div role="alert"><p>{error}</p>
       <button className="button button-secondary" type="button" onClick={() => setRecheck(value => value + 1)}>
         Ponów odczyt
@@ -83,15 +94,15 @@ export function MileagePage() {
       <h2>{vehicle?.name}</h2>
       <dl className="mileage-stats">
         <div><dt>Przejazdy w okresie</dt><dd>{data.total}</dd></div>
-        <div><dt>Zapisany dystans</dt><dd>{kilometres(data.summary.distance_km)}</dd></div>
-        <div><dt>Rozpisane kilometry</dt><dd>{kilometres(data.summary.documented_km)}</dd></div>
+        <div><dt>Suma znanych kilometrów</dt><dd>{kilometres(data.summary.known_km)}</dd></div>
         <div><dt>Brak celu</dt><dd>{data.summary.missing_purpose}</dd></div>
-        <div><dt>Brak kierowcy</dt><dd>{data.summary.missing_driver}</dd></div>
         <div><dt>Brak dystansu</dt><dd>{data.summary.missing_distance}</dd></div>
       </dl>
-      <p className="trip-time-hint">Przejazd liczy się w okresie, w którym się rozpoczął. Rozpisane kilometry wymagają celu, kierowcy i zapisanego dystansu.</p>
+      <p className="trip-time-hint">Przejazd liczy się w okresie, w którym się rozpoczął; okres do 93 dni. Suma obejmuje tylko przejazdy ze znanym dystansem.</p>
       <TripCoverageNote coverage={data.coverage} />
-      {!data.total && <p>Brak zapisanych przejazdów w tym okresie.</p>}
+      {!data.total && (data.coverage?.state === "complete"
+        ? <p>Brak przejazdów w tym okresie.</p>
+        : <p>Brak przejazdów w dotychczas pobranych raportach. Część dni nie została jeszcze zsynchronizowana, więc wynik może być niepełny.</p>)}
       {data.items.length > 0 && <ul className="trip-annotation-list" aria-label="Przejazdy w ewidencji">
         {data.items.map(trip => <li key={trip.id}>
           <button type="button" aria-pressed={selected === trip.id} disabled={dirty && selected !== trip.id}

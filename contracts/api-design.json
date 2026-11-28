@@ -645,10 +645,8 @@
           "last_success_at": "2026-01-11T00:00:00Z"
         },
         "summary": {
-          "distance_km": 25.5,
-          "documented_km": null,
+          "known_km": 25.5,
           "missing_purpose": 1,
-          "missing_driver": 1,
           "missing_distance": 0
         }
       },
@@ -2252,6 +2250,18 @@
             }
           ]
         },
+        "withdrawn_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Set when a later complete report no longer lists this annotated trip."
+        },
         "vehicle_name": {
           "anyOf": [
             {
@@ -3315,19 +3325,9 @@
     },
     "MileageSummary": {
       "type": "object",
+      "description": "PO 27.11 (SCRUM-62): sum of known, non-negative distances and trips without purpose or distance across the whole period, excluding trips withdrawn by the source report. Documented km belong to the separate extension.",
       "properties": {
-        "distance_km": {
-          "anyOf": [
-            {
-              "type": "number",
-              "minimum": 0
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "documented_km": {
+        "known_km": {
           "anyOf": [
             {
               "type": "number",
@@ -3342,22 +3342,17 @@
           "type": "integer",
           "minimum": 0
         },
-        "missing_driver": {
-          "type": "integer",
-          "minimum": 0
-        },
         "missing_distance": {
           "type": "integer",
           "minimum": 0
         }
       },
       "required": [
-        "distance_km",
-        "documented_km",
+        "known_km",
         "missing_purpose",
-        "missing_driver",
         "missing_distance"
-      ]
+      ],
+      "additionalProperties": false
     },
     "MileagePeriod": {
       "type": "object",

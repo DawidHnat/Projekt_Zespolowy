@@ -1,6 +1,7 @@
 from datetime import date, datetime, timedelta
 from typing import Annotated
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -24,6 +25,22 @@ from app.modules.trips.service import (
 
 router = APIRouter(prefix="/api/v1/trips", tags=["trips"])
 SessionDep = Annotated[Session, Depends(get_session)]
+
+
+def mileage_window(from_day: date, through: date):
+    zone = ZoneInfo("Europe/Warsaw")
+    try:
+        if not 0 <= (through - from_day).days < 93:
+            raise ValueError
+        lower = datetime.combine(from_day, datetime.min.time(), zone)
+        upper = datetime.combine(through + timedelta(days=1), datetime.min.time(), zone)
+        return lower.astimezone(ZoneInfo("UTC")), upper.astimezone(ZoneInfo("UTC"))
+    except (OverflowError, ValueError):
+        raise ApiError(
+            422,
+            "VALIDATION_ERROR",
+            "Wybierz prawidłowy okres do 93 dni",
+        ) from None
 
 
 class AnnotationPatch(BaseModel):
@@ -156,18 +173,22 @@ def mileage(
     lower, upper = calendar_window(from_day, through)
     vehicle_in_source(session, vehicle_id, account_key(request.app.state.settings.webfleet_account))
     # Assignment to one local start date prevents double counting a trip across periods.
-    filters = (Trip.vehicle_id == vehicle_id, Trip.start_at >= lower, Trip.start_at < upper)
+    # PO decision 27.11 (SCRUM-62): sum of known distances and trips without a purpose
+    # over the whole range; trips withdrawn by the source report are not current data.
+    filters = (
+        Trip.vehicle_id == vehicle_id,
+        Trip.start_at >= lower,
+        Trip.start_at < upper,
+        Trip.withdrawn_at.is_(None),
+    )
     missing_purpose = or_(TripAnnotation.purpose.is_(None), func.trim(TripAnnotation.purpose) == "")
+    known_distance = and_(Trip.distance_km.is_not(None), Trip.distance_km >= 0)
     result = session.execute(
         select(
             func.count(Trip.id).label("total"),
-            func.sum(Trip.distance_km).label("distance"),
-            func.sum(Trip.distance_km)
-            .filter(~missing_purpose, Trip.driver_id.is_not(None))
-            .label("documented"),
+            func.sum(Trip.distance_km).filter(known_distance).label("known"),
             func.count(Trip.id).filter(missing_purpose).label("missing_purpose"),
-            func.count(Trip.id).filter(Trip.driver_id.is_(None)).label("missing_driver"),
-            func.count(Trip.id).filter(Trip.distance_km.is_(None)).label("missing_distance"),
+            func.count(Trip.id).filter(~known_distance).label("missing_distance"),
         )
         .outerjoin(TripAnnotation, TripAnnotation.trip_id == Trip.id)
         .where(*filters)
@@ -179,10 +200,8 @@ def mileage(
         "page_size": page_size,
         "coverage": report_coverage(session, vehicle_id, lower, upper),
         "summary": {
-            "distance_km": float(result.distance) if result.distance is not None else None,
-            "documented_km": float(result.documented) if result.documented is not None else None,
+            "known_km": float(result.known) if result.known is not None else None,
             "missing_purpose": result.missing_purpose,
-            "missing_driver": result.missing_driver,
             "missing_distance": result.missing_distance,
         },
     }
