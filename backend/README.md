@@ -249,6 +249,10 @@ i cofnij tylko aplikację; DDL cofaj wyłącznie na bazie bez zaimportowanej his
 Przed downgrade zatrzymaj worker importu historii. Migracja i tak pobiera blokady
 `ACCESS EXCLUSIVE` na tabelach historii przed sprawdzeniem, więc równoległy import
 czeka i nie może zapisać danych pomiędzy kontrolą a usunięciem tabel.
+`0012_trip_history` leży na równoległej gałęzi grafu (scalonej w `0015`), więc jej
+cofnięcie wymaga dwóch kroków: `alembic downgrade 0014_merge_account_links`
+(usuwa `0016` i `0015`), a potem `alembic downgrade 0012_trip_history@-1`.
+Samo `downgrade 0014_merge_account_links` nie cofa historii przejazdów.
 
 ## API floty — SCRUM-19
 

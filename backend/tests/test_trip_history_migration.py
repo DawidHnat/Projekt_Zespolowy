@@ -54,13 +54,16 @@ def test_migration_0012_trip_history_blocks_lossy_downgrade_on_postgres():
                 ),
                 {"id": VEHICLE},
             )
-        failed = run_alembic("downgrade", "0014_merge_account_links")
+        # 0012_trip_history sits on a parallel branch: first remove its descendants
+        # (0016, 0015), then only that branch with "@-1".
+        assert run_alembic("downgrade", "0014_merge_account_links").returncode == 0
+        failed = run_alembic("downgrade", "0012_trip_history@-1")
         assert failed.returncode != 0
         assert "SCRUM-24" in (failed.stderr + failed.stdout)
         with engine.connect() as conn:
             assert conn.scalar(text("SELECT count(*) FROM trip_history_days")) == 1
         delete_history()
-        assert run_alembic("downgrade", "0014_merge_account_links").returncode == 0
+        assert run_alembic("downgrade", "0012_trip_history@-1").returncode == 0
         assert run_alembic("upgrade", "head").returncode == 0
     finally:
         try:
@@ -101,6 +104,7 @@ def test_migration_0012_trip_history_downgrade_waits_for_a_concurrent_import():
                 ),
                 {"id": VEHICLE},
             )
+        assert run_alembic("downgrade", "0014_merge_account_links").returncode == 0
         # The "importer" writes inside an open transaction while the downgrade starts.
         importer = engine.connect()
         transaction = importer.begin()
@@ -112,7 +116,7 @@ def test_migration_0012_trip_history_downgrade_waits_for_a_concurrent_import():
             {"id": VEHICLE},
         )
         downgrade = subprocess.Popen(
-            [sys.executable, "-m", "alembic", "downgrade", "0014_merge_account_links"],
+            [sys.executable, "-m", "alembic", "downgrade", "0012_trip_history@-1"],
             env=environment,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
