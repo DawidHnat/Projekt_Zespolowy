@@ -14,7 +14,7 @@ Sprint Review. Zasady odbioru sprintu opisuje
 | Zmiana trafiła do `main` przez PR z zatwierdzeniem innego developera. | PR ma co najmniej jedno aktualne **Approved** i stan **Merged**. | **warunek odbioru** — niezależny reviewer sprawdza ostatnią zmianę; właściciel potwierdza egzekwowanie PR i approval w aktualnych ustawieniach ochrony `main`. |
 | Obowiązkowe CI przeszło dla ostatniej wersji PR. | Wszystkie wymagane kontrole w sekcji Checks są zielone; zatwierdzenie starszego commita nie wystarcza. | **pipeline** — `Required CI` odrzuca failure/skipped zależności; **warunek odbioru** — reviewer sprawdza listę wymaganych kontekstów w aktualnych ustawieniach ochrony `main` i zapisuje dowód. |
 | Zmieniony frontend przechodzi testy i budowę. | `npm --prefix frontend test && npm --prefix frontend run build` kończy się kodem `0`. | **pipeline** — `Frontend build`, przy każdym PR i pushu do main: npm test, typecheck i build. |
-| Zmieniony backend przechodzi kontrole kodu i testy bez żywych integracji. | W aktywnym środowisku Pythona: `cd backend && ruff check . && ruff format --check . && pytest` kończy się kodem `0`; CI dostarcza osobną bazę testową. | **pipeline** — `Backend (3.12)`, `Backend (3.13)` i `Lint`: pytest z izolowaną bazą, Ruff check i format --check; bez żywego WEBFLEET/SMTP. |
+| Zmieniony backend przechodzi kontrole kodu i testy bez żywych integracji. | W aktywnym środowisku Pythona: `cd backend && ruff check . && ruff format --check . && pytest` kończy się kodem `0`; CI dostarcza osobną bazę testową. | **pipeline** — `Backend (3.12)`, `Backend (3.13)`, `Backend (3.15)` i `Lint`: pytest z izolowaną bazą, Ruff check i format --check; bez żywego WEBFLEET/SMTP. |
 | Frontend przechodzi automatyczną regresję przeglądarkową. | `Critical browser flows` albo oba joby `Critical browser flows (desktop)` i `Critical browser flows (mobile)` są zielone dla aktualnego SHA, zależnie od wersji workflow. | **pipeline** — oba profile muszą się wykonać. |
 | Repozytorium nie zawiera sekretów ani danych klientów. | Przegląd zakładki Files changed potwierdza brak prywatnych kluczy, haseł, rzeczywistych `.env` i danych floty; sekrety wdrożenia pozostają w GitHub Actions. | **człowiek** — niezależny reviewer (Dawid Hnat lub Jakub Nazarewicz) przed approval sprawdza Files changed; developer sprawdza zakres przed push. Nie jest to deklaracja automatycznego skanera sekretów. |
 | Dokumentacja odpowiada dostarczonej zmianie. | Zmienione instrukcje, zakres funkcji i kontrakty są aktualne. | **człowiek** — autor aktualizuje dokumentację, reviewer sprawdza ją razem z PR. |
@@ -135,7 +135,7 @@ checka wpisujemy nazwę, wynik, link do jobu lub review i aktualny
 head SHA (oraz testowany merge SHA, jeżeli inny).
 
 Zgodnie z workflow CI zestaw obejmuje `Required CI`, `Lint`,
-`Backend (3.12)`, `Backend (3.13)`, `Frontend build`, `Backend image`,
+`Backend (3.12)`, `Backend (3.13)`, `Backend (3.15)`, `Frontend build`, `Backend image`,
 `Dependency security`, `Source security`, `Secret security`,
 `Markdown links` oraz `Critical browser flows` dla obu profili
 (w jednym jobie lub osobnych jobach z nazwą profilu).

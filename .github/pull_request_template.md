@@ -49,6 +49,7 @@ ochrony. Nie deklaruj ich aktywności na podstawie samego szablonu.
 | Lint | | |
 | Backend (3.13) | | |
 | Backend (3.12) | | |
+| Backend (3.15) | | |
 | Frontend build | | |
 | Backend image | | |
 | Dependency security | | |
