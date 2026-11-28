@@ -33,6 +33,11 @@ class Settings:
     stale_seconds: int = DEFAULT_STALE_SECONDS
     webfleet_account: str = field(default="", repr=False)
     api_docs_enabled: bool = True
+    backup_state_dir: str = ""
+    tls_cert_path: str = ""
+    tls_warning_days: int = 21
+    tls_critical_days: int = 7
+    disk_path: str = "."
 
     @property
     def local_api_docs(self) -> bool:
@@ -87,4 +92,9 @@ class Settings:
             stale_seconds=_seconds(values, "STALE_SECONDS", DEFAULT_STALE_SECONDS, 1, 604800),
             webfleet_account=values.get("WEBFLEET_ACCOUNT", ""),
             api_docs_enabled=docs == "true",
+            backup_state_dir=values.get("FLEET_FLOW_BACKUP_STATE", "").strip(),
+            tls_cert_path=values.get("TLS_CERT_PATH", "").strip(),
+            tls_warning_days=_seconds(values, "TLS_WARNING_DAYS", 21, 1, 365),
+            tls_critical_days=_seconds(values, "TLS_CRITICAL_DAYS", 7, 1, 365),
+            disk_path=values.get("FLEET_FLOW_DISK_PATH", ".").strip() or ".",
         )
