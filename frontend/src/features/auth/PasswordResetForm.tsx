@@ -9,10 +9,12 @@ export function PasswordResetForm({
   token,
   onDone,
   onCancel,
+  activation = false,
 }: {
   token: string;
   onDone: () => void;
   onCancel: () => void;
+  activation?: boolean;
 }) {
   const auth = useAuth();
   const [password, setPassword] = useState("");
@@ -30,14 +32,16 @@ export function PasswordResetForm({
     setError(null);
     try {
       await api(
-        "/auth/password/confirm",
+        activation ? "/auth/activation/confirm" : "/auth/password/confirm",
         { method: "POST", body: JSON.stringify({ token, password }) },
         false,
       );
-      auth.clearSession();
+      if (!activation) auth.clearSession();
       onDone();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Nie udało się zmienić hasła.");
+      setError(e instanceof Error ? e.message : activation
+        ? "Nie udało się aktywować konta."
+        : "Nie udało się zmienić hasła.");
     } finally {
       setPassword("");
       setConfirm("");
@@ -51,8 +55,8 @@ export function PasswordResetForm({
         <span className="login-symbol">
           <LockKeyhole size={28} />
         </span>
-        <h1>Ustaw nowe hasło.</h1>
-        <p>Link działa jeden raz i jest ważny przez 20 minut.</p>
+        <h1>{activation ? "Aktywuj konto" : "Ustaw nowe hasło."}</h1>
+        <p>Link działa jeden raz i jest ważny przez {activation ? "24 godziny" : "20 minut"}.</p>
         {valid ? (
           <form onSubmit={submit}>
             <label>
@@ -80,8 +84,9 @@ export function PasswordResetForm({
               />
             </label>
             <small>
-              Co najmniej 12 znaków. Po zmianie wszystkie wcześniejsze sesje
-              wygasną.
+              {activation
+                ? "Ustaw hasło składające się z co najmniej 12 znaków."
+                : "Co najmniej 12 znaków. Po zmianie wszystkie wcześniejsze sesje wygasną."}
             </small>
             {error && (
               <p role="alert" className="form-error">
@@ -89,12 +94,14 @@ export function PasswordResetForm({
               </p>
             )}
             <button className="button button-primary" disabled={busy}>
-              {busy ? "Zapisywanie…" : "Zapisz nowe hasło"}
+              {busy ? "Zapisywanie…" : activation ? "Aktywuj konto" : "Zapisz nowe hasło"}
             </button>
           </form>
         ) : (
           <p role="alert">
-            Ten link jest niepoprawny. Poproś o nowy na ekranie logowania.
+            {activation
+              ? "Ten link jest niepoprawny. Poproś administratora o nowe zaproszenie."
+              : "Ten link jest niepoprawny. Poproś o nowy na ekranie logowania."}
           </p>
         )}
         <button className="button button-secondary" onClick={onCancel}>
