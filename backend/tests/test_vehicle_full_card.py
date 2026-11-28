@@ -102,6 +102,26 @@ def test_invalid_units_are_rejected(logged_in, change):
     assert response.status_code == 422
 
 
+@pytest.mark.parametrize("weight, expected", [(0, 422), (1, 200), (120000, 200), (120001, 422)])
+def test_gross_weight_boundaries_match_create_and_update(logged_in, weight, expected):
+    _, client = logged_in
+    payload = {"gross_weight_kg": weight}
+    created = client.post(
+        "/api/v1/fleet/vehicles",
+        headers=ORIGIN,
+        json={"name": "Próba graniczna", "license_plate": "SYN 6808", **payload},
+    )
+    assert created.status_code == (201 if expected == 200 else expected), created.text
+
+    vehicle = create_vehicle(client)
+    updated = client.patch(
+        f"/api/v1/fleet/vehicles/{vehicle['id']}",
+        headers=ORIGIN,
+        json={"card_version": vehicle["card_version"], **payload},
+    )
+    assert updated.status_code == expected, updated.text
+
+
 def test_cross_field_rules_use_stored_and_changed_values(logged_in):
     _, client = logged_in
     invalid_create = client.post(

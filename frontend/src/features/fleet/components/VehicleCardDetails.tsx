@@ -6,6 +6,8 @@ import { useAuth } from "../../auth/AuthProvider";
 import { useFleet } from "../model/FleetProvider";
 import { measurementLabel, updateTime, type Vehicle } from "../model/types";
 
+import { dateFields as validatedDates, vehicleCardFieldMessages, vehicleCardNumberBounds } from "../model/vehicle-card-validation";
+
 const textFields = [
   { key: "name", label: "Nazwa", max: 200 },
   { key: "license_plate", label: "Numer rejestracyjny", max: 100 },
@@ -148,6 +150,16 @@ export function VehicleCardDetails({ vehicle, onUnsaved }: {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!draft || !Object.keys(draft.changes).length || !editable || saving || conflict) return;
+    const effectiveValues = Object.fromEntries(
+      [...Object.keys(vehicleCardNumberBounds), ...validatedDates].map(key => [
+        key, draft.changes[key as EditableKey] ?? fieldValue(draft.base, key as EditableKey),
+      ]),
+    );
+    const validationErrors = vehicleCardFieldMessages(effectiveValues);
+    if (Object.keys(validationErrors).length) {
+      setFieldErrors(validationErrors);
+      return;
+    }
     const nextOdoKm = draft.changes.manual_odometer_km ?? fieldValue(draft.base, "manual_odometer_km");
     const nextOdoDate = draft.changes.manual_odometer_date ?? fieldValue(draft.base, "manual_odometer_date");
     if ((nextOdoKm.trim() !== "") !== (nextOdoDate.trim() !== "")) {

@@ -6,6 +6,8 @@ import { DatePicker } from "../../../shared/components/DatePicker";
 import { trapDialogFocus } from "../../../shared/components/dialog-focus";
 import type { Vehicle } from "../model/types";
 
+import { vehicleCardFieldMessages } from "../model/vehicle-card-validation";
+
 const LICENSE_CATEGORIES = [
   "AM", "A1", "A2", "A", "B1", "B", "B+E", "C1", "C1+E", "C", "C+E", "D1", "D1+E", "D", "D+E", "T",
 ] as const;
@@ -122,14 +124,9 @@ export function VehicleCreateDialog({
   const submit = async (event: FormEvent, allowSourceDuplicate = false) => {
     event.preventDefault();
     if (saving) return;
-    const invalid: Record<string, string> = {};
+    const invalid = vehicleCardFieldMessages(draft);
     if (!draft.name.trim()) invalid.name = "Podaj nazwę pojazdu.";
     if (!draft.license_plate.trim()) invalid.license_plate = "Podaj numer rejestracyjny.";
-    if (draft.year.trim()) {
-      const yr = Number(draft.year);
-      if (!Number.isInteger(yr) || yr < 1900 || yr > 2100)
-        invalid.year = "Podaj rok z zakresu 1900–2100.";
-    }
     if ((draft.manual_odometer_km.trim() !== "") !== (draft.manual_odometer_date !== "")) {
       if (!draft.manual_odometer_km.trim())
         invalid.manual_odometer_km = "Podaj przebieg dla wybranej daty odczytu.";
@@ -338,6 +335,8 @@ export function VehicleCreateDialog({
                 <input
                   id={`${id}-dmc`}
                   type="number"
+                  aria-invalid={Boolean(fieldErrors.gross_weight_kg)}
+                  aria-describedby={fieldErrors.gross_weight_kg ? `${id}-dmc-error` : undefined}
                   step="1"
                   min={1}
                   max={120000}
@@ -346,11 +345,16 @@ export function VehicleCreateDialog({
                   onChange={(event) => setField("gross_weight_kg", event.target.value)}
                 />
               </label>
+              {fieldErrors.gross_weight_kg && (
+                <span id={`${id}-dmc-error`} className="form-error">{fieldErrors.gross_weight_kg}</span>
+              )}
               <label htmlFor={`${id}-seats`}>
                 Miejsca pasażerskie (opcjonalnie)
                 <input
                   id={`${id}-seats`}
                   type="number"
+                  aria-invalid={Boolean(fieldErrors.passenger_seats)}
+                  aria-describedby={fieldErrors.passenger_seats ? `${id}-seats-error` : undefined}
                   step="1"
                   min={0}
                   max={120}
@@ -359,6 +363,9 @@ export function VehicleCreateDialog({
                   onChange={(event) => setField("passenger_seats", event.target.value)}
                 />
               </label>
+              {fieldErrors.passenger_seats && (
+                <span id={`${id}-seats-error`} className="form-error">{fieldErrors.passenger_seats}</span>
+              )}
               <label htmlFor={`${id}-cat-override`}>
                 Wymagana kategoria — wyjątek (opcjonalnie)
                 <select

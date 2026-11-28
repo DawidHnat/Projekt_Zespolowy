@@ -41,6 +41,14 @@ test("SCRUM-85: editor adds manual vehicle without WEBFLEET GPS, validates field
   await dialog.getByLabel("Firma leasingowa").fill("EFL Leasing");
   await dialog.getByLabel("Przebieg ręczny w km (opcjonalnie)").fill("34500");
 
+  const grossWeight = dialog.getByLabel("DMC w kg (opcjonalnie)", { exact: true });
+  for (const invalid of ["0", "120001"]) {
+    await grossWeight.fill(invalid);
+    await dialog.getByRole("button", { name: "Utwórz pojazd", exact: true }).click();
+    await expect(grossWeight).toHaveAttribute("aria-invalid", "true");
+  }
+  await grossWeight.fill("120000");
+
   // Pick odometer date via shared DatePicker calendar (no manual typing in date trigger).
   await dialog.getByRole("button", { name: /Data odczytu przebiegu/ }).click();
   await dialog
