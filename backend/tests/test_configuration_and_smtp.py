@@ -6,6 +6,7 @@ import pytest
 
 from app.core.config import ConfigurationError, SmtpSettings, WebfleetSettings, load_environment
 from app.core.settings import Settings
+from app.integrations.mail import client as mail
 from app.integrations.mail.client import SmtpError, check_smtp
 
 
@@ -89,7 +90,7 @@ def test_smtp_missing_credentials_do_not_attempt_connection():
 
 
 @pytest.mark.parametrize("overrides", [{"SMTP_PORT": "25"}, {"SMTP_HOST": "unknown.example"}])
-def test_smtp_only_supports_verified_ovh_tls_configuration(overrides):
+def test_smtp_rejects_unknown_hosts_and_unencrypted_ports(overrides):
     with pytest.raises(ConfigurationError):
         SmtpSettings.from_environment(
             {
@@ -98,6 +99,90 @@ def test_smtp_only_supports_verified_ovh_tls_configuration(overrides):
                 **overrides,
             }
         )
+
+
+@pytest.mark.parametrize("host", ["smtp.mail.ovh.net", "ssl0.ovh.net"])
+def test_existing_ovh_configuration_keeps_mailbox_as_sender(host):
+    settings = SmtpSettings.from_environment(
+        {"SMTP_HOST": host, "SMTP_USERNAME": "sender@example.com", "SMTP_PASSWORD": "secret"}
+    )
+    assert settings.sender == settings.username == "sender@example.com"
+
+
+def test_brevo_login_and_verified_sender_are_separate():
+    settings = SmtpSettings.from_environment(
+        {
+            "SMTP_HOST": "smtp-relay.brevo.com",
+            "SMTP_USERNAME": "technical-login@smtp-brevo.com",
+            "SMTP_PASSWORD": "synthetic-smtp-key",
+            "SMTP_FROM": "sender@example.com",
+        }
+    )
+    assert settings.host == "smtp-relay.brevo.com"
+    assert settings.port == 465
+    assert settings.sender == "sender@example.com"
+    assert settings.username == "technical-login@smtp-brevo.com"
+    assert "synthetic-smtp-key" not in repr(settings)
+    assert "sender@example.com" not in repr(settings)
+
+
+@pytest.mark.parametrize(
+    "sender",
+    ["", " ", "invalid", "sender@example.com\r\nBcc: other@example.com"],
+)
+def test_invalid_brevo_sender_is_rejected_without_disclosing_value(sender):
+    with pytest.raises(ConfigurationError, match="SMTP_FROM") as error:
+        SmtpSettings.from_environment(
+            {
+                "SMTP_HOST": "smtp-relay.brevo.com",
+                "SMTP_USERNAME": "technical-login@smtp-brevo.com",
+                "SMTP_PASSWORD": "synthetic-smtp-key",
+                "SMTP_FROM": sender,
+            }
+        )
+    assert "other@example.com" not in str(error.value)
+    assert "synthetic-smtp-key" not in str(error.value)
+
+
+@pytest.mark.parametrize(
+    "send",
+    [
+        mail.send_password_reset,
+        mail.send_account_activation,
+        mail.send_email_confirmation,
+        mail.send_password_changed,
+    ],
+)
+def test_all_account_messages_use_verified_sender_and_technical_authentication(send):
+    settings = SmtpSettings(
+        "technical-login@smtp-brevo.com",
+        "synthetic-smtp-key",
+        host="smtp-relay.brevo.com",
+        from_address="sender@example.com",
+    )
+    connection = MagicMock()
+    connection.__enter__.return_value = connection
+    arguments = [settings, "recipient@example.com"]
+    if send != mail.send_password_changed:
+        arguments.append("https://example.com/#confirm?token=synthetic-token")
+    with patch("smtplib.SMTP_SSL", return_value=connection) as connect:
+        send(*arguments)
+    assert connect.call_args.args == ("smtp-relay.brevo.com", 465)
+    context = connect.call_args.kwargs["context"]
+    assert context.verify_mode == ssl.CERT_REQUIRED
+    assert context.check_hostname is True
+    connection.login.assert_called_once_with(settings.username, settings.password)
+    connection.send_message.assert_called_once()
+    message = connection.send_message.call_args.args[0]
+    assert message["From"] == "sender@example.com"
+    assert message["To"] == "recipient@example.com"
+    assert connection.send_message.call_args.kwargs == {
+        "from_addr": "sender@example.com",
+        "to_addrs": ["recipient@example.com"],
+    }
+    assert settings.username not in str(message)
+    assert settings.password not in str(message)
+    connection.set_debuglevel.assert_not_called()
 
 
 def test_smtp_login_uses_tls_and_never_sends_a_message():

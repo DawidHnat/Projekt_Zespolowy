@@ -110,6 +110,37 @@ limit prób i neutralna odpowiedź dla nieistniejących kont. Konfiguracja konta
 oraz ograniczenia dostawy są opisane w sekcji SCRUM-44 poniżej.
 Diagnostyka nie udostępnia publicznego endpointu wysyłania e-maili.
 
+### Brevo SMTP — SCRUM-182
+
+W lokalnym `.env` albo chronionym pliku `smtp.raw.env` na serwerze ustaw:
+
+```dotenv
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=465
+SMTP_USERNAME=LOGIN_SMTP_Z_PANELU_BREVO
+SMTP_PASSWORD=KLUCZ_SMTP_POZA_REPO
+SMTP_FROM=kontakt@fleet-flow.pl
+SMTP_TIMEOUT_SECONDS=20
+```
+
+`SMTP_USERNAME` jest loginem technicznym z panelu Brevo. `SMTP_PASSWORD`
+jest kluczem SMTP. `SMTP_FROM` wskazuje zweryfikowanego nadawcę i jest
+używany w nagłówku From oraz kopercie SMTP wszystkich wiadomości kont.
+Domena `fleet-flow.pl` wymaga uwierzytelnienia w Brevo przez rekordy DNS
+wskazane w panelu. Nadawcę i aktywację poczty transakcyjnej potwierdź przed
+próbą doręczenia. Port 465 korzysta z weryfikowanego TLS.
+
+Diagnostyka `python -m app.diagnostics smtp` wykonuje logowanie i NOOP.
+Próbę rzeczywistej dostawy wykonaj po wskazaniu skrzynki testowej i zgodzie
+na wysyłkę, korzystając z istniejących formularzy aktywacji, resetu hasła
+i zmiany adresu na syntetycznym koncie. Sprawdź też powiadomienie o zmianie
+hasła. Zapisz czas, SHA, typ wiadomości i wynik doręczenia, zachowując tokeny
+oraz adres odbiorcy poza publiczną dokumentacją. Testy CI używają atrap SMTP.
+
+Konfiguracja OVH zachowuje dotychczasowy adres nadawcy z `SMTP_USERNAME`,
+gdy `SMTP_FROM` jest pominięty. Dokumentacja dostawcy:
+[Brevo SMTP](https://help.brevo.com/hc/en-us/articles/7924908994450-Send-transactional-emails-using-Brevo-SMTP).
+
 ## Inny katalog pliku .env i weryfikacja kodu
 
 ```bash

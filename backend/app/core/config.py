@@ -7,6 +7,7 @@ from math import isfinite
 from pathlib import Path
 
 from dotenv import dotenv_values
+from email_validator import EmailNotValidError, validate_email
 
 
 class ConfigurationError(Exception):
@@ -73,17 +74,33 @@ class SmtpSettings:
     host: str = "smtp.mail.ovh.net"
     port: int = 465
     timeout_seconds: float = 20
+    from_address: str = field(default="", repr=False)
+
+    @property
+    def sender(self) -> str:
+        return self.from_address or self.username
 
     @classmethod
     def from_environment(cls, values: Mapping[str, str]) -> "SmtpSettings":
         credentials = _required(values, ("SMTP_USERNAME", "SMTP_PASSWORD"))
-        # This diagnostic is intentionally scoped to the purchased OVH mailbox.
-        if values.get("SMTP_HOST", cls.host) not in ("smtp.mail.ovh.net", "ssl0.ovh.net"):
-            raise ConfigurationError("SMTP_HOST: wymagany serwer poczty OVH")
+        host = values.get("SMTP_HOST", cls.host)
+        if host not in ("smtp.mail.ovh.net", "ssl0.ovh.net", "smtp-relay.brevo.com"):
+            raise ConfigurationError("SMTP_HOST: wymagany serwer poczty OVH lub Brevo")
         if values.get("SMTP_PORT", "465") != "465":
             raise ConfigurationError("SMTP_PORT: dla tej konfiguracji wymagany port TLS 465")
+        sender = values.get("SMTP_FROM", "")
+        if host == "smtp-relay.brevo.com" and not sender.strip():
+            raise ConfigurationError("SMTP_FROM: wymagany zweryfikowany nadawca Brevo")
+        if sender:
+            try:
+                sender = validate_email(
+                    sender, check_deliverability=False, allow_smtputf8=False
+                ).normalized
+            except EmailNotValidError:
+                raise ConfigurationError("SMTP_FROM: wymagany poprawny adres nadawcy") from None
         return cls(
             *credentials,
-            host=values.get("SMTP_HOST", cls.host),
+            host=host,
             timeout_seconds=_timeout(values, "SMTP_TIMEOUT_SECONDS"),
+            from_address=sender,
         )
