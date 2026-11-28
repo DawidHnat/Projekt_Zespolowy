@@ -65,6 +65,8 @@ def test_annotation_is_durable_audited_and_separate_from_source(stored_trip):
     assert original["annotation"] == {
         "purpose": None,
         "description": None,
+        "driver_id": None,
+        "driver": None,
         "version": 1,
         "updated_at": None,
         "updated_by": None,

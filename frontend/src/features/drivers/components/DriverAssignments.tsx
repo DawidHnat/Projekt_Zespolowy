@@ -123,9 +123,11 @@ export function DriverAssignments({
       }
     } catch (err) {
       setError(
-        err instanceof ApiError && err.status === 409
-          ? "Dane zmieniły się lub przypisanie już istnieje. Odśwież przypisania przed ponowieniem. Twój wybór został zachowany."
-          : "Nie udało się potwierdzić zapisu. Odśwież przypisania i sprawdź bieżący stan. Twój wybór został zachowany.",
+        err instanceof ApiError && err.code === "LICENSE_INCOMPATIBLE"
+          ? `${err.message} Przypisanie z potwierdzoną niezgodnością kategorii jest zablokowane.`
+          : err instanceof ApiError && err.status === 409
+            ? "Dane zmieniły się lub przypisanie już istnieje. Odśwież przypisania przed ponowieniem. Twój wybór został zachowany."
+            : "Nie udało się potwierdzić zapisu. Odśwież przypisania i sprawdź bieżący stan. Twój wybór został zachowany.",
       );
     } finally {
       setBusy(false);
@@ -193,19 +195,36 @@ export function DriverAssignments({
                 </strong>
                 <span>
                   {item.active ? "Bieżące" : "Zakończone"}
+                  {item.vehicle.archived ? " · Pojazd w archiwum" : ""}
                   {!item.vehicle.active ? " · Pojazd nieaktywny" : ""}
                 </span>
                 <span>
                   Od: {time(item.started_at)}
                   {!item.active ? ` · Do: ${time(item.ended_at)}` : ""}
                 </span>
+                {item.compatibility && (
+                  <span>
+                    Zgodność kategorii:{" "}
+                    {item.compatibility.status === "compatible"
+                      ? "Zgodne"
+                      : item.compatibility.status === "incompatible"
+                        ? "Niezgodne"
+                        : "Niezweryfikowane"}
+                    {item.compatibility.required_category
+                      ? ` (wymagana kat. ${item.compatibility.required_category})`
+                      : ""}
+                  </span>
+                )}
+                {item.compatibility?.historical_warning && (
+                  <small>{item.compatibility.historical_warning}</small>
+                )}
                 {!item.start_known && (
                   <small>Początek starego przypisania nie jest znany.</small>
                 )}
                 <div className="driver-actions">
                   <button
                     className="button button-secondary"
-                    disabled={!item.vehicle.active}
+                    disabled={!item.vehicle.active && !item.vehicle.archived}
                     onClick={() => fleet.inspect(item.vehicle.id)}
                   >
                     Szczegóły pojazdu

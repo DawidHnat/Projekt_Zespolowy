@@ -2,6 +2,8 @@
 
 import copy
 import json
+import struct
+import zlib
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -18,6 +20,7 @@ from app.core.models import Driver, Measurement, SyncState, Vehicle
 from app.modules.analytics.models import Alert, Rule
 from app.modules.auth.models import PasswordReset, User
 from app.modules.auth.service import digest
+from app.modules.fleet.documents import SyntheticMalwareScanner
 from app.modules.fleet.sync import account_key
 from app.modules.trips.models import Trip
 
@@ -149,7 +152,10 @@ def test_every_implemented_operation_has_a_real_success_response(logged_in, monk
     seen = set()
 
     def check(method, path, actual=None, expected=200, **options):
-        response = client.request(method, "/api/v1" + (actual or path), headers=ORIGIN, **options)
+        merged_headers = {**ORIGIN, **options.pop("headers", {})}
+        response = client.request(
+            method, "/api/v1" + (actual or path), headers=merged_headers, **options
+        )
         seen.add((method, path))
         return validate_response(method, path, response, expected)
 
@@ -181,6 +187,118 @@ def test_every_implemented_operation_has_a_real_success_response(logged_in, monk
         },
     )
     assert card["make"] == "Syntetyczna marka" and card["year"] == 2026
+    archived = check(
+        "POST",
+        "/fleet/vehicles/{id}/archive",
+        f"/fleet/vehicles/{vehicle}/archive",
+        json={"card_version": card["card_version"], "reason": "Syntetyczne archiwum"},
+    )
+    assert archived["archived"] is True and archived["archive"]["reason"] == "Syntetyczne archiwum"
+    restored = check(
+        "POST",
+        "/fleet/vehicles/{id}/restore",
+        f"/fleet/vehicles/{vehicle}/restore",
+        json={"card_version": archived["card_version"]},
+    )
+    assert restored["archived"] is False and restored["archive"] is None
+    manual = check(
+        "POST",
+        "/fleet/vehicles",
+        expected=201,
+        json={
+            "name": "Kontrakt ręczny",
+            "license_plate": "SYN MAN 01",
+            "fuel_type": "diesel",
+            "inspection_due_on": "2027-05-10",
+        },
+    )
+    assert manual["origin"] == "manual" and manual["latitude"] is None
+    manual_odo = check(
+        "PUT",
+        "/fleet/vehicles/{id}/odometer",
+        f"/fleet/vehicles/{manual['id']}/odometer",
+        json={
+            "card_version": manual["card_version"],
+            "odometer_km": 15200.5,
+            "recorded_on": "2026-11-25",
+        },
+    )
+    assert manual_odo["manual_odometer_km"] == 15200.5 and manual_odo["odometer_km"] == 15200.5
+    with app.state.sessions() as session:
+        link_src = Vehicle(
+            source_account=account_key(app.state.settings.webfleet_account),
+            external_uid="contract-discovered-source",
+            name="Wykryty w WEBFLEET",
+            license_plate="SYN MAN 01",
+        )
+        session.add(link_src)
+        session.commit()
+        link_src_id = str(link_src.id)
+    linked = check(
+        "POST",
+        "/fleet/vehicles/{id}/link-source",
+        f"/fleet/vehicles/{manual['id']}/link-source",
+        json={"card_version": manual_odo["card_version"], "source_vehicle_id": link_src_id},
+    )
+    assert linked["origin"] == "webfleet" and linked["id"] == manual["id"]
+    app.state.malware_scanner = SyntheticMalwareScanner()
+
+    def tiny_png(rgb=(40, 120, 200)):
+        def chunk(tag, body):
+            crc = zlib.crc32(tag + body) & 0xFFFFFFFF
+            return struct.pack(">I", len(body)) + tag + body + struct.pack(">I", crc)
+
+        ihdr = struct.pack(">IIBBBBB", 4, 4, 8, 2, 0, 0, 0)
+        raw = b"".join(b"\x00" + bytes(rgb) * 4 for _ in range(4))
+        return (
+            b"\x89PNG\r\n\x1a\n"
+            + chunk(b"IHDR", ihdr)
+            + chunk(b"IDAT", zlib.compress(raw))
+            + chunk(b"IEND", b"")
+        )
+
+    docs_initial = check(
+        "GET", "/fleet/vehicles/{id}/documents", f"/fleet/vehicles/{vehicle}/documents"
+    )
+    docs_dated = check(
+        "PATCH",
+        "/fleet/vehicles/{id}/documents/dates",
+        f"/fleet/vehicles/{vehicle}/documents/dates",
+        json={"card_version": docs_initial["card_version"], "inspection_due_on": "2027-08-01"},
+    )
+    assert docs_dated["inspection_due_on"] == "2027-08-01"
+    pdf_bytes = b"%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF\n"
+    uploaded_doc = check(
+        "POST",
+        "/fleet/vehicles/{id}/documents",
+        f"/fleet/vehicles/{vehicle}/documents?kind=inspection",
+        expected=201,
+        content=pdf_bytes,
+        headers={**ORIGIN, "Content-Type": "application/pdf", "X-Upload-Filename": "kontrakt.pdf"},
+    )
+    assert uploaded_doc["available"] is True and uploaded_doc["version"] == 1
+    replaced_doc = check(
+        "PUT",
+        "/fleet/vehicles/{id}/documents/{document_id}",
+        f"/fleet/vehicles/{vehicle}/documents/{uploaded_doc['id']}",
+        content=tiny_png(),
+        headers={**ORIGIN, "Content-Type": "image/png", "X-Upload-Filename": "kontrakt.png"},
+    )
+    assert replaced_doc["version"] == 2 and replaced_doc["mime_type"] == "image/png"
+    check(
+        "DELETE",
+        "/fleet/vehicles/{id}/documents/{document_id}",
+        f"/fleet/vehicles/{vehicle}/documents/{uploaded_doc['id']}",
+    )
+    photo_state = check(
+        "PUT",
+        "/fleet/vehicles/{id}/photo",
+        f"/fleet/vehicles/{vehicle}/photo",
+        content=tiny_png(),
+        headers={**ORIGIN, "Content-Type": "image/png", "X-Upload-Filename": "auto.png"},
+    )
+    assert photo_state["available"] is True and photo_state["version"] == 1
+    check("DELETE", "/fleet/vehicles/{id}/photo", f"/fleet/vehicles/{vehicle}/photo")
     check("GET", "/fleet/map")
     check("GET", "/fleet/summary")
     check(

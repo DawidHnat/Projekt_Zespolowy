@@ -9,9 +9,11 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_session
 from app.core.errors import ApiError
-from app.core.models import Vehicle
+from app.core.models import Driver, Vehicle
 from app.modules.auth.models import User
 from app.modules.auth.service import aware, current_user, editor, now_utc
+from app.modules.drivers.compatibility import evaluate_driver_vehicle
+from app.modules.drivers.models import DriverCategory
 from app.modules.fleet.sync import account_key
 from app.modules.trips.models import Trip, TripAnnotation
 from app.modules.trips.service import annotation_payload, trip_payload
@@ -24,6 +26,7 @@ class AnnotationPatch(BaseModel):
     model_config = ConfigDict(extra="forbid")
     purpose: str | None = Field(default=None, max_length=200)
     description: str | None = Field(default=None, max_length=2000)
+    driver_id: UUID | None = None
     version: int = Field(strict=True, ge=1, le=2147483646)
 
     @field_validator("purpose", "description")
@@ -40,7 +43,7 @@ class AnnotationPatch(BaseModel):
 
     @model_validator(mode="after")
     def has_changes(self):
-        if not {"purpose", "description"} & self.model_fields_set:
+        if not {"purpose", "description", "driver_id"} & self.model_fields_set:
             raise ValueError("At least one annotation field is required")
         return self
 
@@ -107,9 +110,10 @@ def trips(
     )
     total = session.scalar(select(func.count()).select_from(Trip).where(*filters))
     rows = session.execute(
-        select(Trip, TripAnnotation, User)
+        select(Trip, TripAnnotation, User, Driver)
         .outerjoin(TripAnnotation, TripAnnotation.trip_id == Trip.id)
         .outerjoin(User, User.id == TripAnnotation.updated_by)
+        .outerjoin(Driver, Driver.id == TripAnnotation.driver_id)
         .where(*filters)
         .order_by(Trip.start_at.desc(), Trip.id)
         .offset((page - 1) * page_size)
@@ -128,7 +132,10 @@ def trip_detail(trip_id: UUID, request: Request, session: SessionDep):
     trip = scoped_trip(session, request, trip_id)
     annotation = session.get(TripAnnotation, trip.id)
     author = session.get(User, annotation.updated_by) if annotation else None
-    return trip_payload(trip, annotation, author)
+    trip_driver = (
+        session.get(Driver, annotation.driver_id) if annotation and annotation.driver_id else None
+    )
+    return trip_payload(trip, annotation, author, trip_driver)
 
 
 @router.patch("/{trip_id}/annotation")
@@ -140,20 +147,48 @@ def patch_annotation(
     user: Annotated[User, Depends(editor)],
 ):
     trip = scoped_trip(session, request, trip_id, lock=True)
+    source = account_key(request.app.state.settings.webfleet_account)
     annotation = session.get(TripAnnotation, trip.id)
     version = annotation.version if annotation else 1
     if body.version != version:
         raise ApiError(
             409, "VERSION_CONFLICT", "Notatka została zmieniona. Odczytaj bieżącą wersję"
         )
+    selected_driver = None
+    if "driver_id" in body.model_fields_set and body.driver_id is not None:
+        selected_driver = session.scalar(
+            select(Driver).where(
+                Driver.id == body.driver_id,
+                Driver.source_account == source,
+                Driver.active.is_(True),
+            )
+        )
+        if selected_driver is None:
+            raise ApiError(404, "NOT_FOUND", "Wybrany kierowca jest niedostępny")
+        vehicle = session.get(Vehicle, trip.vehicle_id)
+        driver_cats = list(
+            session.scalars(
+                select(DriverCategory.category).where(
+                    DriverCategory.driver_id == selected_driver.id
+                )
+            ).all()
+        )
+        comp = evaluate_driver_vehicle(driver_cats, vehicle)
+        if comp["status"] == "incompatible":
+            raise ApiError(409, "LICENSE_INCOMPATIBLE", comp["message"])
     if annotation is None:
         annotation = TripAnnotation(trip_id=trip.id)
         session.add(annotation)
-    for field in ("purpose", "description"):
+    for field in ("purpose", "description", "driver_id"):
         if field in body.model_fields_set:
             setattr(annotation, field, getattr(body, field))
     annotation.version = version + 1
     annotation.updated_by = user.id
     annotation.updated_at = now_utc()
     session.commit()
-    return annotation_payload(annotation, user)
+    trip_driver = (
+        selected_driver
+        if "driver_id" in body.model_fields_set
+        else (session.get(Driver, annotation.driver_id) if annotation.driver_id else None)
+    )
+    return annotation_payload(annotation, user, trip_driver)

@@ -24,6 +24,13 @@ opis operacji nie oznacza jej implementacji.
 UID dostawcy pozostaje wewnętrzny; API pokazuje UUID aplikacji. Zmiana nazwy,
 numeru lub rejestracji nie tworzy nowego pojazdu. Usunięcie pojazdu ze źródła
 dezaktywuje rekord po kompletnym odczycie, bez usuwania historii i ręcznych pól.
+Archiwizacja pojazdu przez użytkownika (`Vehicle.archived`, `archived_at`,
+`archived_by`, `archived_reason` w SCRUM-88) jest odrębna od źródłowego `active`:
+synchronizacja nie cofa archiwizacji, a historia przejazdów, alertów i przypisań
+pozostaje nienaruszona. Pojazdy dodane ręcznie (`Vehicle.is_manual=true`,
+`external_uid=null` w SCRUM-85) mają stabilne UUID, pola kartoteki (paliwo, leasing,
+terminy badania/OC) oraz datowany przebieg ręczny bez sztucznego GPS; synchronizacja
+WEBFLEET ich nie nadpisuje ani nie scala automatycznie.
 Nie importujemy nazw, loginów, kontaktów ani innych pól kierowców ze źródła.
 User oznacza osobę korzystającą z aplikacji, Driver — ręcznie opisany wpis floty.
 
@@ -184,3 +191,38 @@ zaczyna się w czasie zapisu, zamknięcie zachowuje wiersz. Profile i relacje
 nie są danymi WEBFLEET. Vehicle.driver_id jest projekcją zgodności dla
 jednego przypisania; przy wielu API zwraca driver=null, liczbę i podgląd osób.
 [API, migracja starych rekordów, ograniczenia i rollback](qa/SCRUM-52.md).
+
+## Dokumenty pojazdu i wspólne zdjęcie — SCRUM-58
+
+Migracja `0014_vehicle_documents` dodaje `vehicles.photo_version` oraz tabelę
+`vehicle_attachments` (`inspection`, `insurance`, `vehicle_photo`) z sumą `sha256`,
+rozmiarem, wymiarem obrazu, wersją oraz statusem skanowania (`quarantined`,
+`clean`, `rejected`, `scanner_unavailable`). Pliki są przechowywane poza webrootem
+pod losowymi kluczami i udostępniane wyłącznie po uwierzytelnieniu, weryfikacji
+`source_account` i pozytywnym statusie `clean`.
+[Model zagrożeń i zakres kopii SCRUM-84](security/SCRUM-58-upload-threat-model.md).
+
+## Zgodność kategorii prawa jazdy z pojazdem — SCRUM-70
+
+Migracja `0015_license_compatibility` rozszerza `vehicles` o `gross_weight_kg` (DMC),
+`passenger_seats`, `tows_heavy_trailer` i `required_category_override`, a `trip_annotations`
+o opcjonalne `driver_id`. Ocena zgodności rozróżnia `compatible`, `incompatible`
+i `unverified`, blokując nowe niezgodne przypisania oraz wybór kierowcy w ewidencji
+przy zachowaniu historycznych rekordów z jawnym ostrzeżeniem.
+[Macierz reguł SCRUM-70](SCRUM-70-license-matrix.md).
+
+## Pełna kartoteka pojazdu — SCRUM-68
+
+Migracja `0016_vehicle_full_card` dodaje do `vehicles` tylko brakujące pola kartoteki:
+`ownership_category` (Firmowe/Prywatne/Leasing, ograniczenie w bazie), `leasing_buyout_on`
+(data wykupu), `first_registration_on`, `first_registration_pl_on`, `engine_capacity_cc`,
+`power_kw`, `curb_weight_kg`, `payload_kg` i `axles`. Paliwo, firma, umowa i koniec leasingu
+pochodzą z SCRUM-85 (`0013`), a DMC i miejsca pasażerskie (bez kierowcy) z SCRUM-70 (`0015`);
+kartoteka i ocena prawa jazdy czytają te same kolumny. Liczby są dodatnie lub puste
+(brak danych zamiast zera), masa własna i ładowność nie przekraczają DMC, a pierwsza
+rejestracja w Polsce nie poprzedza pierwszej rejestracji. Zmiana kategorii nie kasuje danych
+leasingu; interfejs je ukrywa poza kategorią Leasing. Synchronizacja WEBFLEET nie zapisuje
+tych pól. Downgrade poniżej `0016` jest blokowany, gdy którekolwiek z nich ma wartość;
+na PostgreSQL migracja najpierw blokuje tabelę `vehicles` (`ACCESS EXCLUSIVE`), więc
+równoległy zapis kartoteki jest widoczny dla kontroli albo czeka. Przed downgrade
+wycisz ruch aplikacji (zatrzymaj backend i worker synchronizacji).

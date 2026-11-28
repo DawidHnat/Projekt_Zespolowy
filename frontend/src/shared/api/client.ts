@@ -7,16 +7,19 @@ export function validCorrelationId(value: unknown): string | null {
 export class ApiError extends Error {
   status: number;
   code: string;
+  fields: Record<string, string>;
   correlationId: string | null;
   constructor(
     status: number,
     code: string,
     message: string,
+    fields: Record<string, string> = {},
     correlationId: string | null = null,
   ) {
     super(message);
     this.status = status;
     this.code = code;
+    this.fields = fields;
     this.correlationId = correlationId;
   }
 }
@@ -55,11 +58,14 @@ export async function api<T>(
     )
       expiredListeners.forEach((listener) => listener());
     let code = "UNAVAILABLE";
+    let fields: Record<string, string> = {};
     let bodyCorrelationId: string | null = null;
     try {
       const payload = await response.json();
       code = payload.error?.code || code;
       bodyCorrelationId = validCorrelationId(payload.error?.correlation_id);
+      if (payload.error?.fields && typeof payload.error.fields === "object")
+        fields = payload.error.fields as Record<string, string>;
     } catch {
       /* Non-JSON proxy failure. */
     }
@@ -72,13 +78,25 @@ export async function api<T>(
       UNAUTHENTICATED: "Sesja wygasła. Zaloguj się ponownie.",
       INVALID_RESET: "Link jest niepoprawny lub wygasł. Poproś o nowy link.",
       DATABASE_UNAVAILABLE: "Baza danych jest chwilowo niedostępna.",
+      VALIDATION_ERROR: "Popraw zaznaczone pola formularza.",
+      VEHICLE_ARCHIVED: "Pojazd jest zarchiwizowany. Przywróć go przed wykonaniem tej operacji.",
+      ALREADY_ARCHIVED: "Pojazd znajduje się już w archiwum.",
+      NOT_ARCHIVED: "Pojazd nie znajduje się w archiwum.",
+      DUPLICATE_VEHICLE_IDENTITY: "Numer rejestracyjny lub VIN jest już przypisany do innego pojazdu w kartotece.",
+      SOURCE_VEHICLE_EXISTS: "Wykryto istniejący pojazd WEBFLEET o tej samej rejestracji lub VIN.",
+      ALREADY_LINKED: "Pojazd jest już powiązany ze źródłem WEBFLEET.",
+      NOT_SOURCE_VEHICLE: "Wskazany rekord nie jest pojazdem WEBFLEET.",
+      IDENTITY_MISMATCH: "Wskazany pojazd WEBFLEET ma niezgodną rejestrację lub sprzeczny numer VIN.",
+      LINK_CONFLICT: "Nie udało się bezpiecznie połączyć historii wybranego pojazdu.",
+      LICENSE_INCOMPATIBLE:
+        "Kierowca nie posiada kategorii prawa jazdy wymaganej dla tego pojazdu.",
     };
     const baseMessage = messages[code] || "Nie udało się pobrać danych. Spróbuj ponownie.";
     const displayMessage =
       response.status >= 500 && code !== "SOURCE_UNAVAILABLE" && correlationId
         ? `${baseMessage} (ID zgłoszenia: ${correlationId})`
         : baseMessage;
-    throw new ApiError(response.status, code, displayMessage, correlationId);
+    throw new ApiError(response.status, code, displayMessage, fields, correlationId);
   }
   return response.json() as Promise<T>;
 }

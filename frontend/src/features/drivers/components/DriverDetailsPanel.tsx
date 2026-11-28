@@ -199,8 +199,18 @@ export function DriverDetailsPanel({
                 </div>
               </dl>
               <p>
-                Kategorie są wpisane ręcznie. Ocena zgodności z pojazdem nie
-                jest jeszcze dostępna.
+                Uprawnienia względem bieżących pojazdów:{" "}
+                <strong>
+                  {profile.compatibility.status === "compatible"
+                    ? "Zgodne"
+                    : profile.compatibility.status === "incompatible"
+                      ? "Niezgodne"
+                      : "Niezweryfikowane"}
+                </strong>
+                {profile.compatibility.message
+                  ? ` — ${profile.compatibility.message}`
+                  : ""}{" "}
+                Brak danych nie oznacza zgody.
               </p>
               {canEdit && (
                 <button

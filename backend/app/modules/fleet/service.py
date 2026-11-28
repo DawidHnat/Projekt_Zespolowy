@@ -1,3 +1,4 @@
+import re
 from datetime import UTC, datetime, timedelta
 from math import isfinite
 
@@ -5,8 +6,19 @@ from sqlalchemy import case, false, func, or_, select
 
 from app.core.errors import ApiError
 from app.core.models import Driver, Measurement, SyncState, Vehicle
+from app.modules.auth.models import User
 from app.modules.auth.service import aware
+from app.modules.drivers.compatibility import vehicle_license_requirement
 from app.modules.drivers.models import DriverAssignment
+
+
+def vehicle_archive_authors(session, vehicles):
+    author_ids = {vehicle.archived_by for vehicle in vehicles if vehicle.archived_by is not None}
+    if not author_ids:
+        return {}
+    return {
+        user.id: user for user in session.scalars(select(User).where(User.id.in_(author_ids))).all()
+    }
 
 
 def fleet_driver_summaries(session, vehicle_ids, source):
@@ -60,57 +72,203 @@ def timestamp(value):
     return aware(value).isoformat() if value else None
 
 
+def normalize_identity_token(value: str | None) -> str:
+    if not value:
+        return ""
+    return re.sub(r"[\s\-]+", "", value).casefold()
+
+
+def find_identity_conflicts(
+    session,
+    source: str,
+    *,
+    license_plate: str | None,
+    vin: str | None,
+    exclude_id=None,
+):
+    plate_token = normalize_identity_token(license_plate)
+    vin_token = normalize_identity_token(vin)
+    if not plate_token and not vin_token:
+        return []
+    query = select(Vehicle).where(Vehicle.source_account == source)
+    if exclude_id is not None:
+        query = query.where(Vehicle.id != exclude_id)
+    conflicts = []
+    for candidate in session.scalars(query).all():
+        same_plate = bool(
+            plate_token and normalize_identity_token(candidate.license_plate) == plate_token
+        )
+        same_vin = bool(vin_token and normalize_identity_token(candidate.vin) == vin_token)
+        if same_plate or same_vin:
+            conflicts.append((candidate, same_plate, same_vin))
+    return conflicts
+
+
+def source_link_candidates(session, vehicle: Vehicle):
+    if not vehicle.is_manual:
+        return []
+    manual_vin = normalize_identity_token(vehicle.vin)
+    matches = []
+    for candidate, same_plate, same_vin in find_identity_conflicts(
+        session,
+        vehicle.source_account,
+        license_plate=vehicle.license_plate,
+        vin=vehicle.vin,
+        exclude_id=vehicle.id,
+    ):
+        if not candidate.is_manual and candidate.active and not candidate.archived:
+            candidate_vin = normalize_identity_token(candidate.vin)
+            if manual_vin and candidate_vin and manual_vin != candidate_vin:
+                continue
+            matches.append(
+                {
+                    "id": str(candidate.id),
+                    "name": candidate.name,
+                    "number": candidate.number,
+                    "license_plate": candidate.license_plate,
+                    "vin": candidate.vin,
+                    "matched_by": [
+                        field
+                        for field, matched in (("license_plate", same_plate), ("vin", same_vin))
+                        if matched
+                    ],
+                }
+            )
+    return matches
+
+
 def source_payload(session, source):
     state = session.get(SyncState, source)
-    if not state or not state.last_success_at:
-        raise ApiError(503, "SOURCE_UNAVAILABLE", "Oczekiwanie na dane WEBFLEET")
-    return {
-        "status": "degraded" if state.error_code else "ok",
-        "last_success_at": timestamp(state.last_success_at),
-        "error_code": state.error_code,
-    }
+    if state and state.last_success_at:
+        return {
+            "status": "degraded" if state.error_code else "ok",
+            "last_success_at": timestamp(state.last_success_at),
+            "error_code": state.error_code,
+        }
+    has_manual = session.scalar(
+        select(Vehicle.id)
+        .where(Vehicle.source_account == source, Vehicle.is_manual.is_(True))
+        .limit(1)
+    )
+    if has_manual is not None:
+        return {
+            "status": "degraded",
+            "last_success_at": None,
+            "error_code": "MANUAL_ONLY",
+        }
+    raise ApiError(503, "SOURCE_UNAVAILABLE", "Oczekiwanie na dane WEBFLEET")
 
 
-def serialize_vehicle(vehicle, measurement, driver, now, stale_seconds, source_degraded=False):
+def serialize_vehicle(
+    vehicle,
+    measurement,
+    driver,
+    now,
+    stale_seconds,
+    source_degraded=False,
+    *,
+    archive_author=None,
+    link_candidates=None,
+):
     time = aware(measurement.position_at) if measurement and measurement.position_at else None
     age = (now - time).total_seconds() if time else None
     stale = source_degraded or age is None or age > stale_seconds or age < -300
     status = "unknown"
-    if measurement:
+    if measurement and not vehicle.is_manual:
         if stale:
             status = "offline"
         elif measurement.standing_still is not None:
             status = "stopped" if measurement.standing_still else "moving"
     located = bool(
-        measurement
+        not vehicle.is_manual
+        and measurement
         and measurement.gps_quality == "A"
         and time
         and age >= -300
         and measurement.latitude is not None
         and measurement.longitude is not None
     )
-    return {
+    archive_info = None
+    if vehicle.archived:
+        archive_info = {
+            "archived_at": timestamp(vehicle.archived_at),
+            "archived_by": (
+                {"id": str(archive_author.id), "display_name": archive_author.display_name}
+                if archive_author
+                else None
+            ),
+            "reason": vehicle.archived_reason,
+        }
+    telemetry_odometer = (
+        float(measurement.odometer_km)
+        if not vehicle.is_manual and measurement and measurement.odometer_km is not None
+        else None
+    )
+    manual_odometer = (
+        float(vehicle.manual_odometer_km) if vehicle.manual_odometer_km is not None else None
+    )
+    payload = {
         "id": str(vehicle.id),
+        "origin": "manual" if vehicle.is_manual else "webfleet",
         "name": vehicle.name,
         "card_version": vehicle.card_version,
-        "number": vehicle.number,
+        "photo_version": vehicle.photo_version,
+        "number": None if vehicle.is_manual else vehicle.number,
         "license_plate": vehicle.license_plate,
         "vehicle_type": vehicle.vehicle_type,
         "make": vehicle.make,
         "model": vehicle.model,
         "year": vehicle.year,
         "vin": vehicle.vin,
+        "fuel_type": vehicle.fuel_type,
+        "leasing_company": vehicle.leasing_company,
+        "leasing_contract_no": vehicle.leasing_contract_no,
+        "leasing_end_on": vehicle.leasing_end_on.isoformat() if vehicle.leasing_end_on else None,
+        "inspection_due_on": (
+            vehicle.inspection_due_on.isoformat() if vehicle.inspection_due_on else None
+        ),
+        "insurance_due_on": (
+            vehicle.insurance_due_on.isoformat() if vehicle.insurance_due_on else None
+        ),
+        "manual_odometer_km": manual_odometer,
+        "manual_odometer_date": (
+            vehicle.manual_odometer_date.isoformat() if vehicle.manual_odometer_date else None
+        ),
+        "gross_weight_kg": vehicle.gross_weight_kg,
+        "passenger_seats": vehicle.passenger_seats,
+        "tows_heavy_trailer": vehicle.tows_heavy_trailer,
+        "required_category_override": vehicle.required_category_override,
+        "ownership_category": vehicle.ownership_category,
+        "leasing_buyout_on": vehicle.leasing_buyout_on.isoformat()
+        if vehicle.leasing_buyout_on
+        else None,
+        "first_registration_on": vehicle.first_registration_on.isoformat()
+        if vehicle.first_registration_on
+        else None,
+        "first_registration_pl_on": vehicle.first_registration_pl_on.isoformat()
+        if vehicle.first_registration_pl_on
+        else None,
+        "engine_capacity_cc": vehicle.engine_capacity_cc,
+        "power_kw": vehicle.power_kw,
+        "curb_weight_kg": vehicle.curb_weight_kg,
+        "payload_kg": vehicle.payload_kg,
+        "axles": vehicle.axles,
+        "license_requirement": vehicle_license_requirement(vehicle),
+        "archived": vehicle.archived,
+        "archive": archive_info,
         "status": status,
         "driver": {"id": str(driver.id), "display_name": driver.display_name} if driver else None,
         "latitude": measurement.latitude if located else None,
         "longitude": measurement.longitude if located else None,
-        "position_at": timestamp(time),
-        "received_at": timestamp(measurement.received_at) if measurement else None,
+        "position_at": None if vehicle.is_manual else timestamp(time),
+        "received_at": (
+            timestamp(measurement.received_at) if not vehicle.is_manual and measurement else None
+        ),
         "is_stale": stale,
-        "position_address": measurement.position_address if measurement else None,
-        "odometer_km": float(measurement.odometer_km)
-        if measurement and measurement.odometer_km is not None
-        else None,
+        "position_address": (
+            measurement.position_address if not vehicle.is_manual and measurement else None
+        ),
+        "odometer_km": telemetry_odometer if telemetry_odometer is not None else manual_odometer,
         "speed_kmh": float(measurement.speed_kmh)
         if located
         and not stale
@@ -119,9 +277,14 @@ def serialize_vehicle(vehicle, measurement, driver, now, stale_seconds, source_d
         and isfinite(measurement.speed_kmh)
         and 0 <= measurement.speed_kmh <= 300
         else None,
-        "ignition_on": measurement.ignition_on if measurement else None,
-        "standing_still": measurement.standing_still if measurement else None,
+        "ignition_on": measurement.ignition_on if not vehicle.is_manual and measurement else None,
+        "standing_still": (
+            measurement.standing_still if not vehicle.is_manual and measurement else None
+        ),
     }
+    if link_candidates is not None:
+        payload["link_candidates"] = link_candidates
+    return payload
 
 
 def fleet_order(session, sort, status_expression):
@@ -139,11 +302,8 @@ def fleet_order(session, sort, status_expression):
         )
         return [rank, name, Vehicle.id]
     if sort in ("odometer-asc", "odometer-desc"):
-        mileage = (
-            Measurement.odometer_km.desc()
-            if sort == "odometer-desc"
-            else Measurement.odometer_km.asc()
-        )
+        effective_mileage = func.coalesce(Measurement.odometer_km, Vehicle.manual_odometer_km)
+        mileage = effective_mileage.desc() if sort == "odometer-desc" else effective_mileage.asc()
         return [mileage.nulls_last(), name, Vehicle.id]
     return [name, Vehicle.id]
 
@@ -165,8 +325,14 @@ def fleet_status(now, stale_seconds, source_degraded=False):
     )
 
 
-def fleet_filters(source, q, status, status_expression):
-    conditions = [Vehicle.source_account == source, Vehicle.active.is_(True)]
+def fleet_filters(source, q, status, status_expression, archive="active"):
+    conditions = [Vehicle.source_account == source]
+    if archive == "archived":
+        conditions.append(Vehicle.archived.is_(True))
+    elif archive == "all":
+        conditions.append(or_(Vehicle.active.is_(True), Vehicle.archived.is_(True)))
+    else:
+        conditions.extend((Vehicle.active.is_(True), Vehicle.archived.is_(False)))
     needle = q.strip().casefold()
     if "\x00" in needle:
         # PostgreSQL text cannot contain NUL; avoid sending an invalid SQL parameter.
@@ -212,10 +378,17 @@ def fleet_page(
     page_size,
     sort="name-asc",
     *,
+    archive="active",
     source_degraded=False,
 ):
     now = datetime.now(UTC)
-    conditions = fleet_filters(source, q, status, fleet_status(now, stale_seconds, source_degraded))
+    conditions = fleet_filters(
+        source,
+        q,
+        status,
+        fleet_status(now, stale_seconds, source_degraded),
+        archive=archive,
+    )
     total = fleet_count(session, conditions)
     rows = session.execute(
         select(Vehicle, Measurement, Driver)
@@ -227,18 +400,28 @@ def fleet_page(
         .limit(page_size)
     ).all()
     drivers = fleet_driver_summaries(session, [row[0].id for row in rows], source)
+    authors = vehicle_archive_authors(session, [row[0] for row in rows])
     return [
         with_driver_summary(
-            serialize_vehicle(*row, now, stale_seconds, source_degraded), drivers.get(row[0].id)
+            serialize_vehicle(
+                *row,
+                now,
+                stale_seconds,
+                source_degraded,
+                archive_author=authors.get(row[0].archived_by),
+            ),
+            drivers.get(row[0].id),
         )
         for row in rows
     ], total
 
 
-def fleet_markers(session, source, stale_seconds, q, status, *, source_degraded=False):
+def fleet_markers(
+    session, source, stale_seconds, q, status, *, archive="active", source_degraded=False
+):
     now = datetime.now(UTC)
     status_expression = fleet_status(now, stale_seconds, source_degraded)
-    conditions = fleet_filters(source, q, status, status_expression)
+    conditions = fleet_filters(source, q, status, status_expression, archive=archive)
     total = fleet_count(session, conditions)
     # Coordinates of stale positions remain useful; only invalid/missing/future GPS is hidden.
     rows = session.execute(
@@ -253,6 +436,7 @@ def fleet_markers(session, source, stale_seconds, q, status, *, source_degraded=
         .join(Measurement, Measurement.vehicle_id == Vehicle.id)
         .where(
             *conditions,
+            Vehicle.is_manual.is_(False),
             Measurement.gps_quality == "A",
             Measurement.position_at <= now + timedelta(seconds=300),
             Measurement.latitude.is_not(None),
@@ -285,7 +469,11 @@ def fleet_summary(session, source, stale_seconds, *, source_degraded=False):
         select(status_expression, func.count())
         .select_from(Vehicle)
         .outerjoin(Measurement, Measurement.vehicle_id == Vehicle.id)
-        .where(Vehicle.source_account == source, Vehicle.active.is_(True))
+        .where(
+            Vehicle.source_account == source,
+            Vehicle.active.is_(True),
+            Vehicle.archived.is_(False),
+        )
         .group_by(status_expression)
     ).all()
     counts = dict.fromkeys(("moving", "stopped", "offline", "unknown"), 0)

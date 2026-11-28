@@ -109,6 +109,17 @@ Przed rozpakowaniem artefaktu i jakąkolwiek zmianą stanu serwera (`releases/`,
   docelowym SHA oraz kopia bazy), a następnie jawnego wywołania na serwerze z
   flagą `--allow-rollback` (lub `FLEET_FLOW_ALLOW_ROLLBACK=1`). Standardowy klucz
   SSH CI nie przekazuje tej flagi automatycznie.
+- **Pojazdy ręczne (`SCRUM-85`, migracja `0013_manual_vehicles`):** przed `SCRUM-85`
+  żaden commit w `main` nie zawierał filtra `Vehicle.is_manual.is_(False)` w
+  `backend/app/modules/fleet/sync.py`. Cofnięcie obrazu aplikacji poniżej wydania
+  `SCRUM-85` przy aktywnych pojazdach ręcznych (`is_manual = true`, `external_uid IS NULL`)
+  spowodowałoby potraktowanie ich przez starszy synchronizator jako brakujących w
+  raporcie WEBFLEET (`INCOMPLETE_REPORT`). Gdy w bazie istnieją aktywne pojazdy
+  ręczne, nie cofamy aplikacji poniżej wydania zawierającego `SCRUM-85` ani nie
+  cofamy schematu poniżej `0013_manual_vehicles`; obowiązującą procedurą naprawczą
+  jest wdrożenie poprawki w przód (**forward fix**) na schemacie `0013+` (w razie
+  awarii integracji zewnętrznej synchronizację można tymczasowo wstrzymać przez
+  `DEV_WEBFLEET_SYNC_ENABLED=false` bez utraty ręcznych kartotek).
 
 ## Jednorazowe przygotowanie przez administratora
 

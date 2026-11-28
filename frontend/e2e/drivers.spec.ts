@@ -428,7 +428,7 @@ test("drivers: contact and vehicle searches, summary scope, pagination and viewe
     page.getByRole("navigation", { name: "Strony: Kierowcy" }),
   ).toContainText("1–23 z 23");
   await expect(
-    page.getByText("Ocena kategorii nie jest jeszcze dostępna.", {
+    page.getByText("Brak danych nie potwierdza uprawnień.", {
       exact: false,
     }),
   ).toBeVisible();

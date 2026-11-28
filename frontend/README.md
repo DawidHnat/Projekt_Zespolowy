@@ -207,6 +207,11 @@ kafelka/checkbox zaznacza go i podświetla; wybór pozostaje podczas zmiany stro
 i filtrów. Można rozciągnąć narożnik wybranej grupy albo zmienić rozmiar
 suwakami/presetami. Suwak zmienia jeden wymiar, preset wyrównuje oba.
 Wszystkie pojazdy obejmuje całą flotę, również poza stroną i filtrami.
+Uprawniony użytkownik (`admin`/`editor`) może dodać pojazd bez lokalizatora WEBFLEET
+przyciskiem „Dodaj pojazd ręcznie” (SCRUM-85) z datami wybieranymi przez wspólny
+`DatePicker`, datowanym przebiegiem ręcznym i jawnym łączeniem ze źródłem, a także
+filtrować, archiwizować i przywracać wycofane pojazdy (SCRUM-88). Viewer zachowuje
+wyłącznie odczyt.
 Minimum 280 × 420 px zostawia miejsce na zdjęcie,
 status, przebieg, kierowcę i czas pomiaru. Strzałki na uchwycie zmieniają rozmiar,
 a Enter otwiera suwaki. Zapis/Anuluj dotyczą wyłącznie tego widoku.

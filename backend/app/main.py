@@ -27,6 +27,7 @@ from app.modules.auth.reset import router as reset_router
 from app.modules.auth.router import router as auth_router
 from app.modules.drivers.access_logs import protect_driver_access_logs
 from app.modules.drivers.router import router as drivers_router
+from app.modules.fleet.documents import PrivateAttachmentStore, UnconfiguredMalwareScanner
 from app.modules.fleet.router import router as fleet_router
 from app.modules.fleet.sync import sync_worker
 from app.modules.preferences.router import router as preferences_router
@@ -75,13 +76,15 @@ def create_app(settings: Settings | None = None, *, engine=None) -> FastAPI:
     app.state.engine = engine
     app.state.sessions = make_sessions(engine)
     app.state.webfleet_settings = None
+    app.state.attachment_store = PrivateAttachmentStore(settings.upload_storage_dir)
+    app.state.malware_scanner = UnconfiguredMalwareScanner()
     app.state.metrics = metrics
     app.add_middleware(
         CORSMiddleware,
         allow_origins=list(settings.origins),
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PATCH", "PUT"],
-        allow_headers=["Content-Type", CORRELATION_HEADER],
+        allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE"],
+        allow_headers=["Content-Type", "X-Upload-Filename", CORRELATION_HEADER],
         expose_headers=[CORRELATION_HEADER],
     )
     register_handlers(app)
