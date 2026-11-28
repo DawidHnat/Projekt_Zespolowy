@@ -105,6 +105,7 @@
 .driver-table-wrap {
   max-width: 100%;
   overflow: auto;
+  overscroll-behavior-x: contain;
 }
 .driver-table-wrap table {
   width: 100%;
@@ -202,6 +203,7 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
+  overscroll-behavior: auto;
 }
 .driver-card dt {
   font-size: 11px;
@@ -288,6 +290,7 @@
 .driver-panel-content {
   padding: 24px;
   overflow: auto;
+  overscroll-behavior: contain;
   min-height: 0;
 }
 .driver-panel-content p {

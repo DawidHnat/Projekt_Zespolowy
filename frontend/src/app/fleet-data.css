@@ -378,6 +378,7 @@
 }
 .vehicle-cards {
   overflow: auto;
+  overscroll-behavior: contain;
   min-height: 0;
   flex: 1;
   padding: 0 12px;
@@ -588,6 +589,7 @@ table.vehicle-table {
   width: min(320px, calc(100% - 28px));
   max-height: calc(100% - 90px);
   overflow: auto;
+  overscroll-behavior: contain;
   background: var(--surface);
   border: 1px solid var(--border);
   color: var(--text);
@@ -635,6 +637,7 @@ table.vehicle-table {
   flex: 1;
   min-height: 0;
   overflow: auto;
+  overscroll-behavior: contain;
 }
 .map-fit {
   position: absolute;

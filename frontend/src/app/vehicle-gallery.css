@@ -455,6 +455,7 @@
 .map-overlap > div {
   max-height: 170px;
   overflow: auto;
+  overscroll-behavior: contain;
   display: grid;
   gap: 5px;
 }
