@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 const trip = "22222222-2222-4222-8222-222222222222";
 const isVehicleMapChunk = (url: string) =>
-  /\/assets\/VehicleMap-[^/]+\.js(?:\?.*)?$/.test(url);
+  /\/assets\/(?:VehicleMap|MapConfigurationNotice)-[^/]+\.js(?:\?.*)?$/.test(url);
 
 async function login(page: Page) {
   await page.goto("/#vehicles");
@@ -57,7 +57,7 @@ for (const failure of ["404", "abort"] as const) {
     await form.getByLabel(/Opis przejazdu/).fill(description);
 
     let allowChunkLoad = false;
-    await page.route("**/assets/VehicleMap-*.js", async (route) => {
+    await page.route((url) => isVehicleMapChunk(url.href), async (route) => {
       if (allowChunkLoad) {
         await route.continue();
         return;
@@ -139,3 +139,17 @@ for (const failure of ["404", "abort"] as const) {
     });
   });
 }
+
+test("a map without a configured token loads the notice without the renderer", async ({ page }) => {
+  const rendererRequests: string[] = [];
+  page.on("request", request => {
+    if (/\/assets\/VehicleMap-[^/]+\.js(?:\?.*)?$/.test(request.url())) {
+      rendererRequests.push(request.url());
+    }
+  });
+  await login(page);
+  await page.evaluate(() => { window.location.hash = "#map"; });
+  await expect(page.getByText("Mapa czeka na konfigurację", { exact: true })).toBeVisible();
+  await expect(page.locator(".fleet-map-page .vehicle-card")).toContainText("Pojazd E2E");
+  expect(rendererRequests).toHaveLength(0);
+});
