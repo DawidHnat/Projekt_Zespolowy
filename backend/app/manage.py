@@ -7,10 +7,18 @@ from pydantic import EmailStr, TypeAdapter, ValidationError
 from sqlalchemy import delete
 
 from app.core.database import make_engine, make_sessions
+from app.core.errors import ApiError
 from app.core.settings import Settings
-from app.modules.auth.models import PasswordReset, User
+from app.modules.auth.models import AccountActivation, User, normalize_identifier
 from app.modules.auth.policies import ROLES
-from app.modules.auth.service import find_user, password_hasher, revoke_sessions
+from app.modules.auth.service import (
+    check_identifiers,
+    find_user,
+    lock_account_changes,
+    password_hasher,
+    revoke_recovery_links,
+    revoke_sessions,
+)
 
 
 def main():
@@ -37,12 +45,14 @@ def main():
     engine = make_engine(Settings.from_environment())
     try:
         with make_sessions(engine)() as session:
+            lock_account_changes(session)
             user = find_user(session, args.username, lock=True)
             if args.operation == "create-user":
                 if user:
                     parser.error("Konto już istnieje")
+                check_identifiers(session, args.username, email)
                 user = User(
-                    username=args.username.strip().lower(),
+                    username=normalize_identifier(args.username),
                     display_name=args.name or args.username,
                     role=args.role,
                     password_hash=password_hasher.hash(password),
@@ -53,12 +63,23 @@ def main():
                 if not user:
                     parser.error("Konto nie istnieje")
                 if args.operation == "set-email":
-                    user.email = email
+                    if user.email != email:
+                        check_identifiers(session, email, except_user=user.id)
+                        user.email = email
+                        user.version += 1
+                        revoke_sessions(session, user)
+                        session.execute(
+                            delete(AccountActivation).where(AccountActivation.user_id == user.id)
+                        )
                 else:
+                    if user.needs_activation:
+                        parser.error("Pierwsze hasło użytkownik ustawia z linku aktywacyjnego")
                     user.password_hash = password_hasher.hash(password)
                     revoke_sessions(session, user)
-                session.execute(delete(PasswordReset).where(PasswordReset.user_id == user.id))
+                revoke_recovery_links(session, user)
             session.commit()
+    except ApiError as error:
+        parser.error(error.message)
     finally:
         engine.dispose()
     print("Konto zapisane; hasło nie zostało wypisane")

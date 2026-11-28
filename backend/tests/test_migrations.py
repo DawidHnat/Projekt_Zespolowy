@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 import pytest
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import make_url
 
 
@@ -37,7 +37,7 @@ def test_migrations_have_one_unique_head():
     assert len(script.get_heads()) == 1, "Alembic must have exactly one head"
 
 
-def test_postgres_upgrade_from_preferences_revision_adds_vehicle_card_columns():
+def test_postgres_upgrade_from_preferences_adds_vehicle_columns_and_preserves_email_alias():
     url = os.environ.get("TEST_DATABASE_URL")
     if not url:
         pytest.skip("Set TEST_DATABASE_URL for an isolated PostgreSQL test database")
@@ -58,13 +58,26 @@ def test_postgres_upgrade_from_preferences_revision_adds_vehicle_card_columns():
     try:
         alembic("downgrade", "base")
         alembic("upgrade", "0006")
-        with engine.connect() as connection:
+        with engine.begin() as connection:
             assert inspect(connection).has_table("account_preferences")
+            connection.execute(
+                text(
+                    "INSERT INTO users "
+                    "(id, username, display_name, email, password_hash, role, active) "
+                    "VALUES ('20000000-0000-4000-8000-000000000001', 'legacy-alias', 'Test', "
+                    "'İstanbul@example.com', 'synthetic-placeholder', 'viewer', true)"
+                )
+            )
         alembic("upgrade", "head")
         with engine.connect() as connection:
             inspector = inspect(connection)
             columns = {column["name"] for column in inspector.get_columns("vehicles")}
             assert {"make", "model", "year", "vin"} <= columns
             assert inspector.has_table("account_preferences")
+            email, identifier = connection.execute(
+                text("SELECT email, email_identifier FROM users WHERE username = 'legacy-alias'")
+            ).one()
+            assert email == "İstanbul@example.com"
+            assert identifier == email.lower()
     finally:
         engine.dispose()
