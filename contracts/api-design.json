@@ -216,6 +216,216 @@
       }
     },
     {
+      "method": "POST",
+      "path": "/fleet/vehicles",
+      "delivery": "SCRUM-85",
+      "request_example": {
+        "body": {
+          "name": "Auto zastępcze",
+          "license_plate": "GD 500MN",
+          "make": "Skoda",
+          "model": "Octavia",
+          "year": 2023,
+          "fuel_type": "benzyna",
+          "inspection_due_on": "2027-05-20",
+          "insurance_due_on": "2027-04-15",
+          "manual_odometer_km": 41250.5,
+          "manual_odometer_date": "2026-11-25"
+        }
+      },
+      "response_example": {
+        "id": "44444444-4444-4444-8444-444444444444",
+        "origin": "manual",
+        "name": "Auto zastępcze",
+        "number": null,
+        "license_plate": "GD 500MN",
+        "vehicle_type": null,
+        "make": "Skoda",
+        "model": "Octavia",
+        "year": 2023,
+        "vin": null,
+        "fuel_type": "benzyna",
+        "leasing_company": null,
+        "leasing_contract_no": null,
+        "leasing_end_on": null,
+        "inspection_due_on": "2027-05-20",
+        "insurance_due_on": "2027-04-15",
+        "manual_odometer_km": 41250.5,
+        "manual_odometer_date": "2026-11-25",
+        "archived": false,
+        "archive": null,
+        "status": "unknown",
+        "driver": null,
+        "driver_count": 0,
+        "driver_preview": [],
+        "latitude": null,
+        "longitude": null,
+        "position_at": null,
+        "received_at": null,
+        "is_stale": true,
+        "position_address": null,
+        "odometer_km": 41250.5,
+        "speed_kmh": null,
+        "ignition_on": null,
+        "standing_still": null,
+        "card_version": 1,
+        "link_candidates": []
+      },
+      "error_example": {
+        "status": 409,
+        "body": {
+          "error": {
+            "code": "DUPLICATE_VEHICLE_IDENTITY",
+            "message": "Powtórzony numer rejestracyjny lub VIN wymaga rozstrzygnięcia"
+          }
+        }
+      },
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/Vehicle"
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/fleet/vehicles/{id}/odometer",
+      "delivery": "SCRUM-85",
+      "request_example": {
+        "path": {
+          "id": "44444444-4444-4444-8444-444444444444"
+        },
+        "body": {
+          "card_version": 1,
+          "odometer_km": 42000.0,
+          "recorded_on": "2026-11-25"
+        }
+      },
+      "response_example": {
+        "id": "44444444-4444-4444-8444-444444444444",
+        "origin": "manual",
+        "name": "Auto zastępcze",
+        "number": null,
+        "license_plate": "GD 500MN",
+        "vehicle_type": null,
+        "make": "Skoda",
+        "model": "Octavia",
+        "year": 2023,
+        "vin": null,
+        "fuel_type": "benzyna",
+        "leasing_company": null,
+        "leasing_contract_no": null,
+        "leasing_end_on": null,
+        "inspection_due_on": "2027-05-20",
+        "insurance_due_on": "2027-04-15",
+        "manual_odometer_km": 42000.0,
+        "manual_odometer_date": "2026-11-25",
+        "archived": false,
+        "archive": null,
+        "status": "unknown",
+        "driver": null,
+        "driver_count": 0,
+        "driver_preview": [],
+        "latitude": null,
+        "longitude": null,
+        "position_at": null,
+        "received_at": null,
+        "is_stale": true,
+        "position_address": null,
+        "odometer_km": 42000.0,
+        "speed_kmh": null,
+        "ignition_on": null,
+        "standing_still": null,
+        "card_version": 2,
+        "link_candidates": []
+      },
+      "error_example": {
+        "status": 409,
+        "body": {
+          "error": {
+            "code": "VERSION_CONFLICT",
+            "message": "Kartoteka pojazdu zmieniła się podczas edycji"
+          }
+        }
+      },
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/Vehicle"
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/fleet/vehicles/{id}/link-source",
+      "delivery": "SCRUM-85",
+      "request_example": {
+        "path": {
+          "id": "44444444-4444-4444-8444-444444444444"
+        },
+        "body": {
+          "card_version": 2,
+          "source_vehicle_id": "11111111-1111-4111-8111-111111111111"
+        }
+      },
+      "response_example": {
+        "id": "44444444-4444-4444-8444-444444444444",
+        "origin": "webfleet",
+        "name": "Auto zastępcze",
+        "number": "TEST-1",
+        "license_plate": "GD 500MN",
+        "vehicle_type": "van",
+        "make": "Skoda",
+        "model": "Octavia",
+        "year": 2023,
+        "vin": null,
+        "fuel_type": "benzyna",
+        "leasing_company": null,
+        "leasing_contract_no": null,
+        "leasing_end_on": null,
+        "inspection_due_on": "2027-05-20",
+        "insurance_due_on": "2027-04-15",
+        "manual_odometer_km": 42000.0,
+        "manual_odometer_date": "2026-11-25",
+        "archived": false,
+        "archive": null,
+        "status": "stopped",
+        "driver": null,
+        "driver_count": 0,
+        "driver_preview": [],
+        "latitude": 52.0,
+        "longitude": 21.0,
+        "position_at": "2026-01-10T12:00:00Z",
+        "received_at": "2026-01-10T12:01:00Z",
+        "is_stale": false,
+        "position_address": "Gdańsk, ul. Morska 1",
+        "odometer_km": 1234.5,
+        "speed_kmh": null,
+        "ignition_on": false,
+        "standing_still": true,
+        "card_version": 3,
+        "link_candidates": []
+      },
+      "error_example": {
+        "status": 409,
+        "body": {
+          "error": {
+            "code": "ALREADY_LINKED",
+            "message": "Pojazd jest już powiązany ze źródłem WEBFLEET"
+          }
+        }
+      },
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/Vehicle"
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
+      }
+    },
+    {
       "method": "GET",
       "path": "/fleet/map",
       "delivery": "first",
@@ -401,6 +611,128 @@
           "error": {
             "code": "VERSION_CONFLICT",
             "message": "Kartoteka pojazdu zmieniła się podczas edycji"
+          }
+        }
+      },
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/Vehicle"
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/fleet/vehicles/{id}/archive",
+      "delivery": "SCRUM-88",
+      "request_example": {
+        "path": {
+          "id": "11111111-1111-4111-8111-111111111111"
+        },
+        "body": {
+          "card_version": 2,
+          "reason": "Pojazd wycofany z eksploatacji"
+        }
+      },
+      "response_example": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "name": "Pojazd testowy",
+        "number": "TEST-1",
+        "license_plate": "TEST 001",
+        "vehicle_type": "van",
+        "make": "Renault",
+        "model": "Master",
+        "year": 2022,
+        "vin": "VF1MA000000000000",
+        "archived": true,
+        "archive": {
+          "archived_at": "2026-01-10T12:10:00Z",
+          "archived_by": {
+            "id": "33333333-3333-4333-8333-333333333333",
+            "display_name": "Użytkownik testowy"
+          },
+          "reason": "Pojazd wycofany z eksploatacji"
+        },
+        "status": "stopped",
+        "driver": null,
+        "driver_count": 0,
+        "driver_preview": [],
+        "latitude": 52.0,
+        "longitude": 21.0,
+        "position_at": "2026-01-10T12:00:00Z",
+        "received_at": "2026-01-10T12:01:00Z",
+        "is_stale": false,
+        "position_address": "Gdańsk, ul. Morska 1",
+        "odometer_km": 1234.5,
+        "speed_kmh": null,
+        "ignition_on": false,
+        "standing_still": true,
+        "card_version": 3
+      },
+      "error_example": {
+        "status": 409,
+        "body": {
+          "error": {
+            "code": "ALREADY_ARCHIVED",
+            "message": "Pojazd znajduje się już w archiwum"
+          }
+        }
+      },
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/Vehicle"
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/fleet/vehicles/{id}/restore",
+      "delivery": "SCRUM-88",
+      "request_example": {
+        "path": {
+          "id": "11111111-1111-4111-8111-111111111111"
+        },
+        "body": {
+          "card_version": 3
+        }
+      },
+      "response_example": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "name": "Pojazd testowy",
+        "number": "TEST-1",
+        "license_plate": "TEST 001",
+        "vehicle_type": "van",
+        "make": "Renault",
+        "model": "Master",
+        "year": 2022,
+        "vin": "VF1MA000000000000",
+        "archived": false,
+        "archive": null,
+        "status": "stopped",
+        "driver": null,
+        "driver_count": 0,
+        "driver_preview": [],
+        "latitude": 52.0,
+        "longitude": 21.0,
+        "position_at": "2026-01-10T12:00:00Z",
+        "received_at": "2026-01-10T12:01:00Z",
+        "is_stale": false,
+        "position_address": "Gdańsk, ul. Morska 1",
+        "odometer_km": 1234.5,
+        "speed_kmh": null,
+        "ignition_on": false,
+        "standing_still": true,
+        "card_version": 4
+      },
+      "error_example": {
+        "status": 409,
+        "body": {
+          "error": {
+            "code": "NOT_ARCHIVED",
+            "message": "Pojazd nie znajduje się w archiwum"
           }
         }
       },
@@ -1714,12 +2046,117 @@
       ],
       "additionalProperties": true
     },
+    "VehicleArchiveInfo": {
+      "type": "object",
+      "properties": {
+        "archived_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "(Z|\\+00:00)$"
+        },
+        "archived_by": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Author"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "archived_at",
+        "archived_by",
+        "reason"
+      ],
+      "additionalProperties": true
+    },
+    "VehicleLinkCandidate": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string"
+        },
+        "number": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "license_plate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "vin": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "matched_by": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "license_plate",
+              "vin"
+            ]
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "number",
+        "license_plate",
+        "vin",
+        "matched_by"
+      ],
+      "additionalProperties": true
+    },
     "Vehicle": {
       "type": "object",
       "properties": {
         "id": {
           "type": "string",
           "format": "uuid"
+        },
+        "origin": {
+          "type": "string",
+          "enum": [
+            "webfleet",
+            "manual"
+          ]
         },
         "name": {
           "type": "string"
@@ -1892,6 +2329,97 @@
             }
           ]
         },
+        "fuel_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "leasing_company": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "leasing_contract_no": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "leasing_end_on": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "inspection_due_on": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "insurance_due_on": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "manual_odometer_km": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "manual_odometer_date": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "link_candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/VehicleLinkCandidate"
+          }
+        },
         "position_address": {
           "anyOf": [
             {
@@ -1928,6 +2456,22 @@
         "card_version": {
           "type": "integer",
           "minimum": 1
+        },
+        "source_active": {
+          "type": "boolean"
+        },
+        "archived": {
+          "type": "boolean"
+        },
+        "archive": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VehicleArchiveInfo"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -2982,6 +3526,9 @@
               ]
             },
             "active": {
+              "type": "boolean"
+            },
+            "archived": {
               "type": "boolean"
             }
           },

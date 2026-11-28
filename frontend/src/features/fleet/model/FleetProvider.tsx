@@ -11,7 +11,7 @@ import { browserPollingEnvironment, startPolling } from "../../../shared/api/pol
 import { useAuth } from "../../auth/AuthProvider";
 import { normalizePageSize } from "../../../shared/components/pagination-model";
 import { fleetPollInterval } from "./types";
-import { useVehiclePreferences } from "./VehiclePreferences";
+import { useVehiclePreferences, type VehicleArchiveScope } from "./VehiclePreferences";
 import { useSourceRefresh } from "./useSourceRefresh";
 import type {
   FleetMap,
@@ -38,6 +38,7 @@ type FleetState = {
   summaryError: string | null;
   q: string;
   status: VehicleStatus | "";
+  archive: VehicleArchiveScope;
   page: number;
   pageSize: number;
   preferencesLoading: boolean;
@@ -48,6 +49,7 @@ type FleetState = {
   detailsOpen: boolean;
   setQ: (q: string) => void;
   setStatus: (status: VehicleStatus | "") => void;
+  setArchive: (archive: VehicleArchiveScope) => void;
   clearFilters: () => void;
   setPage: (page: number) => void;
   setPageSize: (size: number) => void;
@@ -127,6 +129,7 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
   const q = preferences.filters.q;
   const [debouncedQ, setDebouncedQ] = useState("");
   const status = preferences.filters.status as VehicleStatus | "";
+  const archive = preferences.filters.archive ?? "active";
   const sort = preferences.sort;
   const [page, setPage] = useState(1);
   const pageSize = preferences.pageSize;
@@ -144,7 +147,11 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
   selectedIdRef.current = selectedId;
   const termPending = debouncedQ !== q.trim();
   const enabled = !preferences.cloud.loading;
-  const filter = new URLSearchParams({ q: debouncedQ, ...(status ? { status } : {}) });
+  const filter = new URLSearchParams({
+    q: debouncedQ,
+    ...(status ? { status } : {}),
+    ...(archive !== "active" ? { archive } : {}),
+  });
   const listQuery = new URLSearchParams(filter);
   listQuery.set("sort", sort);
   listQuery.set("page", String(page));
@@ -248,6 +255,11 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
     setPage(1);
     chooseVehicle(null, false);
   };
+  const setArchive = (value: VehicleArchiveScope) => {
+    preferences.updateFilters({ ...preferences.filters, archive: value });
+    setPage(1);
+    chooseVehicle(null, false);
+  };
   return (
     <Context
       value={{
@@ -263,6 +275,7 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
         summaryError: summaryRead.error,
         q,
         status,
+        archive,
         page,
         pageSize,
         preferencesLoading:
@@ -274,8 +287,9 @@ function AccountFleetProvider({ children }: { children: ReactNode }) {
         detailsOpen,
         setQ,
         setStatus,
+        setArchive,
         clearFilters: () => {
-          preferences.updateFilters({ q: "", status: "" });
+          preferences.updateFilters({ q: "", status: "", archive: "active" });
           setDebouncedQ("");
           setPage(1);
           chooseVehicle(null, false);

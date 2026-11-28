@@ -149,7 +149,7 @@ def profiles(session, rows, source):
 def find_driver(session, source, identity, *, version=None):
     statement = select(Driver).where(Driver.id == identity, Driver.source_account == source)
     if version is not None:
-        statement = statement.with_for_update()
+        statement = statement.with_for_update().execution_options(populate_existing=True)
     driver = session.scalar(statement)
     if not driver:
         raise ApiError(404, "NOT_FOUND", "Kierowca nie istnieje")
@@ -197,17 +197,24 @@ def project_vehicle_drivers(session, vehicle_ids, source):
 
 
 def close_driver_assignments(session, driver, source):
-    rows = session.scalars(
-        select(DriverAssignment).where(
-            DriverAssignment.driver_id == driver.id, DriverAssignment.active.is_(True)
-        )
-    ).all()
+    rows = [
+        item
+        for item in session.scalars(
+            select(DriverAssignment)
+            .where(DriverAssignment.driver_id == driver.id, DriverAssignment.active.is_(True))
+            .order_by(DriverAssignment.id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        ).all()
+        if item.active
+    ]
     now = datetime.now(UTC)
     for assignment in rows:
         assignment.active = False
         assignment.ended_at = now
     session.flush()
-    project_vehicle_drivers(session, [row.vehicle_id for row in rows], source)
+    if rows:
+        project_vehicle_drivers(session, sorted({row.vehicle_id for row in rows}), source)
 
 
 def assignment_payload(assignment, vehicle):
@@ -219,6 +226,7 @@ def assignment_payload(assignment, vehicle):
             "name": vehicle.name,
             "license_plate": vehicle.license_plate,
             "active": vehicle.active,
+            "archived": vehicle.archived,
         },
         "active": assignment.active,
         "started_at": aware(assignment.started_at).isoformat() if assignment.started_at else None,

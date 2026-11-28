@@ -8,16 +8,19 @@ export class ApiError extends Error {
   status: number;
   code: string;
   correlationId: string | null;
+  fields: Record<string, string>;
   constructor(
     status: number,
     code: string,
     message: string,
     correlationId: string | null = null,
+    fields: Record<string, string> = {},
   ) {
     super(message);
     this.status = status;
     this.code = code;
     this.correlationId = correlationId;
+    this.fields = fields;
   }
 }
 const expiredListeners = new Set<() => void>();
@@ -55,10 +58,13 @@ export async function api<T>(
     )
       expiredListeners.forEach((listener) => listener());
     let code = "UNAVAILABLE";
+    let fields: Record<string, string> = {};
     let bodyCorrelationId: string | null = null;
     try {
       const payload = await response.json();
       code = payload.error?.code || code;
+      if (payload.error?.fields && typeof payload.error.fields === "object")
+        fields = payload.error.fields as Record<string, string>;
       bodyCorrelationId = validCorrelationId(payload.error?.correlation_id);
     } catch {
       /* Non-JSON proxy failure. */
@@ -86,13 +92,22 @@ export async function api<T>(
       ACTIVATION_MAIL_FAILED: "Nie udało się wysłać zaproszenia. Spróbuj ponownie.",
       LAST_ADMIN: "Zachowaj co najmniej jednego aktywnego administratora.",
       DATABASE_UNAVAILABLE: "Baza danych jest chwilowo niedostępna.",
+      VEHICLE_ARCHIVED: "Pojazd jest zarchiwizowany. Przywróć go przed wykonaniem tej operacji.",
+      ALREADY_ARCHIVED: "Pojazd znajduje się już w archiwum.",
+      NOT_ARCHIVED: "Pojazd nie znajduje się w archiwum.",
+      DUPLICATE_VEHICLE_IDENTITY: "Numer rejestracyjny lub VIN jest już przypisany do innego pojazdu w kartotece.",
+      SOURCE_VEHICLE_EXISTS: "Wykryto istniejący pojazd WEBFLEET o tej samej rejestracji lub VIN.",
+      ALREADY_LINKED: "Pojazd jest już powiązany ze źródłem WEBFLEET.",
+      NOT_SOURCE_VEHICLE: "Wskazany rekord nie jest pojazdem WEBFLEET.",
+      IDENTITY_MISMATCH: "Wskazany pojazd WEBFLEET ma niezgodną rejestrację lub sprzeczny numer VIN.",
+      LINK_CONFLICT: "Nie udało się bezpiecznie połączyć historii wybranego pojazdu.",
     };
     const baseMessage = messages[code] || "Nie udało się pobrać danych. Spróbuj ponownie.";
     const displayMessage =
       response.status >= 500 && code !== "SOURCE_UNAVAILABLE" && correlationId
         ? `${baseMessage} (ID zgłoszenia: ${correlationId})`
         : baseMessage;
-    throw new ApiError(response.status, code, displayMessage, correlationId);
+    throw new ApiError(response.status, code, displayMessage, correlationId, fields);
   }
   return response.json() as Promise<T>;
 }

@@ -6,8 +6,10 @@ import {
   Info,
   MapPin,
   MoveDiagonal2,
+  Plus,
   Settings2,
 } from "lucide-react";
+import { useAuth } from "../../auth/AuthProvider";
 import { useFleet } from "../model/FleetProvider";
 import { useVehiclePreferences } from "../model/VehiclePreferences";
 import { statusLabels, type Vehicle } from "../model/types";
@@ -18,6 +20,7 @@ import { FleetFilters, FleetPagination } from "./FleetControls";
 import { FleetNotice } from "./FleetNotice";
 import { VehicleSizeDialog } from "./VehicleSizeDialog";
 import { VehiclePhotoDialog } from "./VehiclePhotoDialog";
+import { VehicleCreateDialog } from "./VehicleCreateDialog";
 import { EmptyState } from "../../../shared/components/EmptyState";
 
 const VehicleCard = memo(function VehicleCard({
@@ -65,7 +68,11 @@ const VehicleCard = memo(function VehicleCard({
         <header>
           <div>
             <h2 title={v.name}>{v.name}</h2>
-            <span>{v.license_plate || v.number || "Brak rejestracji"}</span>
+            <span>
+              {v.license_plate || v.number || "Brak rejestracji"}
+              {v.origin === "manual" ? " · Ręczny" : ""}
+              {v.archived ? " · Archiwalny" : v.source_active === false ? " · Poza raportem WEBFLEET" : ""}
+            </span>
           </div>
           <span className={`vehicle-status status-${v.status}`}>
             {statusLabels[v.status]}
@@ -160,9 +167,12 @@ const VehicleCard = memo(function VehicleCard({
   );
 });
 export function VehicleCardsPage() {
+  const { user } = useAuth();
   const f = useFleet();
   const p = useVehiclePreferences();
+  const canEdit = user?.role === "admin" || user?.role === "editor";
   const [sizing, setSizing] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [photo, setPhoto] = useState<Vehicle | null>(null);
   const vehicles = f.list?.items ?? [];
   return (
@@ -173,6 +183,16 @@ export function VehicleCardsPage() {
     >
       <div className="vehicle-gallery-toolbar widget">
         <FleetFilters />
+        {canEdit && !p.editing && (
+          <button
+            type="button"
+            className="button button-primary"
+            onClick={() => setCreating(true)}
+          >
+            <Plus size={16} aria-hidden="true" />
+            Dodaj pojazd ręcznie
+          </button>
+        )}
         <label className="vehicle-sort">
           Sortowanie
           <select
@@ -242,6 +262,15 @@ export function VehicleCardsPage() {
         onClose={() => setSizing(false)}
       />
       <VehiclePhotoDialog vehicle={photo} onClose={() => setPhoto(null)} />
+      <VehicleCreateDialog
+        open={creating}
+        onClose={() => setCreating(false)}
+        onCreated={(created) => {
+          setCreating(false);
+          f.refresh();
+          f.inspect(created.id);
+        }}
+      />
     </section>
   );
 }

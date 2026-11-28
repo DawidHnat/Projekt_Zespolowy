@@ -25,11 +25,12 @@ import {
   type VehicleLayoutConfig,
 } from "./vehicle-layout";
 
+export type VehicleArchiveScope = "active" | "archived" | "all";
 type VehicleSort = "name-asc" | "name-desc" | "status" | "odometer-asc" | "odometer-desc";
 type VehicleModulePreferences = {
   layout: VehicleLayoutConfig;
   sort: VehicleSort;
-  filters: { q: string; status: string };
+  filters: { q: string; status: string; archive?: VehicleArchiveScope };
   pageSize: number;
 };
 type VehicleCloudState = {
@@ -41,12 +42,21 @@ type VehicleCloudState = {
 const pageSizes = [10, 25, 50, 100];
 const sorts: VehicleSort[] = ["name-asc", "name-desc", "status", "odometer-asc", "odometer-desc"];
 const statuses = ["moving", "stopped", "offline", "unknown"];
+const archiveScopes: VehicleArchiveScope[] = ["active", "archived", "all"];
+
+function serializeModulePreferences(prefs: VehicleModulePreferences): VehicleModulePreferences {
+  const { q, status, archive } = prefs.filters;
+  return {
+    ...prefs,
+    filters: archive && archive !== "active" ? { q, status, archive } : { q, status },
+  };
+}
 
 function defaults(): VehicleModulePreferences {
   return {
     layout: normalizeLayoutConfig(null),
     sort: "name-asc",
-    filters: { q: "", status: "" },
+    filters: { q: "", status: "", archive: "active" },
     pageSize: 25,
   };
 }
@@ -67,6 +77,9 @@ function normalizeModulePreferences(value: unknown): VehicleModulePreferences {
     filters: {
       q: typeof filters.q === "string" ? filters.q.slice(0, 100) : "",
       status: statuses.includes(filters.status ?? "") ? filters.status! : "",
+      archive: archiveScopes.includes(filters.archive as VehicleArchiveScope)
+        ? filters.archive as VehicleArchiveScope
+        : "active",
     },
     pageSize: pageSizes.includes(item.pageSize ?? 0) ? item.pageSize! : 25,
   };
@@ -164,7 +177,7 @@ function usePreferences(scope: string) {
         const result = await writeAccountPreference(
           "vehicles",
           expectedVersion ?? revision.current,
-          getValue(),
+          serializeModulePreferences(getValue()),
         );
         revision.current = result.version;
         conflictRef.current = null;

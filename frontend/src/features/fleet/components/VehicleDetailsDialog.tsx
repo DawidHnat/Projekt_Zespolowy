@@ -177,6 +177,21 @@ export function VehicleDetailsDialog() {
                   <span className={`vehicle-status status-${vehicle.status}`}>
                     {statusLabels[vehicle.status]}
                   </span>
+                  {vehicle.origin === "manual" && (
+                    <span className="vehicle-status status-unknown">
+                      Ręczny
+                    </span>
+                  )}
+                  {vehicle.archived && (
+                    <span className="vehicle-status status-offline">
+                      Archiwalny
+                    </span>
+                  )}
+                  {!vehicle.archived && vehicle.source_active === false && (
+                    <span className="vehicle-status status-offline">
+                      Poza raportem WEBFLEET
+                    </span>
+                  )}
                 </div>
               )}
             </div>

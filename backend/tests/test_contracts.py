@@ -181,6 +181,60 @@ def test_every_implemented_operation_has_a_real_success_response(logged_in, monk
         },
     )
     assert card["make"] == "Syntetyczna marka" and card["year"] == 2026
+    archived = check(
+        "POST",
+        "/fleet/vehicles/{id}/archive",
+        f"/fleet/vehicles/{vehicle}/archive",
+        json={"card_version": card["card_version"], "reason": "Syntetyczne archiwum"},
+    )
+    assert archived["archived"] is True and archived["archive"]["reason"] == "Syntetyczne archiwum"
+    restored = check(
+        "POST",
+        "/fleet/vehicles/{id}/restore",
+        f"/fleet/vehicles/{vehicle}/restore",
+        json={"card_version": archived["card_version"]},
+    )
+    assert restored["archived"] is False and restored["archive"] is None
+    manual = check(
+        "POST",
+        "/fleet/vehicles",
+        expected=201,
+        json={
+            "name": "Kontrakt ręczny",
+            "license_plate": "SYN MAN 01",
+            "fuel_type": "diesel",
+            "inspection_due_on": "2027-05-10",
+        },
+    )
+    assert manual["origin"] == "manual" and manual["latitude"] is None
+    manual_odo = check(
+        "PUT",
+        "/fleet/vehicles/{id}/odometer",
+        f"/fleet/vehicles/{manual['id']}/odometer",
+        json={
+            "card_version": manual["card_version"],
+            "odometer_km": 15200.5,
+            "recorded_on": "2026-11-25",
+        },
+    )
+    assert manual_odo["manual_odometer_km"] == 15200.5 and manual_odo["odometer_km"] == 15200.5
+    with app.state.sessions() as session:
+        link_src = Vehicle(
+            source_account=account_key(app.state.settings.webfleet_account),
+            external_uid="contract-discovered-source",
+            name="Wykryty w WEBFLEET",
+            license_plate="SYN MAN 01",
+        )
+        session.add(link_src)
+        session.commit()
+        link_src_id = str(link_src.id)
+    linked = check(
+        "POST",
+        "/fleet/vehicles/{id}/link-source",
+        f"/fleet/vehicles/{manual['id']}/link-source",
+        json={"card_version": manual_odo["card_version"], "source_vehicle_id": link_src_id},
+    )
+    assert linked["origin"] == "webfleet" and linked["id"] == manual["id"]
     check("GET", "/fleet/map")
     check("GET", "/fleet/summary")
     check(

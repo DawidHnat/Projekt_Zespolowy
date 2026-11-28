@@ -289,6 +289,39 @@ odczytu w tym samym procesie. Drugi mierzy p95 oraz bajty JSON osobno dla listy
 25 pojazdów, mapy i podsumowania, z prawdziwym HTTP na loopback. Do porównania
 na hostingu trzeba dodać kompresję, profil sieci i współbieżność użytkowników.
 
+### Archiwizacja i przywracanie pojazdów — SCRUM-88
+
+`POST /api/v1/fleet/vehicles/{UUID}/archive` oraz `POST /api/v1/fleet/vehicles/{UUID}/restore`
+wymagają roli `admin`/`editor`, poprawnego `Origin` oraz aktualnego `card_version`.
+Archiwizacja zapisuje `archived=true`, czas UTC, autora oraz opcjonalny powód (do 500 znaków)
+w migracji `0012_vehicle_archive`. Domyślne listy i mapa (`archive=active`) pomijają archiwum;
+filtr `archive=archived` lub `archive=all` pozwala odnaleźć wycofane pojazdy oraz odczytać ich
+historię przejazdów i przypisań. Archiwizacja kończy bieżące przypisania kierowców z zachowaniem
+historii i blokuje nowe przypisania oraz nowe reguły alertów (`409 VEHICLE_ARCHIVED`).
+Stan `archived` jest odrębny od `active` ze źródła WEBFLEET — kolejna synchronizacja nie
+przywraca zarchiwizowanego auta ani nie usuwa historii. Downgrade migracji `0012` blokuje
+utratę zapisanych stanów archiwum.
+
+### Ręczne dodawanie pojazdów bez lokalizatora — SCRUM-85
+
+`POST /api/v1/fleet/vehicles` tworzy pojazd ręczny (`origin: "manual"`, `external_uid = null`,
+stabilne UUID aplikacji) z wymaganą nazwą i numerem rejestracyjnym, polami kartoteki
+(marka, model, rok, VIN, typ, paliwo, dane leasingu), datami badania technicznego/OC oraz
+datowanym przebiegiem ręcznym (`PUT /api/v1/fleet/vehicles/{UUID}/odometer`) i opcjonalnym
+przypisaniem kierowcy. Pojazd ręczny nie otrzymuje fikcyjnego identyfikatora WEBFLEET, GPS
+ani żywej telemetrii. Synchronizacja pomija rekordy `is_manual=true` i nie scala ich
+automatycznie. Powtórzona rejestracja/VIN w obrębie pojazdów ręcznych jest blokowana na poziomie
+ograniczeń bazy (`uq_vehicles_manual_plate_key`, `uq_vehicles_manual_vin_key`) oraz blokady
+transakcyjnej i zwraca czytelny konflikt `409` (z zachowaniem wyjątku dla pary ręczny–WEBFLEET
+do czasu jawnego połączenia). Jawne połączenie z wykrytym pojazdem źródłowym realizuje
+`POST /api/v1/fleet/vehicles/{UUID}/link-source`, weryfikując zgodność znormalizowanej rejestracji
+lub VIN (`409 IDENTITY_MISMATCH` przy braku dopasowania lub sprzecznym VIN) i bezpiecznie scalając
+alerty po `(rule_id, vehicle_id, event_day)` wraz z potwierdzeniami odczytu `alert_receipts`.
+Migracja `0013_manual_vehicles` chroni dane przed stratnym downgrade'em; ponieważ wydania sprzed
+`SCRUM-85` nie miały filtra `is_manual` w `sync.py` (aktywny rekord z `external_uid IS NULL`
+wywołałby `INCOMPLETE_REPORT`), przy aktywnych pojazdach ręcznych obowiązuje naprawa w przód
+(**forward fix**) na schemacie `0013+` zgodnie z [instrukcją wdrożenia](../infra/deploy/README.md).
+
 ## Ręczne odświeżanie floty — SCRUM-150
 
 `GET /api/v1/fleet/refresh` zwraca `enabled`, `running`, `server_time`,

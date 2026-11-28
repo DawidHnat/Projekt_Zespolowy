@@ -234,6 +234,29 @@ def patch_driver(
     driver_id: UUID, body: DriverPatch, request: Request, session: SessionDep, _: EditorDep
 ):
     source = source_for(request)
+    if body.active is False:
+        # Canonical lock order: Vehicle (by id) -> Driver -> DriverAssignment.
+        candidate_vehicle_ids = sorted(
+            set(
+                session.scalars(
+                    select(DriverAssignment.vehicle_id)
+                    .join(Vehicle, Vehicle.id == DriverAssignment.vehicle_id)
+                    .where(
+                        DriverAssignment.driver_id == driver_id,
+                        DriverAssignment.active.is_(True),
+                        Vehicle.source_account == source,
+                    )
+                ).all()
+            )
+        )
+        if candidate_vehicle_ids:
+            session.scalars(
+                select(Vehicle)
+                .where(Vehicle.id.in_(candidate_vehicle_ids), Vehicle.source_account == source)
+                .order_by(Vehicle.id)
+                .with_for_update()
+                .execution_options(populate_existing=True)
+            ).all()
     driver = find_driver(session, source, driver_id, version=body.version)
     changes = body.model_dump(exclude_unset=True, exclude={"categories", "version"})
     for field, value in changes.items():
@@ -291,20 +314,31 @@ def assign(
     driver_id: UUID, body: AssignmentBody, request: Request, session: SessionDep, _: EditorDep
 ):
     source = source_for(request)
-    driver = find_driver(session, source, driver_id, version=body.version)
+    # Canonical lock order: Vehicle -> Driver -> DriverAssignment.
     vehicle = session.scalar(
         select(Vehicle)
         .where(Vehicle.id == body.vehicle_id, Vehicle.source_account == source)
         .with_for_update()
+        .execution_options(populate_existing=True)
     )
+    driver = find_driver(session, source, driver_id, version=body.version)
     if not driver.active or not vehicle or not vehicle.active:
         raise ApiError(404, "NOT_FOUND", "Kierowca lub pojazd są niedostępne")
+    if vehicle.archived:
+        raise ApiError(
+            409,
+            "VEHICLE_ARCHIVED",
+            "Nie można przypisać kierowcy do zarchiwizowanego pojazdu",
+        )
     if session.scalar(
-        select(DriverAssignment.id).where(
+        select(DriverAssignment.id)
+        .where(
             DriverAssignment.driver_id == driver_id,
             DriverAssignment.vehicle_id == vehicle.id,
             DriverAssignment.active.is_(True),
         )
+        .order_by(DriverAssignment.id)
+        .with_for_update()
     ):
         raise ApiError(409, "CONFLICT", "To przypisanie jest już aktywne")
     assignment = DriverAssignment(
@@ -334,15 +368,38 @@ def close(
     _: EditorDep,
 ):
     source = source_for(request)
-    driver = find_driver(session, source, driver_id, version=body.version)
-    assignment = session.scalar(
-        select(DriverAssignment)
+    # Canonical lock order: Vehicle -> Driver -> DriverAssignment.
+    vehicle_id = session.scalar(
+        select(DriverAssignment.vehicle_id)
         .join(Vehicle, Vehicle.id == DriverAssignment.vehicle_id)
         .where(
             DriverAssignment.id == assignment_id,
-            DriverAssignment.driver_id == driver.id,
+            DriverAssignment.driver_id == driver_id,
             Vehicle.source_account == source,
         )
+    )
+    vehicle = (
+        session.scalar(
+            select(Vehicle)
+            .where(Vehicle.id == vehicle_id, Vehicle.source_account == source)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+        if vehicle_id is not None
+        else None
+    )
+    driver = find_driver(session, source, driver_id, version=body.version)
+    if vehicle is None:
+        raise ApiError(404, "NOT_FOUND", "Przypisanie nie istnieje")
+    assignment = session.scalar(
+        select(DriverAssignment)
+        .where(
+            DriverAssignment.id == assignment_id,
+            DriverAssignment.driver_id == driver.id,
+            DriverAssignment.vehicle_id == vehicle.id,
+        )
+        .with_for_update()
+        .execution_options(populate_existing=True)
     )
     if not assignment:
         raise ApiError(404, "NOT_FOUND", "Przypisanie nie istnieje")
@@ -352,7 +409,6 @@ def close(
     assignment.ended_at = datetime.now(UTC)
     driver.version += 1
     session.flush()
-    project_vehicle_drivers(session, [assignment.vehicle_id], source)
+    project_vehicle_drivers(session, [vehicle.id], source)
     session.commit()
-    vehicle = session.get(Vehicle, assignment.vehicle_id)
     return {"assignment": assignment_payload(assignment, vehicle), "driver_version": driver.version}
