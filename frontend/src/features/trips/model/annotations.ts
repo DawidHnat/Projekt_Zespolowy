@@ -40,9 +40,24 @@ export function tripDayRange(day: string): { from: string; to: string } {
   following.setUTCDate(following.getUTCDate() + 1);
   return { from: midnightUtc(day), to: midnightUtc(following.toISOString().slice(0, 10)) };
 }
-export function tripListPath(vehicleId: string, day: string, page: number, pageSize: number): string {
-  return `/trips?${new URLSearchParams({ vehicle_id: vehicleId, ...tripDayRange(day), page: String(page), page_size: String(pageSize) })}`;
+export function tripWindowQuery(day: string, through = day): URLSearchParams {
+  return new URLSearchParams({ from: tripDayRange(day).from, to: tripDayRange(through).to });
 }
+
+export function tripListPath(
+  vehicleId: string | null, day: string, page: number, pageSize: number, through = day,
+): string {
+  const query = tripWindowQuery(day, through);
+  if (vehicleId) query.set("vehicle_id", vehicleId);
+  query.set("page", String(page));
+  query.set("page_size", String(pageSize));
+  return `/trips?${query}`;
+}
+
+const tripTimeFormat = new Intl.DateTimeFormat("pl-PL", {
+  timeZone: "Europe/Warsaw", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
+});
+export const tripTime = (value: string) => tripTimeFormat.format(new Date(value));
 export function annotationError(error: unknown): string {
   const code = error && typeof error === "object" && "code" in error ? error.code : null;
   if (code === "VERSION_CONFLICT") return "Ktoś zmienił tę notatkę. Twój tekst pozostał w formularzu. Sprawdź bieżącą wersję przed ponownym zapisem.";

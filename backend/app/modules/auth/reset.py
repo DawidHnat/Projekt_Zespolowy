@@ -1,11 +1,10 @@
 import logging
-import secrets
 from datetime import timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
-from pydantic import BaseModel, Field, SecretStr, field_validator
-from sqlalchemy import delete, func, select
+from pydantic import BaseModel, Field, field_validator
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import SmtpSettings, load_environment
@@ -13,6 +12,7 @@ from app.core.database import get_session
 from app.core.errors import ApiError
 from app.core.observability import active_metrics, bind_correlation_id, current_correlation_id
 from app.integrations.mail.client import send_password_reset
+from app.modules.auth.links import PasswordLinkBody, settle_delivery, stage_link
 from app.modules.auth.models import PasswordReset, User
 from app.modules.auth.router import count_attempt
 from app.modules.auth.service import (
@@ -21,6 +21,7 @@ from app.modules.auth.service import (
     digest,
     now_utc,
     password_hasher,
+    revoke_recovery_links,
     revoke_sessions,
 )
 
@@ -42,20 +43,6 @@ class RequestReset(BaseModel):
         return value
 
 
-class ConfirmReset(BaseModel):
-    token: str = Field(min_length=20, max_length=100)
-    password: SecretStr = Field(min_length=12, max_length=1024)
-
-    @field_validator("password")
-    @classmethod
-    def valid_password_text(cls, value: SecretStr) -> SecretStr:
-        try:
-            value.get_secret_value().encode("utf-8")
-        except UnicodeEncodeError as exc:
-            raise ValueError("Invalid password text") from exc
-        return value
-
-
 def deliver_reset(app, username, origin, correlation_id: str | None = None):
     metrics = active_metrics(app)
     with bind_correlation_id(correlation_id):
@@ -67,25 +54,9 @@ def deliver_reset(app, username, origin, correlation_id: str | None = None):
                 if not user or not user.active or not user.email:
                     return
                 settings = SmtpSettings.from_environment(load_environment())
-                token = secrets.token_urlsafe(32)
-                token_hash = digest(token)
-                now = now_utc()
                 user_id, recipient = user.id, user.email
-                expires_at = now + timedelta(minutes=20)
-                latest_expiry = session.scalar(
-                    select(func.max(PasswordReset.expires_at)).where(
-                        PasswordReset.user_id == user_id
-                    )
-                )
-                if latest_expiry is not None and aware(latest_expiry) >= expires_at:
-                    expires_at = aware(latest_expiry) + timedelta(microseconds=1)
-                session.execute(
-                    delete(PasswordReset).where(
-                        PasswordReset.user_id == user_id, PasswordReset.expires_at <= now
-                    )
-                )
-                session.add(
-                    PasswordReset(token_hash=token_hash, user_id=user_id, expires_at=expires_at)
+                token, expires_at = stage_link(
+                    session, PasswordReset(user_id=user_id), timedelta(minutes=20)
                 )
                 session.commit()
         except Exception:
@@ -105,19 +76,7 @@ def deliver_reset(app, username, origin, correlation_id: str | None = None):
 
         try:
             with app.state.sessions() as session:
-                # Both password updates and token cleanup acquire User before touching tokens.
-                session.scalar(select(User.id).where(User.id == user_id).with_for_update())
-                criteria = [PasswordReset.user_id == user_id]
-                if delivered:
-                    criteria.extend(
-                        [
-                            PasswordReset.token_hash != token_hash,
-                            PasswordReset.expires_at <= expires_at,
-                        ]
-                    )
-                else:
-                    criteria.append(PasswordReset.token_hash == token_hash)
-                session.execute(delete(PasswordReset).where(*criteria))
+                settle_delivery(session, PasswordReset, user_id, token, expires_at, delivered)
                 session.commit()
         except Exception:
             metrics.record_smtp_event("state_failed")
@@ -147,7 +106,7 @@ def request_reset(
 
 
 @router.post("/confirm")
-def confirm_reset(body: ConfirmReset, request: Request, session: SessionDep):
+def confirm_reset(body: PasswordLinkBody, request: Request, session: SessionDep):
     count_attempt(
         session, digest("reset-confirm:" + (request.client.host if request.client else "unknown"))
     )
@@ -170,6 +129,6 @@ def confirm_reset(body: ConfirmReset, request: Request, session: SessionDep):
         raise ApiError(400, "INVALID_RESET", "Link jest niepoprawny lub wygasł")
     user.password_hash = password_hasher.hash(body.password.get_secret_value())
     revoke_sessions(session, user)
-    session.execute(delete(PasswordReset).where(PasswordReset.user_id == user.id))
+    revoke_recovery_links(session, user)
     session.commit()
     return {"ok": True}

@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Annotated
 from uuid import UUID
 
@@ -16,6 +17,7 @@ from app.modules.analytics.service import (
     require_vehicle,
     rule_payload,
 )
+from app.modules.analytics.usage import period_usage
 from app.modules.auth.models import User
 from app.modules.auth.service import aware, check_origin, current_user, editor, now_utc
 from app.modules.fleet.sync import account_key
@@ -40,6 +42,18 @@ def find_rule(session, source, rule_id, *, lock=False):
     if not rule:
         raise ApiError(404, "NOT_FOUND", "Reguła nie istnieje")
     return rule
+
+
+@router.get("/usage")
+def vehicle_usage(
+    request: Request,
+    session: SessionDep,
+    _: UserDep,
+    from_day: date,
+    through: date,
+    vehicle_ids: Annotated[list[UUID], Query(min_length=1, max_length=10)],
+):
+    return period_usage(session, source_key(request), vehicle_ids, from_day, through)
 
 
 @router.get("/rules")
