@@ -16,11 +16,14 @@ services:
 
   api:
     image: fleet-flow-api:${FLEET_FLOW_BUILD_SHA:?Set FLEET_FLOW_BUILD_SHA}
-    build:
-      context: ../..
-      dockerfile: infra/deploy/backend.Dockerfile
     restart: unless-stopped
-    env_file: ${FLEET_FLOW_ENV_FILE:?Set FLEET_FLOW_ENV_FILE}
+    env_file:
+      - ${FLEET_FLOW_ENV_FILE:?Set FLEET_FLOW_ENV_FILE}
+      - path: ${FLEET_FLOW_SMTP_ENV_FILE:-/opt/fleet-flow/shared/smtp.env}
+        required: false
+      - path: ${FLEET_FLOW_SMTP_RAW_ENV_FILE:-/opt/fleet-flow/shared/smtp.raw.env}
+        required: false
+        format: raw
     environment:
       COOKIE_SECURE: 'true'
       CORS_ORIGINS: https://${APP_DOMAIN:?Set APP_DOMAIN}

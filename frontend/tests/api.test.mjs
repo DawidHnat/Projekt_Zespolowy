@@ -1,6 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { advanceSessionVersion, api, onSessionExpired } from "../src/shared/api/client.ts";
+import {
+  advanceSessionVersion,
+  api,
+  onSessionExpired,
+  validCorrelationId,
+} from "../src/shared/api/client.ts";
 import {
   fleetPollInterval,
   measurementLabel,
@@ -107,5 +112,38 @@ test("a canceled request cannot broadcast a late session expiration", async () =
   } finally {
     globalThis.fetch = saved;
     remove();
+  }
+});
+
+test("SCRUM-114: bounded X-Correlation-ID surfaces on 5xx errors and rejects unsafe headers", async () => {
+  assert.equal(validCorrelationId("corr-2026_11_25.ok"), "corr-2026_11_25.ok");
+  assert.equal(validCorrelationId("short"), null);
+  assert.equal(validCorrelationId("x".repeat(65)), null);
+  assert.equal(validCorrelationId("bad space"), null);
+
+  const saved = globalThis.fetch;
+  try {
+    globalThis.fetch = async () =>
+      new Response(
+        JSON.stringify({
+          error: {
+            code: "DATABASE_UNAVAILABLE",
+            message: "internal",
+            correlation_id: "0123456789abcdef0123456789abcdef",
+          },
+        }),
+        {
+          status: 503,
+          headers: { "X-Correlation-ID": "0123456789abcdef0123456789abcdef" },
+        },
+      );
+    await assert.rejects(
+      api("/fleet/vehicles"),
+      (err) =>
+        err.correlationId === "0123456789abcdef0123456789abcdef" &&
+        err.message.includes("ID zgłoszenia: 0123456789abcdef0123456789abcdef"),
+    );
+  } finally {
+    globalThis.fetch = saved;
   }
 });

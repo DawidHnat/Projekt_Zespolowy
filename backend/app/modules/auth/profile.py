@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.config import SmtpSettings, load_environment
 from app.core.database import get_session
 from app.core.errors import ApiError
+from app.core.observability import active_metrics
 from app.integrations.mail.client import send_password_changed
 from app.modules.auth.models import LoginSession, PasswordReset, User
 from app.modules.auth.router import count_attempt
@@ -21,6 +22,7 @@ from app.modules.auth.service import (
     now_utc,
     password_hasher,
     revoke_sessions,
+    verify_password,
 )
 
 router = APIRouter(prefix="/api/v1/auth", tags=["profile"])
@@ -71,14 +73,17 @@ def locked_current_user(session, request, user):
     return locked
 
 
-def notify_password_changed(recipient):
+def notify_password_changed(recipient, app=None):
     if not recipient:
         return
+    metrics = active_metrics(app)
     try:
         settings = SmtpSettings.from_environment(load_environment())
         send_password_changed(settings, recipient)
+        metrics.record_smtp_event("delivered")
     except Exception:
         # Notification failure must not undo a successful password change or expose SMTP data.
+        metrics.record_smtp_event("notification_failed")
         return
 
 
@@ -114,7 +119,7 @@ def change_password(
     locked = locked_current_user(session, request, user)
     current = body.current_password.get_secret_value()
     new = body.new_password.get_secret_value()
-    if not password_hasher.verify(current, locked.password_hash):
+    if not verify_password(current, locked.password_hash):
         raise ApiError(400, "INVALID_CURRENT_PASSWORD", "Niepoprawne aktualne hasło")
     if new == current:
         raise ApiError(422, "PASSWORD_UNCHANGED", "Wybierz inne nowe hasło")
@@ -124,7 +129,7 @@ def change_password(
     issue_session(request, response, session, locked)
     recipient = locked.email
     session.commit()
-    background.add_task(notify_password_changed, recipient)
+    background.add_task(notify_password_changed, recipient, request.app)
     return {"ok": True}
 
 
