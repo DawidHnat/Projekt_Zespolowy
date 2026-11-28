@@ -21,6 +21,9 @@ test("page navigation supports direct links and safely falls back for unknown ha
 test("saved links to removed navigation sections still open the corresponding workspace", () => {
   assert.equal(sectionFromHash("#fleet"), "map");
   assert.equal(sectionFromHash("#trips"), "mileage");
-  assert.equal(sectionFromHash("#analytics"), "dashboard");
   assert.equal(sectionFromHash("#dashboard"), "dashboard");
+});
+
+test("the analytics workspace opens from its own hash", () => {
+  assert.equal(sectionFromHash("#analytics"), "analytics");
 });

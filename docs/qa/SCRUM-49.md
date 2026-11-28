@@ -1,57 +1,59 @@
-# SCRUM-49 — profil i bezpieczeństwo konta, pierwszy przyrost
+# SCRUM-49 · Profil i bezpieczeństwo konta
 
-Zakres tego PR: odczyt własnego profilu, zmiana hasła z ponownym uwierzytelnieniem,
-rotacja sesji, wylogowanie wszystkich urządzeń i opcjonalna notyfikacja SMTP.
-Story nie jest w całości ukończona: potwierdzanie nowego e-maila, test dostawy
-na uzgodniony adres, niezależne review oraz odbiór QA pozostają do wykonania.
-Nie ma edycji roli/statusu ani administracji cudzym kontem. W danych profilu
-imię i nazwisko są istniejącym polem `display_name`; brak e-maila pokazuje
-„Nie ustawiono”. Story pozostaje poza Sprintem 1.
+Profil jest dostępny przez własną nazwę w menu oraz pod adresem `#profile`.
+Pokazuje imię, nazwisko, login, aktualny e-mail i rolę. Dla starszych kont
+bez osobnych pól imienia i nazwiska wyświetla zapisaną nazwę konta.
+Rolą i statusem konta zarządza administrator w sekcji Użytkownicy.
+[Scenariusze administracji kontami](SCRUM-48.md).
 
-## Scenariusze Marcela
+## Scenariusze odbioru
 
-Użyj osobnych kont i syntetycznych danych w środowisku testowym. Zmiana hasła
-wspólnego `qa-team` dotyczyłaby wszystkich testerów — wykonuj ją wyłącznie po
-uzgodnieniu z zespołem. Ten przyrost nie zmienia hasła `qa-team` na VPS.
+Użyj syntetycznych kont w środowisku testowym, dwóch niezależnych profili
+przeglądarki i skrzynki wskazanej do testów doręczenia.
 
-1. Zaloguj się i kliknij własną nazwę pod menu. Profil pokazuje tylko dane
-   bieżącego konta, również przy bezpośrednim wejściu na `#profile`. Brak sesji
-   prowadzi do logowania. E-mail/rola/status nie są polami edytowalnymi.
-2. Otwórz dwie niezależne sesje (np. Safari i drugi profil przeglądarki).
-   Zmień hasło w pierwszej: wymagane aktualne hasło, nowe 12–1024 znaki i
-   zgodne powtórzenie. Po sukcesie hasła w formularzu są puste, pierwsza sesja
-   działa z nowym cookie, druga dostaje 401 i wraca do logowania. Stare hasło
-   nie loguje; nowe loguje. Stare linki resetu nie działają.
-3. Błędne obecne hasło daje czytelny błąd i zachowuje sesję. Niezgodne powtórzenie,
-   za krótkie, zbyt długie i identyczne hasło są odrzucane. Hasła nie są
-   przycinane ani zapisywane w localStorage. Po odpowiedzi API formularz
-   usuwa wpisane hasła. Szósta próba na konto w 15 min daje 429.
-4. „Wyloguj wszystkie urządzenia” pokazuje potwierdzenie. „Anuluj” zachowuje
-   sesje. Potwierdzenie wylogowuje także bieżące urządzenie. Sesje innych kont
-   pozostają aktywne. Ponowne logowanie działa.
-   W dwóch kartach tego samego profilu przeglądarki potwierdzenie usuwa też
-   prywatny widok i niezapisany szkic z drugiej karty bez oczekiwania na polling.
-   Zmiana hasła zachowuje obróconą, wspólną sesję tego profilu, ale usuwa stare
-   szkice w innych kartach i ponownie wczytuje użytkownika z `/auth/me`.
-   Sprawdź BroadcastChannel i fallback storage; komunikat nie zawiera konta,
-   hasła ani cookie.
-5. Brak sieci/błąd API nie pokazuje fałszywego sukcesu. Można ponowić odczyt
-   profilu lub operację; wygaśnięcie sesji usuwa prywatny widok. Sprawdź klawiaturę,
-   Safari, 390 px, jasny/ciemny oraz szkło/klasyczny. Dane floty nie są wymagane
-   do korzystania z profilu.
-6. Testy z atrapą poczty potwierdzają adresata i brak sekretów w notyfikacji.
-   Brak e-maila lub konfiguracji SMTP pomija notyfikację; awaria wysyłki nie
-   cofa hasła i nie ujawnia błędów transportu. Faktyczne doręczenie jest
-   osobnym odbiorem na zatwierdzony adres, poza CI.
+1. Wejdź do Profilu przez menu i przez `#profile`. Wygaśnięcie sesji prowadzi
+   do logowania. Sprawdź klawiaturę, szerokość 390 px, motyw jasny i ciemny
+   oraz style przezroczysty i klasyczny.
+2. Zmień hasło. Potwierdź aktualne hasło, wpisz nowe od 12 do 1024 znaków
+   i powtórz je zgodnie. Błędne aktualne hasło i nieprawidłowe nowe hasło dają
+   czytelny błąd. Po odpowiedzi API pola hasła są puste. Po udanej zmianie
+   bieżąca przeglądarka ma nową sesję, pozostałe kończą się z 401, stare linki
+   resetu tracą ważność i działa logowanie nowym hasłem. Szósta próba zmiany
+   na jedno konto w ciągu 15 minut daje 429.
+3. Wybierz „Zmień adres e-mail”, wpisz nowy adres i aktualne hasło, a następnie
+   wybierz „Wyślij link potwierdzający”. Podczas wysyłki przycisk jest
+   nieaktywny. Po wysyłce pojawia się komunikat z adresem docelowym.
+   Profil i logowanie nadal korzystają z dotychczasowego adresu.
+4. Otwórz link w drugim profilu przeglądarki. Zaloguj się dotychczasowym
+   loginem lub adresem i wybierz „Potwierdź zmianę adresu”. Po sukcesie Profil
+   pokazuje nowy adres, a link znika z paska adresu. Możesz się zalogować nowym
+   adresem. Sesja potwierdzająca pozostaje aktywna dzięki nowemu cookie,
+   a pozostałe sesje i stare linki do odzyskiwania konta tracą ważność.
+5. Sprawdź wygasły link, ponowne użycie linku oraz próbę potwierdzenia z innego
+   konta. Wszystkie zgłaszają błąd i zachowują dotychczasowy adres. Link jest
+   ważny przez 20 minut. Jeżeli inne konto używa adresu jako e-maila lub loginu,
+   API zwraca 409 przy potwierdzeniu. Zmiana hasła unieważnia oczekujący link.
+6. Sprawdź brak konfiguracji poczty i odrzucenie wiadomości. Formularz zmiany
+   e-maila pokazuje czytelny błąd i zachowuje dotychczasowy adres. Po nieudanym
+   ponowieniu poprzedni ważny link nadal działa. Powiadomienie o zmianie hasła
+   jest wysyłane po skonfigurowaniu SMTP. Awaria tego powiadomienia zachowuje
+   zmienione hasło.
+7. „Wyloguj wszystkie urządzenia” wyświetla potwierdzenie. Anulowanie zachowuje
+   sesje, a potwierdzenie wylogowuje także bieżącą przeglądarkę. Inne konta
+   mają nadal dostęp. W tym samym profilu przeglądarki druga karta usuwa
+   prywatny widok i szkice bez oczekiwania na odpytywanie API. Po zmianie hasła
+   lub e-maila karta korzysta z odświeżonej wspólnej sesji.
 
-## Weryfikacja autora
+## Weryfikacja techniczna
 
-- `frontend/`: `npm test`, `npm run build`.
-- `backend/`: `ruff check .`, `ruff format --check .`, `pytest` z
-  `TEST_DATABASE_URL` do izolowanego PostgreSQL 17. Test migracji czyści bazę;
-  jej nazwa musi zaczynać się od `fleet_flow_test`.
-- Test równoczesnych zmian hasła: z dwóch żądań używających starej sesji jedno
-  wygrywa, drugie dostaje 401 po ponownym sprawdzeniu sesji pod blokadą User.
-- Browser: profil, responsywność i wylogowanie wszystkich sesji na osobnym
-  syntetycznym koncie. Formularz zmiany hasła ma automatyczne testy walidacji
-  i API; ręczny odbiór całej ścieżki przez QA pozostaje wymagany.
+- Uruchom `npm test` i `npm run build` w `frontend/` oraz `ruff check .`,
+  `ruff format --check .` i `pytest` w `backend/`. Testy integracyjne
+  wymagają odizolowanego PostgreSQL 17 z bazą o nazwie zaczynającej się
+  od `fleet_flow_test`. CI uruchamia Playwright na desktopie i mobile
+  z atrapą poczty.
+- Rewizja `0014_merge_account_links` łączy migrację potwierdzenia adresu
+  z migracją identyfikatorów logowania SCRUM-48. Test równoczesnego
+  potwierdzenia weryfikuje jednokrotne użycie linku i unikalność adresu.
+  Playwright sprawdza również potwierdzenie adresu z Unicode i logowanie nim.
+- Doręczenie wiadomości na uzgodnioną skrzynkę oraz niezależny przegląd PR
+  i odbiór QA są wymagane przed zakończeniem zadania.

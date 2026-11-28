@@ -34,12 +34,24 @@ HISTORY_COLUMNS = {
     "showTripReportExtern": (
         "tripid",
         "objectno",
+        "objectuid",
+        "tripmode",
         "start_time",
         "end_time",
         "distance",
         "duration",
+        "start_postext",
+        "end_postext",
     ),
-    "showStandStills": ("start_time", "end_time", "duration", "latitude", "longitude"),
+    "showStandStills": (
+        "objectuid",
+        "start_time",
+        "end_time",
+        "duration",
+        "latitude",
+        "longitude",
+        "postext",
+    ),
     "showTracks": ("pos_time", "latitude", "longitude", "speed", "odometer"),
 }
 REQUEST_INTERVALS = {
@@ -161,6 +173,19 @@ class WebfleetClient:
 
     async def fetch_vehicles(self) -> list[dict[str, Any]]:
         return await self._read("showVehicleReportExtern", VEHICLE_COLUMNS)
+
+    async def fetch_trip_history(self, object_uid: str, start: datetime, end: datetime):
+        params = {
+            "objectuid": object_uid,
+            "range_pattern": "ud",
+            "rangefrom_string": start.isoformat(timespec="seconds"),
+            "rangeto_string": end.isoformat(timespec="seconds"),
+        }
+        trips = await self._read(
+            "showTripReportExtern", HISTORY_COLUMNS["showTripReportExtern"], **params
+        )
+        stops = await self._read("showStandStills", HISTORY_COLUMNS["showStandStills"], **params)
+        return trips, stops
 
     async def probe_history(self, object_uid: str) -> dict[str, dict[str, Any]]:
         """One selected vehicle, today only; no personal driver fields or writes."""
