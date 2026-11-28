@@ -76,8 +76,11 @@ async function fleet(page: Page, legacy = false) {
   }, { userId: user.id, first: id(1), second: id(11) });
   await page.reload();
   if (legacy) {
-    await page.getByRole("button", { name: "Przenieś z tej przeglądarki", exact: true }).click();
+    await page.goto("/#settings");
+    await page.getByRole("button", { name: /Układ i moduły/ }).click();
+    await page.getByRole("button", { name: "Importuj ustawienia pojazdów", exact: true }).click();
     await expect.poll(async () => (await savedPreferences(page))?.layout?.sizes?.[id(1)]).toEqual({ width: 400, height: 500 });
+    await page.goto("/#vehicles");
   }
   await expect(card(page, 1)).toBeVisible();
   await expect(search(page)).toBeEnabled();
@@ -92,7 +95,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("SCRUM-46: selection spans pages and filters, one-axis edits preserve heights and migration keeps photos", async ({ page }) => {
-  const fixture = await fleet(page, true);
+  await fleet(page, true);
   await expect(card(page, 1)).toHaveCSS("height", "500px");
   await card(page, 1).getByRole("button", { name: `Zdjęcie: ${name(1)}`, exact: true }).click();
   const png = await page.evaluate(() => {
@@ -136,12 +139,12 @@ test("SCRUM-46: selection spans pages and filters, one-axis edits preserve heigh
   await storedWidth(page, 26, 320);
   await page.getByRole("button", { name: "Zapisz układ", exact: true }).click();
   await expect(page.getByRole("button", { name: "Edytuj układ", exact: true })).toBeVisible();
-  const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), fixture.key);
+  // SCRUM-148: the layout lives on the account; the browser no longer keeps a copy.
+  const saved = (await savedPreferences(page)).layout;
   expect(saved.version).toBe(2);
   expect(saved.sizes[id(1)]).toEqual({ width: 480, height: 500 });
   expect(saved.sizes[id(11)]).toEqual({ width: 480, height: 500 });
   expect(saved.defaultSize).toEqual({ width: 320, height: 440 });
-  expect((await savedPreferences(page)).layout).toEqual(saved);
   await search(page).fill("");
   await expect.poll(async () => (await savedPreferences(page)).filters.q).toBe("");
   await page.reload();
@@ -201,7 +204,8 @@ test("SCRUM-46: all scope includes filtered, unloaded and future vehicles; cance
   await expect(page.getByRole("article")).toHaveCount(27);
   await expect(card(page, 27)).toHaveCSS("width", "280px");
   await expect(card(page, 27)).toHaveCSS("height", "420px");
-  const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), fixture.key);
+  // SCRUM-148: the layout lives on the account; the browser no longer keeps a copy.
+  const saved = (await savedPreferences(page)).layout;
   expect(saved.defaultSize).toEqual({ width: 280, height: 420 });
   expect(saved.sizes).toEqual({});
 });

@@ -83,22 +83,39 @@ function readLocalPreferences(scope: string) {
         layout: normalizeLayoutConfig(JSON.parse(layout ?? "{}")),
         pageSize: pageSizes.includes(Number(pageSize)) ? Number(pageSize) : 25,
       },
-      persistent: true,
       exists: Boolean(layout || pageSize),
     };
   } catch {
-    return { value: defaults(), persistent: false, exists: false };
+    return { value: defaults(), exists: false };
+  }
+}
+
+function migrationKey(scope: string) {
+  return `fleet-flow.vehicles.account-migration.v1.${scope}`;
+}
+
+function migrationCompleted(scope: string) {
+  try {
+    return localStorage.getItem(migrationKey(scope)) === "completed";
+  } catch {
+    return false;
+  }
+}
+
+function markMigrationCompleted(scope: string) {
+  try {
+    localStorage.setItem(migrationKey(scope), "completed");
+  } catch {
+    // The account-scoped server preference remains authoritative.
   }
 }
 
 function usePreferences(scope: string) {
   const [initial] = useState(() => readLocalPreferences(scope));
-  const storageKey = `fleet-flow.vehicles.v2.${scope}`;
-  const [saved, setSaved] = useState<VehicleModulePreferences>(initial.value);
+  const [saved, setSaved] = useState<VehicleModulePreferences>(defaults);
   const [draft, setDraft] = useState<VehicleLayoutConfig | null>(null);
   const [editScope, setEditScope] = useState<"all" | "selected">("selected");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [persistent, setPersistent] = useState(initial.persistent);
   const [cloud, setCloud] = useState<VehicleCloudState>({
     loading: true,
     error: null,
@@ -127,11 +144,23 @@ function usePreferences(scope: string) {
       .then((result) => {
         if (controller.signal.aborted) return;
         revision.current = result.version;
-        if (result.value) setSaved(normalizeModulePreferences(result.value));
+        if (result.value) {
+          const next = normalizeModulePreferences(result.value);
+          savedRef.current = next;
+          setSaved(next);
+          markMigrationCompleted(scope);
+        } else {
+          savedRef.current = defaults();
+          setSaved(defaults());
+        }
         setCloud({
           loading: false,
           error: null,
-          migrationAvailable: result.version === 0 && result.value === null && initial.exists,
+          migrationAvailable:
+            result.version === 0 &&
+            result.value === null &&
+            initial.exists &&
+            !migrationCompleted(scope),
           conflict: null,
         });
       })
@@ -154,7 +183,6 @@ function usePreferences(scope: string) {
     const task = saveQueue.current.then(async () => {
       if (
         cloud.loading ||
-        (cloud.migrationAvailable && expectedVersion === undefined) ||
         (conflictRef.current && expectedVersion === undefined)
       )
         return false;
@@ -168,6 +196,7 @@ function usePreferences(scope: string) {
         );
         revision.current = result.version;
         conflictRef.current = null;
+        markMigrationCompleted(scope);
         setCloud({ loading: false, error: null, migrationAvailable: false, conflict: null });
         return true;
       } catch (error) {
@@ -210,18 +239,20 @@ function usePreferences(scope: string) {
   };
 
   const updateSettings = (patch: Partial<VehicleModulePreferences>) => {
-    if (cloud.loading || cloud.migrationAvailable) return;
+    if (cloud.loading) return;
     const next = { ...savedRef.current, ...patch };
     savedRef.current = next;
     setSaved(next);
     scheduleWrite();
   };
 
-  const chooseMigration = async (importLocal: boolean) => {
-    const next = importLocal ? initial.value : defaults();
+  const chooseMigration = async () => {
+    if (!cloud.migrationAvailable) return;
+    const next = initial.value;
     if (await writeValue(() => next, 0)) {
       savedRef.current = next;
       setSaved(next);
+      markMigrationCompleted(scope);
     }
   };
 
@@ -340,9 +371,9 @@ function usePreferences(scope: string) {
     busy,
     upload,
     remove,
-    persistent,
     cloud,
     saving,
+    retrySave: () => writeValue(() => savedRef.current),
     sort: saved.sort,
     filters: saved.filters,
     pageSize: saved.pageSize,
@@ -387,7 +418,7 @@ function usePreferences(scope: string) {
     },
     size: (id: string) => cardSize(draft ?? saved.layout, id),
     start: () => {
-      if (draft || cloud.loading || cloud.migrationAvailable || saving) return;
+      if (draft || cloud.loading || saving) return;
       setEditScope("selected");
       setSelectedIds([]);
       setDraft(saved.layout);
@@ -423,13 +454,6 @@ function usePreferences(scope: string) {
         overwrite ? conflictRef.current?.version : undefined,
       )) return false;
       const next = { ...savedRef.current, layout };
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(next.layout));
-        localStorage.setItem(`fleet-flow.list-page-size.v1.${scope}`, String(next.pageSize));
-        setPersistent(true);
-      } catch {
-        setPersistent(false);
-      }
       savedRef.current = next;
       setSaved(next);
       setDraft((current) => current === layoutDraft ? null : current);

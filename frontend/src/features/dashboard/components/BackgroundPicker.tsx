@@ -10,8 +10,14 @@ type Props = {
   value: BackgroundPreferences;
   onChange: (value: BackgroundPreferences) => void;
   media: BackgroundImageController;
+  disabled?: boolean;
 };
-export function BackgroundPicker({ value, onChange, media }: Props) {
+export function BackgroundPicker({
+  value,
+  onChange,
+  media,
+  disabled = false,
+}: Props) {
   const fileInput = useRef<HTMLInputElement>(null);
   const veilId = useId();
   const blurId = useId();
@@ -35,7 +41,7 @@ export function BackgroundPicker({ value, onChange, media }: Props) {
         {([
           ["default", "Domyślne"], ["preset", "Galeria"], ["custom", "Własne"],
         ] as const).map(([kind, name]) => (
-          <button key={kind} aria-pressed={value.kind === kind} disabled={media.busy}
+          <button key={kind} aria-pressed={value.kind === kind} disabled={disabled || media.busy}
             onClick={() => selectKind(kind)}>{name}</button>
         ))}
       </div>
@@ -44,6 +50,7 @@ export function BackgroundPicker({ value, onChange, media }: Props) {
           {BACKGROUND_PRESETS.map(preset => (
             <button key={preset.id} className="background-option"
               aria-label={`Tło: ${preset.name}`} aria-pressed={value.preset === preset.id}
+              disabled={disabled}
               onClick={() => onChange({ ...value, preset: preset.id })}>
               <span className="background-thumbnail" style={{ backgroundImage: presetBackground(preset.id, import.meta.env.BASE_URL) }}>
                 {value.preset === preset.id && <span className="background-selected"><Check size={13} /></span>}
@@ -74,19 +81,18 @@ export function BackgroundPicker({ value, onChange, media }: Props) {
               if (file) void upload(file);
             }} />
           <div className="background-upload-actions">
-            <button className="button button-secondary" disabled={media.busy || media.loading}
+            <button className="button button-secondary" disabled={disabled || media.busy || media.loading}
               onClick={() => fileInput.current?.click()}>
               <Upload size={15} />{media.busy ? "Przygotowywanie…" : hasCustom ? "Zmień zdjęcie" : "Wybierz zdjęcie"}
             </button>
-            {hasCustom && <button className="icon-button" aria-label="Usuń własne zdjęcie" disabled={media.busy}
+            {hasCustom && <button className="icon-button" aria-label="Usuń własne zdjęcie" disabled={disabled || media.busy}
               onClick={() => void remove()}><Trash2 size={16} /></button>}
           </div>
           <p className="background-note" role="status">
             {media.busy ? "Przygotowuję i zapisuję zdjęcie…"
               : media.loading ? "Wczytuję zapisane zdjęcie…"
-              : hasCustom && !media.persistent ? "Zdjęcie działa w tej sesji. Przeglądarka nie pozwoliła go zapisać."
               : value.customId && !hasCustom ? "Poprzednie zdjęcie nie jest dostępne. Dodaj je ponownie."
-              : "Tylko na tym urządzeniu i w tej przeglądarce. Nie wysyłamy zdjęcia na serwer. Wyczyszczenie danych przeglądarki usuwa lokalne zdjęcie."}
+              : "Własne tło jest zapisane na koncie i dostępne na innych urządzeniach."}
           </p>
           {media.error && <p className="background-error" role="alert">{media.error}</p>}
         </div>
@@ -95,11 +101,11 @@ export function BackgroundPicker({ value, onChange, media }: Props) {
         <div className="background-adjustments">
           <label htmlFor={veilId}>Wyciszenie tła<output aria-hidden="true">{value.veil}%</output></label>
           <input id={veilId} type="range" min="0" max="70" step="1" value={value.veil}
-            aria-valuetext={`${value.veil} procent`} disabled={media.busy}
+            aria-valuetext={`${value.veil} procent`} disabled={disabled || media.busy}
             onChange={event => onChange({ ...value, veil: Number(event.currentTarget.value) })} />
           <label htmlFor={blurId}>Rozmycie<output aria-hidden="true">{value.blur} px</output></label>
           <input id={blurId} type="range" min="0" max="16" step="1" value={value.blur}
-            aria-valuetext={`${value.blur} pikseli`} disabled={media.busy}
+            aria-valuetext={`${value.blur} pikseli`} disabled={disabled || media.busy}
             onChange={event => onChange({ ...value, blur: Number(event.currentTarget.value) })} />
           <p className="background-note">Osłona dopasowuje się do motywu. Zdjęcie wypełnia ekran bez rozciągania.</p>
         </div>

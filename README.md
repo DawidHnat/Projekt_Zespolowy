@@ -174,12 +174,12 @@ pokrycie raportami, pokazuje ostatnie zapisane dane i zawiera pusty stan. [Scena
 
 Frontend ma Pulpit, motywy, edytor układu, logowanie, listę i kafelki pojazdów
 oraz Mapbox bez grupowania znaczników. Osobna strona Ustawień obejmuje wygląd,
-tło i moduły. Układ i widoczność modułów Pulpitu oraz rozmiary kafelków,
-filtry, sortowanie i limit strony Pojazdów zapisują się na koncie przez backend
-(SCRUM-91). Ustawienia wracają po zalogowaniu w innej przeglądarce; migracja
-dawnego zapisu lokalnego wymaga jawnego wyboru i jest izolowana per konto,
-a równoległy zapis ma kontrolę wersji. Wygląd, tło, układ Mapy i zdjęcia
-pozostają lokalne; zdjęcia nie są jeszcze współdzielone z zespołem.
+tło i moduły. Wygląd, tło, układy Pulpitu/Mapy/Pojazdów oraz filtry, sortowanie
+i limit listy zapisują się per konto przez backend (SCRUM-91/SCRUM-148) i
+odtwarzają po zalogowaniu na innym urządzeniu. Import dawnych ustawień
+przeglądarki jest oddzielną, jednorazową akcją w Ustawieniach; zwykłe logowanie
+nie pyta o migrację, a zapis API ma kontrolę wersji. Własne tło jest
+przechowywane na koncie; zdjęcia pojazdów pozostają lokalne dla urządzenia.
 Edycja Pojazdów pozwala zaznaczyć kilka kafelków i wspólnie zmienić ich rozmiar
 lub wyrównać całą flotę. Wspólna paginacja galerii, tabeli i listy przy mapie
 oferuje 10/25/50/100 elementów na stronę; mapa nadal pokazuje wszystkie

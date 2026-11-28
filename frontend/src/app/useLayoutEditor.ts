@@ -31,8 +31,7 @@ export function useLayoutEditor(
   const start = (view: EditableSection) => {
     if (view === "dashboard" && (
       settings.cloud.loading ||
-      settings.cloud.saving ||
-      settings.cloud.migrationAvailable
+      settings.cloud.saving
     )) return;
     setDrafts(previous => ({
       ...previous,
@@ -55,7 +54,11 @@ export function useLayoutEditor(
       }, overwrite);
       if (!saved) return false;
     } else {
-      settings.setPreferences(next);
+      const saved = await settings.saveArrangement({
+        visibleWidgets: next.visibleWidgets,
+        layouts: { map: next.layouts.map },
+      }, overwrite);
+      if (!saved) return false;
     }
     setDrafts(previous => {
       if (previous[view] !== draft) return previous;
@@ -81,18 +84,15 @@ export function useLayoutEditor(
   const toggleWidget = (id: WidgetId) => {
     if (
       settings.cloud.loading ||
-      settings.cloud.saving ||
-      settings.cloud.migrationAvailable
+      settings.cloud.saving
     ) return;
     if (!drafts.dashboard) {
-      const visibleWidgets = settings.preferences.visibleWidgets.includes(id)
-        ? settings.preferences.visibleWidgets.filter(value => value !== id)
-        : [...settings.preferences.visibleWidgets, id];
-      settings.setPreferences(previous => ({ ...previous, visibleWidgets }));
-      void settings.saveArrangement({
-        visibleWidgets,
-        layouts: { dashboard: settings.preferences.layouts.dashboard },
-      });
+      settings.setPreferences(previous => ({
+        ...previous,
+        visibleWidgets: previous.visibleWidgets.includes(id)
+          ? previous.visibleWidgets.filter(value => value !== id)
+          : [...previous.visibleWidgets, id],
+      }));
       return;
     }
     setDrafts(previous => {
@@ -116,7 +116,7 @@ export function useLayoutEditor(
       },
     };
   });
-  const resetAll = async () => {
+  const resetAll = () => {
     const defaults = defaultPreferences();
     const next = {
       ...defaults,
@@ -125,11 +125,6 @@ export function useLayoutEditor(
         ...defaults.layouts,
       },
     };
-    const saved = await settings.saveArrangement({
-      visibleWidgets: next.visibleWidgets,
-      layouts: { dashboard: next.layouts.dashboard },
-    });
-    if (!saved) return;
     settings.setPreferences(next);
     setDrafts(previous => Object.fromEntries(
       (Object.keys(previous) as EditableSection[]).map(view => [

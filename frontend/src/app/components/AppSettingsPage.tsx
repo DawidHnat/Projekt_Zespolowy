@@ -23,12 +23,14 @@ import { widgetRegistry } from "../../features/dashboard/model/widget-registry";
 import { BackgroundPicker } from "../../features/dashboard/components/BackgroundPicker";
 import type { BackgroundPreferences } from "../../features/dashboard/model/background-model";
 import type { BackgroundImageController } from "../../features/dashboard/model/useBackgroundImage";
+import { AccountPreferenceNotice } from "../../shared/components/AccountPreferenceNotice";
+import type { AccountPreference } from "../../shared/api/account-preferences";
 
 type Props = {
   category: SettingsCategory;
   onCategory: (category: SettingsCategory) => void;
   preferences: DashboardPreferences;
-  persistent: boolean;
+  saving: boolean;
   onChange: (value: DashboardPreferences) => void;
   onToggle: (id: WidgetId) => void;
   onReset: () => void;
@@ -37,6 +39,16 @@ type Props = {
   editing: boolean;
   backgroundMedia: BackgroundImageController;
   onBackgroundChange: (value: BackgroundPreferences) => void;
+  controlsDisabled?: boolean;
+  vehicleMigrationAvailable?: boolean;
+  onImportVehiclePreferences?: () => void;
+  vehiclePreferenceError?: string | null;
+  vehiclePreferenceLoading?: boolean;
+  vehiclePreferenceSaving?: boolean;
+  vehiclePreferenceConflict?: AccountPreference<unknown> | null;
+  onRetryVehiclePreferences?: () => void;
+  onReloadVehiclePreferences?: () => void;
+  onOverwriteVehiclePreferences?: () => void;
 };
 const modes = [
   { id: "light", label: "Jasny", icon: Sun },
@@ -71,7 +83,7 @@ export function AppSettingsPage({
   category,
   onCategory,
   preferences,
-  persistent,
+  saving,
   onChange,
   onToggle,
   onReset,
@@ -80,6 +92,16 @@ export function AppSettingsPage({
   editing,
   backgroundMedia,
   onBackgroundChange,
+  controlsDisabled = false,
+  vehicleMigrationAvailable = false,
+  onImportVehiclePreferences,
+  vehiclePreferenceError = null,
+  vehiclePreferenceLoading = false,
+  vehiclePreferenceSaving = false,
+  vehiclePreferenceConflict = null,
+  onRetryVehiclePreferences,
+  onReloadVehiclePreferences,
+  onOverwriteVehiclePreferences,
 }: Props) {
   const setTheme = (theme: ThemeMode) => onChange({ ...preferences, theme });
   return (
@@ -103,11 +125,16 @@ export function AppSettingsPage({
         <header className="settings-header">
           <h2>{categories.find((value) => value.id === category)!.title}</h2>
           <p>
-            Wygląd, tło i układ Mapy zapisują się tylko w tej przeglądarce.
-            Układy Pulpitu i Pojazdów zapisujesz na swoim koncie.
+            Wygląd, tło, układy i zapisane filtry są powiązane z Twoim kontem
+            i odtwarzane na innych urządzeniach.
           </p>
         </header>
         <div className="panel-content settings-content">
+          {backgroundMedia.error && (
+            <p role="alert" className="background-error">
+              {backgroundMedia.error}
+            </p>
+          )}
           {category === "appearance" && (
             <>
               <fieldset>
@@ -122,6 +149,7 @@ export function AppSettingsPage({
                       key={id}
                       aria-pressed={preferences.material === id}
                       className={preferences.material === id ? "selected" : ""}
+                      disabled={controlsDisabled}
                       onClick={() =>
                         onChange({
                           ...preferences,
@@ -148,6 +176,7 @@ export function AppSettingsPage({
                       key={id}
                       className={preferences.theme === id ? "selected" : ""}
                       aria-pressed={preferences.theme === id}
+                      disabled={controlsDisabled}
                       onClick={() => setTheme(id)}
                     >
                       <Icon size={21} />
@@ -170,6 +199,7 @@ export function AppSettingsPage({
                         preferences.accent.toLowerCase() === accent.value
                       }
                       title={accent.name}
+                      disabled={controlsDisabled}
                       onClick={() =>
                         onChange({ ...preferences, accent: accent.value })
                       }
@@ -189,7 +219,8 @@ export function AppSettingsPage({
                     type="color"
                     aria-label="Własny kolor akcentu"
                     value={preferences.accent}
-                    onInput={(event) =>
+                    disabled={controlsDisabled}
+                    onChange={(event) =>
                       onChange({
                         ...preferences,
                         accent: event.currentTarget.value,
@@ -212,6 +243,7 @@ export function AppSettingsPage({
               value={preferences.background}
               onChange={onBackgroundChange}
               media={backgroundMedia}
+              disabled={controlsDisabled}
             />
           )}
           {category === "modules" && (
@@ -239,7 +271,7 @@ export function AppSettingsPage({
                           type="checkbox"
                           checked={preferences.visibleWidgets.includes(id)}
                           onChange={() => onToggle(id)}
-                          disabled={modulesDisabled}
+                          disabled={modulesDisabled || controlsDisabled}
                           aria-label={`Pokaż moduł: ${widget.title}`}
                         />
                         <span className="switch-track" aria-hidden="true" />
@@ -269,6 +301,38 @@ export function AppSettingsPage({
                   </a>
                 ))}
               </div>
+              {vehicleMigrationAvailable && (
+                <section className="settings-local-import">
+                  <h3>Stare ustawienia pojazdów</h3>
+                  <p>
+                    Ustawienia zapisane wcześniej w tej przeglądarce można
+                    jednorazowo zaimportować na to konto.
+                  </p>
+                  <button
+                    className="button button-secondary"
+                    type="button"
+                    onClick={onImportVehiclePreferences}
+                    disabled={controlsDisabled}
+                  >
+                    Importuj ustawienia pojazdów
+                  </button>
+                </section>
+              )}
+              {(vehiclePreferenceLoading ||
+                vehiclePreferenceError ||
+                vehiclePreferenceConflict) && (
+                <AccountPreferenceNotice
+                  title="Pojazdy"
+                  loading={vehiclePreferenceLoading}
+                  saving={vehiclePreferenceSaving}
+                  error={vehiclePreferenceError}
+                  migrationAvailable={false}
+                  conflict={vehiclePreferenceConflict ?? null}
+                  onRetry={onRetryVehiclePreferences}
+                  onReload={onReloadVehiclePreferences ?? (() => undefined)}
+                  onOverwrite={onOverwriteVehiclePreferences ?? (() => undefined)}
+                />
+              )}
             </>
           )}
         </div>
@@ -277,9 +341,9 @@ export function AppSettingsPage({
             <SlidersHorizontal size={13} />
             {editing
               ? "Zapisz lub anuluj edycję układu na Pulpicie"
-              : persistent
-                ? "Zmiany zapisują się automatycznie w tej przeglądarce"
-                : "Ustawienia działają w tej sesji"}
+              : saving
+                ? "Zapisywanie preferencji na koncie…"
+                : "Preferencje zapisują się automatycznie na koncie"}
           </p>
           <button
             className="button button-secondary"

@@ -1,11 +1,16 @@
 import { execFileSync } from "node:child_process";
 import { test, expect, type Page } from "@playwright/test";
+import { defaultPreferences } from "../src/app/preference-model";
 
-const storageKey = "fleet-flow.dashboard.v2";
 let browserErrors: string[];
 
 async function preferences(page: Page) {
-  return page.evaluate(key => JSON.parse(localStorage.getItem(key)!), storageKey);
+  const response = await page.request.get("/api/v1/preferences/dashboard");
+  const { value } = await response.json();
+  const defaults = defaultPreferences();
+  return value
+    ? { ...defaults, ...value, layouts: { ...defaults.layouts, ...value.layouts } }
+    : defaults;
 }
 
 async function login(page: Page) {
