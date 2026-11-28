@@ -1,10 +1,23 @@
+const CORRELATION_ID = /^[A-Za-z0-9._-]{8,64}$/;
+
+export function validCorrelationId(value: unknown): string | null {
+  return typeof value === "string" && CORRELATION_ID.test(value) ? value : null;
+}
+
 export class ApiError extends Error {
   status: number;
   code: string;
-  constructor(status: number, code: string, message: string) {
+  correlationId: string | null;
+  constructor(
+    status: number,
+    code: string,
+    message: string,
+    correlationId: string | null = null,
+  ) {
     super(message);
     this.status = status;
     this.code = code;
+    this.correlationId = correlationId;
   }
 }
 const expiredListeners = new Set<() => void>();
@@ -45,12 +58,16 @@ export async function apiResponse(
     )
       expiredListeners.forEach((listener) => listener());
     let code = "UNAVAILABLE";
+    let bodyCorrelationId: string | null = null;
     try {
-      const error = (await response.json()).error;
-      code = error?.code || code;
+      const payload = await response.json();
+      code = payload.error?.code || code;
+      bodyCorrelationId = validCorrelationId(payload.error?.correlation_id);
     } catch {
       /* Non-JSON proxy failure. */
     }
+    const correlationId =
+      validCorrelationId(response.headers.get("X-Correlation-ID")) ?? bodyCorrelationId;
     const messages: Record<string, string> = {
       SOURCE_UNAVAILABLE: "Oczekiwanie na pierwszy odczyt WEBFLEET.",
       INVALID_CREDENTIALS: "Niepoprawny login lub hasło.",
@@ -66,11 +83,12 @@ export async function apiResponse(
       INVALID_CONTENT_LENGTH: "Nie udało się odczytać rozmiaru wybranego pliku.",
       IMAGE_ID_CONFLICT: "Nie udało się powiązać obrazu z tym kontem. Spróbuj ponownie.",
     };
-    throw new ApiError(
-      response.status,
-      code,
-      messages[code] || "Nie udało się pobrać danych. Spróbuj ponownie.",
-    );
+    const baseMessage = messages[code] || "Nie udało się pobrać danych. Spróbuj ponownie.";
+    const displayMessage =
+      response.status >= 500 && code !== "SOURCE_UNAVAILABLE" && correlationId
+        ? `${baseMessage} (ID zgłoszenia: ${correlationId})`
+        : baseMessage;
+    throw new ApiError(response.status, code, displayMessage, correlationId);
   }
   return response;
 }
