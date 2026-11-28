@@ -175,6 +175,14 @@ pierwszeństwo dla tych samych kluczy. Po zmianie pliku odtwórz kontener API.
 [Konfiguracja i diagnostyka SMTP](../../backend/README.md#poczta-ovh--test-logowania-bez-wysyłki) ·
 [Format plików Compose](https://docs.docker.com/reference/compose-file/container-spec/#format).
 
+SCRUM-182 dodaje Brevo. W tym samym chronionym `smtp.raw.env` operator ustawia
+host `smtp-relay.brevo.com`, port `465`, login i klucz SMTP Brevo oraz
+`SMTP_FROM=kontakt@fleet-flow.pl`. Wymagane jest uwierzytelnienie domeny
+i nadawcy w panelu Brevo. Po wdrożeniu kodu i ustawieniu konfiguracji odtwórz
+kontener API standardowym wdrożeniem development. Sprawdź diagnostykę
+logowania bez wysyłki, a doręczenie na uzgodnioną skrzynkę odbierz osobno.
+Szczegóły i scenariusze są w sekcji Brevo SMTP w `backend/README.md`.
+
 ## Ochrona main — wykonuje właściciel repozytorium
 
 Repozytorium jest publiczne. Odczyt 10.11.2026 pokazuje aktywną ochronę

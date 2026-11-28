@@ -1,4 +1,4 @@
-"""OVH SMTP: authentication diagnostics and account notifications."""
+"""TLS SMTP authentication diagnostics and account notifications."""
 
 import smtplib
 import ssl
@@ -34,7 +34,7 @@ def check_smtp(settings: SmtpSettings) -> None:
 
 def send_password_reset(settings: SmtpSettings, recipient: str, url: str) -> None:
     message = EmailMessage()
-    message["From"] = settings.username
+    message["From"] = settings.sender
     message["To"] = recipient
     message["Subject"] = "Fleet-Flow — reset hasła"
     message.set_content(
@@ -48,7 +48,7 @@ def send_password_reset(settings: SmtpSettings, recipient: str, url: str) -> Non
 
 def send_password_changed(settings: SmtpSettings, recipient: str) -> None:
     message = EmailMessage()
-    message["From"] = settings.username
+    message["From"] = settings.sender
     message["To"] = recipient
     message["Subject"] = "Fleet-Flow — zmieniono hasło"
     message.set_content(
@@ -61,7 +61,7 @@ def send_password_changed(settings: SmtpSettings, recipient: str) -> None:
 
 def send_account_activation(settings: SmtpSettings, recipient: str, url: str) -> None:
     message = EmailMessage()
-    message["From"] = settings.username
+    message["From"] = settings.sender
     message["To"] = recipient
     message["Subject"] = "Fleet-Flow — aktywuj konto"
     message.set_content(
@@ -75,7 +75,7 @@ def send_account_activation(settings: SmtpSettings, recipient: str, url: str) ->
 
 def send_email_confirmation(settings: SmtpSettings, recipient: str, url: str) -> None:
     message = EmailMessage()
-    message["From"] = settings.username
+    message["From"] = settings.sender
     message["To"] = recipient
     message["Subject"] = "Fleet-Flow — potwierdź nowy adres e-mail"
     message.set_content(
@@ -96,6 +96,6 @@ def _send(settings: SmtpSettings, recipient: str, message: EmailMessage) -> None
             context=ssl.create_default_context(cafile=certifi.where()),
         ) as client:
             client.login(settings.username, settings.password)
-            client.send_message(message, from_addr=settings.username, to_addrs=[recipient])
+            client.send_message(message, from_addr=settings.sender, to_addrs=[recipient])
     except (OSError, smtplib.SMTPException):
         raise SmtpError("SMTP: wiadomość nie została wysłana") from None
