@@ -1158,7 +1158,6 @@ for (const theme of ["light", "dark"]) {
       const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
       if (await menu.isVisible()) await menu.click();
     };
-    // Ewidencja przebiegu is an active module now (SCRUM-27, e2e/mileage.spec.ts).
     for (const title of ["Serwis", "Karty paliwowe"]) {
       await openMenu();
       const link = page.getByRole("navigation", { name: "Sekcje aplikacji" })

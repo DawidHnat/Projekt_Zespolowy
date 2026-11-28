@@ -29,6 +29,7 @@ const trip = (id: string, distance: number | null, purpose: string | null) => ({
   duration_seconds: 3600,
   annotation: { purpose, description: null, version: 2, updated_at: null, updated_by: null },
   geometry: null,
+  driver_id: null,
 });
 
 const partial = {
@@ -36,7 +37,8 @@ const partial = {
   total: 2,
   page: 1,
   page_size: 10,
-  summary: { distance_km: 12.5, documented_km: 12.5, missing_purpose: 1, missing_distance: 1 },
+  coverage: null,
+  summary: { distance_km: 12.5, documented_km: 0, missing_purpose: 1, missing_driver: 2, missing_distance: 1 },
 };
 
 async function openMileage(page: Page) {
@@ -80,10 +82,10 @@ test("SCRUM-27: mileage view shows the current month, partial data and recovers 
   const { year, month, day } = warsawToday();
   await expect(page.getByRole("button", { name: `Od dnia: 01.${month}.${year}` })).toBeVisible();
   await expect(page.getByRole("button", { name: `Do dnia: ${day}.${month}.${year}` })).toBeVisible();
-  await expect(page.getByText("Wybierz pojazd, aby obliczyć ewidencję.")).toBeVisible();
+  await expect(page.getByText("Wybierz pojazd, aby obliczyć kilometry i sprawdzić wpisy.")).toBeVisible();
 
   await page.getByRole("radio", { name: /Pojazd E2E/ }).check();
-  await expect(page.getByRole("alert").filter({ hasText: "Nie można pobrać ewidencji." })).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: "Nie można pobrać ewidencji. Sprawdź zakres do 93 dni." })).toBeVisible();
   expect(queries[0].get("from_day")).toBe(`${year}-${month}-01`);
   expect(queries[0].get("through")).toBe(`${year}-${month}-${day}`);
 
@@ -91,7 +93,7 @@ test("SCRUM-27: mileage view shows the current month, partial data and recovers 
   const summary = page.getByRole("region", { name: "Podsumowanie ewidencji" });
   await expect(summary).toBeVisible();
   await expect(summary.locator("dd").nth(0)).toHaveText("2");
-  await expect(summary.getByText("Brak danych · Brak celu")).toBeVisible();
+  await expect(summary.getByText("Brak celu · Brak kierowcy", { exact: true })).toBeVisible();
   await expect(summary.locator("dt", { hasText: "Brak dystansu" }).locator("+ dd")).toHaveText("1");
 
   const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();

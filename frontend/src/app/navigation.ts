@@ -1,6 +1,7 @@
 import {
   Bell,
   CarFront,
+  ChartColumn,
   BookOpen,
   CreditCard,
   LayoutDashboard,
@@ -8,6 +9,7 @@ import {
   Users,
   Wrench,
   Settings,
+  UserCog,
   UserRound,
 } from "lucide-react";
 
@@ -66,6 +68,12 @@ export const sections = [
     },
   },
   {
+    id: "analytics",
+    title: "Analityka",
+    icon: ChartColumn,
+    description: "Porównaj dystans, przejazdy i dni aktywne pojazdów.",
+  },
+  {
     id: "alerts",
     title: "Alerty",
     icon: Bell,
@@ -76,6 +84,12 @@ export const sections = [
     title: "Profil",
     icon: UserRound,
     description: "Twoje konto, hasło i bezpieczeństwo sesji.",
+  },
+  {
+    id: "users",
+    title: "Użytkownicy",
+    icon: UserCog,
+    description: "Dodawaj konta, wysyłaj zaproszenia i zarządzaj dostępem.",
   },
   {
     id: "settings",
@@ -91,7 +105,6 @@ export type AppSectionId = AppSection["id"];
 const legacySections: Record<string, AppSectionId> = {
   fleet: "map",
   trips: "mileage",
-  analytics: "dashboard",
 };
 
 export function sectionFromHash(hash: string): AppSectionId {
