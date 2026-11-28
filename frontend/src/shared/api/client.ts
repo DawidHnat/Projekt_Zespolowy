@@ -1,17 +1,26 @@
+const CORRELATION_ID = /^[A-Za-z0-9._-]{8,64}$/;
+
+export function validCorrelationId(value: unknown): string | null {
+  return typeof value === "string" && CORRELATION_ID.test(value) ? value : null;
+}
+
 export class ApiError extends Error {
   status: number;
   code: string;
   fields: Record<string, string>;
+  correlationId: string | null;
   constructor(
     status: number,
     code: string,
     message: string,
     fields: Record<string, string> = {},
+    correlationId: string | null = null,
   ) {
     super(message);
     this.status = status;
     this.code = code;
     this.fields = fields;
+    this.correlationId = correlationId;
   }
 }
 const expiredListeners = new Set<() => void>();
@@ -50,14 +59,18 @@ export async function api<T>(
       expiredListeners.forEach((listener) => listener());
     let code = "UNAVAILABLE";
     let fields: Record<string, string> = {};
+    let bodyCorrelationId: string | null = null;
     try {
       const payload = await response.json();
       code = payload.error?.code || code;
+      bodyCorrelationId = validCorrelationId(payload.error?.correlation_id);
       if (payload.error?.fields && typeof payload.error.fields === "object")
         fields = payload.error.fields as Record<string, string>;
     } catch {
       /* Non-JSON proxy failure. */
     }
+    const correlationId =
+      validCorrelationId(response.headers.get("X-Correlation-ID")) ?? bodyCorrelationId;
     const messages: Record<string, string> = {
       SOURCE_UNAVAILABLE: "Oczekiwanie na pierwszy odczyt WEBFLEET.",
       INVALID_CREDENTIALS: "Niepoprawny login lub hasło.",
@@ -78,12 +91,12 @@ export async function api<T>(
       LICENSE_INCOMPATIBLE:
         "Kierowca nie posiada kategorii prawa jazdy wymaganej dla tego pojazdu.",
     };
-    throw new ApiError(
-      response.status,
-      code,
-      messages[code] || "Nie udało się pobrać danych. Spróbuj ponownie.",
-      fields,
-    );
+    const baseMessage = messages[code] || "Nie udało się pobrać danych. Spróbuj ponownie.";
+    const displayMessage =
+      response.status >= 500 && code !== "SOURCE_UNAVAILABLE" && correlationId
+        ? `${baseMessage} (ID zgłoszenia: ${correlationId})`
+        : baseMessage;
+    throw new ApiError(response.status, code, displayMessage, fields, correlationId);
   }
   return response.json() as Promise<T>;
 }

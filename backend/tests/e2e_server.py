@@ -60,10 +60,11 @@ def seed(engine):
         hour=10, minute=0, second=0, microsecond=0
     )
     with Session(engine) as session:
-        known = {"e2e-editor", "e2e-viewer", "e2e-editor-two"}
+        known = {"e2e-admin", "e2e-editor", "e2e-viewer", "e2e-editor-two"}
         if any(username not in known for username in session.scalars(select(User.username))):
             raise RuntimeError("E2E database contains non-fixture users")
         fixtures = (
+            ("e2e-admin", "Test admin", "admin"),
             ("e2e-editor", "Test editor", "editor"),
             ("e2e-viewer", "Test viewer", "viewer"),
             ("e2e-editor-two", "Test editor two", "editor"),
