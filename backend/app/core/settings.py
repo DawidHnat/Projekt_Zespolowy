@@ -42,6 +42,11 @@ class Settings:
     upload_max_files_per_kind: int = 3
     upload_photo_max_edge_px: int = 1024
     upload_max_image_pixels: int = 40_000_000
+    backup_state_dir: str = ""
+    tls_cert_path: str = ""
+    tls_warning_days: int = 21
+    tls_critical_days: int = 7
+    disk_path: str = "."
 
     @property
     def local_api_docs(self) -> bool:
@@ -107,4 +112,9 @@ class Settings:
             upload_max_image_pixels=_seconds(
                 values, "UPLOAD_MAX_IMAGE_PIXELS", 40_000_000, 65536, 100_000_000
             ),
+            backup_state_dir=values.get("FLEET_FLOW_BACKUP_STATE", "").strip(),
+            tls_cert_path=values.get("TLS_CERT_PATH", "").strip(),
+            tls_warning_days=_seconds(values, "TLS_WARNING_DAYS", 21, 1, 365),
+            tls_critical_days=_seconds(values, "TLS_CRITICAL_DAYS", 7, 1, 365),
+            disk_path=values.get("FLEET_FLOW_DISK_PATH", ".").strip() or ".",
         )

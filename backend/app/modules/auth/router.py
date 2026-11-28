@@ -20,8 +20,8 @@ from app.modules.auth.service import (
     find_user,
     issue_session,
     now_utc,
-    password_hasher,
     user_payload,
+    verify_password,
 )
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
@@ -91,7 +91,7 @@ def login(
     count_attempt(session, digest("account:" + username))
     # Serialize login with password reset/change on the same User row.
     user = find_user(session, username, lock=True)
-    valid = password_hasher.verify(
+    valid = verify_password(
         body.password.get_secret_value(), user.password_hash if user else dummy_hash
     )
     if not valid or not user or not user.active or not can_authenticate(user.role):

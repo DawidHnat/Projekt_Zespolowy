@@ -1839,6 +1839,138 @@
       "error_schema": {
         "$ref": "#/$defs/Error"
       }
+    },
+    {
+      "method": "GET",
+      "path": "/observability/metrics",
+      "delivery": "SCRUM-114",
+      "implementation_status": "implemented",
+      "response_schema": {
+        "$ref": "#/$defs/ObservabilityMetrics"
+      },
+      "response_example": {
+        "api_up": 1,
+        "collected_at": "2026-10-28T12:00:00Z",
+        "http": {
+          "requests_total": 12,
+          "errors_5xx_total": 0,
+          "duration_p95_ms": 14.5,
+          "buckets_ms": {
+            "10": 8,
+            "25": 12,
+            "50": 12,
+            "100": 12,
+            "250": 12,
+            "500": 12,
+            "1000": 12,
+            "2500": 12,
+            "5000": 12,
+            "10000": 12
+          },
+          "by_route": [
+            {
+              "method": "GET",
+              "route": "/api/v1/fleet/summary",
+              "status_class": "2xx",
+              "requests_total": 12,
+              "duration_p95_ms": 14.5
+            }
+          ]
+        },
+        "db_pool": {
+          "db_up": true,
+          "pool_type": "QueuePool",
+          "size": 5,
+          "checked_in": 5,
+          "checked_out": 0,
+          "overflow": 0
+        },
+        "sync": {
+          "status": "not_configured",
+          "last_success_age_seconds": null,
+          "latest_measurement_age_seconds": null,
+          "last_error_code": null,
+          "max_age_seconds": 180,
+          "events_total": {
+            "ok": 0,
+            "busy": 0,
+            "rate_limited": 0,
+            "timeout": 0,
+            "connection_failed": 0,
+            "provider_rate_limit": 0,
+            "local_rate_limit": 0,
+            "INVALID_RECORDS": 0,
+            "INCOMPLETE_REPORT": 0,
+            "SOURCE_DEGRADED": 0,
+            "SYNC_INTERNAL_ERROR": 0,
+            "SYNC_CONTROL_FAILED": 0,
+            "OTHER": 0
+          }
+        },
+        "disk": {
+          "status": "ok",
+          "total_bytes": 100000000000,
+          "used_bytes": 25000000000,
+          "free_bytes": 75000000000,
+          "free_ratio": 0.75
+        },
+        "backup": {
+          "status": "not_configured",
+          "deferred_to": "SCRUM-84",
+          "last_success_age_seconds": null,
+          "max_age_seconds": 25200
+        },
+        "restore": {
+          "status": "not_configured",
+          "deferred_to": "SCRUM-84",
+          "last_success_age_seconds": null,
+          "max_age_seconds": 2764800
+        },
+        "tls": {
+          "status": "not_configured",
+          "days_remaining": null,
+          "warning_days": 21,
+          "critical_days": 7
+        },
+        "auth": {
+          "events_total": {
+            "login_failed": 0,
+            "rate_limited": 0,
+            "forbidden": 0,
+            "unauthenticated": 0,
+            "invalid_reset": 0,
+            "invalid_current_password": 0
+          }
+        },
+        "mail": {
+          "events_total": {
+            "delivered": 0,
+            "setup_failed": 0,
+            "smtp_failed": 0,
+            "state_failed": 0,
+            "notification_failed": 0
+          },
+          "queue": {
+            "status": "not_configured",
+            "deferred_to": "SCRUM-73",
+            "pending": null,
+            "oldest_age_seconds": null
+          }
+        }
+      },
+      "error_example": {
+        "status": 403,
+        "body": {
+          "error": {
+            "code": "FORBIDDEN",
+            "message": "Ta operacja wymaga uprawnień administratora",
+            "correlation_id": "0123456789abcdef0123456789abcdef"
+          }
+        }
+      },
+      "error_schema": {
+        "$ref": "#/$defs/Error"
+      }
     }
   ],
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -3145,6 +3277,10 @@
             "message": {
               "type": "string",
               "minLength": 1
+            },
+            "correlation_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._-]{8,64}$"
             }
           },
           "required": [
@@ -4272,6 +4408,654 @@
       "required": [
         "ok",
         "photo_version"
+      ]
+    },
+    "ObservabilityMetrics": {
+      "type": "object",
+      "properties": {
+        "api_up": {
+          "type": "integer",
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "collected_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "(Z|\\+00:00)$"
+        },
+        "http": {
+          "type": "object",
+          "properties": {
+            "requests_total": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "errors_5xx_total": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "duration_p95_ms": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "buckets_ms": {
+              "type": "object",
+              "properties": {
+                "10": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "25": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "50": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "100": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "250": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "500": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "1000": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "2500": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "5000": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "10000": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "10",
+                "25",
+                "50",
+                "100",
+                "250",
+                "500",
+                "1000",
+                "2500",
+                "5000",
+                "10000"
+              ]
+            },
+            "by_route": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "method": {
+                    "type": "string"
+                  },
+                  "route": {
+                    "type": "string"
+                  },
+                  "status_class": {
+                    "type": "string",
+                    "enum": [
+                      "2xx",
+                      "3xx",
+                      "4xx",
+                      "5xx"
+                    ]
+                  },
+                  "requests_total": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "duration_p95_ms": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "method",
+                  "route",
+                  "status_class",
+                  "requests_total",
+                  "duration_p95_ms"
+                ]
+              }
+            }
+          },
+          "required": [
+            "requests_total",
+            "errors_5xx_total",
+            "duration_p95_ms",
+            "buckets_ms",
+            "by_route"
+          ]
+        },
+        "db_pool": {
+          "type": "object",
+          "properties": {
+            "db_up": {
+              "type": "boolean"
+            },
+            "pool_type": {
+              "type": "string"
+            },
+            "size": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "checked_in": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "checked_out": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "overflow": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "db_up",
+            "pool_type",
+            "size",
+            "checked_in",
+            "checked_out",
+            "overflow"
+          ]
+        },
+        "sync": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "not_configured",
+                "unavailable",
+                "ok",
+                "stale",
+                "degraded"
+              ]
+            },
+            "last_success_age_seconds": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "latest_measurement_age_seconds": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "last_error_code": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "max_age_seconds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "events_total": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "busy": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "rate_limited": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "timeout": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "connection_failed": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "provider_rate_limit": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "local_rate_limit": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "INVALID_RECORDS": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "INCOMPLETE_REPORT": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "SOURCE_DEGRADED": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "SYNC_INTERNAL_ERROR": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "SYNC_CONTROL_FAILED": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "OTHER": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "ok",
+                "busy",
+                "rate_limited",
+                "timeout",
+                "connection_failed",
+                "provider_rate_limit",
+                "local_rate_limit",
+                "INVALID_RECORDS",
+                "INCOMPLETE_REPORT",
+                "SOURCE_DEGRADED",
+                "SYNC_INTERNAL_ERROR",
+                "SYNC_CONTROL_FAILED",
+                "OTHER"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "last_success_age_seconds",
+            "latest_measurement_age_seconds",
+            "last_error_code",
+            "max_age_seconds",
+            "events_total"
+          ]
+        },
+        "disk": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "ok",
+                "warning",
+                "critical",
+                "error"
+              ]
+            },
+            "total_bytes": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "used_bytes": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "free_bytes": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "free_ratio": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "total_bytes",
+            "used_bytes",
+            "free_bytes",
+            "free_ratio"
+          ]
+        },
+        "backup": {
+          "$ref": "#/$defs/BackupMarkerMetrics"
+        },
+        "restore": {
+          "$ref": "#/$defs/BackupMarkerMetrics"
+        },
+        "tls": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "not_configured",
+                "ok",
+                "warning",
+                "critical",
+                "error"
+              ]
+            },
+            "days_remaining": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "warning_days": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "critical_days": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "status",
+            "days_remaining",
+            "warning_days",
+            "critical_days"
+          ]
+        },
+        "auth": {
+          "type": "object",
+          "properties": {
+            "events_total": {
+              "type": "object",
+              "properties": {
+                "login_failed": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "rate_limited": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "forbidden": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "unauthenticated": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "invalid_reset": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "invalid_current_password": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "login_failed",
+                "rate_limited",
+                "forbidden",
+                "unauthenticated",
+                "invalid_reset",
+                "invalid_current_password"
+              ]
+            }
+          },
+          "required": [
+            "events_total"
+          ]
+        },
+        "mail": {
+          "type": "object",
+          "properties": {
+            "events_total": {
+              "type": "object",
+              "properties": {
+                "delivered": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "setup_failed": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "smtp_failed": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "state_failed": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "notification_failed": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "delivered",
+                "setup_failed",
+                "smtp_failed",
+                "state_failed",
+                "notification_failed"
+              ]
+            },
+            "queue": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "not_configured",
+                    "ok",
+                    "degraded"
+                  ]
+                },
+                "deferred_to": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "pending": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "oldest_age_seconds": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "deferred_to",
+                "pending",
+                "oldest_age_seconds"
+              ]
+            }
+          },
+          "required": [
+            "events_total",
+            "queue"
+          ]
+        }
+      },
+      "required": [
+        "api_up",
+        "collected_at",
+        "http",
+        "db_pool",
+        "sync",
+        "disk",
+        "backup",
+        "restore",
+        "tls",
+        "auth",
+        "mail"
+      ],
+      "additionalProperties": true
+    },
+    "BackupMarkerMetrics": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "not_configured",
+            "missing",
+            "invalid",
+            "stale",
+            "ok"
+          ]
+        },
+        "deferred_to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "last_success_age_seconds": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_age_seconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "status",
+        "deferred_to",
+        "last_success_age_seconds",
+        "max_age_seconds"
       ]
     }
   }

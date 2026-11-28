@@ -68,6 +68,11 @@ domain=$(sed -n 's/^APP_DOMAIN=//p' "$release/runtime.env")
 [[ $domain =~ ^[a-z0-9]([a-z0-9.-]*[a-z0-9])?\.[a-z]{2,}$ ]]
 grep -Fq "https://$domain/" "$release/frontend/dist/status.html"
 printf '%s\n' "$revision" > "$release/commit"
+image_loader=/usr/local/sbin/fleet-flow-load-backend-image
+test -f "$image_loader" || image_loader="$scripts_dir/load_backend_image.sh"
+image_id=$(bash "$image_loader" "$release" "$revision")
+# The loaded image and release manifests suffice for rollback and audit.
+rm -- "$release/backend-image.tar.gz"
 
 export FLEET_FLOW_BUILD_SHA="$revision"
 export FLEET_FLOW_ENV_FILE="$shared/runtime.env"
@@ -122,9 +127,13 @@ else
   false
 fi
 
-dc build api
 dc run --rm --no-deps api python -m alembic upgrade head
-dc up -d --wait api web
+dc up -d --wait --no-build api web
+api_container=$(dc ps -q api)
+[[ -n $api_container ]]
+running_image=$(docker inspect --format '{{.Image}}' "$api_container")
+[[ $running_image == "$image_id" ]]
+printf 'Backend image %s uruchomiony dla %s.\n' "$image_id" "$revision"
 curl --fail --silent --show-error --max-time 10 http://127.0.0.1/ \
   | grep -F "data-build-sha=\"$short_revision\""
 curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-all-errors \

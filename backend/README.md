@@ -300,6 +300,23 @@ wywołałby `INCOMPLETE_REPORT`), przy aktywnych pojazdach ręcznych obowiązuje
 - Model zagrożeń, wymagania kopii (`SCRUM-84`) i prywatności (`SCRUM-94`):
   [SCRUM-58 upload threat model](../docs/security/SCRUM-58-upload-threat-model.md).
 
+### Pomiar zapytań i odpowiedzi HTTP — SCRUM-123
+
+Na lokalnej syntetycznej bazie PostgreSQL `fleet_flow_test_benchmark` uruchom
+migracje (`alembic upgrade head`). Z katalogu `backend` uruchom oba narzędzia
+z `TEST_DATABASE_URL` wskazującym tę bazę i `PYTHONPATH=.`.
+
+```shell
+python tools/benchmark_fleet_queries.py
+python tools/benchmark_fleet_http.py
+```
+
+Każdy pomiar ma rozgrzewkę i 20 kolejnych prób dla 100, 1 000 oraz 10 000
+syntetycznych pojazdów. Pierwszy raport porównuje SQL historycznego i obecnego
+odczytu w tym samym procesie. Drugi mierzy p95 oraz bajty JSON osobno dla listy
+25 pojazdów, mapy i podsumowania, z prawdziwym HTTP na loopback. Do porównania
+na hostingu trzeba dodać kompresję, profil sieci i współbieżność użytkowników.
+
 ## Ręczne odświeżanie floty — SCRUM-150
 
 `GET /api/v1/fleet/refresh` zwraca `enabled`, `running`, `server_time`,
@@ -449,3 +466,20 @@ etykieta `"ciężarowy"` bez DMC pozostaje `unverified`). Potwierdzona niezgodno
 blokuje nowe przypisanie (`POST /api/v1/drivers/{id}/assignments`), przypisanie przy
 tworzeniu pojazdu oraz wybór kierowcy w ewidencji (`PATCH /api/v1/trips/{id}/annotation`)
 błędem `409 LICENSE_INCOMPATIBLE`, nie usuwając historycznych przypisań i przejazdów.
+
+## Metryki i bezpieczny identyfikator korelacji (SCRUM-114)
+
+- Każde żądanie HTTP oraz cykl workera synchronizacji posiada ograniczony
+  identyfikator korelacji (`X-Correlation-ID`, akceptowane `^[A-Za-z0-9._-]{8,64}$`,
+  w przeciwnym razie losowe `uuid4().hex`), zwracany w nagłówku odpowiedzi,
+  w `error.correlation_id` dla błędów `5xx` oraz w bezpiecznych logach błędów `5xx` i synchronizacji.
+- `GET /api/v1/observability/metrics` (`?format=json` lub `?format=prometheus`)
+  wymaga uwierzytelnionego konta z rolą `admin` (`403 FORBIDDEN` dla `editor`
+  i `viewer`). Udostępnia `api_up`, liczniki i `p95` żądań HTTP po szablonach tras,
+  stan puli połączeń DB, wiek i kody synchronizacji WEBFLEET, wolne miejsce na dysku,
+  stan znaczników backupu/odtworzenia (`not_configured` z `deferred_to: "SCRUM-84"`
+  gdy `FLEET_FLOW_BACKUP_STATE` jest puste), dni ważności certyfikatu TLS
+  (`TLS_CERT_PATH`, progi `TLS_WARNING_DAYS=21` i `TLS_CRITICAL_DAYS=7`) oraz
+  zanonimizowane kody zdarzeń auth i SMTP.
+- Szczegóły granic prywatności, uprawnień i retencji:
+  [SCRUM-114 observability](../docs/security/SCRUM-114-observability.md).
