@@ -1,4 +1,4 @@
-import mapboxgl from "mapbox-gl";
+import * as mapboxgl from "mapbox-gl/esm";
 import type { FleetFeature } from "../model/types";
 import { statusLabels } from "../model/types";
 import { vehiclesAtPoint } from "../model/marker-model";

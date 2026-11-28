@@ -81,6 +81,7 @@ def seed(engine):
             session.execute(delete(model).where(model.user_id.in_(temporary_ids)))
         session.execute(delete(User).where(User.username.in_(temporary)))
         fixtures = (
+            ("e2e-admin", "Test admin", "admin"),
             ("e2e-editor", "Test editor", "editor"),
             ("e2e-viewer", "Test viewer", "viewer"),
             ("e2e-editor-two", "Test editor two", "editor"),

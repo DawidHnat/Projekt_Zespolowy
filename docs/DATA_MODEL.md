@@ -27,6 +27,47 @@ dezaktywuje rekord po kompletnym odczycie, bez usuwania historii i ręcznych pó
 Nie importujemy nazw, loginów, kontaktów ani innych pól kierowców ze źródła.
 User oznacza osobę korzystającą z aplikacji, Driver — ręcznie opisany wpis floty.
 
+## Kartoteka kierowców i przypisania — SCRUM-52
+
+- Kierowca tworzy i edytuje wyłącznie operator w kartotece Fleet-Flow.
+  Synchronizacja WEBFLEET nie tworzy, nie nadpisuje i nie dezaktywuje
+  `Driver` ani ręcznych przypisań.
+- Jeden kierowca może być przypisany do wielu pojazdów, a jeden pojazd może
+  mieć wielu bieżących kierowców. Relacje są osobnymi rekordami
+  `DriverAssignment`; nie wybiera się ani nie utrzymuje globalnego kierowcy
+  głównego.
+- `DriverAssignment` ma pola kontraktu `started_at` i `ended_at` (znacznik czasu
+  UTC) oraz `active`. Bieżące przypisanie ma `active=true` i `ended_at=null`;
+  zakończenie ustawia `ended_at` na czas zamknięcia. Okres jest półotwarty
+  `[started_at, ended_at)`. Przypisania przeniesione ze starego wskaźnika mają
+  `started_at=null` (nieznany początek, `start_known=false`), bez zgadywania historii.
+- Para kierowca–pojazd może mieć tylko jedno aktywne przypisanie (unikalny
+  indeks częściowy); ponowne przypisanie po zakończeniu tworzy nowy rekord.
+  Zamknięcie i dezaktywacja blokują wiersze (`SELECT … FOR UPDATE`), więc
+  równoczesna zmiana kończy się konfliktem 409 zamiast podwójnego zamknięcia.
+- Zmiana bieżącego przypisania nie zmienia kierowcy zapisanego przy dawnych
+  przejazdach ani nie usuwa historii relacji. Kierowca przejazdu w ewidencji
+  jest utrwalany osobno, w adnotacji przejazdu (SCRUM-70), a nie wyliczany
+  z bieżących przypisań.
+- Wyłączenie kierowcy zamyka jego bieżące przypisania. Zachowuje UUID rekordu,
+  dane ręczne i dane historyczne; ponowna aktywacja nie przywraca relacji
+  automatycznie.
+- Formularz i API nie zbierają numerów PESEL ani dokumentów. Wymagane jest
+  imię i nazwisko/nazwa oraz wewnętrzne pole `identifier`, unikalne w koncie,
+  ale edytowalne (`DriverPatch`). Historię i relacje wiąże wyłącznie stały
+  UUID rekordu, nigdy `identifier`. Opcjonalny kontakt i kategorie prawa jazdy
+  podlegają walidacji po wpisaniu.
+- Kontrola zgodności kategorii kierowcy z wymaganiami pojazdu nie jest
+  wykonywana automatycznie w tym przyroście. Brak danych oznacza
+  `Do sprawdzenia`, a nie zgodność; osobną blokadę opisuje SCRUM-70.
+- Import historii przejazdów (SCRUM-24) przypisuje kierowcę tylko wtedy, gdy
+  w chwili rozpoczęcia przejazdu pojazd miał dokładnie jedno znane przypisanie.
+  Przy kilku równoczesnych przypisaniach lub nieznanym początku pole zostaje
+  puste i kierowcę przejazdu wskazuje operator w ewidencji.
+- Testy akceptacyjne: [API i model](../backend/tests/test_manual_drivers.py),
+  [PostgreSQL](../backend/tests/test_manual_drivers_postgres.py),
+  [przeglądarka](../frontend/e2e/drivers.spec.ts).
+
 ## Jednostki, czas i jakość
 
 - GPS: stopnie WGS84; GeoJSON ma kolejność `[longitude, latitude]`. Para musi być

@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.core.config import SmtpSettings, load_environment
 from app.core.database import get_session
 from app.core.errors import ApiError
+from app.core.observability import active_metrics, bind_correlation_id, current_correlation_id
 from app.integrations.mail.client import send_password_reset
 from app.modules.auth.links import PasswordLinkBody, settle_delivery, stage_link
 from app.modules.auth.models import PasswordReset, User
@@ -42,36 +43,44 @@ class RequestReset(BaseModel):
         return value
 
 
-def deliver_reset(app, username, origin):
-    try:
-        with app.state.sessions() as session:
-            user = session.scalar(select(User).where(User.username == username).with_for_update())
-            if not user or not user.active or not user.email:
-                return
-            settings = SmtpSettings.from_environment(load_environment())
-            user_id, recipient = user.id, user.email
-            token, expires_at = stage_link(
-                session, PasswordReset(user_id=user_id), timedelta(minutes=20)
-            )
-            session.commit()
-    except Exception:
-        logger.warning("password_reset_delivery_setup_failed")
-        return
+def deliver_reset(app, username, origin, correlation_id: str | None = None):
+    metrics = active_metrics(app)
+    with bind_correlation_id(correlation_id):
+        try:
+            with app.state.sessions() as session:
+                user = session.scalar(
+                    select(User).where(User.username == username).with_for_update()
+                )
+                if not user or not user.active or not user.email:
+                    return
+                settings = SmtpSettings.from_environment(load_environment())
+                user_id, recipient = user.id, user.email
+                token, expires_at = stage_link(
+                    session, PasswordReset(user_id=user_id), timedelta(minutes=20)
+                )
+                session.commit()
+        except Exception:
+            metrics.record_smtp_event("setup_failed")
+            logger.warning("password_reset_delivery_setup_failed")
+            return
 
-    delivered = False
-    try:
-        send_password_reset(settings, recipient, origin + "/#reset-password?token=" + token)
-        delivered = True
-    except Exception:
-        # Count one fixed event per failed delivery; no recipient, token or SMTP exception.
-        logger.warning("password_reset_smtp_failed")
+        delivered = False
+        try:
+            send_password_reset(settings, recipient, origin + "/#reset-password?token=" + token)
+            delivered = True
+            metrics.record_smtp_event("delivered")
+        except Exception:
+            # Count one fixed event per failed delivery; no recipient, token or SMTP exception.
+            metrics.record_smtp_event("smtp_failed")
+            logger.warning("password_reset_smtp_failed")
 
-    try:
-        with app.state.sessions() as session:
-            settle_delivery(session, PasswordReset, user_id, token, expires_at, delivered)
-            session.commit()
-    except Exception:
-        logger.warning("password_reset_delivery_state_failed")
+        try:
+            with app.state.sessions() as session:
+                settle_delivery(session, PasswordReset, user_id, token, expires_at, delivered)
+                session.commit()
+        except Exception:
+            metrics.record_smtp_event("state_failed")
+            logger.warning("password_reset_delivery_state_failed")
 
 
 @router.post("/request")
@@ -88,8 +97,11 @@ def request_reset(
         )
         count_attempt(session, digest("reset-account:" + username), limit=3, window_seconds=3600)
     except ApiError:
+        active_metrics(request.app).record_auth_event("rate_limited")
         return {"ok": True}
-    background.add_task(deliver_reset, request.app, username, request.headers["origin"])
+    background.add_task(
+        deliver_reset, request.app, username, request.headers["origin"], current_correlation_id()
+    )
     return {"ok": True}
 
 

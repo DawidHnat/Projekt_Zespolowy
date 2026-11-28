@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.core.config import ConfigurationError, SmtpSettings, load_environment
 from app.core.database import get_session
 from app.core.errors import ApiError
+from app.core.observability import active_metrics
 from app.integrations.mail.client import SmtpError, send_email_confirmation, send_password_changed
 from app.modules.auth.links import (
     CurrentPassword,
@@ -57,14 +58,17 @@ class ConfirmEmailChange(LinkBody):
     model_config = ConfigDict(extra="forbid")
 
 
-def notify_password_changed(recipient):
+def notify_password_changed(recipient, app=None):
     if not recipient:
         return
+    metrics = active_metrics(app)
     try:
         settings = SmtpSettings.from_environment(load_environment())
         send_password_changed(settings, recipient)
+        metrics.record_smtp_event("delivered")
     except Exception:
         # Notification failure must not undo a successful password change or expose SMTP data.
+        metrics.record_smtp_event("notification_failed")
         return
 
 
@@ -112,7 +116,7 @@ def change_password(
     issue_session(request, response, session, locked)
     recipient = locked.email
     session.commit()
-    background.add_task(notify_password_changed, recipient)
+    background.add_task(notify_password_changed, recipient, request.app)
     return {"ok": True}
 
 

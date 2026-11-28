@@ -11,6 +11,12 @@ from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from app.core.models import Measurement, SyncState, Vehicle
+from app.core.observability import (
+    active_metrics,
+    bind_correlation_id,
+    bind_metrics,
+    current_correlation_id,
+)
 from app.core.settings import DEFAULT_STALE_SECONDS
 from app.integrations.webfleet.client import REQUEST_INTERVALS, WebfleetClient, WebfleetError
 from app.integrations.webfleet.models import MAX_ODOMETER_KM, ObjectSnapshot
@@ -30,8 +36,16 @@ logger = logging.getLogger("fleet_flow.sync")
 
 def log_sync_failure(code):
     # Fixed codes only. Never log exceptions, SQL, source accounts or provider payloads.
+    active_metrics().record_sync_event(code)
     logger.error(
-        json.dumps({"event": "webfleet_sync_failed", "code": code, "event_id": uuid4().hex})
+        json.dumps(
+            {
+                "event": "webfleet_sync_failed",
+                "code": code,
+                "event_id": uuid4().hex,
+                "correlation_id": current_correlation_id(),
+            }
+        )
     )
 
 
@@ -207,6 +221,7 @@ def sync_once(
         ).scalar()
         connection.commit()
         if not locked:
+            active_metrics().record_sync_event("busy")
             return "busy"
         try:
             with Session(connection, expire_on_commit=False) as session:
@@ -216,6 +231,7 @@ def sync_once(
                     and state.last_attempt_at
                     and now - aware(state.last_attempt_at) < timedelta(seconds=minimum_interval)
                 ):
+                    active_metrics().record_sync_event("rate_limited")
                     return "rate_limited"
                 if not state:
                     state = SyncState(source_account=source)
@@ -242,6 +258,7 @@ def sync_once(
                     state.last_success_at = completed_at
                     state.error_code = None
                     session.commit()
+                    active_metrics().record_sync_event("ok")
                     return "ok"
                 except WebfleetError as error:
                     session.rollback()
@@ -264,6 +281,7 @@ def sync_once(
                     )
                     state.error_code = error.code
                     session.commit()
+                    active_metrics().record_sync_event(error.code)
                     return "degraded"
                 except Exception:
                     session.rollback()
@@ -276,18 +294,21 @@ def sync_once(
             connection.commit()
 
 
-async def sync_worker(engine, settings, interval, *, stale_seconds=DEFAULT_STALE_SECONDS):
+async def sync_worker(
+    engine, settings, interval, *, stale_seconds=DEFAULT_STALE_SECONDS, metrics=None
+):
     while True:
-        try:
-            result = await asyncio.to_thread(
-                sync_once,
-                engine,
-                settings,
-                sync_interval_seconds=interval,
-                stale_seconds=stale_seconds,
-            )
-            if result == "degraded":
-                log_sync_failure("SOURCE_DEGRADED")
-        except Exception:
-            log_sync_failure("SYNC_INTERNAL_ERROR")
+        with bind_correlation_id(None), bind_metrics(metrics):
+            try:
+                result = await asyncio.to_thread(
+                    sync_once,
+                    engine,
+                    settings,
+                    sync_interval_seconds=interval,
+                    stale_seconds=stale_seconds,
+                )
+                if result == "degraded":
+                    log_sync_failure("SOURCE_DEGRADED")
+            except Exception:
+                log_sync_failure("SYNC_INTERNAL_ERROR")
         await asyncio.sleep(interval)
