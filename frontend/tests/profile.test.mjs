@@ -18,7 +18,7 @@ test("profile errors do not reflect secrets and profile links work directly", ()
   for (const code of ["INVALID_CURRENT_PASSWORD", "PASSWORD_UNCHANGED", "RATE_LIMITED", "VALIDATION_ERROR", "UNKNOWN"]) {
     assert.doesNotMatch(profileError({ code, message: "private-password-token-SQL" }), /private|token|SQL/);
   }
-  assert.equal(profileRole("viewer"), "Tylko odczyt");
+  assert.equal(profileRole("viewer"), "Użytkownik");
   assert.equal(profileRole("__proto__"), "Nieznana rola");
   assert.equal(profileRole("toString"), "Nieznana rola");
   assert.equal(sectionFromHash("#profile"), "profile");
