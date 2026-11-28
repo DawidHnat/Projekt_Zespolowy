@@ -1,10 +1,13 @@
 import io
+import json
+import os
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from unittest.mock import patch
 from urllib.error import URLError
 
 import verify_deployment as smoke
+import verify_sprint3_features as sprint3
 
 
 class DeploymentTests(unittest.TestCase):
@@ -99,6 +102,114 @@ class DeploymentTests(unittest.TestCase):
             opener.return_value.__enter__.return_value.status = 503
             with self.assertRaises(ValueError):
                 smoke.fetch("https://app.example/")
+
+
+class Sprint3SmokeTests(unittest.TestCase):
+    base_url = "https://app.example"
+
+    def setUp(self):
+        self.viewer = {
+            "username": "viewer",
+            "display_name": "Test viewer",
+            "role": "viewer",
+            "email": None,
+        }
+
+    def test_profile_and_driver_directory_use_the_same_session(self):
+        page = {"items": [], "page": 1, "page_size": 1, "total": 0, "summary": {}}
+        with (
+            patch.object(
+                sprint3,
+                "fetch_json",
+                side_effect=[{"user": self.viewer}, self.viewer, page, {}],
+            ) as fetch,
+            redirect_stdout(io.StringIO()) as output,
+        ):
+            sprint3.verify(self.base_url, "viewer", "synthetic")
+        calls = [call.args for call in fetch.call_args_list]
+        self.assertTrue(all(args[0] is calls[0][0] for args in calls))
+        self.assertEqual(
+            [args[2] for args in calls],
+            [
+                "/api/v1/auth/login",
+                "/api/v1/auth/profile",
+                "/api/v1/drivers/search",
+                "/api/v1/auth/logout",
+            ],
+        )
+        self.assertIn("PASS SCRUM-42 + SCRUM-49", output.getvalue())
+
+    def test_incorrect_role_still_ends_the_session(self):
+        with (
+            patch.object(
+                sprint3,
+                "fetch_json",
+                side_effect=[
+                    {"user": self.viewer},
+                    {**self.viewer, "role": "admin"},
+                    {},
+                ],
+            ) as fetch,
+            self.assertRaises(ValueError),
+        ):
+            sprint3.verify(self.base_url, "viewer", "synthetic")
+        self.assertEqual(fetch.call_args.args[2], "/api/v1/auth/logout")
+
+    def test_invalid_login_json_still_attempts_logout(self):
+        error = json.JSONDecodeError("Invalid response", "", 0)
+        with (
+            patch.object(sprint3, "fetch_json", side_effect=[error, {}]) as fetch,
+            self.assertRaises(json.JSONDecodeError) as raised,
+        ):
+            sprint3.verify(self.base_url, "viewer", "synthetic")
+        self.assertIs(raised.exception, error)
+        self.assertEqual(fetch.call_args.args[2], "/api/v1/auth/logout")
+
+    def test_cleanup_failure_preserves_the_primary_error(self):
+        error = ValueError("Invalid driver page")
+        with (
+            patch.object(
+                sprint3,
+                "fetch_json",
+                side_effect=[
+                    {"user": self.viewer},
+                    self.viewer,
+                    error,
+                    ValueError("private"),
+                ],
+            ),
+            redirect_stderr(io.StringIO()) as output,
+            self.assertRaises(ValueError) as raised,
+        ):
+            sprint3.verify(self.base_url, "viewer", "synthetic")
+        self.assertIs(raised.exception, error)
+        self.assertIn("viewer session cleanup", output.getvalue())
+        self.assertNotIn("private", output.getvalue())
+
+    def test_different_viewer_is_rejected_even_if_login_and_profile_agree(self):
+        other_viewer = {**self.viewer, "username": "other-viewer"}
+        with (
+            patch.object(
+                sprint3,
+                "fetch_json",
+                side_effect=[{"user": other_viewer}, other_viewer, {}],
+            ) as fetch,
+            self.assertRaisesRegex(ValueError, "dedicated viewer"),
+        ):
+            sprint3.verify(self.base_url, "viewer", "synthetic")
+        self.assertEqual(fetch.call_args.args[2], "/api/v1/auth/logout")
+
+    def test_missing_credentials_fail_without_network(self):
+        with (
+            patch.dict(
+                os.environ,
+                {"DEV_SPRINT3_SMOKE_USERNAME": "", "DEV_SPRINT3_SMOKE_PASSWORD": ""},
+            ),
+            patch.object(sprint3, "verify") as verify,
+            redirect_stdout(io.StringIO()),
+        ):
+            self.assertEqual(sprint3.main(["--app-origin", self.base_url]), 1)
+        verify.assert_not_called()
 
 
 if __name__ == "__main__":

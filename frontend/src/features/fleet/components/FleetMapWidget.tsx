@@ -7,7 +7,10 @@ import { useFleet } from "../model/FleetProvider";
 import { updateTime } from "../model/types";
 import { FleetRefreshButton } from "./FleetRefreshButton";
 
-const VehicleMap = lazy(() => import("./VehicleMap"));
+const hasMapToken = import.meta.env.VITE_MAPBOX_TOKEN?.startsWith("pk.");
+const VehicleMap = lazy(() => hasMapToken
+  ? import("./VehicleMap")
+  : import("./MapConfigurationNotice"));
 
 export function FleetMapWidget() {
   const fleet = useFleet();
