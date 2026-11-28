@@ -1,26 +1,38 @@
+from datetime import timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response
-from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
-from sqlalchemy import delete, select
+from pydantic import BaseModel, ConfigDict, EmailStr
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.config import SmtpSettings, load_environment
+from app.core.config import ConfigurationError, SmtpSettings, load_environment
 from app.core.database import get_session
 from app.core.errors import ApiError
 from app.core.observability import active_metrics
-from app.integrations.mail.client import send_password_changed
-from app.modules.auth.models import LoginSession, PasswordReset, User
+from app.integrations.mail.client import SmtpError, send_email_confirmation, send_password_changed
+from app.modules.auth.links import (
+    CurrentPassword,
+    LinkBody,
+    NewPassword,
+    settle_delivery,
+    stage_link,
+)
+from app.modules.auth.models import EmailChange, User, normalize_identifier
 from app.modules.auth.router import count_attempt
 from app.modules.auth.service import (
     COOKIE_NAME,
     aware,
+    check_identifiers,
     check_origin,
     current_user,
     digest,
     issue_session,
+    lock_account_changes,
+    locked_current_user,
     now_utc,
     password_hasher,
+    revoke_recovery_links,
     revoke_sessions,
     verify_password,
 )
@@ -32,45 +44,18 @@ UserDep = Annotated[User, Depends(current_user)]
 
 class ChangePassword(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    current_password: SecretStr = Field(min_length=1, max_length=1024)
-    new_password: SecretStr = Field(min_length=12, max_length=1024)
-
-    @field_validator("current_password", "new_password")
-    @classmethod
-    def valid_password_text(cls, value: SecretStr):
-        try:
-            value.get_secret_value().encode("utf-8")
-        except UnicodeEncodeError as exc:
-            raise ValueError("Invalid password text") from exc
-        return value
+    current_password: CurrentPassword
+    new_password: NewPassword
 
 
-def locked_current_user(session, request, user):
-    # Same lock order as password reset: user, then session/token. Login also locks User.
-    locked = session.scalar(
-        select(User)
-        .where(User.id == user.id)
-        .with_for_update()
-        .execution_options(populate_existing=True)
-    )
-    token = request.cookies.get(COOKIE_NAME, "")
-    login = session.scalar(
-        select(LoginSession)
-        .where(
-            LoginSession.token_hash == digest(token),
-            LoginSession.user_id == user.id,
-        )
-        .execution_options(populate_existing=True)
-    )
-    if (
-        not locked
-        or not locked.active
-        or locked.role not in ("admin", "editor", "viewer")
-        or not login
-        or aware(login.expires_at) <= now_utc()
-    ):
-        raise ApiError(401, "UNAUTHENTICATED", "Zaloguj się ponownie")
-    return locked
+class RequestEmailChange(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    current_password: CurrentPassword
+    new_email: EmailStr
+
+
+class ConfirmEmailChange(LinkBody):
+    model_config = ConfigDict(extra="forbid")
 
 
 def notify_password_changed(recipient, app=None):
@@ -92,6 +77,8 @@ def profile(user: UserDep):
     return {
         "username": user.username,
         "display_name": user.display_name,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
         "email": user.email,
         "role": user.role,
     }
@@ -125,11 +112,77 @@ def change_password(
         raise ApiError(422, "PASSWORD_UNCHANGED", "Wybierz inne nowe hasło")
     locked.password_hash = password_hasher.hash(new)
     revoke_sessions(session, locked)
-    session.execute(delete(PasswordReset).where(PasswordReset.user_id == locked.id))
+    revoke_recovery_links(session, locked)
     issue_session(request, response, session, locked)
     recipient = locked.email
     session.commit()
     background.add_task(notify_password_changed, recipient, request.app)
+    return {"ok": True}
+
+
+@router.post("/email/change/request", dependencies=[Depends(check_origin)])
+def request_email_change(
+    body: RequestEmailChange, request: Request, session: SessionDep, user: UserDep
+):
+    ip = request.client.host if request.client else "unknown"
+    count_attempt(session, digest(f"email-change-user:{user.id}"), limit=3)
+    count_attempt(session, digest(f"email-change-ip:{ip}"), limit=10)
+    locked = locked_current_user(session, request, user)
+    if not verify_password(body.current_password.get_secret_value(), locked.password_hash):
+        raise ApiError(400, "INVALID_CURRENT_PASSWORD", "Niepoprawne aktualne hasło")
+    recipient = body.new_email
+    if normalize_identifier(recipient) == locked.email_identifier:
+        raise ApiError(409, "EMAIL_UNCHANGED", "Wpisz inny adres e-mail")
+    try:
+        settings = SmtpSettings.from_environment(load_environment())
+    except ConfigurationError:
+        raise ApiError(
+            503, "EMAIL_CONFIRMATION_UNAVAILABLE", "Wysyłka linku jest niedostępna"
+        ) from None
+
+    user_id = locked.id
+    link = EmailChange(user_id=user_id, new_email=recipient, account_version=locked.version)
+    token, expires_at = stage_link(session, link, timedelta(minutes=20))
+    session.commit()
+    url = request.headers["origin"] + "/#confirm-email?token=" + token
+    delivered = False
+    try:
+        send_email_confirmation(settings, recipient, url)
+        delivered = True
+    except SmtpError:
+        raise ApiError(503, "EMAIL_CONFIRMATION_FAILED", "Nie udało się wysłać linku") from None
+    finally:
+        settle_delivery(session, EmailChange, user_id, token, expires_at, delivered)
+        session.commit()
+    return {"ok": True}
+
+
+@router.post("/email/change/confirm", dependencies=[Depends(check_origin)])
+def confirm_email_change(
+    body: ConfirmEmailChange,
+    request: Request,
+    response: Response,
+    session: SessionDep,
+    user: UserDep,
+):
+    count_attempt(session, digest(f"email-confirm-user:{user.id}"))
+    # Share the account-write lock with admin operations and the CLI before locking User.
+    lock_account_changes(session)
+    locked = locked_current_user(session, request, user)
+    link = session.scalar(
+        select(EmailChange).where(
+            EmailChange.token_hash == digest(body.token), EmailChange.user_id == locked.id
+        )
+    )
+    if not link or aware(link.expires_at) <= now_utc() or link.account_version != locked.version:
+        raise ApiError(400, "INVALID_EMAIL_CONFIRMATION", "Link jest niepoprawny lub wygasł")
+    check_identifiers(session, link.new_email, except_user=locked.id)
+    locked.email = link.new_email
+    locked.version += 1
+    revoke_sessions(session, locked)
+    revoke_recovery_links(session, locked)
+    issue_session(request, response, session, locked)
+    session.commit()
     return {"ok": True}
 
 
