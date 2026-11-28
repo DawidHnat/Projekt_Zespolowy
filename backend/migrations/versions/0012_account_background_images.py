@@ -2,7 +2,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "0012_account_background_images"
-down_revision = "0011_vehicle_card_ownership"
+down_revision = "0015_merge_accounts_and_trips"
 
 
 def upgrade():
@@ -25,7 +25,7 @@ def downgrade():
         op.execute("LOCK TABLE account_background_images IN ACCESS EXCLUSIVE MODE")
     if connection.scalar(sa.text("SELECT count(*) FROM account_background_images")):
         raise RuntimeError(
-            "SCRUM-148: account backgrounds exist and cannot be represented by the 0011 "
+            "SCRUM-148: account backgrounds exist and cannot be represented by the previous "
             "schema; keep the schema and roll back only the application"
         )
     op.drop_table("account_background_images")

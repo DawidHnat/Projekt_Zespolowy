@@ -544,12 +544,12 @@ def test_migration_0012_account_background_images_blocks_lossy_downgrade():
                 ),
                 {"id": user_id, "image_id": uuid4(), "image": VALID_WEBP},
             )
-        failed = alembic("downgrade", "0011_vehicle_card_ownership")
+        failed = alembic("downgrade", "0015_merge_accounts_and_trips")
         assert failed.returncode != 0 and "SCRUM-148" in failed.stdout + failed.stderr
         with engine.begin() as conn:
             assert conn.scalar(text("SELECT count(*) FROM account_background_images")) == 1
             conn.execute(text("DELETE FROM users WHERE id = :id"), {"id": user_id})
-        assert alembic("downgrade", "0011_vehicle_card_ownership").returncode == 0
+        assert alembic("downgrade", "0015_merge_accounts_and_trips").returncode == 0
         assert alembic("upgrade", "head").returncode == 0
     finally:
         with engine.begin() as conn:
